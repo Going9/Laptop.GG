@@ -33,7 +33,6 @@ jobs:
       
     - name: run Gradle
       run: ./gradlew build
-      working-directory: laptopGG
 
     - name: docker image build
       run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg .
