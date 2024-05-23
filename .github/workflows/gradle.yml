@@ -26,15 +26,15 @@ jobs:
 
     - name: chmod +x ./gradlew
       run: chmod +x ./gradlew
-      working-directory: laptopGG
+      working-directory: laptop.GG
       
     - name: Run Gradle Build
       run: ./gradlew build
-      working-directory: laptopGG
+      working-directory: laptop.GG
 
     - name: Build Docker Image
       run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg .
-      working-directory: laptopGG
+      working-directory: laptop.GG
 
     - name: Docker Login
       uses: docker/login-action@v2
