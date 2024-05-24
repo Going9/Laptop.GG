@@ -27,11 +27,14 @@ repositories {
 }
 
 dependencies {
+	implementation("org.xerial:sqlite-jdbc:3.25.2")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("com.mysql:mysql-connector-j:8.4.0")
+	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+	implementation("org.hibernate.orm:hibernate-core:6.2.7.Final")
+	implementation("org.hibernate.orm:hibernate-community-dialects:6.2.7.Final")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -48,5 +51,3 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
-
-
