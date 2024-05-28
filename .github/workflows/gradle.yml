@@ -51,14 +51,13 @@ jobs:
 
     steps:
       - name: docker pull
-        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg
+        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg
 
       - name: docker stop container
-        run: sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
+        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker stop $(sudo docker ps -q) 2>/dev/null || true
 
       - name: docker run new container
-        run: sudo docker run --name laptop-gg --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg
+        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg
 
       - name: delete old docker image
-        run: sudo docker system prune -f
-        #test
+        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker system prune -f
