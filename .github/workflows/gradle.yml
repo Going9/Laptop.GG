@@ -31,8 +31,12 @@ jobs:
         run: ./gradlew build
         working-directory: LaptopGG
 
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg .
+      - name: Build Docker Image (Blue)
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:blue .
+        working-directory: LaptopGG
+
+      - name: Build Docker Image (Green)
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:green .
         working-directory: LaptopGG
 
       - name: Docker Login
@@ -41,23 +45,39 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Push Docker Image to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg
+      - name: Push Docker Image to Docker Hub (Blue)
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:blue
         working-directory: LaptopGG
 
-  run-docker-image-on-ec2:
+      - name: Push Docker Image to Docker Hub (Green)
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:green
+        working-directory: LaptopGG
+
+  deploy:
     needs: build
     runs-on: self-hosted
 
     steps:
-      - name: docker pull
-        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg
+      - name: Docker Login
+        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: docker stop container
-        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker stop $(sudo docker ps -q) 2>/dev/null || true
+      - name: Pull Blue Image
+        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:blue
 
-      - name: docker run new container
-        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg
+      - name: Pull Green Image
+        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:green
 
-      - name: delete old docker image
+      - name: Deploy Blue Container
+        run: |
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker stop laptop-gg-green || true
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker rm laptop-gg-green || true
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg-blue --rm -d -p 8081:8080 ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:blue
+
+      - name: Deploy Green Container
+        run: |
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker stop laptop-gg-blue || true
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker rm laptop-gg-blue || true
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg-green --rm -d -p 8082:8080 ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:green
+
+      - name: Clean Up Old Images
         run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker system prune -f
