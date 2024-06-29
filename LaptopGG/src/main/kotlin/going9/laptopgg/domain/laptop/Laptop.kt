@@ -1,10 +1,9 @@
-package Going9.LaptopGG.domain.laptop
+package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
 
 @Entity
 class Laptop(
-
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     val laptopCpus: MutableList<LaptopCpu>,
 
@@ -17,17 +16,19 @@ class Laptop(
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     val laptopSsds: MutableList<LaptopSsd>,
 
+    @OneToOne(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val laptopManufacturers: LaptopManufacturer,
+
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val laptopManufacturers: MutableList<LaptopManufacturer>,
+    val laptopScreen: MutableList<LaptopScreen>,
 
-    val weight: String,
-
+    val weight: Int,
     val thunderVolt: Int? = null,
-
+    val usb4: Int? = null,
     val battery: Int,
+    val name: String,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-) {
-}
+    val id: Long? = null
+)

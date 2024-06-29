@@ -1,4 +1,4 @@
-package Going9.LaptopGG.domain.laptop
+package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
 
@@ -9,9 +9,7 @@ class LaptopScreen(
     @JoinColumn(name = "laptop_id")
     val laptop: Laptop,
 
-    @ManyToOne
-    @JoinColumn(name = "screen_id")
-    val screen: Screen,
+    val panel: PanelType,
 
     val resolution: String,  // 1920*1080 로 넣고 타입캐스팅 하여 곱해서 연산
 
@@ -21,13 +19,13 @@ class LaptopScreen(
 
     val refreshRate: Int,
 
-    val glare: GlareType,
+    val isGlare: GlareType,
 
-    val screenSize: Double,
+    val screenSize: Double,  // 15.6, 16, ...
 
-    val screenTouch: Boolean,
+    val isTouch: Boolean,
 
-    val isSixTeenNine: Boolean,
+    val isSixteenNine: Boolean,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,4 +43,9 @@ enum class ColorGamut {
     BAD,
     GOOD,
     DESIGNER,
+}
+
+enum class PanelType {
+    IPS,
+    OLED
 }

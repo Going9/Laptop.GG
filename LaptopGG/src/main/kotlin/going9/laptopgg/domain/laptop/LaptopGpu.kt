@@ -1,17 +1,21 @@
-package Going9.LaptopGG.domain.laptop
+package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
 
 @Entity
-class LaptopManufacturer(
+class LaptopGpu(
 
     @ManyToOne
     @JoinColumn(name = "laptop_id")
     val laptop: Laptop,
 
     @ManyToOne
-    @JoinColumn(name = "manufacturer_id")
-    val manufacturer: Manufacturer,
+    @JoinColumn(name = "gpu_id")
+    val gpu: Gpu,
+
+    val tgp: Int? = null,
+
+    val isMux: Boolean,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

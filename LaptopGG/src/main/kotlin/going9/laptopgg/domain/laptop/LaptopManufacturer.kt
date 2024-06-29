@@ -1,24 +1,25 @@
-package Going9.LaptopGG.domain.laptop
+package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
 
 @Entity
-class LaptopGpu(
+class LaptopManufacturer(
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "laptop_id")
     val laptop: Laptop,
 
-    @ManyToOne
-    @JoinColumn(name = "gpu_id")
-    val gpu: Gpu,
-
-    val tgp: Int? = null,
-
-    val mux: Boolean,
+    val service: ServiceRank,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 ) {
+}
+
+enum class ServiceRank {
+    TOP,
+    GOOD,
+    SOSO,
+    BAD,
 }

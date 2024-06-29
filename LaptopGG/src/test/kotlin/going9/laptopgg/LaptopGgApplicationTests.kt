@@ -1,4 +1,4 @@
-package Going9.LaptopGG
+package going9.laptopgg
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

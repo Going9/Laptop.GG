@@ -1,16 +1,26 @@
-package Going9.LaptopGG.domain.laptop
+package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
 
 @Entity
 class Gpu(
-    val name: String,
 
     @OneToMany(mappedBy = "gpu")
     val laptops: MutableList<LaptopGpu>,
 
+    val name: String,
+    val manufacturer: GpuManufacturer,
+    val isIGpu: Boolean,
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
-) {
+    ) {
+
+}
+
+enum class GpuManufacturer {
+    AMD,
+    NVIDIA,
+    INTEL
 }

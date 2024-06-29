@@ -1,17 +1,17 @@
-package Going9.LaptopGG.domain.laptop
+package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
 
 @Entity
-class LaptopCpu(
+class LaptopSsd(
 
     @ManyToOne
     @JoinColumn(name = "laptop_id")
     val laptop: Laptop,
 
-    @ManyToOne
-    @JoinColumn(name = "cpu_id")
-    val cpu: Cpu,
+    val capacity: Int,
+
+    val slot: Int? = null,  // if ssd upgrade possible, input count of ssd slot
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

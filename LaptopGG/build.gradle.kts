@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-	implementation("org.xerial:sqlite-jdbc:3.25.2")
+	implementation("org.xerial:sqlite-jdbc:3.41.2.2")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

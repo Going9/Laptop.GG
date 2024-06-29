@@ -1,21 +1,26 @@
-package Going9.LaptopGG.domain.laptop
+package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
 
 @Entity
 class Cpu(
 
-    val name: String,
-
-    val highPowerUsage: Boolean,
-
-    val isIntel: Boolean,
-
     @OneToMany(mappedBy = "cpu")
     val laptops: MutableList<LaptopCpu>,
+
+    val name: String,
+    val isHighPower: Boolean,
+    val manufacturer: CpuManufacturer,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
     ) {
+}
+
+enum class CpuManufacturer {
+    INTEL,
+    AMD,
+    APPLE,
+    QUALCOMM
 }
