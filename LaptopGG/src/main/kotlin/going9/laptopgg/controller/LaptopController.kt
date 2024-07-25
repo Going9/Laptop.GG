@@ -10,9 +10,4 @@ import org.springframework.web.bind.annotation.RestController
 class LaptopController(
     private val laptopService: LaptopService,
 ) {
-
-    @PostMapping("/laptop")
-    fun saveLapto(@RequestBody request: LaptopRequest){
-        laptopService.saveLaptop(request)
-    }
 }
