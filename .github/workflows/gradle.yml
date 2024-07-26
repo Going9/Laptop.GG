@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker stop laptop-gg || true
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker rm laptop-gg || true
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg --rm -d -p 8080:8080 -v /home/iggyu/data/LaptopGG.sqlite:/data/LaptopGG.sqlite ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
 
       - name: Clean Up Old Images
         run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker system prune -f
