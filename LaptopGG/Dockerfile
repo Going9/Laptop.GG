@@ -2,7 +2,7 @@
 FROM openjdk:17
 
 # 작업 디렉토리 설정
-WORKDIR /LaptopGG
+#WORKDIR /LaptopGG
 
 # 인자 설정 - JAR_File
 ARG JAR_FILE=build/libs/*.jar

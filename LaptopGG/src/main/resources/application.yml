@@ -17,7 +17,7 @@ spring:
         activate:
             on-profile: deploy
     datasource:
-        url: jdbc:sqlite:./LaptopGG.sqlite
+        url: jdbc:sqlite:/LaptopGG.sqlite
         driver-class-name: org.sqlite.JDBC
         username: ""
         password: ""
