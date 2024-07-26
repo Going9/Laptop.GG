@@ -1,6 +1,26 @@
 spring:
+    config:
+        activate:
+            on-profile: local
     datasource:
         url: jdbc:sqlite:./LaptopGG.sqlite
+        driver-class-name: org.sqlite.JDBC
+        username: ""
+        password: ""
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.community.dialect.SQLiteDialect
+
+---
+spring:
+    config:
+        activate:
+            on-profile: deploy
+    datasource:
+        url: jdbc:sqlite:/data/LaptopGG.sqlite
         driver-class-name: org.sqlite.JDBC
         username: ""
         password: ""
