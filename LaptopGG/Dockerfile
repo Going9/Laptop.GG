@@ -13,4 +13,5 @@ COPY ${JAR_FILE} app.jar
 #COPY build/libs/*.jar app.jar
 
 # 실행 명령어
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=deploy"]
+#ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=deploy"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
