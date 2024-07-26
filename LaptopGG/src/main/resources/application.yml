@@ -1,7 +1,4 @@
 spring:
-    config:
-        activate:
-            on-profile: local
     datasource:
         url: jdbc:sqlite:./LaptopGG.sqlite
         driver-class-name: org.sqlite.JDBC
