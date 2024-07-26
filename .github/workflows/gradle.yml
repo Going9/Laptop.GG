@@ -28,7 +28,7 @@ jobs:
         working-directory: LaptopGG
 
       - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest --build-arg PROFILE=deploy .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest .
         working-directory: LaptopGG
 
       - name: Docker Login
@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker stop laptop-gg || true
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker rm laptop-gg || true
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg --rm -d -p 8080:8080 -v /home/iggyu/data/LaptopGG.sqlite:/data/LaptopGG.sqlite ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg --rm -d -p 8080:8080 -v /home/iggyu/data/LaptopGG.sqlite:./LaptopGG.sqlite ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
 
       - name: Clean Up Old Images
         run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker system prune -f
