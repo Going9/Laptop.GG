@@ -3,8 +3,6 @@ name: Java CI with Gradle
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -27,15 +25,15 @@ jobs:
         run: chmod +x gradlew && ./gradlew build
         working-directory: LaptopGG
 
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest .
-        working-directory: LaptopGG
-
       - name: Docker Login
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build Docker Image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest .
+        working-directory: LaptopGG
 
       - name: Push Docker Image to Docker Hub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
@@ -46,17 +44,21 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Docker Login
         run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Pull Latest Image
-        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
-
-      - name: Deploy Container
+      - name: Pull Latest Images and Deploy with Docker Compose
         run: |
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker stop laptop-gg || true
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker rm laptop-gg || true
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker run --name laptop-gg --rm -d -p 8080:8080 -v /home/iggyu/data/LaptopGG.sqlite:/LaptopGG/LaptopGG.sqlite -e PROFILE=deploy ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose down
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }} docker-compose pull
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }} docker-compose up -d
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        working-directory: LaptopGG
 
       - name: Clean Up Old Images
         run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker system prune -f
