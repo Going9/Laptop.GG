@@ -12,18 +12,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+      - name: Grant execute permission for gradlew
+        run: chmod +x backend/gradlew
 
       - name: Run Gradle Build
-        run: chmod +x gradlew && ./gradlew build
-        working-directory: LaptopGG
+        run: ./gradlew build
+        working-directory: backend
 
       - name: Docker Login
         uses: docker/login-action@v2
@@ -33,11 +34,10 @@ jobs:
 
       - name: Build Docker Image
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest .
-        working-directory: LaptopGG
+        working-directory: backend
 
       - name: Push Docker Image to Docker Hub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/laptop-gg:latest
-        working-directory: LaptopGG
 
   deploy:
     needs: build
@@ -58,7 +58,4 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-        working-directory: LaptopGG
-
-      - name: Clean Up Old Images
-        run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker system prune -f
+        working-directory: backend
