@@ -16,12 +16,10 @@ class Laptop(
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     val laptopSsds: MutableList<LaptopSsd>,
 
-    @OneToOne(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val laptopManufacturers: LaptopManufacturer,
-
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     val laptopScreen: MutableList<LaptopScreen>,
 
+    val manufacturer: String,
     val weight: Int,
     val thunderVolt: Int? = null,
     val usb4: Int? = null,
