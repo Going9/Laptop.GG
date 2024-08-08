@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPTOP.GG</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>LAPTOP.GG</h1>
+    <form th:action="@{/spec-form}" method="post">
+        <label for="budget">예산 입력:</label>
+        <input type="number" id="budget" name="budget" required>
+
+        <label for="usage">용도 선택:</label>
+        <select id="usage" name="usage" required>
+            <option value="사무용">사무용</option>
+            <option value="게이밍">게이밍</option>
+            <option value="영상편집">영상편집</option>
+        </select>
+
+        <div id="gaming-options" style="display: none;">
+            <label>게임 종류:</label>
+            <select id="game-type" name="game-type">
+                <option value="lol, 메이플">lol, 메이플</option>
+                <option value="로스트아크, 오버워치">로스트아크, 오버워치</option>
+                <option value="사이버펑크, RDR2">사이버펑크, RDR2</option>
+            </select>
+        </div>
+
+        <label for="weight">최대 무게 (kg):</label>
+        <input type="number" id="weight" name="weight" required>
+
+        <label for="tenkey">텐키 필요 여부:</label>
+        <select id="tenkey" name="tenkey" required>
+            <option value="예">예</option>
+            <option value="아니오">아니오</option>
+        </select>
+
+        <label for="foreign-laptop">외산 노트북 허용 여부:</label>
+        <select id="foreign-laptop" name="foreignLaptop" required>
+            <option value="AS 잘 되는 외산만">AS 잘 되는 외산만</option>
+            <option value="외산 노트북 전체">외산 노트북 전체</option>
+            <option value="외산 노트북 전체 제외">외산 노트북 전체 제외</option>
+        </select>
+
+        <button type="submit">제출</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('usage').addEventListener('change', function() {
+        if (this.value === 'gaming') {
+            document.getElementById('gaming-options').style.display = 'block';
+        } else {
+            document.getElementById('gaming-options').style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>

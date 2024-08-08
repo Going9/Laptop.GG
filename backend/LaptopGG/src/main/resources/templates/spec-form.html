@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPTOP.GG</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>입력한 사양</h1>
+    <p>예산: <span th:text="${budget}"></span></p>
+    <p>용도: <span th:text="${usage}"></span></p>
+    <p th:if="${gameType != null}">게임 종류: <span th:text="${gameType}"></span></p>
+    <p>최대 무게: <span th:text="${weight}"></span> kg</p>
+    <p>텐키 필요 여부: <span th:text="${tenkey}"></span></p>
+    <p>외산 노트북 허용 여부: <span th:text="${foreignLaptop}"></span></p>
+</div>
+</body>
+</html>
