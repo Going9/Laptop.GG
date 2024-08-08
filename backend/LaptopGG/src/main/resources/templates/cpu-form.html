@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU 등록</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>CPU 등록</h1>
+    <form th:action="@{/cpus}" method="post" th:object="${cpuRequest}">
+        <label for="name">CPU 이름:</label>
+        <input type="text" id="name" th:field="*{name}" required>
+
+        <label for="isHighPower">고성능 여부:</label>
+        <input type="checkbox" id="isHighPower" th:field="*{isHighPower}">
+
+        <label for="manufacturer">제조사:</label>
+        <select id="manufacturer" th:field="*{manufacturer}" required>
+            <option th:each="manufacturer : ${manufacturers}" th:value="${manufacturer}" th:text="${manufacturer}">Manufacturer</option>
+        </select>
+
+        <button type="submit">등록</button>
+    </form>
+</div>
+</body>
+</html>

@@ -8,9 +8,9 @@ class Cpu(
     @OneToMany(mappedBy = "cpu")
     val laptops: MutableList<LaptopCpu>,
 
-    val name: String,
-    val isHighPower: Boolean,
-    val manufacturer: CpuManufacturer,
+    val name: String?,
+    val isHighPower: Boolean?,
+    val manufacturer: CpuManufacturer?,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
