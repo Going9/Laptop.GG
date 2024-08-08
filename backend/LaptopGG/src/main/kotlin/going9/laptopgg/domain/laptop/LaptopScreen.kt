@@ -9,23 +9,25 @@ class LaptopScreen(
     @JoinColumn(name = "laptop_id")
     val laptop: Laptop,
 
-    val panel: PanelType,
+    val panel: PanelType,  // 패널 타입 (IPS, OLED 등)
 
-    val resolution: String,  // 1920*1080 로 넣고 타입캐스팅 하여 곱해서 연산
+    val resolutionWidth: Int,  // 가로 해상도
 
-    val brightness: Int,
+    val resolutionHeight: Int, // 세로 해상도
 
-    val colorGamut: ColorGamut,
+    val brightness: Int,  // 밝기 (니트)
 
-    val refreshRate: Int,
+    val colorAccuracy: ColorAccuracy,  // 색 정확도
 
-    val isGlare: GlareType,
+    val refreshRate: Int,  // 주사율 (Hz)
 
-    val screenSize: Double,  // 15.6, 16, ...
+    val glareType: GlareType,  // 글레어 유형 (NONE, GLARE, ANTI_GLARE)
 
-    val isTouch: Boolean,
+    val screenSize: Double,  // 화면 크기 (인치 단위, 예: 15.6, 16 등)
 
-    val isSixteenNine: Boolean,
+    val isTouch: Boolean,  // 터치 스크린 여부
+
+    val aspectRatio: String,  // 화면 비율 (예: "16:9", "16:10")
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +41,7 @@ enum class GlareType {
     ANTI_GLARE
 }
 
-enum class ColorGamut {
+enum class ColorAccuracy {
     BAD,
     GOOD,
     DESIGNER,
