@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class PageController(
-    private val restTemplateBuilder: RestTemplateBuilder,
-    private val cpuService: CpuService
+    private val apiController: ApiController,
 ) {
 
     @GetMapping("/")
@@ -43,21 +42,21 @@ class PageController(
 
     @GetMapping("/cpus/new")
     fun showCpuForm(model: Model): String {
-        model.addAttribute("cpuRequest", CpuRequest())
+        model.addAttribute("cpuRequest", CpuRequest("", false, CpuManufacturer.INTEL))
         model.addAttribute("manufacturers", CpuManufacturer.values())
         return "cpu-form"
     }
 
     @GetMapping("/cpus")
     fun getAllCpus(model: Model): String {
-        val cpus = cpuService.getAllCpus()
+        val cpus = apiController.getAllCpus()
         model.addAttribute("cpus", cpus)
         return "cpu-list"
     }
 
     @PostMapping("/cpus")
     fun saveCpu(@ModelAttribute cpuRequest: CpuRequest): String {
-        cpuService.saveCpu(cpuRequest)
+        apiController.saveCpu(cpuRequest)
         return "redirect:/cpus"
     }
 }

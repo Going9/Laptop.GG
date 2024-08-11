@@ -3,6 +3,7 @@ package going9.laptopgg.service
 import going9.laptopgg.domain.laptop.Cpu
 import going9.laptopgg.domain.repository.CpuRepository
 import going9.laptopgg.dto.request.CpuRequest
+import going9.laptopgg.dto.response.CpuResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,7 +22,9 @@ class CpuService(
         cpuRepository.save(cpu)
     }
 
-    fun getAllCpus(): List<Cpu> {
+    @Transactional(readOnly = true)
+    fun getAllCpus(): List<CpuResponse> {
         return cpuRepository.findAll()
+            .map { cpu -> CpuResponse.of(cpu)}
     }
 }

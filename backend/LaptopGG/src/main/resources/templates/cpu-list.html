@@ -12,7 +12,7 @@
     <ul>
         <li th:each="cpu : ${cpus}">
             <span th:text="${cpu.name}"></span> - <span th:text="${cpu.manufacturer}"></span> -
-            <span th:text="${cpu.isHighPower ? '고성능' : '저전력'}"></span>
+            <span th:text="${cpu.isHighPower ? '고전력' : '저전력'}"></span>
         </li>
     </ul>
 </div>

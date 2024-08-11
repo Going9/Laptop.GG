@@ -2,6 +2,7 @@ package going9.laptopgg.controller
 
 import going9.laptopgg.domain.laptop.Cpu
 import going9.laptopgg.dto.request.CpuRequest
+import going9.laptopgg.dto.response.CpuResponse
 import going9.laptopgg.service.CpuService
 import going9.laptopgg.service.LaptopService
 import org.springframework.http.ResponseEntity
@@ -19,12 +20,12 @@ class ApiController(
 ) {
 
     @GetMapping
-    fun getAllCpus(): ResponseEntity<List<Cpu>> {
-        return ResponseEntity.ok(cpuService.getAllCpus())
+    fun getAllCpus(): List<CpuResponse> {
+        return cpuService.getAllCpus()
     }
 
     @PostMapping
-    fun saveCpu(@RequestBody request: CpuRequest) {
-        cpuService.saveCpu(request)
+    fun saveCpu(@RequestBody cpuRequest: CpuRequest) {
+        cpuService.saveCpu(cpuRequest)
     }
 }
