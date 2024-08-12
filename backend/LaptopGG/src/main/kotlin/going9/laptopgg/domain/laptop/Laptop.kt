@@ -20,17 +20,13 @@ class Laptop(
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     val laptopScreen: MutableList<Display>,
 
-    val manufacturer: String,
-
-    val weight: Int,
-
-    val thunderVolt: Int? = null,
-
-    val usb4: Int? = null,
-
-    val battery: Int,
-
     val name: String,
+    val manufacturer: String,
+    val weight: Int,
+    val thunderVolt: Int? = null,
+    val usb4: Int? = null,
+    val battery: Int,
+    val sdCard: String,  // 마이크로, 풀사이즈
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
