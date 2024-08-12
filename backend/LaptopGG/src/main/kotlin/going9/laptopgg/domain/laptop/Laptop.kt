@@ -4,26 +4,32 @@ import jakarta.persistence.*
 
 @Entity
 class Laptop(
-    @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val laptopCpus: MutableList<LaptopCpu>,
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val laptopGpus: MutableList<LaptopGpu>,
+    val cpuConfigurations: MutableList<LaptopCpu>,
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val laptopRams: MutableList<LaptopRam>,
+    val gpuConfigurations: MutableList<LaptopGpu>,
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val laptopSsds: MutableList<LaptopSsd>,
+    val ramInfos: MutableList<Ram>,
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val laptopScreen: MutableList<LaptopScreen>,
+    val storages: MutableList<Storage>,
+
+    @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val laptopScreen: MutableList<Display>,
 
     val manufacturer: String,
+
     val weight: Int,
+
     val thunderVolt: Int? = null,
+
     val usb4: Int? = null,
+
     val battery: Int,
+
     val name: String,
 
     @Id

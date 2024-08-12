@@ -6,7 +6,7 @@ import jakarta.persistence.*
 class Cpu(
 
     @OneToMany(mappedBy = "cpu")
-    val laptops: MutableList<LaptopCpu>,
+    val laptopCpus: MutableList<LaptopCpu>,
 
     val name: String,
     val isHighPower: Boolean,

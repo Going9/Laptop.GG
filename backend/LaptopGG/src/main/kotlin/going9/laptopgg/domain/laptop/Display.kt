@@ -3,7 +3,7 @@ package going9.laptopgg.domain.laptop
 import jakarta.persistence.*
 
 @Entity
-class LaptopScreen(
+class Display(
 
     @ManyToOne
     @JoinColumn(name = "laptop_id")

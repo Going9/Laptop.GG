@@ -3,7 +3,7 @@ package going9.laptopgg.domain.laptop
 import jakarta.persistence.*
 
 @Entity
-class LaptopSsd(
+class Storage(
 
     @ManyToOne
     @JoinColumn(name = "laptop_id")
