@@ -8,6 +8,8 @@ class LaptopRequest(
     // 랩탑 속성
     val name: String,
     val manufacturer: String,
+    val mainCategory: String,   // 대분류
+    val subCategory: String,    // 하위 분류
     val weight: Int,
     val thunderVolt: Int? = null,
     val usb4: Int? = null,

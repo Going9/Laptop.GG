@@ -22,6 +22,8 @@ class Laptop(
 
     val name: String,
     val manufacturer: String,
+    val mainCategory: String,   // 대분류
+    val subCategory: String,    // 하위 분류
     val weight: Int,
     val thunderVolt: Int? = null,
     val usb4: Int? = null,
