@@ -10,7 +10,7 @@ class Gpu(
 
     val name: String,
     val manufacturer: GpuManufacturer,
-    val isIGpu: Boolean,
+    val isIgpu: Boolean,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

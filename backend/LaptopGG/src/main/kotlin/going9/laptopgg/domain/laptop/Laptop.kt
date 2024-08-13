@@ -20,6 +20,9 @@ class Laptop(
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     val laptopScreen: MutableList<Display>,
 
+    val imgLink: String,
+    val price: Int,
+    val priceLink: String,
     val name: String,
     val manufacturer: String,
     val mainCategory: String,   // 대분류

@@ -5,6 +5,13 @@ import going9.laptopgg.domain.laptop.GlareType
 import going9.laptopgg.domain.laptop.PanelType
 
 class LaptopRequest(
+    // 이미지 링크
+    val imgLink: String,
+
+    // 가격
+    val price: Int,
+    val priceLink: String,
+
     // 랩탑 속성
     val name: String,
     val manufacturer: String,
@@ -21,11 +28,13 @@ class LaptopRequest(
 
     // gpu
     val gpu: List<Long>,
+    val tgp: Int? = null,
+    val isMux: Boolean,
 
     // RAM 고정 속성
     val ramSlot: Int? = null,  // RAM 슬롯 수, 업그레이드 가능 시 슬롯 수 입력 불가능하면 null
     val clockSpeed: Int,  // 램 클럭 스피드
-    val ddrType: Int, // drr4 or 5 or lpddr
+    val ddrType: Int, // ddr4, ddr5, lpddr
 
     // RAM 가변 속성
     val ramCapacity: List<Int>,
@@ -46,5 +55,47 @@ class LaptopRequest(
     val storageSlot: Int? = null,
 
     // 스토리지 가변 속성
-    val storageCapacity: List<Int>,
-)
+    val storageCapacity: List<Int>
+) {
+    companion object {
+        // 기본값을 가진 LaptopRequest 인스턴스를 생성하는 정적 팩토리 메서드
+        fun default(): LaptopRequest {
+            return LaptopRequest(
+                imgLink = "",
+                price = 0,
+                priceLink = "",
+                name = "",
+                manufacturer = "",
+                mainCategory = "",
+                subCategory = "",
+                weight = 0,
+                thunderVolt = null,
+                usb4 = null,
+                battery = 0,
+                sdCard = "",
+                cpu = listOf(),
+                gpu = listOf(),
+                tgp = null,
+                isMux = false,
+                ramSlot = null,
+                clockSpeed = 0,
+                ddrType = 0,
+                ramCapacity = listOf(),
+                panel = PanelType.IPS,
+                resolutionWidth = 0,
+                resolutionHeight = 0,
+                brightness = 0,
+                colorAccuracy = ColorAccuracy.GOOD,
+                refreshRate = 0,
+                glareType = GlareType.NONE,
+                screenSize = 0.0,
+                isTouch = false,
+                aspectRatio = "",
+                storageSlot = null,
+                storageCapacity = listOf()
+            )
+        }
+    }
+}
+
+

@@ -5,5 +5,15 @@ import going9.laptopgg.domain.laptop.GpuManufacturer
 class GpuRequest(
     val name: String,
     val manufacturer: GpuManufacturer,
-    val isIGpu: Boolean
-)
+    val isIgpu: Boolean,
+) {
+    companion object {
+        fun default(): GpuRequest {
+            return GpuRequest(
+                name = "",
+                manufacturer = GpuManufacturer.NVIDIA,
+                isIgpu = false,
+            )
+        }
+    }
+}

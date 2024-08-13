@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU 등록</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>GPU 등록</h1>
+    <form th:action="@{/gpus}" method="post" th:object="${gpuRequest}">
+        <label for="name">GPU 이름:</label>
+        <input type="text" id="name" th:field="*{name}" required>
+
+        <label for="manufacturer">제조사:</label>
+        <select id="manufacturer" th:field="*{manufacturer}" required>
+            <option th:each="manufacturer : ${manufacturers}" th:value="${manufacturer}" th:text="${manufacturer}">Manufacturer</option>
+        </select>
+
+        <label for="isIgpu">내장그래픽 여부:</label>
+        <input type="checkbox" id="isIgpu" th:field="*{isIgpu}">
+
+
+        <button type="submit">등록</button>
+    </form>
+</div>
+</body>
+</html>

@@ -16,8 +16,8 @@ class CpuService(
         val cpu = Cpu(
             mutableListOf(),
             request.name,
+            request.manufacturer,
             request.isHighPower,
-            request.manufacturer
         )
         cpuRepository.save(cpu)
     }

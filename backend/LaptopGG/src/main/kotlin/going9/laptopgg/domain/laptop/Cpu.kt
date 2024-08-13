@@ -9,8 +9,8 @@ class Cpu(
     val laptopCpus: MutableList<LaptopCpu>,
 
     val name: String,
-    val isHighPower: Boolean,
     val manufacturer: CpuManufacturer,
+    val isHighPower: Boolean,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

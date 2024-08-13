@@ -36,18 +36,21 @@ class Display(
 }
 
 enum class GlareType {
+    DEFAULT,
     NONE,
     GLARE,
     ANTI_GLARE
 }
 
 enum class ColorAccuracy {
+    DEFAULT,
     BAD,
     GOOD,
     DESIGNER,
 }
 
 enum class PanelType {
+    DEFAULT,
     IPS,
     OLED
 }
