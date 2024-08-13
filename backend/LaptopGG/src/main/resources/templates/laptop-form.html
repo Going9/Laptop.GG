@@ -92,17 +92,20 @@
             <input type="number" id="ddrType" th:field="*{ddrType}" min="3" required/>
         </div>
 
-        <div id="ram-capacity-container" class="form-group">
-            <div class="ram-capacity-item">
-                <input type="number" name="ramCapacity[]" placeholder="Enter RAM Capacity (GB)" class="form-control" required />
-                <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remove</button>
+        <div class="form-group">
+            <label for="ramCapacity">RAM 용량</label>
+            <div id="ram-capacity-container">
+                <div class="ram-capacity-item">
+                    <input type="number" id="ramCapacity" name="ramCapacity[]" placeholder="Enter RAM Capacity (GB)" class="form-control" required />
+                    <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remove</button>
+                </div>
             </div>
+            <button type="button" class="btn btn-secondary" onclick="addRamCapacity()">Add another RAM capacity</button>
         </div>
-        <button type="button" class="btn btn-secondary" onclick="addRamCapacity()">Add another RAM capacity</button>
 
         <!-- 디스플레이 정보 -->
         <div class="form-group">
-            <label for="panel">Panel Type</label>
+            <label for="panel">패널 타입</label>
             <select th:field="*{panel}" id="panel">
                 <option th:each="panelType : ${panelTypes}"
                         th:value="${panelType}"
@@ -111,22 +114,22 @@
         </div>
 
         <div class="form-group">
-            <label for="resolutionWidth">Resolution Width</label>
+            <label for="resolutionWidth">가로 해상도</label>
             <input type="number" id="resolutionWidth" th:field="*{resolutionWidth}" min="1" required />
         </div>
 
         <div class="form-group">
-            <label for="resolutionHeight">Resolution Height</label>
+            <label for="resolutionHeight">세로 해상도</label>
             <input type="number" id="resolutionHeight" th:field="*{resolutionHeight}" min="1" required />
         </div>
 
         <div class="form-group">
-            <label for="brightness">Brightness (nits)</label>
+            <label for="brightness">밝기(니트)</label>
             <input type="number" id="brightness" th:field="*{brightness}" min="1" required />
         </div>
 
         <div class="form-group">
-            <label for="colorAccuracy">Color Accuracy</label>
+            <label for="colorAccuracy">색 정확도</label>
             <select th:field="*{colorAccuracy}" id="colorAccuracy">
                 <option th:each="accuracy : ${colorAccuracyTypes}"
                         th:value="${accuracy}"
@@ -135,12 +138,12 @@
         </div>
 
         <div class="form-group">
-            <label for="refreshRate">Refresh Rate (Hz)</label>
+            <label for="refreshRate">주사율(Hz)</label>
             <input type="number" id="refreshRate" th:field="*{refreshRate}" min="1" required />
         </div>
 
         <div class="form-group">
-            <label for="glareType">Glare Type</label>
+            <label for="glareType">반사 타입</label>
             <select th:field="*{glareType}" id="glareType">
                 <option th:each="glare : ${glareTypes}"
                         th:value="${glare}"
@@ -149,23 +152,23 @@
         </div>
 
         <div class="form-group">
-            <label for="screenSize">Screen Size (inches)</label>
+            <label for="screenSize">스크린 사이즈(inches)</label>
             <input type="number" id="screenSize" th:field="*{screenSize}" min="1" step="0.1" required />
         </div>
 
         <div class="form-group">
             <input type="checkbox" th:field="*{isTouch}" id="isTouch" />
-            <label for="isTouch">Touch Screen</label>
+            <label for="isTouch">터치 스크린 여부</label>
         </div>
 
         <div class="form-group">
-            <label for="aspectRatio">Aspect Ratio</label>
+            <label for="aspectRatio">화면 비율</label>
             <input type="text" id="aspectRatio" th:field="*{aspectRatio}" required />
         </div>
 
         <!-- Storage 정보 -->
         <div class="form-group">
-            <label for="storageCapacity">Storage Capacities</label>
+            <label for="storageCapacity">스토리지 용량(GB)</label>
             <div id="storage-capacity-container">
                 <div class="storage-capacity-item">
                     <input type="number" id="storageCapacity" name="storageCapacity[]" placeholder="Enter Storage Capacity (GB)" class="form-control" required />
@@ -174,7 +177,6 @@
             </div>
             <button type="button" class="btn btn-secondary" onclick="addStorageCapacity()">Add another Storage capacity</button>
         </div>
-
 
         <button type="submit" class="btn-primary">Create/Update Laptop</button>
     </form>
