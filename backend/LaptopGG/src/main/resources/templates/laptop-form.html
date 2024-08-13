@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Laptop</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Create a New Laptop</h1>
+
+    <form th:action="@{/laptops/create}" th:object="${laptopRequest}" method="post">
+        <!-- Laptop 기본 정보 -->
+        <div class="form-group">
+            <label for="name">Laptop Name:</label>
+            <input type="text" th:field="*{name}" id="name" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+            <label for="manufacturer">Manufacturer:</label>
+            <input type="text" th:field="*{manufacturer}" id="manufacturer" class="form-control" required />
+        </div>
+
+        <!-- RAM 정보 -->
+        <div class="form-group">
+            <h3>RAM Specifications</h3>
+            <label for="clockSpeed">RAM Clock Speed (MHz):</label>
+            <input type="number" th:field="*{clockSpeed}" min="1" class="form-control" required/>
+
+            <label for="ddrType">RAM DDR Type:</label>
+            <input type="number" th:field="*{ddrType}" min="3" class="form-control" required/>
+
+            <h4>RAM Capacities:</h4>
+            <div id="ram-capacity-container">
+                <div class="ram-capacity-item">
+                    <input type="number" name="ramCapacity[]" placeholder="Enter RAM Capacity (GB)" class="form-control" required />
+                    <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remove</button>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addRamCapacity()">Add another RAM capacity</button>
+        </div>
+
+        <!-- Storage 정보 -->
+        <div class="form-group">
+            <h3>Storage Information</h3>
+            <h4>Storage Capacities:</h4>
+            <div id="storage-capacity-container">
+                <div class="storage-capacity-item">
+                    <input type="number" name="storageCapacity[]" placeholder="Enter Storage Capacity (GB)" class="form-control" required />
+                    <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remove</button>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addStorageCapacity()">Add another Storage capacity</button>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Create Laptop</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function addRamCapacity() {
+        const container = document.getElementById('ram-capacity-container');
+        const newDiv = document.createElement('div');
+        newDiv.classList.add('ram-capacity-item');
+        newDiv.innerHTML = `
+            <input type="number" name="ramCapacity[]" placeholder="Enter RAM Capacity (GB)" class="form-control" required />
+            <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remove</button>
+        `;
+        container.appendChild(newDiv);
+    }
+
+    function addStorageCapacity() {
+        const container = document.getElementById('storage-capacity-container');
+        const newDiv = document.createElement('div');
+        newDiv.classList.add('storage-capacity-item');
+        newDiv.innerHTML = `
+            <input type="number" name="storageCapacity[]" placeholder="Enter Storage Capacity (GB)" class="form-control" required />
+            <button type="button" class="btn btn-danger" onclick="removeElement(this)">Remove</button>
+        `;
+        container.appendChild(newDiv);
+    }
+
+    function removeElement(button) {
+        button.parentElement.remove();
+    }
+</script>
+
+</body>
+</html>
