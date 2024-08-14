@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class PageController(
-    private val apiController: ApiController,
+    private val cpuController: CpuController,
+    private val gpuController: GpuController,
+    private val laptopController: LaptopController,
 ) {
 
     @GetMapping("/")
@@ -44,18 +46,25 @@ class PageController(
     @GetMapping("/laptops/new")
     fun showLaptopForm(model: Model): String {
         model.addAttribute("laptopRequest", LaptopRequest.default())
-        model.addAttribute("cpus", apiController.getAllCpus())
-        model.addAttribute("gpus", apiController.getAllGpus())
+        model.addAttribute("cpus", cpuController.getAllCpus())
+        model.addAttribute("gpus", gpuController.getAllGpus())
         model.addAttribute("panelTypes", PanelType.entries)
         model.addAttribute("colorAccuracyTypes", ColorAccuracy.entries)
         model.addAttribute("glareTypes", GlareType.entries)
         return "laptop-form"
     }
 
+    // 노트북 생성 로직
+    @PostMapping("/laptops")
+    fun saveLaptop(@ModelAttribute laptopRequest: LaptopRequest): String {
+        laptopController.saveLaptop(laptopRequest)
+        return "redirect:/laptops/new"
+    }
+
     // cpu 조회 페이지
     @GetMapping("/cpus")
     fun getAllCpus(model: Model): String {
-        val cpus = apiController.getAllCpus()
+        val cpus = cpuController.getAllCpus()
         model.addAttribute("cpus", cpus)
         return "cpu-list"
     }
@@ -63,7 +72,7 @@ class PageController(
     // cpu 등록 로직
     @PostMapping("/cpus")
     fun saveCpu(@ModelAttribute cpuRequest: CpuRequest): String {
-        apiController.saveCpu(cpuRequest)
+        cpuController.saveCpu(cpuRequest)
         return "redirect:/cpus"
     }
 
@@ -78,7 +87,7 @@ class PageController(
     // gpu 등록 로직
     @PostMapping("/gpus")
     fun saveGpu(@ModelAttribute gpuRequest: GpuRequest): String {
-        apiController.saveGpu(gpuRequest)
+        gpuController.saveGpu(gpuRequest)
         return "redirect:/gpus"
     }
 
@@ -93,7 +102,7 @@ class PageController(
     // gpu 확인
     @GetMapping("/gpus")
     fun getAllGpus(model: Model): String {
-        val gpus = apiController.getAllGpus()
+        val gpus = gpuController.getAllGpus()
         model.addAttribute("gpus", gpus)
         return "gpu-list"
     }

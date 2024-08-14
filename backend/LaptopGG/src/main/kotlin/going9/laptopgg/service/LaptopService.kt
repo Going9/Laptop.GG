@@ -10,4 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 class LaptopService(
     private val laptopRepository: LaptopRepository,
 ) {
+    fun saveLaptop(request: LaptopRequest) {
+
+    }
 }
