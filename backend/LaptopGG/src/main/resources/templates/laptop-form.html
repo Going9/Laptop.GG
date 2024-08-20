@@ -10,7 +10,7 @@
 <div class="container">
     <h1>Laptop 등록</h1>
 
-    <form th:action="@{/laptops}" th:object="${laptopRequest}" method="post">
+    <form th:action="@{/laptops/create}" th:object="${laptopRequest}" method="post">
         <!-- Laptop 기본 정보 -->
         <div class="form-group">
             <label for="name">노트북 이름</label>

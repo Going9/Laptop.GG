@@ -27,4 +27,9 @@ class GpuService(
         return gpuRepository.findAll()
             .map { gpu -> GpuResponse.of(gpu) }
     }
+
+    @Transactional(readOnly = true)
+    fun findByIds(ids: List<Long>): List<Gpu> {
+        return gpuRepository.findAllById(ids)
+    }
 }

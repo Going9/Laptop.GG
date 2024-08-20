@@ -45,7 +45,7 @@ class PageController(
     // 노트북 등록 페이지
     @GetMapping("/laptops/new")
     fun showLaptopForm(model: Model): String {
-        model.addAttribute("laptopRequest", LaptopRequest.default())
+        model.addAttribute("laptopRequest", LaptopRequest())
         model.addAttribute("cpus", cpuController.getAllCpus())
         model.addAttribute("gpus", gpuController.getAllGpus())
         model.addAttribute("panelTypes", PanelType.entries)

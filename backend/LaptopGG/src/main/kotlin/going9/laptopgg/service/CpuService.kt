@@ -27,4 +27,9 @@ class CpuService(
         return cpuRepository.findAll()
             .map { cpu -> CpuResponse.of(cpu)}
     }
+
+    @Transactional(readOnly = true)
+    fun findByIds(ids: List<Long>): List<Cpu> {
+        return cpuRepository.findAllById(ids)
+    }
 }
