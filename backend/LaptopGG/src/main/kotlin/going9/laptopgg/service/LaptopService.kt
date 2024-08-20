@@ -1,9 +1,8 @@
 package going9.laptopgg.service
 
-import going9.laptopgg.domain.laptop.*
+import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.repository.LaptopRepository
-import going9.laptopgg.domain.repository.StorageRepository
-import going9.laptopgg.dto.request.LaptopRequest
+import going9.laptopgg.dto.request.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,12 +14,26 @@ class LaptopService(
     private val gpuService: GpuService,
     private val laptopGpuService: LaptopGpuService,
     private val ramService: RamService,
-    private val storageRepository: StorageRepository,
+    private val displayService: DisplayService,
+    private val storageService: StorageService,
 ) {
+
     @Transactional
     fun saveLaptop(request: LaptopRequest) {
         // Laptop 엔티티 생성 및 저장
-        val laptop = Laptop(
+        val laptop = createLaptopFromRequest(request)
+        laptopRepository.save(laptop)
+
+        // 각 컴포넌트의 매핑 처리
+        mapCpusToLaptop(laptop, request.cpus)
+        mapGpusToLaptop(laptop, request.gpus)
+        mapRamsToLaptop(laptop, request.rams)
+        mapDisplaysToLaptop(laptop, request.displays)
+        mapStoragesToLaptop(laptop, request.storages)
+    }
+
+    private fun createLaptopFromRequest(request: LaptopRequest): Laptop {
+        return Laptop(
             imgLink = request.imgLink,
             price = request.price,
             priceLink = request.priceLink,
@@ -29,41 +42,42 @@ class LaptopService(
             mainCategory = request.mainCategory,
             subCategory = request.subCategory,
             weight = request.weight,
-            thunderVoltPorts = request.thunderVoltPorts,
+            thunderBoltPorts = request.thunderBoltPorts,
             usb4Ports = request.usb4Ports,
             batteryCapacity = request.batteryCapacity,
             sdCardType = request.sdCardType
         )
+    }
 
-        laptopRepository.save(laptop)
-
-        // 사용자가 입력한 CPU, GPU
-        // 사용자에게 목록을 먼저 제공하고 해당 목록에서 선택된 cpu, gpu의 아이디로 중개 테이블에 등록
-        val cpus: List<Cpu> = cpuService.findByIds(request.cpus)
-        val gpus: List<Gpu> = gpuService.findByIds(request.gpus)
-
-        // cpu
+    private fun mapCpusToLaptop(laptop: Laptop, cpuIds: List<Long>) {
+        val cpus = cpuService.findByIds(cpuIds)
         cpus.forEach { cpu ->
-            val laptopCpu = LaptopCpu(laptop = laptop, cpu = cpu)
-            laptopCpuService.saveLaptopCpu(laptopCpu)
+            laptopCpuService.saveLaptopCpu(laptop, cpu)
         }
+    }
 
-        // gpu
-        gpus.forEach { gpu ->
-            val laptopGpu = LaptopGpu(laptop, gpu, request.tgp, request.isMux)
-            laptopGpuService.saveLaptopGpu(laptopGpu)
+    private fun mapGpusToLaptop(laptop: Laptop, gpuRequests: List<LaptopGpuRequest>) {
+        gpuRequests.forEach { laptopGpuInfo ->
+            val gpu = gpuService.findById(laptopGpuInfo.gpuId)
+            laptopGpuService.saveLaptopGpu(laptop, gpu, laptopGpuInfo)
         }
+    }
 
-        // ram
-        request.ramCapacity.forEach { ramCapacity ->
-            val ram = Ram(laptop, ramCapacity, request.ramSlot, request.clockSpeed, request.ddrType)
-            ramService.saveRam(ram)
+    private fun mapRamsToLaptop(laptop: Laptop, ramRequests: List<RamRequest>) {
+        ramRequests.forEach { ramRequest ->
+            ramService.saveRam(laptop, ramRequest)
         }
+    }
 
-        // storage
-        request.storageCapacity.forEach { storageCapacity ->
-            val storage = Storage(laptop, storageCapacity, request.storageSlot)
-            storageRepository.save(storage)
+    private fun mapDisplaysToLaptop(laptop: Laptop, displayRequests: List<DisplayRequest>) {
+        displayRequests.forEach { displayRequest ->
+            displayService.saveDisplay(laptop, displayRequest)
+        }
+    }
+
+    private fun mapStoragesToLaptop(laptop: Laptop, storageRequests: List<StorageRequest>) {
+        storageRequests.forEach { storageRequest ->
+            storageService.saveStorage(laptop, storageRequest)
         }
     }
 }

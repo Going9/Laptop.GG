@@ -13,7 +13,7 @@ class Laptop(
     val mainCategory: String,
     val subCategory: String,
     val weight: Int,
-    val thunderVoltPorts: Int? = null,
+    val thunderBoltPorts: Int? = null,
     val usb4Ports: Int? = null,
     val batteryCapacity: Int,
     val sdCardType: String,

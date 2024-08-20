@@ -14,7 +14,6 @@ class LaptopGpu(
     val gpu: Gpu,
 
     val tgp: Int? = null,
-
     val isMux: Boolean,
 
     @Id

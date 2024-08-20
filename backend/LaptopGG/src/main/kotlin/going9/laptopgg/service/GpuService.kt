@@ -32,4 +32,11 @@ class GpuService(
     fun findByIds(ids: List<Long>): List<Gpu> {
         return gpuRepository.findAllById(ids)
     }
+
+    @Transactional(readOnly = true)
+    fun findById(id: Long): Gpu {
+        return gpuRepository.findById(id).orElseThrow {
+            NoSuchElementException("$id 번 gpu 부존재")
+        }
+    }
 }

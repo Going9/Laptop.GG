@@ -11,7 +11,6 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    text-align: center;
     overflow: auto;
 }
 
@@ -20,38 +19,61 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 100%; /* 모바일 주도 개발을 위한 100% 너비 */
-    max-width: 480px; /* 대부분의 모바일 기기에 적합한 최대 너비 */
+    width: 100%;
+    max-width: 480px;
 }
 
 h1 {
     font-size: 1.5em;
     margin-bottom: 20px;
     color: #333;
+    text-align: center;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     text-align: left;
 }
 
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
+.label-input-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
-input[type="text"], input[type="number"], select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
+.label-input-group label {
+    font-weight: bold;
+    color: #555;
+    width: 40%;
+    margin-right: 10px;
+}
+
+.label-input-group input[type="text"],
+.label-input-group input[type="number"],
+.label-input-group select {
+    width: 60%;
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
+.sub-form-group {
+    margin: 10px 0;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.is-mux-container, .is-touch-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
 input[type="checkbox"] {
-    margin-right: 10px;
+    transform: scale(1.2);
 }
 
 button[type="submit"], .btn-primary {
@@ -66,77 +88,54 @@ button[type="submit"], .btn-primary {
     margin-top: 20px;
 }
 
-button[type="submit"]:hover, .btn-primary:hover {
-    background-color: #0056b3;
-}
-
-.btn-danger, .btn-secondary {
-    margin-top: 10px;
-    display: inline-block;
+.btn-danger {
     background-color: #dc3545;
     color: white;
-    padding: 8px 12px;
+    padding: 12px;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
+    font-size: 16px;
     cursor: pointer;
-}
-
-.btn-secondary {
-    background-color: #6c757d;
 }
 
 .btn-danger:hover {
     background-color: #c82333;
 }
 
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
 .btn-secondary:hover {
     background-color: #5a6268;
 }
 
-h3 {
-    color: #333;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    text-align: left;
+/* 체크박스 그룹 스타일 */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
 }
 
-h4 {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    margin-top: 10px;
-}
-
-ul li {
-    background-color: #f8f9fa;
-    margin-bottom: 5px;
-    padding: 10px;
+.checkbox-scrollable {
+    max-height: 100px; /* 스크롤 가능 영역의 최대 높이 */
+    overflow-y: scroll; /* 세로 스크롤 활성화 */
+    border: 1px solid #ccc;
+    padding: 5px;
     border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
-ul li button {
-    margin-left: 10px;
-}
-
-.select-container {
+.checkbox-item {
     display: flex;
     align-items: center;
+    margin-bottom: 5px;
 }
 
-.select-container select {
-    flex-grow: 1;
-}
-
-.select-container button {
-    margin-left: 10px;
-    flex-shrink: 0;
+.checkbox-item input {
+    margin-right: 10px;
 }
