@@ -154,8 +154,9 @@
                     <input id="tgp" type="number" name="gpus[__INDEX__].tgp" placeholder="TGP (W)" />
                 </div>
                 <div class="is-mux-container label-input-group">
+                    <input type="hidden" name="gpus[__INDEX__].isMux" value="false" />
                     <label for="isMux">isMux:</label>
-                    <input id="isMux" type="checkbox" name="gpus[__INDEX__].isMux" />
+                    <input id="isMux" type="checkbox" name="gpus[__INDEX__].isMux" value="true" />
                 </div>
                 <button type="button" class="remove-gpu btn-danger">Remove</button>
             </div>
@@ -221,11 +222,12 @@
                 </div>
                 <div class="label-input-group">
                     <label for="screenSize">스크린 사이즈:</label>
-                    <input id="screenSize" type="number" name="displays[__INDEX__].screenSize" placeholder="사이즈(inches)" />
+                    <input id="screenSize" type="number" name="displays[__INDEX__].screenSize" placeholder="사이즈(inches)" step="0.1" />
                 </div>
                 <div class="is-touch-container label-input-group">
+                    <input type="hidden" name="displays[__INDEX__].isTouch" value="false" />
                     <label for="isTouch">터치 여부:</label>
-                    <input id="isTouch" type="checkbox" name="displays[__INDEX__].isTouch"/>
+                    <input id="isTouch" type="checkbox" name="displays[__INDEX__].isTouch" value="true" />
                 </div>
                 <div class="label-input-group">
                     <label for="aspectRatio">화면 비율:</label>
@@ -252,10 +254,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            function addDynamicField(containerId, templateId) {
+            // 각각의 필드에 대한 인덱스를 관리하는 변수
+            let gpuIndex = 0;
+            let ramIndex = 0;
+            let displayIndex = 0;
+            let storageIndex = 0;
+
+            function addDynamicField(containerId, templateId, index) {
                 const container = document.querySelector(containerId);
                 const template = document.querySelector(templateId).innerHTML;
-                const index = container.children.length;
                 const newTemplate = template.replace(/__INDEX__/g, index.toString());
                 const div = document.createElement('div');
                 div.innerHTML = newTemplate;
@@ -268,21 +275,26 @@
             }
 
             document.getElementById('addGpu').addEventListener('click', function() {
-                addDynamicField('#gpuContainer', '#gpuTemplate');
+                addDynamicField('#gpuContainer', '#gpuTemplate', gpuIndex);
+                gpuIndex++;
             });
 
             document.getElementById('addRam').addEventListener('click', function() {
-                addDynamicField('#ramContainer', '#ramTemplate');
+                addDynamicField('#ramContainer', '#ramTemplate', ramIndex);
+                ramIndex++;
             });
 
             document.getElementById('addDisplay').addEventListener('click', function() {
-                addDynamicField('#displayContainer', '#displayTemplate');
+                addDynamicField('#displayContainer', '#displayTemplate', displayIndex);
+                displayIndex++;
             });
 
             document.getElementById('addStorage').addEventListener('click', function() {
-                addDynamicField('#storageContainer', '#storageTemplate');
+                addDynamicField('#storageContainer', '#storageTemplate', storageIndex);
+                storageIndex++;
             });
         });
+
     </script>
 </div>
 </body>

@@ -57,6 +57,7 @@ class PageController(
     // 노트북 생성 로직
     @PostMapping("/laptops")
     fun saveLaptop(@ModelAttribute laptopRequest: LaptopRequest): String {
+        println(laptopRequest.gpus.toString())
         laptopController.saveLaptop(laptopRequest)
         return "redirect:/laptops/new"
     }

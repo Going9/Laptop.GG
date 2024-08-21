@@ -1,6 +1,6 @@
 package going9.laptopgg.dto.request
 
-class LaptopRequest(
+data class LaptopRequest(
     // 이미지 링크
     val imgLink: String = "",
 
@@ -20,17 +20,18 @@ class LaptopRequest(
     val sdCardType: String = "",  // 마이크로, 풀사이즈
 
     // cpu
-    val cpus: List<Long> = listOf(),
+    val cpus: List<Long> = mutableListOf(),
 
     // gpu
-    val gpus: List<LaptopGpuRequest> = listOf(),
+    val gpus: List<LaptopGpuRequest> = mutableListOf(),
 
     // ram
-    val rams: List<RamRequest> = listOf(),
+    val rams: List<RamRequest> = mutableListOf(),
 
     // display
-    val displays: List<DisplayRequest> = listOf(),
+    val displays: List<DisplayRequest> = mutableListOf(),
 
     // storage
-    val storages: List<StorageRequest> = listOf(),
+    val storages: List<StorageRequest> = mutableListOf(),
 )
+

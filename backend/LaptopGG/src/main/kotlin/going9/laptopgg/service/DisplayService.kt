@@ -18,7 +18,7 @@ class DisplayService(
             request.panel,
             request.resolutionWidth,
             request.resolutionHeight,
-            request.resolutionHeight,
+            request.brightness,
             request.colorAccuracy,
             request.refreshRate,
             request.glareType,

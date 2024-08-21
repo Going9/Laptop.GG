@@ -33,6 +33,9 @@ class LaptopService(
     }
 
     private fun createLaptopFromRequest(request: LaptopRequest): Laptop {
+        println(
+            "gpus: " + request.gpus.toString()
+        )
         return Laptop(
             imgLink = request.imgLink,
             price = request.price,
