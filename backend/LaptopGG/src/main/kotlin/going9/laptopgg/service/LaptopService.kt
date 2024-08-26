@@ -48,7 +48,8 @@ class LaptopService(
             thunderBoltPorts = request.thunderBoltPorts,
             usb4Ports = request.usb4Ports,
             batteryCapacity = request.batteryCapacity,
-            sdCardType = request.sdCardType
+            sdCardType = request.sdCardType,
+            isTenKey = request.isTenKey,
         )
     }
 

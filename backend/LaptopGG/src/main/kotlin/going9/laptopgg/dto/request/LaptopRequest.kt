@@ -18,6 +18,7 @@ data class LaptopRequest(
     val usb4Ports: Int? = null,
     val batteryCapacity: Int = 0,
     val sdCardType: String = "",  // 마이크로, 풀사이즈
+    val isTenKey: Boolean = false,
 
     // cpu
     val cpus: List<Long> = mutableListOf(),

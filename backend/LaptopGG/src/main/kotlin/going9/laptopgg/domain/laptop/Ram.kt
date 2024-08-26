@@ -15,7 +15,7 @@ class Ram(
 
     val clockSpeed: Int,  // 램 클럭 스피드
 
-    val ddrType: Int, // drr4 or 5 or lpddr
+    val ddrType: String, // drr4 or 5 or lpddr
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

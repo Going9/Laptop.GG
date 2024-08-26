@@ -6,7 +6,7 @@ import going9.laptopgg.service.CpuService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/cpu")
+@RequestMapping("/api/cpus")
 class CpuController(
     private val cpuService: CpuService
 ) {

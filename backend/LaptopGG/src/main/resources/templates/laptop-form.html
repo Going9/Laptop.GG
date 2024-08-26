@@ -89,6 +89,13 @@
                 <input type="text" id="sdCardType" th:field="*{sdCardType}" />
             </div>
         </div>
+        <div class="form-group">
+            <div class="label-input-group">
+                <input type="hidden" th:field="*{isTenKey}" th:value="false">
+                <label for="isTenKey">isTenKey:</label>
+                <input type="checkbox" id="isTenKey" th:field="*{isTenKey}" th:value="true" />
+            </div>
+        </div>
 
         <!-- CPU 선택 -->
         <div class="form-group">
@@ -174,7 +181,7 @@
                 </div>
                 <div class="label-input-group">
                     <label for="ddrType">DDR 타입:</label>
-                    <input id="ddrType" type="number" name="rams[__INDEX__].ddrType" placeholder="DDR 타입 (e.g., DDR4)" />
+                    <input id="ddrType" type="text" name="rams[__INDEX__].ddrType" placeholder="DDR 타입 (e.g., DDR4)" />
                 </div>
                 <div class="label-input-group">
                     <label for="clockSpeed">클럭 스피드:</label>

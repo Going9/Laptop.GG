@@ -1,7 +1,7 @@
 package going9.laptopgg.dto.request
 
-class RecommendRequest(
-    val budge: Int,
+class LaptopRecommendationRequest(
+    val budget: Int,
     val weight: Int,
     val isTenKey: Boolean,
     val displaySize: Double,

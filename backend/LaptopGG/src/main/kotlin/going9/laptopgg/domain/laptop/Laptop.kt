@@ -17,6 +17,7 @@ class Laptop(
     val usb4Ports: Int? = null,
     val batteryCapacity: Int,
     val sdCardType: String,
+    val isTenKey: Boolean,
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     val cpus: MutableList<LaptopCpu> = mutableListOf(),
