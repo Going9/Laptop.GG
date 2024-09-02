@@ -1,5 +1,7 @@
 package going9.laptopgg.dto.request
 
+import going9.laptopgg.domain.laptop.LaptopCategory
+
 data class LaptopRequest(
     // 이미지 링크
     val imgLink: String = "",
@@ -11,9 +13,8 @@ data class LaptopRequest(
     // 랩탑 속성
     val name: String = "",
     val manufacturer: String = "",
-    val mainCategory: String = "",   // 대분류
-    val subCategory: String = "",    // 하위 분류
-    val weight: Int = 0,
+    val category: LaptopCategory = LaptopCategory.OFFICE,
+    val weight: Double = 0.0,
     val thunderBoltPorts: Int? = null,
     val usb4Ports: Int? = null,
     val batteryCapacity: Int = 0,

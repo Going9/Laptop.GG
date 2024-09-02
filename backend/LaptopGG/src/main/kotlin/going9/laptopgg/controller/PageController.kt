@@ -46,6 +46,7 @@ class PageController(
     @GetMapping("/laptops/new")
     fun showLaptopForm(model: Model): String {
         model.addAttribute("laptopRequest", LaptopRequest())
+        model.addAttribute("laptopCategory", LaptopCategory.entries)
         model.addAttribute("cpus", cpuController.getAllCpus())
         model.addAttribute("gpus", gpuController.getAllGpus())
         model.addAttribute("panelTypes", PanelType.entries)
@@ -57,7 +58,6 @@ class PageController(
     // 노트북 생성 로직
     @PostMapping("/laptops")
     fun saveLaptop(@ModelAttribute laptopRequest: LaptopRequest): String {
-        println(laptopRequest.gpus.toString())
         laptopController.saveLaptop(laptopRequest)
         return "redirect:/laptops/new"
     }

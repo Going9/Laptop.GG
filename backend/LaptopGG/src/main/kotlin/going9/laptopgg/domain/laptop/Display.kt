@@ -23,7 +23,7 @@ class Display(
 
     val glareType: GlareType,  // 글레어 유형 (NONE, GLARE, ANTI_GLARE)
 
-    val screenSize: Double,  // 화면 크기 (인치 단위, 예: 15.6, 16 등)
+    val screenSize: Int,  // 화면 크기 (인치 단위, 예: 15.6, 16 등)
 
     val isTouch: Boolean,  // 터치 스크린 여부
 

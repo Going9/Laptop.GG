@@ -10,9 +10,8 @@ class Laptop(
     val priceLink: String,
     val name: String,
     val manufacturer: String,
-    val mainCategory: String,
-    val subCategory: String,
-    val weight: Int,
+    val category: LaptopCategory,
+    val weight: Double,
     val thunderBoltPorts: Int? = null,
     val usb4Ports: Int? = null,
     val batteryCapacity: Int,
@@ -38,3 +37,13 @@ class Laptop(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
 )
+
+enum class LaptopCategory {
+    OFFICE,
+    OFFICE_LOL,
+    LIGHT_OFFICE,
+    CREATOR,
+    LIGHT_GAMING,
+    MAINSTREAM_GAMING,
+    HEAVY_GAMING
+}

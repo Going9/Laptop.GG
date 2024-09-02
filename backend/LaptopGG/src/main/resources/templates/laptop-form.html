@@ -49,14 +49,10 @@
         </div>
         <div class="form-group">
             <div class="label-input-group">
-                <label for="mainCategory">Main Category:</label>
-                <input type="text" id="mainCategory" th:field="*{mainCategory}" />
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="label-input-group">
-                <label for="subCategory">Sub Category:</label>
-                <input type="text" id="subCategory" th:field="*{subCategory}" />
+                <label for="laptopCategory">laptopCategory:</label>
+                <select id="laptopCategory">
+                    <option th:each="category : ${laptopCategory}" th:value="${category}" th:text="${category}"></option>
+                </select>
             </div>
         </div>
         <div class="form-group">
@@ -229,7 +225,7 @@
                 </div>
                 <div class="label-input-group">
                     <label for="screenSize">스크린 사이즈:</label>
-                    <input id="screenSize" type="number" name="displays[__INDEX__].screenSize" placeholder="사이즈(inches)" step="0.1" />
+                    <input id="screenSize" type="number" name="displays[__INDEX__].screenSize" placeholder="사이즈(inches)" step="1" />
                 </div>
                 <div class="is-touch-container label-input-group">
                     <input type="hidden" name="displays[__INDEX__].isTouch" value="false" />
