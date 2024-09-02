@@ -22,5 +22,7 @@ class Gpu(
 enum class GpuManufacturer {
     AMD,
     NVIDIA,
-    INTEL
+    INTEL,
+    QUALCOMM,
+    APPLE,
 }

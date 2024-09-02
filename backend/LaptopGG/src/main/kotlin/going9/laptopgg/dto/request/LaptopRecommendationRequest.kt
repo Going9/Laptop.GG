@@ -7,6 +7,19 @@ class LaptopRecommendationRequest(
     val displaySize: List<Int>, // 13, 14, 15, 16, 17, 18
     val purpose: PurposeDetail,
 ) {
+    companion object {
+        fun fixture(
+            budget: Int = 1000000,
+            weight: Double = 2.0,
+            isTenKey: TenKeyPreference = TenKeyPreference.DOSE_NOT_MATTER,
+            displaySize: List<Int> = listOf(15),
+            purpose: PurposeDetail = PurposeDetail.OFFICE
+        ): LaptopRecommendationRequest {
+            return LaptopRecommendationRequest(
+                budget, weight, isTenKey, displaySize, purpose
+            )
+        }
+    }
 }
 
 enum class PurposeDetail {

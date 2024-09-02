@@ -10,6 +10,12 @@ spring:
         properties:
             hibernate:
                 dialect: org.hibernate.community.dialect.SQLiteDialect
+                format_sql: true    # 쿼리를 보기 쉽게 포맷
+        show-sql: true              # SQL 쿼리 로그 활성화
+    logging:
+        level:
+            org.hibernate.SQL: DEBUG                     # SQL 쿼리 로그 출력
+            org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 파라미터 바인딩 로그 출력
 
 ---
 spring:
@@ -27,6 +33,12 @@ spring:
         properties:
             hibernate:
                 dialect: org.hibernate.community.dialect.SQLiteDialect
+                format_sql: true
+        show-sql: true
+    logging:
+        level:
+            org.hibernate.SQL: DEBUG
+            org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 ---
 spring:
@@ -44,3 +56,9 @@ spring:
         properties:
             hibernate:
                 dialect: org.hibernate.community.dialect.SQLiteDialect
+                format_sql: true
+        show-sql: true
+    logging:
+        level:
+            org.hibernate.SQL: DEBUG
+            org.hibernate.type.descriptor.sql.BasicBinder: TRACE
