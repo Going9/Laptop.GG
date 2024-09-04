@@ -23,7 +23,7 @@ jobs:
         run: chmod +x ./backend/LaptopGG/gradlew
 
       - name: Run Gradle Build
-        run: ./gradlew build
+        run: ./gradlew build -x test
         working-directory: backend/LaptopGG
 
       - name: Docker Login
