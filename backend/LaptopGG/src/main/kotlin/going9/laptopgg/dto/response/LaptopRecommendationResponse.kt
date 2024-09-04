@@ -4,6 +4,7 @@ import going9.laptopgg.domain.laptop.Cpu
 import going9.laptopgg.domain.laptop.Gpu
 
 class LaptopRecommendationResponse(
+    val score: Double,
     val manufacturer: String,
     val price: Int,
     val name: String,
