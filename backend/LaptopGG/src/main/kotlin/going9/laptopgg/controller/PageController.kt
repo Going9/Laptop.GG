@@ -3,19 +3,20 @@ package going9.laptopgg.controller
 import going9.laptopgg.domain.laptop.*
 import going9.laptopgg.dto.request.CpuRequest
 import going9.laptopgg.dto.request.GpuRequest
+import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.request.LaptopRequest
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class PageController(
     private val cpuController: CpuController,
     private val gpuController: GpuController,
     private val laptopController: LaptopController,
+    private val recommendationController: RecommendationController,
 ) {
 
     @GetMapping("/")
@@ -23,24 +24,20 @@ class PageController(
         return "index"
     }
 
-    @PostMapping("/spec-form")
-    fun specForm(
-        @RequestParam budget: Int,
-        @RequestParam usage: String,
-        @RequestParam(required = false) gameType: String?,
-        @RequestParam weight: Float,
-        @RequestParam tenkey: String,
-        @RequestParam foreignLaptop: String,
-        model: Model
-    ): String {
-        model.addAttribute("budget", budget)
-        model.addAttribute("usage", usage)
-        model.addAttribute("gameType", gameType)
-        model.addAttribute("weight", weight)
-        model.addAttribute("tenkey", tenkey)
-        model.addAttribute("foreignLaptop", foreignLaptop)
-        return "spec-form"
+    @GetMapping("/recommends")
+    fun showRecommendationForm(model: Model): String {
+        model.addAttribute("laptopRecommendationRequest", LaptopRecommendationRequest.fixture())
+        model.addAttribute("displaySizeList", listOf(13, 14, 15, 16, 17, 18))
+        return "recommendation-form"
     }
+
+    @PostMapping("/recommends")
+    fun recommendLaptop(@ModelAttribute laptopRecommendationRequest: LaptopRecommendationRequest, model: Model): String {
+        val recommendedLaptops = recommendationController.recommendLaptop(laptopRecommendationRequest)
+        model.addAttribute("recommendedLaptops", recommendedLaptops)
+        return "recommendation-list"
+    }
+
 
     // 노트북 등록 페이지
     @GetMapping("/laptops/new")
