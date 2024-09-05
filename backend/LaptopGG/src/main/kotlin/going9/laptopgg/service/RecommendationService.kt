@@ -5,10 +5,7 @@ import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.request.PurposeDetail
 import going9.laptopgg.dto.request.TenKeyPreference
-import going9.laptopgg.dto.response.CpuResponse
-import going9.laptopgg.dto.response.DisplayResponse
-import going9.laptopgg.dto.response.GpuResponse
-import going9.laptopgg.dto.response.LaptopRecommendationResponse
+import going9.laptopgg.dto.response.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,7 +16,7 @@ class RecommendationService(
 ) {
 
     @Transactional
-    fun recommendLaptop(request: LaptopRecommendationRequest): List<LaptopRecommendationResponse> {
+    fun recommendLaptop(request: LaptopRecommendationRequest): List<LaptopRecommendationListResponse> {
         // Step 1: 조건에 맞는 랩톱 목록 조회
         val recommendedLaptops = laptopRepository.findAll {
             select(
@@ -72,31 +69,14 @@ class RecommendationService(
 
         // Step 3: 정렬된 결과를 LaptopRecommendationResponse로 변환
         return scoredLaptops.map { (laptop, score) ->
-            laptop.let {
-                LaptopRecommendationResponse(
-                    score = score,
-                    imgLink = it.imgLink,
-                    priceLink = it.priceLink,
-                    batteryCapacity = it.batteryCapacity,
-                    manufacturer = it.manufacturer,
-                    price = it.price,
-                    name = it.name,
-                    weight = it.weight,
-                    thunderBoltPorts = it.thunderBoltPorts,
-                    usb4Ports = it.usb4Ports,
-                    sdCardType = it.sdCardType,
-                    isTenKey = it.isTenKey,
-                    cpu = it.cpus.map { cpu -> CpuResponse.of(cpu.cpu) },
-                    gpu = it.gpus.map { gpu -> GpuResponse.of(gpu.gpu) },
-                    ramSlot = it.rams[0].slot,
-                    ramCapacity = it.rams.map { ram -> ram.capacity },
-                    ramClockSpeed = it.rams[0].clockSpeed,
-                    ramDdrType = it.rams[0].ddrType,
-                    displays = it.displays.map { display -> DisplayResponse.of(display) },
-                    storageSlot = it.storages[0].slot,
-                    storageCapacity = it.storages.map { storage -> storage.capacity }
-                )
-            }
+            LaptopRecommendationListResponse(
+                score = score,
+                imgLink = laptop.imgLink,
+                price = laptop.price,
+                name = laptop.name,
+                manufacturer = laptop.manufacturer,
+                weight = laptop.weight
+            )
         }
     }
 }

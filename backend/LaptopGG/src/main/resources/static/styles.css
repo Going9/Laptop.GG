@@ -26,6 +26,7 @@ body {
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
+    text-align: center; /* 텍스트와 모든 요소 가운데 정렬 */
 }
 
 /* Headings */
@@ -34,6 +35,33 @@ h1 {
     margin-bottom: 20px;
     color: #333;
     text-align: center;
+}
+
+/* Laptop Items */
+.laptop-item {
+    margin-bottom: 20px;
+}
+
+/* 이미지 가운데 정렬 */
+.laptop-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto; /* 이미지 가운데 정렬 */
+}
+
+/* 텍스트 가운데 정렬 */
+.laptop-name {
+    font-size: 1.2em;
+    text-align: center;
+    margin-top: 10px;
+    color: #333;
+}
+
+/* 가격 정보 등 추가 텍스트 중앙 정렬 */
+p {
+    text-align: center;
+    margin-top: 5px;
 }
 
 /* Forms and Inputs */
@@ -76,8 +104,8 @@ input[type="checkbox"] {
 /* Button Styles */
 button[type="submit"], .btn-primary {
     display: block;
-    width: fit-content; /* 버튼의 크기를 내용에 맞게 설정 */
-    margin: 20px auto; /* 좌우 여백을 자동으로 설정하여 가운데 정렬 */
+    width: fit-content;
+    margin: 20px auto; /* 버튼 가운데 정렬 */
     background-color: #007bff;
     color: white;
     padding: 12px;
@@ -147,14 +175,6 @@ button[type="submit"], .btn-primary {
 
 .checkbox-item input {
     margin-right: 10px;
-}
-
-/* Images */
-.laptop-image {
-    width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
 }
 
 /* Mobile-Specific Styling */
