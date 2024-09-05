@@ -67,9 +67,10 @@ class RecommendationService(
         }.sortedByDescending { it.second } // 점수를 기준으로 내림차순 정렬
 
 
-        // Step 3: 정렬된 결과를 LaptopRecommendationResponse로 변환
+        // Step 3: 정렬된 결과를 LaptopRecommendationListResponse 로 변환
         return scoredLaptops.map { (laptop, score) ->
             LaptopRecommendationListResponse(
+                id = laptop.id!!,
                 score = score,
                 imgLink = laptop.imgLink,
                 price = laptop.price,

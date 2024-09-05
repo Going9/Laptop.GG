@@ -3,6 +3,8 @@ package going9.laptopgg.service
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.dto.request.*
+import going9.laptopgg.dto.response.DisplayResponse
+import going9.laptopgg.dto.response.LaptopRecommendationDetailResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -82,5 +84,33 @@ class LaptopService(
         storageRequests.forEach { storageRequest ->
             storageService.saveStorage(laptop, storageRequest)
         }
+    }
+
+    @Transactional
+    fun findLaptopById(id: Long): LaptopRecommendationDetailResponse {
+        val laptop =  laptopRepository.findLaptopById(id) ?: throw IllegalArgumentException("${id}번 노트북이 존재하지 않습니다.")
+
+        return LaptopRecommendationDetailResponse(
+            imgLink = laptop.imgLink,
+            priceLink = laptop.priceLink,
+            batteryCapacity = laptop.batteryCapacity,
+            manufacturer = laptop.manufacturer,
+            price = laptop.price,
+            name = laptop.name,
+            weight = laptop.weight,
+            thunderBoltPorts = laptop.thunderBoltPorts,
+            usb4Ports = laptop.usb4Ports,
+            sdCardType = laptop.sdCardType,
+            isTenKey = laptop.isTenKey,
+            cpus = laptop.cpus.map { it.cpu.name },
+            gpus = laptop.gpus.map { it.gpu.name },
+            ramSlot = laptop.rams.first().slot,
+            ramCapacity = laptop.rams.map { it.capacity },
+            ramClockSpeed = laptop.rams.first().clockSpeed,
+            ramDdrType = laptop.rams.first().ddrType,
+            displays = laptop.displays.map { DisplayResponse.of(it) },
+            storageSlot = laptop.storages.first().slot,
+            storageCapacity = laptop.storages.map { it.capacity },
+        )
     }
 }

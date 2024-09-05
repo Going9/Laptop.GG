@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 
 @Controller
@@ -36,6 +37,13 @@ class PageController(
         val recommendedLaptops = recommendationController.recommendLaptop(laptopRecommendationRequest)
         model.addAttribute("recommendedLaptops", recommendedLaptops)
         return "recommendation-list"
+    }
+
+    @GetMapping("/laptops/{id}")
+    fun showLaptopDetail(@PathVariable id: Long, model: Model): String {
+        val laptopDetail = laptopController.getLaptop(id)
+        model.addAttribute("laptopDetail", laptopDetail)
+        return "laptop-detail"
     }
 
 

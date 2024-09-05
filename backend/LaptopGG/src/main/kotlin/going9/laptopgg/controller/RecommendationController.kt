@@ -2,9 +2,7 @@ package going9.laptopgg.controller
 
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.response.LaptopRecommendationListResponse
-import going9.laptopgg.dto.response.LaptopRecommendationResponse
 import going9.laptopgg.service.RecommendationService
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping

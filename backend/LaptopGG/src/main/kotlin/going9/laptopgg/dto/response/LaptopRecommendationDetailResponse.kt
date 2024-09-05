@@ -1,10 +1,6 @@
 package going9.laptopgg.dto.response
 
-import going9.laptopgg.domain.laptop.Cpu
-import going9.laptopgg.domain.laptop.Gpu
-
-class LaptopRecommendationResponse(
-    val score: Double,
+class LaptopRecommendationDetailResponse(
     val imgLink: String,
     val priceLink: String,
     val batteryCapacity: Int,
@@ -16,8 +12,8 @@ class LaptopRecommendationResponse(
     val usb4Ports: Int?,
     val sdCardType: String,
     val isTenKey: Boolean,
-    val cpu: List<CpuResponse>,
-    val gpu: List<GpuResponse>,
+    val cpus: List<String>,
+    val gpus: List<String>,
     val ramSlot: Int?,
     val ramCapacity: List<Int>,
     val ramClockSpeed: Int,

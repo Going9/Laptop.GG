@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>추천 노트북 상세</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<div class="container">
+    <h1 th:text="${laptopDetail.name}">노트북 이름</h1>
+    <img th:src="${laptopDetail.imgLink}" alt="노트북 이미지" class="laptop-image" />
+
+    <div class="laptop-details">
+        <p>제조사: <span th:text="${laptopDetail.manufacturer}">제조사</span></p>
+        <p>가격: ₩<span th:text="${laptopDetail.price}">가격</span></p>
+        <p>무게: <span th:text="${laptopDetail.weight}">무게</span>kg</p>
+        <p>배터리 용량: <span th:text="${laptopDetail.batteryCapacity}">배터리 용량</span>mAh</p>
+        <p>Thunderbolt 포트 수: <span th:text="${laptopDetail.thunderBoltPorts}">Thunderbolt 포트</span></p>
+        <p>USB4 포트 수: <span th:text="${laptopDetail.usb4Ports}">USB4 포트</span></p>
+        <p>SD 카드 타입: <span th:text="${laptopDetail.sdCardType}">SD 카드 타입</span></p>
+        <p>숫자키 여부: <span th:text="${laptopDetail.isTenKey ? '예' : '아니오'}"></span></p>
+
+        <!-- CPU 리스트 -->
+        <h3>CPU</h3>
+        <ul>
+            <li th:each="cpu : ${laptopDetail.cpus}" th:text="${cpu}">CPU 이름</li>
+        </ul>
+
+        <!-- GPU 리스트 -->
+        <h3>GPU</h3>
+        <ul>
+            <li th:each="gpu : ${laptopDetail.gpus}" th:text="${gpu}">GPU 이름</li>
+        </ul>
+
+        <!-- RAM 정보 -->
+        <h3>RAM 정보</h3>
+        <p>RAM 슬롯 수: <span th:text="${laptopDetail.ramSlot}">슬롯 수</span></p>
+        <p>RAM 클럭 스피드: <span th:text="${laptopDetail.ramClockSpeed}">클럭 스피드</span> MHz</p>
+        <p>RAM DDR 타입: <span th:text="${laptopDetail.ramDdrType}">DDR 타입</span></p>
+        <h4>RAM 용량</h4>
+        <ul>
+            <li th:each="capacity : ${laptopDetail.ramCapacity}" th:text="${capacity} + ' GB'">RAM 용량</li>
+        </ul>
+
+        <!-- 디스플레이 정보 -->
+        <h3>디스플레이 정보</h3>
+        <ul>
+            <li th:each="display : ${laptopDetail.displays}">
+                <p>화면 크기: <span th:text="${display.screenSize}">화면 크기</span> 인치</p>
+                <p>해상도: <span th:text="${display.resolutionWidth}">가로 해상도</span> x
+                    <span th:text="${display.resolutionHeight}">세로 해상도</span></p>
+                <p>밝기: <span th:text="${display.brightness}">밝기</span> 니트</p>
+                <p>패널 타입: <span th:text="${display.panel}">패널 타입</span></p>
+                <p>주사율: <span th:text="${display.refreshRate}">주사율</span> Hz</p>
+                <p>글레어 유형: <span th:text="${display.glareType}">글레어 유형</span></p>
+                <p>색 정확도: <span th:text="${display.colorAccuracy}">색 정확도</span></p>
+                <p>터치 스크린 여부: <span th:text="${display.isTouch ? '예' : '아니오'}">터치 스크린 여부</span></p>
+                <p>화면 비율: <span th:text="${display.aspectRatio}">화면 비율</span></p>
+            </li>
+        </ul>
+
+        <!-- 저장소 정보 -->
+        <h3>저장소 정보</h3>
+        <p>저장소 슬롯 수: <span th:text="${laptopDetail.storageSlot}">슬롯 수</span></p>
+        <h4>저장소 용량</h4>
+        <ul>
+            <li th:each="capacity : ${laptopDetail.storageCapacity}" th:text="${capacity} + ' GB'">저장소 용량</li>
+        </ul>
+
+        <a th:href="${laptopDetail.priceLink}" class="btn-primary">구매 페이지로 이동</a>
+    </div>
+
+</div>
+</body>
+</html>
