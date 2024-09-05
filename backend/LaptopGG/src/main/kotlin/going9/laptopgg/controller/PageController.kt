@@ -19,13 +19,7 @@ class PageController(
     private val laptopController: LaptopController,
     private val recommendationController: RecommendationController,
 ) {
-
-    @GetMapping("/")
-    fun index(): String {
-        return "recommendation-form"
-    }
-
-    @GetMapping("/recommends")
+    @GetMapping("/recommends", "/")
     fun showRecommendationForm(model: Model): String {
         model.addAttribute("laptopRecommendationRequest", LaptopRecommendationRequest.fixture())
         model.addAttribute("displaySizeList", listOf(13, 14, 15, 16, 17, 18))
