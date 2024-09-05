@@ -1,9 +1,11 @@
+/* General Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* Body Styling */
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
@@ -12,17 +14,21 @@ body {
     align-items: center;
     min-height: 100vh;
     overflow: auto;
+    padding: 20px;
 }
 
+/* Container for All Pages */
 .container {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 480px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
+/* Headings */
 h1 {
     font-size: 1.5em;
     margin-bottom: 20px;
@@ -30,30 +36,28 @@ h1 {
     text-align: center;
 }
 
+/* Forms and Inputs */
 .form-group {
     margin-bottom: 15px;
-    text-align: left;
 }
 
 .label-input-group {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     margin-bottom: 10px;
 }
 
 .label-input-group label {
     font-weight: bold;
     color: #555;
-    width: 40%;
-    margin-right: 10px;
+    margin-bottom: 5px;
 }
 
 .label-input-group input[type="text"],
 .label-input-group input[type="number"],
 .label-input-group select {
-    width: 60%;
-    padding: 8px;
+    width: 100%;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
@@ -65,19 +69,15 @@ h1 {
     border-radius: 5px;
 }
 
-.is-mux-container, .is-touch-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
 input[type="checkbox"] {
     transform: scale(1.2);
 }
 
+/* Button Styles */
 button[type="submit"], .btn-primary {
-    width: 100%;
+    display: block;
+    width: fit-content; /* 버튼의 크기를 내용에 맞게 설정 */
+    margin: 20px auto; /* 좌우 여백을 자동으로 설정하여 가운데 정렬 */
     background-color: #007bff;
     color: white;
     padding: 12px;
@@ -85,10 +85,16 @@ button[type="submit"], .btn-primary {
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
-    margin-top: 20px;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
 }
 
 .btn-danger {
+    display: block;
+    width: fit-content;
+    margin: 20px auto;
     background-color: #dc3545;
     color: white;
     padding: 12px;
@@ -103,6 +109,9 @@ button[type="submit"], .btn-primary {
 }
 
 .btn-secondary {
+    display: block;
+    width: fit-content;
+    margin: 20px auto;
     background-color: #6c757d;
     color: white;
     padding: 10px 15px;
@@ -116,15 +125,15 @@ button[type="submit"], .btn-primary {
     background-color: #5a6268;
 }
 
-/* 체크박스 그룹 스타일 */
+/* Checkbox Groups */
 .checkbox-group {
     display: flex;
     flex-direction: column;
 }
 
 .checkbox-scrollable {
-    max-height: 100px; /* 스크롤 가능 영역의 최대 높이 */
-    overflow-y: scroll; /* 세로 스크롤 활성화 */
+    max-height: 100px;
+    overflow-y: auto;
     border: 1px solid #ccc;
     padding: 5px;
     border-radius: 5px;
@@ -138,4 +147,33 @@ button[type="submit"], .btn-primary {
 
 .checkbox-item input {
     margin-right: 10px;
+}
+
+/* Images */
+.laptop-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Mobile-Specific Styling */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.2em;
+    }
+
+    .laptop-name {
+        font-size: 1em;
+    }
+
+    .btn-primary, .btn-danger, .btn-secondary {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    /* Adjust form inputs to be more mobile-friendly */
+    .label-input-group {
+        flex-direction: column;
+    }
 }

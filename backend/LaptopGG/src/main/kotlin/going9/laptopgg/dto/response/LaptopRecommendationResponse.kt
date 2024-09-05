@@ -5,6 +5,9 @@ import going9.laptopgg.domain.laptop.Gpu
 
 class LaptopRecommendationResponse(
     val score: Double,
+    val imgLink: String,
+    val priceLink: String,
+    val batteryCapacity: Int,
     val manufacturer: String,
     val price: Int,
     val name: String,

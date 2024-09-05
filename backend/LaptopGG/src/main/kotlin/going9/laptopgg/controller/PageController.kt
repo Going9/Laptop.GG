@@ -21,7 +21,7 @@ class PageController(
 
     @GetMapping("/")
     fun index(): String {
-        return "index"
+        return "recommendation-form"
     }
 
     @GetMapping("/recommends")

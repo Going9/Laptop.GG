@@ -75,6 +75,9 @@ class RecommendationService(
             laptop.let {
                 LaptopRecommendationResponse(
                     score = score,
+                    imgLink = it.imgLink,
+                    priceLink = it.priceLink,
+                    batteryCapacity = it.batteryCapacity,
                     manufacturer = it.manufacturer,
                     price = it.price,
                     name = it.name,

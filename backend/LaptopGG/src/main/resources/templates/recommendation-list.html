@@ -17,58 +17,10 @@
 
     <!-- 추천된 노트북이 있는 경우 -->
     <div th:unless="${#lists.isEmpty(recommendedLaptops)}">
-        <ul>
-            <!-- 각 노트북을 목록으로 출력 -->
-            <li th:each="laptop : ${recommendedLaptops}">
-                <h2 th:text="${laptop.name}">노트북 이름</h2>
-                <p>제조사: <span th:text="${laptop.manufacturer}">제조사 이름</span></p>
-
-                <!-- 가격 출력 (포맷 없이 그대로 출력) -->
-                <p>가격:
-                    <span th:text="${laptop.price}">가격</span> 원
-                </p>
-
-                <p>점수: <span th:text="${laptop.score}">점수</span></p>
-                <p>무게: <span th:text="${laptop.weight}">무게</span> kg</p>
-
-                <!-- 디스플레이 크기 출력 -->
-                <p>디스플레이 크기:
-                    <span th:each="display : ${laptop.displays}" th:text="${display.screenSize} + '인치'">디스플레이 크기</span>
-                </p>
-
-                <!-- CPU 정보 출력 -->
-                <p>CPU:
-                    <span th:each="cpu : ${laptop.cpu}" th:text="${cpu.name}">CPU 이름</span>
-                </p>
-
-                <!-- GPU 정보 출력 -->
-                <p>GPU:
-                    <span th:each="gpu : ${laptop.gpu}" th:text="${gpu.name}">GPU 이름</span>
-                </p>
-
-                <p>RAM 슬롯 수: <span th:text="${laptop.ramSlot}">RAM 슬롯</span></p>
-
-                <!-- RAM 용량 출력 -->
-                <p>RAM 용량:
-                    <span th:each="ramCapacity : ${laptop.ramCapacity}" th:text="${ramCapacity} + 'GB'">RAM 용량</span>
-                </p>
-
-                <p>RAM 속도: <span th:text="${laptop.ramClockSpeed}">RAM 속도</span> MHz</p>
-                <p>RAM DDR 타입: <span th:text="${laptop.ramDdrType}">DDR 타입</span></p>
-
-                <!-- 저장 공간 출력 -->
-                <p>저장 공간:
-                    <span th:each="storage : ${laptop.storageCapacity}" th:text="${storage} + 'GB'">저장 공간</span>
-                </p>
-
-                <p>Thunderbolt 포트 수: <span th:text="${laptop.thunderBoltPorts}">포트 수</span></p>
-                <p>USB4 포트 수: <span th:text="${laptop.usb4Ports}">포트 수</span></p>
-                <p>SD 카드 타입: <span th:text="${laptop.sdCardType}">SD 카드 타입</span></p>
-
-                <!-- 숫자키 패드 여부 -->
-                <p>숫자키 패드: <span th:text="${laptop.isTenKey ? '있음' : '없음'}">숫자키 패드 여부</span></p>
-            </li>
-        </ul>
+        <div th:each="laptop : ${recommendedLaptops}" class="laptop-item">
+            <img th:src="${laptop.imgLink}" alt="노트북 이미지" class="laptop-image">
+            <h2 th:text="${laptop.name}" class="laptop-name">노트북 이름</h2>
+        </div>
     </div>
 
     <!-- 다시 추천받기 버튼 -->
