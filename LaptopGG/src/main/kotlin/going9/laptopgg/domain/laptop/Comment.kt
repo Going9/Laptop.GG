@@ -11,6 +11,7 @@ class Comment(
 
     val author: String,
     val content: String,
+    val passWord: String,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

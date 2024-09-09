@@ -27,6 +27,7 @@ repositories {
 }
 
 dependencies {
+	implementation ("org.springframework.boot:spring-boot-starter-oauth2-client")
 	implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:hibernate-support:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.1")
