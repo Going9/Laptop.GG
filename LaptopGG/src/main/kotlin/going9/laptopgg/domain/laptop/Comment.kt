@@ -9,12 +9,16 @@ class Comment(
     @JoinColumn(name = "laptop_id")
     val laptop: Laptop,
 
-    val author: String,
-    val content: String,
+    var author: String,
+    var content: String,
     val passWord: String,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
 ) {
+    fun updateComment(author: String, content: String) {
+        this.author = author
+        this.content = content
+    }
 }
