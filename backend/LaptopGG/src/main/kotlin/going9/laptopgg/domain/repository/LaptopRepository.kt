@@ -9,6 +9,5 @@ import org.springframework.data.repository.query.Param
 
 
 interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor {
-
     fun findLaptopById(id: Long): Laptop?
 }
