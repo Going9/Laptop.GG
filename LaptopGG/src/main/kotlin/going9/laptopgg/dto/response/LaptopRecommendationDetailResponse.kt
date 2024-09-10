@@ -1,6 +1,7 @@
 package going9.laptopgg.dto.response
 
-class LaptopRecommendationDetailResponse(
+data class LaptopRecommendationDetailResponse(
+    val id: Long,
     val imgLink: String,
     val priceLink: String,
     val batteryCapacity: Int,

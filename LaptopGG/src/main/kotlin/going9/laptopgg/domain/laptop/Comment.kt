@@ -17,8 +17,7 @@ class Comment(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
 ) {
-    fun updateComment(author: String, content: String) {
-        this.author = author
+    fun updateComment(content: String) {
         this.content = content
     }
 }

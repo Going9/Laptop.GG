@@ -1,10 +1,7 @@
 package going9.laptopgg.controller
 
 import going9.laptopgg.domain.laptop.*
-import going9.laptopgg.dto.request.CpuRequest
-import going9.laptopgg.dto.request.GpuRequest
-import going9.laptopgg.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.dto.request.LaptopRequest
+import going9.laptopgg.dto.request.*
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,6 +15,7 @@ class PageController(
     private val gpuController: GpuController,
     private val laptopController: LaptopController,
     private val recommendationController: RecommendationController,
+    private val commentController: CommentController,
 ) {
     @GetMapping("/recommends", "/")
     fun showRecommendationForm(model: Model): String {
@@ -33,11 +31,22 @@ class PageController(
         return "recommendation-list"
     }
 
-    @GetMapping("/laptops/{id}")
-    fun showLaptopDetail(@PathVariable id: Long, model: Model): String {
-        val laptopDetail = laptopController.getLaptop(id)
+    @GetMapping("/laptops/{laptopId}")
+    fun showLaptopDetail(@PathVariable laptopId: Long, model: Model): String {
+        val laptopDetail = laptopController.getLaptop(laptopId)
+        println(laptopDetail.toString())
+        val commentsOfLaptop = commentController.getAllComments(laptopId)
         model.addAttribute("laptopDetail", laptopDetail)
+        model.addAttribute("commentsOfLaptop", commentsOfLaptop)
+        model.addAttribute("commentRequest", CommentRequest())
         return "laptop-detail"
+    }
+
+    // 코멘트 등록
+    @PostMapping("/comments")
+    fun addComment(@ModelAttribute commentRequest: CommentRequest): String {
+        commentController.saveComment(commentRequest)
+        return "redirect:/laptops/${commentRequest.laptopId}"
     }
 
 

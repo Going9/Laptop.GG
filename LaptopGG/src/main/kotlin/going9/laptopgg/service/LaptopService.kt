@@ -5,6 +5,7 @@ import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.dto.request.*
 import going9.laptopgg.dto.response.DisplayResponse
 import going9.laptopgg.dto.response.LaptopRecommendationDetailResponse
+import going9.laptopgg.util.findByOrThrow
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -88,9 +89,10 @@ class LaptopService(
 
     @Transactional
     fun findLaptopById(id: Long): LaptopRecommendationDetailResponse {
-        val laptop =  laptopRepository.findLaptopById(id) ?: throw IllegalArgumentException("${id}번 노트북이 존재하지 않습니다.")
+        val laptop =  laptopRepository.findByOrThrow(id)
 
         return LaptopRecommendationDetailResponse(
+            id = laptop.id!!,
             imgLink = laptop.imgLink,
             priceLink = laptop.priceLink,
             batteryCapacity = laptop.batteryCapacity,
