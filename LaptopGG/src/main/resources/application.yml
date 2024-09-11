@@ -39,7 +39,8 @@ spring:
         level:
             org.hibernate.SQL: DEBUG
             org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
+    api:
+        base-url: "https://laptopgg.com"
 ---
 spring:
     config:
@@ -63,3 +64,5 @@ spring:
             org.hibernate.SQL: DEBUG
             org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
+    api:
+        base-url: "http://localhost:8080"

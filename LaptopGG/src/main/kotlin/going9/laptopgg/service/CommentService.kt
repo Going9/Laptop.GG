@@ -4,6 +4,7 @@ import going9.laptopgg.domain.laptop.Comment
 import going9.laptopgg.domain.repository.CommentRepository
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.dto.request.CommentRequest
+import going9.laptopgg.dto.request.CommentUpdateRequest
 import going9.laptopgg.dto.response.CommentResponse
 import going9.laptopgg.util.findByOrThrow
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder

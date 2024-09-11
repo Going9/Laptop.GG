@@ -127,10 +127,13 @@
                         <p th:text="${comment.content}" th:id="'comment' + ${comment.id}" class="mb-1">내용</p>
 
                         <!-- Edit Form -->
-                        <form class="d-none" th:id="'edit-input' + ${comment.id}">
-                            <input type="text" class="form-control" th:value="${comment.content}"/>
-                            <button class="btn btn-primary mt-2" th:onclick="|submitEdit(${comment.id})|">수정</button>
-                            <button class="btn btn-primary mt-2" th:onclick="|cancelEdit(${comment.id})|">취소</button>
+                        <form th:action="@{/comments/{commentId}/edit(commentId=${comment.id})}" th:object="${commentRequest}" method="post" class="d-none" th:id="'edit-input' + ${comment.id}">
+                            <input type="hidden" th:name="laptopId" th:value="${laptopDetail.id}" />
+<!--                            <input type="hidden" th:field="author" th:value="${comment.author}" />-->
+                            <input type="text" th:field="*{content}" class="form-control" th:value="${comment.content}" placeholder="수정할 내용"/>
+                            <input type="text" th:field="*{passWord}" class="form-control" placeholder="비밀번호">
+                            <button type="submit" class="btn btn-primary mt-2" th:onclick="|submitEdit(${comment.id})|">수정</button>
+                            <button type="button" class="btn btn-primary mt-2" th:onclick="|cancelEdit(${comment.id})|">취소</button>
                         </form>
                     </div>
 
