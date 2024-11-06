@@ -1,10 +1,11 @@
 # Debian 기반의 OpenJDK 이미지 사용
-FROM openjdk:17
+FROM openjdk:17-jdk-slim
 
 # 작업 디렉토리 설정
 WORKDIR /LaptopGG
 
 # 필요한 툴 설치
+RUN apt-get -y update
 RUN apt -y install wget
 RUN apt -y install unzip
 RUN apt -y install curl
