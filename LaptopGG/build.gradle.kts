@@ -27,6 +27,8 @@ repositories {
 }
 
 dependencies {
+	implementation("org.seleniumhq.selenium:selenium-java:4.26.0")
+
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:hibernate-support:3.5.1")

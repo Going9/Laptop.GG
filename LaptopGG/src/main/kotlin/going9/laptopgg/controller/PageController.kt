@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate
 
 @Controller
 class PageController(
-    @Value("\${spring.api.base-url}")
+    @Value("\${spring.api.base-url:http://localhost:8080}")
     private val apiBaseUrl: String,
 
     private val restTemplate: RestTemplate,
