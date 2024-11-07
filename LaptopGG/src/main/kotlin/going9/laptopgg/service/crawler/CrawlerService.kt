@@ -24,18 +24,17 @@ class CrawlerService(
         val products = getProductList()
 
         for (product in products) {
-            println("1111111111111111111111111")
-            println(product.findElement(By.cssSelector(".prod_info > div")).text)
-            println("1111111111111111111111111")
-            println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-            val parsedDetails = parseProductDetails(product.findElement(By.cssSelector(".prod_info > div")).text)
+            val productName = product.findElement(By.cssSelector(".prod_name > a")).text
+            println(productName)
+            val parsedDetails = parseProductDetails(product.findElement(By.cssSelector(".spec_list")).text)
             for ((part, detail) in parsedDetails) {
                 println("$part: $detail")
             }
-            println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            println()
         }
         println("크롤링 완료")
     }
+
 
     private fun loadLaptopPage() {
         webDriver.get("https://prod.danawa.com/list/?cate=112758")
@@ -99,7 +98,7 @@ class CrawlerService(
         val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
         val productList = wait.until(
             ExpectedConditions.presenceOfAllElementsLocatedBy(
-                By.cssSelector(".main_prodlist.main_prodlist_list > .product_list .prod_item.prod_layer:not(.product-pot)")
+                By.cssSelector(".product_list .prod_item.prod_layer:not(.product-pot) .prod_main_info .prod_info")
             )
         )
         return productList
