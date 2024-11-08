@@ -1,8 +1,5 @@
 package going9.laptopgg.service.crawler
 
-import org.openqa.selenium.By
-import org.openqa.selenium.WebDriver
-import org.openqa.selenium.WebElement
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.stereotype.Service
@@ -10,7 +7,7 @@ import java.time.Duration
 
 // CpuModelMap 파일에서 cpuModelMap을 import
 import going9.laptopgg.service.crawler.CpuModelMap.cpuModelMap
-import org.openqa.selenium.StaleElementReferenceException
+import org.openqa.selenium.*
 
 @Service
 class CrawlerService(
@@ -23,23 +20,48 @@ class CrawlerService(
         clickOptionButton()
         clickCpuCodeButton()
         selectCpuAttributes()
-        Thread.sleep(10000)
+        Thread.sleep(5000)
 
 
 
         while (true) {
+            Thread.sleep(30000)
+            scrollToBottom()
+            Thread.sleep(10000)
             // 상세 페이지 링크 획득
             val products = getProductList()
 
             // 제품 크롤링 확인
             for (product in products) {
-                val productName = product.findElement(By.cssSelector(".prod_name > a")).text
-                println(productName)
-            val parsedDetails = parseProductDetails(product.findElement(By.cssSelector(".spec_list")).text)
-            for ((part, detail) in parsedDetails) {
-                println("$part: $detail")
-            }
-                println()
+                val imgElement = product.findElement(By.cssSelector(".thumb_image > a > img"))
+                var productImage = imgElement.getAttribute("src")
+
+                // Placeholder 이미지를 사용하는 경우 실제 이미지 URL을 가져옵니다.
+                if (productImage.contains("noImg")) {
+                    val dataSrc = imgElement.getAttribute("data-original")
+                    if (!dataSrc.isNullOrEmpty()) {
+                        productImage = dataSrc
+                    }
+                }
+
+                // 프로토콜 상대 URL 처리
+                if (productImage.startsWith("//")) {
+                    productImage = "https:$productImage"
+                }
+
+                // 이미지 URL에서 'shrink' 파라미터를 변경하여 큰 이미지 가져오기
+                productImage = productImage.replace("shrink=130:130", "shrink=500:500")
+
+                println(productImage)
+//                val productName = product.findElement(By.cssSelector(".prod_name > a")).text
+//                println(productName)
+//
+//                val parsedDetails = parseProductDetails(product.findElement(By.cssSelector(".spec_list")).text)
+//
+//                for ((part, detail) in parsedDetails) {
+//                    println("$part: $detail")
+//                }
+//                    println()
             }
 
             // 다음 페이지 클릭, 마지막 페이지일 경우 종료
@@ -130,7 +152,7 @@ class CrawlerService(
     // 제품 리스트 가져오기 메서드
     private fun getProductList(): List<WebElement> {
         val productElements = mutableListOf<WebElement>()
-        val cssSelector = ".product_list .prod_item.prod_layer:not(.product-pot) .prod_main_info .prod_info"
+        val cssSelector = "div.main_prodlist.main_prodlist_list > ul > li .prod_main_info"
 
         try {
             // 대기 후 요소를 가져와 리스트에 추가
@@ -276,6 +298,12 @@ class CrawlerService(
     private fun getNextPageButtonByCurrentPage(nextButtonIndex: Int): WebElement {
         val nextPageCssSelector = "#productListArea > div.prod_num_nav > div > div > a:nth-child(${nextButtonIndex})"
         return waitForElementToBeClickable(nextPageCssSelector)
+    }
+
+    // 페이지 아래로 스크롤하는 메서드 추가
+    private fun scrollToBottom() {
+        val jsExecutor = webDriver as JavascriptExecutor
+        jsExecutor.executeScript("window.scrollTo(0, document.body.scrollHeight);")
     }
 
 }
