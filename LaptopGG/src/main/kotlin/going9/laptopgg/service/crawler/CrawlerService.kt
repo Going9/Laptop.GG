@@ -23,21 +23,38 @@ class CrawlerService(
         clickOptionButton()
         clickCpuCodeButton()
         selectCpuAttributes()
-        Thread.sleep(30000)
+        Thread.sleep(10000)
 
-        // 상세 페이지 링크 획득
-        val products = getProductList()
 
-        for (product in products) {
-            val productName = product.findElement(By.cssSelector(".prod_name > a")).text
-            println(productName)
+
+        while (true) {
+            // 상세 페이지 링크 획득
+            val products = getProductList()
+
+            // 제품 크롤링 확인
+            for (product in products) {
+                val productName = product.findElement(By.cssSelector(".prod_name > a")).text
+                println(productName)
             val parsedDetails = parseProductDetails(product.findElement(By.cssSelector(".spec_list")).text)
             for ((part, detail) in parsedDetails) {
                 println("$part: $detail")
             }
-            println()
+                println()
+            }
+
+            // 다음 페이지 클릭, 마지막 페이지일 경우 종료
+            try {
+                getNextPage()
+                Thread.sleep(5000) // 페이지 로딩 대기
+            } catch (e: Exception) {
+                println(e)
+                println("마지막 페이지에 도달하여 크롤링을 종료합니다.")
+                break // while 루프 종료
+            }
         }
-        println("크롤링 완료")
+
+
+
     }
 
 
@@ -83,7 +100,6 @@ class CrawlerService(
         )
         for (attributeValue in attributeValues) {
             val attributeButton = waitForElementToBeClickable(attributeValue)
-            println(attributeButton.text)
             attributeButton.click()
         }
         println("CPU 코드 선택 완료")
@@ -96,7 +112,7 @@ class CrawlerService(
     }
 
     // 지정된 CSS 선택자를 통해 요소가 나타날 때까지 대기하는 메서드
-    fun waitForElementToBePresent(cssSelector: String): WebElement {
+    private fun waitForElementToBePresent(cssSelector: String): WebElement {
         val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
         return wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(cssSelector)))
     }
@@ -112,7 +128,7 @@ class CrawlerService(
     }
 
     // 제품 리스트 가져오기 메서드
-    fun getProductList(): List<WebElement> {
+    private fun getProductList(): List<WebElement> {
         val productElements = mutableListOf<WebElement>()
         val cssSelector = ".product_list .prod_item.prod_layer:not(.product-pot) .prod_main_info .prod_info"
 
@@ -132,7 +148,7 @@ class CrawlerService(
         return productElements
     }
 
-    fun parseProductDetails(productText: String): Map<String, Any> {
+    private fun parseProductDetails(productText: String): Map<String, Any> {
         val detailsMap = mutableMapOf<String, Any>()
 
         // **CPU 정보 추출**
@@ -236,6 +252,30 @@ class CrawlerService(
         }
 
         return Pair(cpuManufacturer, cpuModel)
+    }
+
+    private fun getNextPage() {
+        var currentPage: Int = saveCurrentPage()
+        println("현재페이지" + currentPage)
+        if (currentPage % 10 == 0) {
+            try {
+                waitForElementToBeClickable("#productListArea > div.prod_num_nav > div > a.edge_nav.nav_next").click()
+            } catch(e: Exception) {
+                println(e.message)
+                return
+            }
+        }
+        // 10의 배수가 아니면
+        else {
+            var nextButtonIndex: Int = currentPage % 10 + 1
+            getNextPageButtonByCurrentPage(nextButtonIndex).click()
+            println("다음페이지 클릭")
+        }
+    }
+
+    private fun getNextPageButtonByCurrentPage(nextButtonIndex: Int): WebElement {
+        val nextPageCssSelector = "#productListArea > div.prod_num_nav > div > div > a:nth-child(${nextButtonIndex})"
+        return waitForElementToBeClickable(nextPageCssSelector)
     }
 
 }
