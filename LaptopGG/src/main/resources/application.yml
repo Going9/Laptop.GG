@@ -66,3 +66,31 @@ spring:
 
     api:
         base-url: "http://localhost:8080"
+
+---
+spring:
+    config:
+        activate:
+            on-profile: windows
+    datasource:
+        url: jdbc:sqlite:C:/Users/iggyu/Desktop/git/LaptopGG_data/LaptopGG.sqplite
+        driver-class-name: org.sqlite.JDBC
+        username: ""
+        password: ""
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.community.dialect.SQLiteDialect
+                format_sql: true
+        show-sql: true
+    logging:
+        level:
+            org.hibernate.SQL: DEBUG
+            org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    api:
+        base-url: "http://localhost:8080"
+
+server:
+    port: 9090

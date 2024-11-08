@@ -10,6 +10,7 @@ import java.time.Duration
 
 // CpuModelMap 파일에서 cpuModelMap을 import
 import going9.laptopgg.service.crawler.CpuModelMap.cpuModelMap
+import org.openqa.selenium.StaleElementReferenceException
 
 @Service
 class CrawlerService(
@@ -19,6 +20,10 @@ class CrawlerService(
     fun crawlLaptops() {
         // 페이지 로드 및 초기 작업 수행
         loadLaptopPage()
+        clickOptionButton()
+        clickCpuCodeButton()
+        selectCpuAttributes()
+        Thread.sleep(30000)
 
         // 상세 페이지 링크 획득
         val products = getProductList()
@@ -42,13 +47,13 @@ class CrawlerService(
     }
 
     private fun clickOptionButton() {
-        val optionButton = waitForElement("#searchOptionAll")
+        val optionButton = waitForElementToBeClickable("#searchOptionAll")
         optionButton.click()
         println("옵션 클릭 완료")
     }
 
     private fun clickCpuCodeButton() {
-        val cpuCodeButton = waitForElement(
+        val cpuCodeButton = waitForElementToBeClickable(
             "#extendSearchOptionpriceCompare > div > dl:nth-child(24) > " +
                     "dd > div > button.btn_spec_view.btn_view_more"
         )
@@ -77,31 +82,54 @@ class CrawlerService(
             "#searchAttributeValue713959"  // 세잔
         )
         for (attributeValue in attributeValues) {
-            val attributeButton = waitForElement(attributeValue)
+            val attributeButton = waitForElementToBeClickable(attributeValue)
             println(attributeButton.text)
             attributeButton.click()
         }
         println("CPU 코드 선택 완료")
     }
 
-    private fun waitForElement(cssSelector: String, timeoutInSeconds: Long = 10): WebElement {
+    private fun waitForElementToBeClickable(cssSelector: String, timeoutInSeconds: Long = 10): WebElement {
         return WebDriverWait(webDriver, Duration.ofSeconds(timeoutInSeconds)).until(
             ExpectedConditions.elementToBeClickable(By.cssSelector(cssSelector))
         )
+    }
+
+    // 지정된 CSS 선택자를 통해 요소가 나타날 때까지 대기하는 메서드
+    fun waitForElementToBePresent(cssSelector: String): WebElement {
+        val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
+        return wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(cssSelector)))
+    }
+
+    // 다수의 요소를 기다리는 메서드
+    private fun waitForElementsToBePresent(cssSelector: String): List<WebElement> {
+        val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
+        return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(cssSelector)))
     }
 
     private fun saveCurrentPage(): Int {
         return webDriver.findElement(By.cssSelector(".num.now_on")).text.toInt()
     }
 
+    // 제품 리스트 가져오기 메서드
     fun getProductList(): List<WebElement> {
-        val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
-        val productList = wait.until(
-            ExpectedConditions.presenceOfAllElementsLocatedBy(
-                By.cssSelector(".product_list .prod_item.prod_layer:not(.product-pot) .prod_main_info .prod_info")
+        val productElements = mutableListOf<WebElement>()
+        val cssSelector = ".product_list .prod_item.prod_layer:not(.product-pot) .prod_main_info .prod_info"
+
+        try {
+            // 대기 후 요소를 가져와 리스트에 추가
+            productElements.addAll(
+                waitForElementsToBePresent(cssSelector)
             )
-        )
-        return productList
+        } catch (e: StaleElementReferenceException) {
+            println("요소가 DOM에서 사라졌습니다. 재시도 중...")
+            productElements.clear() // 예외 발생 시 리스트 초기화 후 재시도
+            productElements.addAll(
+                waitForElementsToBePresent(cssSelector)
+            )
+        }
+
+        return productElements
     }
 
     fun parseProductDetails(productText: String): Map<String, Any> {
