@@ -1,5 +1,7 @@
 package going9.laptopgg.service.crawler
 
+import going9.laptopgg.domain.laptop.NewLaptop
+import going9.laptopgg.domain.repository.NewLaptopRepository
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.stereotype.Service
@@ -12,6 +14,7 @@ import org.openqa.selenium.*
 @Service
 class CrawlerService(
     val webDriver: WebDriver,
+    private val newLaptopRepository: NewLaptopRepository,
 ) {
 
     fun crawlLaptops() {
@@ -25,53 +28,116 @@ class CrawlerService(
 
 
         while (true) {
-            Thread.sleep(30000)
+            Thread.sleep(5000)
             scrollToBottom()
-            Thread.sleep(10000)
-            // 상세 페이지 링크 획득
+            Thread.sleep(5000)
+
+            // 현재 페이지의 제품 리스트 가져오기
             val products = getProductList()
 
-            // 제품 크롤링 확인
+            // 제품 정보 파싱 및 엔티티 생성
+            val laptops = mutableListOf<NewLaptop>()
             for (product in products) {
-                val imgElement = product.findElement(By.cssSelector(".thumb_image > a > img"))
-                var productImage = imgElement.getAttribute("src")
+                try {
+                    val productName = product.findElement(By.cssSelector(".prod_name > a")).text
+                    val productImage = getImageFromProduct(product)
+                    val productPrice =
+                        product.findElement(By.cssSelector(".prod_pricelist > ul > li.rank_one > p.price_sect > a")).text
+                            .replace(",", "") // 쉼표 제거
+                            .replace("원", "") // "원" 제거
+                            .toInt() // Int로 변환
+                    val productText = product.findElement(By.cssSelector(".spec_list")).text
+                    val parsedDetails = parseProductDetails(productText)
 
-                // Placeholder 이미지를 사용하는 경우 실제 이미지 URL을 가져옵니다.
-                if (productImage.contains("noImg")) {
-                    val dataSrc = imgElement.getAttribute("data-original")
-                    if (!dataSrc.isNullOrEmpty()) {
-                        productImage = dataSrc
+                    val existingLaptop = newLaptopRepository.findByName(productName)
+
+                    if (existingLaptop != null) {
+                        // db에 이미 있는 노트북이라면 가격만 업데이트
+                        existingLaptop.price = productPrice
+                        newLaptopRepository.save(existingLaptop)
+                    } else {
+                        println(productText)
+
+                        try {
+                            val cpuManufacturer = parsedDetails["cpuManufacturer"] as? String
+                            val cpu = parsedDetails["cpu"] as? String
+                            val os = parsedDetails["os"] as? String
+                            val screenSize = (parsedDetails["screenSize"] as? String)?.toDoubleOrNull()
+                            val resolution = parsedDetails["resolution"] as? String
+                            val brightness = (parsedDetails["brightness"] as? String)?.toIntOrNull()
+                            val refreshRate = (parsedDetails["refreshRate"] as? String)?.toIntOrNull()
+                            val ramSize = (parsedDetails["ramSize"] as? String)?.toIntOrNull()
+                            val ramType = parsedDetails["ramType"] as? String
+                            val isRamReplaceable = parsedDetails["isRamReplaceable"] as? Boolean
+                            val graphicsType = parsedDetails["graphicsType"] as? String
+                            val tgp = (parsedDetails["tgp"] as? String)?.toIntOrNull()
+                            val videoOutput = parsedDetails["videoOutput"] as? String
+                            val thunderboltCount = (parsedDetails["thunderboltCount"] as? String)?.toIntOrNull()
+                            val usbCCount = (parsedDetails["usbCCount"] as? String)?.toIntOrNull()
+                            val usbACount = (parsedDetails["usbACount"] as? String)?.toIntOrNull()
+                            val sdCard = parsedDetails["sdCard"] as? String
+                            val isSupportsPdCharging = parsedDetails["isSupportsPdCharging"] as? Boolean
+                            val batteryCapacity = (parsedDetails["batteryCapacity"] as? String)?.toIntOrNull()
+                            val storageCapacity = (parsedDetails["storageCapacity"] as? String)?.toIntOrNull()
+                            val storageSlotCount = (parsedDetails["storageSlotCount"] as? String)?.toIntOrNull()
+                            val weight = (parsedDetails["weight"] as? String)?.toDoubleOrNull()
+                            val usage = parsedDetails["usage"] as? List<String>
+
+                            val newLaptop = NewLaptop(
+                                name = productName,
+                                imageUrl = productImage,
+                                price = productPrice,
+                                cpuManufacturer = cpuManufacturer,
+                                cpu = cpu,
+                                os = os,
+                                screenSize = screenSize,
+                                resolution = resolution,
+                                brightness = brightness,
+                                refreshRate = refreshRate,
+                                ramSize = ramSize,
+                                ramType = ramType,
+                                isRamReplaceable = isRamReplaceable,
+                                graphicsType = graphicsType,
+                                tgp = tgp,
+                                videoOutput = videoOutput,
+                                thunderboltCount = thunderboltCount,
+                                usbCCount = usbCCount,
+                                usbACount = usbACount,
+                                sdCard = sdCard,
+                                isSupportsPdCharging = isSupportsPdCharging,
+                                batteryCapacity = batteryCapacity,
+                                storageCapacity = storageCapacity,
+                                storageSlotCount = storageSlotCount,
+                                weight = weight,
+                                usage = usage
+                            )
+
+                            laptops.add(newLaptop)
+                            println("노트북 추가완료")
+                            println()
+                        } catch (e: Exception) {
+                            println("제품 파싱 중 오류 발생: ${e.message}")
+                            e.printStackTrace()
+                        }
                     }
+                } catch (e: Exception) {
+                    println("제품 파싱 중 오류 발생: ${e.message}")
                 }
-
-                // 프로토콜 상대 URL 처리
-                if (productImage.startsWith("//")) {
-                    productImage = "https:$productImage"
-                }
-
-                // 이미지 URL에서 'shrink' 파라미터를 변경하여 큰 이미지 가져오기
-                productImage = productImage.replace("shrink=130:130", "shrink=500:500")
-
-                println(productImage)
-//                val productName = product.findElement(By.cssSelector(".prod_name > a")).text
-//                println(productName)
-//
-//                val parsedDetails = parseProductDetails(product.findElement(By.cssSelector(".spec_list")).text)
-//
-//                for ((part, detail) in parsedDetails) {
-//                    println("$part: $detail")
-//                }
-//                    println()
             }
 
-            // 다음 페이지 클릭, 마지막 페이지일 경우 종료
+            // 데이터베이스에 저장
+            if (laptops.isNotEmpty()) {
+                println("랩탑 저장 완료")
+                newLaptopRepository.saveAll(laptops)
+            }
+
+            // 다음 페이지로 이동
             try {
                 getNextPage()
                 Thread.sleep(5000) // 페이지 로딩 대기
             } catch (e: Exception) {
-                println(e)
                 println("마지막 페이지에 도달하여 크롤링을 종료합니다.")
-                break // while 루프 종료
+                break
             }
         }
 
@@ -80,18 +146,18 @@ class CrawlerService(
     }
 
 
-    private fun loadLaptopPage() {
+    fun loadLaptopPage() {
         webDriver.get("https://prod.danawa.com/list/?cate=112758")
         println("페이지 타이틀: ${webDriver.title}")
     }
 
-    private fun clickOptionButton() {
+    fun clickOptionButton() {
         val optionButton = waitForElementToBeClickable("#searchOptionAll")
         optionButton.click()
         println("옵션 클릭 완료")
     }
 
-    private fun clickCpuCodeButton() {
+    fun clickCpuCodeButton() {
         val cpuCodeButton = waitForElementToBeClickable(
             "#extendSearchOptionpriceCompare > div > dl:nth-child(24) > " +
                     "dd > div > button.btn_spec_view.btn_view_more"
@@ -100,7 +166,7 @@ class CrawlerService(
         println("CPU 코드명 클릭 완료")
     }
 
-    private fun selectCpuAttributes() {
+    fun selectCpuAttributes() {
         val attributeValues = listOf(
             "#searchAttributeValue984997", // 루나레이크
             "#searchAttributeValue987658", // 스트릭스 포인트
@@ -150,7 +216,7 @@ class CrawlerService(
     }
 
     // 제품 리스트 가져오기 메서드
-    private fun getProductList(): List<WebElement> {
+    fun getProductList(): List<WebElement> {
         val productElements = mutableListOf<WebElement>()
         val cssSelector = "div.main_prodlist.main_prodlist_list > ul > li .prod_main_info"
 
@@ -170,7 +236,7 @@ class CrawlerService(
         return productElements
     }
 
-    private fun parseProductDetails(productText: String): Map<String, Any> {
+    fun parseProductDetails(productText: String): Map<String, Any> {
         val detailsMap = mutableMapOf<String, Any>()
 
         // **CPU 정보 추출**
@@ -181,28 +247,27 @@ class CrawlerService(
         // **나머지 정보 추출**
         val patterns = mapOf(
             "os" to "운영체제\\(OS\\):\\s*([^/]+)",
-            "usage" to "용도:\\s*([^/]+)",
             "screenSize" to "화면정보\\s*[0-9.]+cm\\(([0-9.]+)인치\\)",
             "resolution" to "화면정보.*?/.*?\\(([^)]+)\\)",
             "brightness" to "화면정보.*?(\\d+)nit",
             "refreshRate" to "주사율:\\s*(\\d+)Hz",
-            "ramType" to "램\\s([A-Z0-9]+)",
             "ramSize" to "램 용량:\\s*(\\d+)GB",
-            "ramClock" to "램 용량:.*?/(\\d+)MHz",
-            "ramSlot" to "램 교체:\\s*(가능|불가능)",
+            "ramType" to "램\\s([A-Z0-9]+)",
+            "isRamReplaceable" to "램 교체:\\s*(가능|불가능)",
             "graphicsType" to "그래픽\\s[^/]+/([^/]+)",
             "tgp" to "그래픽.*?TGP:\\s*(\\d+)W",
             "videoOutput" to "영상입출력\\s([^/]+)",
-            "thunderbolt" to "단자.*?썬더볼트\\d+:\\s*(\\d+)개",
-            "usbC" to "단자.*?USB-C(?::\\s*(\\d+)개(?!\\(USB-C겸용\\))|\\(USB-C겸용\\)|겸용)",
-            "usbA" to "단자.*?USB-A:\\s*(\\d+)개",
+            "thunderboltCount" to "단자.*?썬더볼트\\d+:\\s*(\\d+)개",
+            "usbCCount" to "단자.*?USB-C(?::\\s*(\\d+)개(?!\\(USB-C겸용\\))|\\(USB-C겸용\\)|겸용)",
+            "usbACount" to "단자.*?USB-A:\\s*(\\d+)개",
             "sdCard" to "단자.*?(SD카드|MicroSD카드)",
-            "battery" to "배터리:\\s*(\\d+)Wh",
-            "pdCharging" to "전원:\\s*.*USB-PD",
+            "isSupportsPdCharging" to "전원:\\s*.*USB-PD",
+            "batteryCapacity" to "배터리:\\s*(\\d+)Wh",
             "storageCapacity" to "저장장치.*?/([0-9.]+)([A-Z]+)?/",
-            "storageSlot" to "저장 슬롯:\\s*(\\d+)개",
-            "weight" to "무게:\\s*([0-9.]+)kg"
-        )
+            "storageSlotCount" to "저장 슬롯:\\s*(\\d+)개",
+            "weight" to "무게:\\s*([0-9.]+)kg",
+            "usage" to "용도:\\s*([^/]+)",
+            )
 
         // **패턴 매칭 및 데이터 추출**
         for ((part, pattern) in patterns) {
@@ -217,10 +282,10 @@ class CrawlerService(
                     "usage" -> {
                         match.groupValues[1].split(',').map { it.trim() }
                     }
-                    "ramSlot" -> match.groupValues[1] == "가능"
+                    "isRamReplaceable" -> match.groupValues[1] == "가능"
                     "tgp" -> match.groupValues[1]
-                    "pdCharging" -> true
-                    "usbC" -> {
+                    "isSupportsPdCharging" -> true
+                    "usbCCount" -> {
                         val usbCValue = match.groupValues[1]
                         if (usbCValue.isNotEmpty()) usbCValue else {
                             if (match.value.contains("USB-C")) "1" else "0"
@@ -246,9 +311,11 @@ class CrawlerService(
                             detailsMap["tgp"] = "0"
                         }
                     }
-                    "pdCharging" -> detailsMap[part] = false
-                    "usbC" -> detailsMap[part] = "0"
-                    "thunderbolt" -> detailsMap[part] = "0"
+                    "isSupportsPdCharging" -> detailsMap[part] = false
+                    "usbCCount" -> detailsMap[part] = "0"
+                    "thunderboltCount" -> detailsMap[part] = "0"
+                    "refreshRate" -> detailsMap[part] = 60
+                    "storageSlotCount" -> detailsMap[part] = "unknown"
                 }
             }
         }
@@ -276,7 +343,7 @@ class CrawlerService(
         return Pair(cpuManufacturer, cpuModel)
     }
 
-    private fun getNextPage() {
+    fun getNextPage() {
         var currentPage: Int = saveCurrentPage()
         println("현재페이지" + currentPage)
         if (currentPage % 10 == 0) {
@@ -301,9 +368,32 @@ class CrawlerService(
     }
 
     // 페이지 아래로 스크롤하는 메서드 추가
-    private fun scrollToBottom() {
+    fun scrollToBottom() {
         val jsExecutor = webDriver as JavascriptExecutor
         jsExecutor.executeScript("window.scrollTo(0, document.body.scrollHeight);")
+    }
+
+    fun getImageFromProduct(product: WebElement): String {
+        val imgElement = product.findElement(By.cssSelector(".thumb_image > a > img"))
+        var productImage = imgElement.getAttribute("src")
+
+        // lazy laoding 때문에 palceholder 이미지가 아니라 실제 이미지 url을 가져와야함
+        if (productImage.contains("noImg")) {
+            val dataSrc = imgElement.getAttribute("data-original")
+            if (!dataSrc.isNullOrEmpty()) {
+                productImage = dataSrc
+            }
+        }
+
+        // image src에 https 추가
+        if (productImage.startsWith("//")) {
+            productImage = "https:$productImage"
+        }
+
+        // 이미지 URL에서 'shrink' 파라미터를 변경하여 큰 이미지 가져오기
+        productImage = productImage.replace("shrink=130:130", "shrink=500:500")
+
+        return productImage
     }
 
 }
