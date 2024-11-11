@@ -4,18 +4,29 @@ spring:
         driver-class-name: org.sqlite.JDBC
         username: ""
         password: ""
+
+    batch:
+        jdbc:
+            initialize-schema: always
+
+        job:
+            enabled: false
+
     jpa:
         hibernate:
-            ddl-auto: update
+            ddl-auto: create
         properties:
             hibernate:
                 dialect: org.hibernate.community.dialect.SQLiteDialect
-                format_sql: true    # 쿼리를 보기 쉽게 포맷
-        show-sql: true              # SQL 쿼리 로그 활성화
+                format_sql: true
+                highlight_sql: true
+                use_sql_comments: true
+        show-sql: false
+
     logging:
         level:
-            org.hibernate.SQL: DEBUG                     # SQL 쿼리 로그 출력
-            org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 파라미터 바인딩 로그 출력
+            org.hibernate.SQL: OFF
+            org.hibernate.type.descriptor.sql.BasicBinder: OFF
 
 ---
 spring:
@@ -27,18 +38,30 @@ spring:
         driver-class-name: org.sqlite.JDBC
         username: ""
         password: ""
+
+    batch:
+        jdbc:
+            initialize-schema: always
+
+        job:
+            enabled: false
+
     jpa:
         hibernate:
-            ddl-auto: update
+            ddl-auto: create
         properties:
             hibernate:
                 dialect: org.hibernate.community.dialect.SQLiteDialect
                 format_sql: true
-        show-sql: true
+                highlight_sql: true
+                use_sql_comments: true
+        show-sql: false
+
     logging:
         level:
-            org.hibernate.SQL: DEBUG
-            org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+            org.hibernate.SQL: OFF
+            org.hibernate.type.descriptor.sql.BasicBinder: OFF
+
     api:
         base-url: "https://laptopgg.com"
 ---
@@ -51,18 +74,29 @@ spring:
         driver-class-name: org.sqlite.JDBC
         username: ""
         password: ""
+
+    batch:
+        jdbc:
+            initialize-schema: always
+
+        job:
+            enabled: false
+
     jpa:
         hibernate:
-            ddl-auto: update
+            ddl-auto: create
         properties:
             hibernate:
                 dialect: org.hibernate.community.dialect.SQLiteDialect
                 format_sql: true
-        show-sql: true
+                highlight_sql: true
+                use_sql_comments: true
+        show-sql: false
+
     logging:
         level:
-            org.hibernate.SQL: DEBUG
-            org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+            org.hibernate.SQL: OFF
+            org.hibernate.type.descriptor.sql.BasicBinder: OFF
 
     api:
         base-url: "http://localhost:8080"
@@ -95,6 +129,7 @@ spring:
                 highlight_sql: true
                 use_sql_comments: true
         show-sql: false
+
     logging:
         level:
             org.hibernate.SQL: OFF
