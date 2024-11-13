@@ -1,5 +1,5 @@
 # Debian 기반의 OpenJDK 이미지 사용
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-jdk-slim
 
 # 작업 디렉토리 설정
 WORKDIR /LaptopGG
