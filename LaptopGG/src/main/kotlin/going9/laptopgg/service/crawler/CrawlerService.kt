@@ -1,6 +1,7 @@
 package going9.laptopgg.service.crawler
 
 import going9.laptopgg.domain.laptop.NewLaptop
+import going9.laptopgg.domain.repository.NewLaptopRepository
 import org.openqa.selenium.*
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
@@ -9,11 +10,20 @@ import java.time.Duration
 
 // CpuModelMap 파일에서 cpuModelMap을 import
 import going9.laptopgg.service.crawler.CpuModelMap.cpuModelMap
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CrawlerService(
     private val webDriver: WebDriver,
+    private val newLaptopRepository: NewLaptopRepository,
 ) {
+
+    data class ProductData(
+        val productName: String,
+        val productImage: String,
+        val productPrice: Int,
+        val productText: String
+    )
 
     // 노트북 페이지 로드
     fun loadLaptopPage() {
@@ -36,20 +46,30 @@ class CrawlerService(
         return getProductList()
     }
 
+    fun extractProductData(product: WebElement): ProductData {
+        val name: String = waitForElementToBePresent(product, ".prod_name > a").text
+        val image: String = getImageFromProduct(product)
+        val price: Int = waitForElementToBePresent(product, ".prod_pricelist > ul > li:first-of-type > p.price_sect > a")
+            .text.replace(",", "").replace("원", "").toInt()
+        val text: String = waitForElementToBePresent(product, ".spec_list").text
+
+        return ProductData(
+            productName = name,
+            productImage = image,
+            productPrice = price,
+            productText = text
+        )
+    }
+
     // 제품 상세 정보 파싱
-    fun parseProductDetails(product: WebElement): NewLaptop? {
+    fun parseProductDetails(data: ProductData): NewLaptop? {
         try {
-            val productName = product.findElement(By.cssSelector(".prod_name > a")).text
-            val productImage = getImageFromProduct(product)
-            val productPrice = product.findElement(By.cssSelector(".prod_pricelist > ul > li:first-of-type > p.price_sect > a"))
-                .text.replace(",", "").replace("원", "").toInt()
-            val productText = product.findElement(By.cssSelector(".spec_list")).text
-            val parsedDetails = extractProductDetails(productText)
+            val parsedDetails = extractProductDetails(data.productText)
 
             return NewLaptop(
-                name = productName,
-                imageUrl = productImage,
-                price = productPrice,
+                name = data.productName,
+                imageUrl = data.productImage,
+                price = data.productPrice,
                 cpuManufacturer = parsedDetails["cpuManufacturer"] as? String,
                 cpu = parsedDetails["cpu"] as? String,
                 os = parsedDetails["os"] as? String,
@@ -89,6 +109,22 @@ class CrawlerService(
         } catch (e: Exception) {
             println("마지막 페이지에 도달하여 크롤링을 종료합니다.")
             false
+        }
+    }
+
+    // 랩탑 트랙잭션 단위로 저장
+    @Transactional
+    fun saveOrUpdateLaptop(newLaptop: NewLaptop) {
+        try {
+            val existingLaptop = newLaptopRepository.findByName(newLaptop.name)
+            if (existingLaptop != null) {
+                existingLaptop.price = newLaptop.price
+            } else {
+                newLaptopRepository.save(newLaptop)
+            }
+        } catch (e: Exception) {
+            println("데이터베이스 작업 중 오류 발생: ${e.message}")
+            e.printStackTrace()
         }
     }
 
@@ -314,5 +350,10 @@ class CrawlerService(
     private fun waitForElementsToBePresent(cssSelector: String): List<WebElement> {
         val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
         return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(cssSelector)))
+    }
+
+    private fun waitForElementToBePresent(parentElement: WebElement, cssSelector: String): WebElement {
+        val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
+        return wait.until(ExpectedConditions.presenceOfNestedElementLocatedBy(parentElement, By.cssSelector(cssSelector)))
     }
 }

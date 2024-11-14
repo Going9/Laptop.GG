@@ -10,6 +10,7 @@ import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.Executors
 
 @SpringBootTest(properties = ["spring.profiles.active=test"])
@@ -25,46 +26,78 @@ class CrawlerServiceTest(
     private lateinit var driver: WebDriver
 
     @Test
+    fun `check crawling time without threading`() {
+        // 초기 작업 수행
+        crawlerService.loadLaptopPage()
+        crawlerService.setupFilters()
+        Thread.sleep(5000)
+
+        // 크롤링 루프 시작
+        while (true) {
+            val startTime = System.currentTimeMillis()
+
+            val products = crawlerService.fetchProductList()
+
+            // 스레드 안정성을 위해서 메인 스레드에서 제품 데이터 추출
+            val productDataList = products.map { product ->
+                crawlerService.extractProductData(product)
+            }
+
+            productDataList.map { productData ->
+                val newLaptop = crawlerService.parseProductDetails(productData)
+                if (newLaptop != null) {
+                    crawlerService.saveOrUpdateLaptop(newLaptop)
+                }
+            }
+
+            val endTime = System.currentTimeMillis()
+
+            println("걸린시간: " + (endTime - startTime))
+
+            // 다음 페이지로 이동, 마지막 페이지 도달 시 종료
+            if (!crawlerService.navigateToNextPage()) break
+        }
+    }
+
+    @Test
     fun `test fetchProductList retrieves product list`() {
         var executor = Executors.newVirtualThreadPerTaskExecutor()
 
-        try {
-            // 초기 작업 수행
-            crawlerService.loadLaptopPage()
-            crawlerService.setupFilters()
-            Thread.sleep(5000)
+        // 초기 작업 수행
+        crawlerService.loadLaptopPage()
+        crawlerService.setupFilters()
+        Thread.sleep(5000)
 
+        try {
             // 크롤링 루프 시작
             while (true) {
+                val startTime = System.currentTimeMillis()
+
                 // 제품 리스트 가져오기
                 val products = crawlerService.fetchProductList()
 
-                // 제품 정보 파싱 및 엔티티 생성
-                val futures = products.map { product ->
-                    executor.submit<NewLaptop?> {
-                        val newLaptop = crawlerService.parseProductDetails(product)
+                // 스레드 안정성을 위해서 메인 스레드에서 제품 데이터 추출
+                val productDataList = products.map { product ->
+                    crawlerService.extractProductData(product)
+                }
+
+                // VT 사용하여 병렬 처리
+                val futures = productDataList.map { productData ->
+                    executor.submit {
+                        val newLaptop = crawlerService.parseProductDetails(productData)
+                        // 파싱 성공했을 때,
                         if (newLaptop != null) {
-                            val existingLaptop = newLaptopRepository.findByName(newLaptop.name)
-                            if (existingLaptop != null) {
-                                existingLaptop.price = newLaptop.price
-                                newLaptopRepository.save(existingLaptop)
-                                println(executor.toString())
-                                null
-                            } else {
-                                newLaptop
-                            }
-                        } else {
-                            null
+                            crawlerService.saveOrUpdateLaptop(newLaptop)
                         }
                     }
                 }
 
-                val laptopsToSave = futures.mapNotNull { it.get() }
+                // 모든 작업 완료될 때 까지 대기
+                futures.forEach { it.get() }
 
-                if (laptopsToSave.isNotEmpty()) {
-                    println("새로운 노트북 정보를 저장합니다.")
-                    newLaptopRepository.saveAll(laptopsToSave)
-                }
+                val endTime = System.currentTimeMillis()
+
+                println("걸린시간: " + (endTime - startTime))
 
                 // 다음 페이지로 이동, 마지막 페이지 도달 시 종료
                 if (!crawlerService.navigateToNextPage()) break
@@ -73,34 +106,6 @@ class CrawlerServiceTest(
             executor.shutdown()
         }
     }
-
-
-
-//            val laptopsToSave = mutableListOf<NewLaptop>()
-//            for (product in products) {
-//                val newLaptop = crawlerService.parseProductDetails(product)
-//                newLaptop?.let { laptop ->
-//                    val existingLaptop = newLaptopRepository.findByName(laptop.name)
-//                    if (existingLaptop != null) {
-//                        // 이미 존재하는 경우 가격만 업데이트
-//                        existingLaptop.price = laptop.price
-//                        newLaptopRepository.save(existingLaptop)
-//                    } else {
-//                        laptopsToSave.add(laptop)
-//                    }
-//                }
-//            }
-
-//            // 데이터베이스에 새로운 랩탑 정보 저장
-//            if (laptopsToSave.isNotEmpty()) {
-//                println("새로운 노트북 정보를 저장합니다.")
-//                newLaptopRepository.saveAll(laptopsToSave)
-//            }
-//
-//            // 다음 페이지로 이동, 마지막 페이지 도달 시 종료
-////            if (!crawlerService.navigateToNextPage()) break
-//        }
-//    }
 
     @AfterEach
     fun tearDown() {

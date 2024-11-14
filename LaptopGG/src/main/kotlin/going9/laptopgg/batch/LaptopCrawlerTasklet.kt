@@ -26,26 +26,16 @@ class LaptopCrawlerTasklet(
             // 제품 리스트 가져오기
             val products = crawlerService.fetchProductList()
 
-            // 제품 정보 파싱 및 엔티티 생성
-            val laptopsToSave = mutableListOf<NewLaptop>()
-            for (product in products) {
-                val newLaptop = crawlerService.parseProductDetails(product)
-                newLaptop?.let { laptop ->
-                    val existingLaptop = newLaptopRepository.findByName(laptop.name)
-                    if (existingLaptop != null) {
-                        // 이미 존재하는 경우 가격만 업데이트
-                        existingLaptop.price = laptop.price
-                        newLaptopRepository.save(existingLaptop)
-                    } else {
-                        laptopsToSave.add(laptop)
-                    }
-                }
+            // 스레드 안정성을 위해서 메인 스레드에서 제품 데이터 추출
+            val productDataList = products.map { product ->
+                crawlerService.extractProductData(product)
             }
 
-            // 데이터베이스에 새로운 랩탑 정보 저장
-            if (laptopsToSave.isNotEmpty()) {
-                println("새로운 노트북 정보를 저장합니다.")
-                newLaptopRepository.saveAll(laptopsToSave)
+            productDataList.map { productData ->
+                val newLaptop = crawlerService.parseProductDetails(productData)
+                if (newLaptop != null) {
+                    crawlerService.saveOrUpdateLaptop(newLaptop)
+                }
             }
 
             // 다음 페이지로 이동, 마지막 페이지 도달 시 종료
