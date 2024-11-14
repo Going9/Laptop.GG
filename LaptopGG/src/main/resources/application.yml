@@ -1,43 +1,43 @@
-spring:
-    datasource:
-        url: jdbc:sqlite:./LaptopGG.sqlite
-        driver-class-name: org.sqlite.JDBC
-        username: ""
-        password: ""
-
-    batch:
-        jdbc:
-            initialize-schema: always
-
-        job:
-            enabled: false
-
-    jpa:
-        hibernate:
-            ddl-auto: create
-        properties:
-            hibernate:
-                dialect: org.hibernate.community.dialect.SQLiteDialect
-                format_sql: true
-                highlight_sql: true
-                use_sql_comments: true
-        show-sql: false
-
-    logging:
-        level:
-            org.hibernate.SQL: OFF
-            org.hibernate.type.descriptor.sql.BasicBinder: OFF
-
----
+#spring:
+#    datasource:
+#        url: jdbc:sqlite:./LaptopGG.sqlite
+#        driver-class-name: org.sqlite.JDBC
+#        username: ""
+#        password: ""
+#
+#    batch:
+#        jdbc:
+#            initialize-schema: always
+#
+#        job:
+#            enabled: false
+#
+#    jpa:
+#        hibernate:
+#            ddl-auto: create
+#        properties:
+#            hibernate:
+#                dialect: org.hibernate.community.dialect.SQLiteDialect
+#                format_sql: true
+#                highlight_sql: true
+#                use_sql_comments: true
+#        show-sql: false
+#
+#    logging:
+#        level:
+#            org.hibernate.SQL: OFF
+#            org.hibernate.type.descriptor.sql.BasicBinder: OFF
+#
+#---
 spring:
     config:
         activate:
             on-profile: deploy
     datasource:
-        url: jdbc:sqlite:/LaptopGG/LaptopGG.sqlite
-        driver-class-name: org.sqlite.JDBC
-        username: ""
-        password: ""
+        url: jdbc:mariadb://db:3306/laptopgg
+        driver-class-name: org.mariadb.jdbc.Driver
+        username: ${MYSQL_USER}
+        password: ${MYSQL_PASSWORD}
 
     batch:
         jdbc:
@@ -64,76 +64,76 @@ spring:
 
     api:
         base-url: "https://laptopgg.com"
----
-spring:
-    config:
-        activate:
-            on-profile: ubuntu
-    datasource:
-        url: jdbc:sqlite:/home/iggyu/data/LaptopGG.sqlite
-        driver-class-name: org.sqlite.JDBC
-        username: ""
-        password: ""
-
-    batch:
-        jdbc:
-            initialize-schema: always
-
-        job:
-            enabled: false
-
-    jpa:
-        hibernate:
-            ddl-auto: create
-        properties:
-            hibernate:
-                dialect: org.hibernate.community.dialect.SQLiteDialect
-                format_sql: true
-                highlight_sql: true
-                use_sql_comments: true
-        show-sql: false
-
-    logging:
-        level:
-            org.hibernate.SQL: OFF
-            org.hibernate.type.descriptor.sql.BasicBinder: OFF
-
-    api:
-        base-url: "http://localhost:8080"
-
----
-spring:
-    config:
-        activate:
-            on-profile: windows
-    datasource:
-        url: jdbc:sqlite:C:/Users/iggyu/Desktop/git/LaptopGG_data/LaptopGG.sqlite
-        driver-class-name: org.sqlite.JDBC
-        username: ""
-        password: ""
-
-    batch:
-        jdbc:
-            initialize-schema: always
-
-        job:
-            enabled: false
-
-    jpa:
-        hibernate:
-            ddl-auto: create
-        properties:
-            hibernate:
-                dialect: org.hibernate.community.dialect.SQLiteDialect
-                format_sql: true
-                highlight_sql: true
-                use_sql_comments: true
-        show-sql: false
-
-    logging:
-        level:
-            org.hibernate.SQL: OFF
-            org.hibernate.type.descriptor.sql.BasicBinder: OFF
-    api:
-        base-url: "http://localhost:8080"
+#---
+#spring:
+#    config:
+#        activate:
+#            on-profile: ubuntu
+#    datasource:
+#        url: jdbc:sqlite:/home/iggyu/data/LaptopGG.sqlite
+#        driver-class-name: org.sqlite.JDBC
+#        username: ""
+#        password: ""
+#
+#    batch:
+#        jdbc:
+#            initialize-schema: always
+#
+#        job:
+#            enabled: false
+#
+#    jpa:
+#        hibernate:
+#            ddl-auto: create
+#        properties:
+#            hibernate:
+#                dialect: org.hibernate.community.dialect.SQLiteDialect
+#                format_sql: true
+#                highlight_sql: true
+#                use_sql_comments: true
+#        show-sql: false
+#
+#    logging:
+#        level:
+#            org.hibernate.SQL: OFF
+#            org.hibernate.type.descriptor.sql.BasicBinder: OFF
+#
+#    api:
+#        base-url: "http://localhost:8080"
+#
+#---
+#spring:
+#    config:
+#        activate:
+#            on-profile: windows
+#    datasource:
+#        url: jdbc:sqlite:C:/Users/iggyu/Desktop/git/LaptopGG_data/LaptopGG.sqlite
+#        driver-class-name: org.sqlite.JDBC
+#        username: ""
+#        password: ""
+#
+#    batch:
+#        jdbc:
+#            initialize-schema: always
+#
+#        job:
+#            enabled: false
+#
+#    jpa:
+#        hibernate:
+#            ddl-auto: create
+#        properties:
+#            hibernate:
+#                dialect: org.hibernate.community.dialect.SQLiteDialect
+#                format_sql: true
+#                highlight_sql: true
+#                use_sql_comments: true
+#        show-sql: false
+#
+#    logging:
+#        level:
+#            org.hibernate.SQL: OFF
+#            org.hibernate.type.descriptor.sql.BasicBinder: OFF
+#    api:
+#        base-url: "http://localhost:8080"
 
