@@ -7,8 +7,6 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinColumns
-import jakarta.persistence.OneToMany
 
 @Entity
 data class NewLaptop(
@@ -38,8 +36,8 @@ data class NewLaptop(
     val weight: Double?,             // 무게 (kg)
 
     @ElementCollection
-    @CollectionTable(name = "usage", joinColumns = [JoinColumn(name = "new_laptop_id")])
-    val usage: List<String>?,
+    @CollectionTable(name = "laptop_usage", joinColumns = [JoinColumn(name = "new_laptop_id")])
+    val laptopUsage: List<String>?,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

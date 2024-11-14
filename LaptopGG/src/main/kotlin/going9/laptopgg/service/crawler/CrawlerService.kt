@@ -91,7 +91,7 @@ class CrawlerService(
                 storageCapacity = parsedDetails["storageCapacity"] as? Int,
                 storageSlotCount = parsedDetails["storageSlotCount"] as? Int,
                 weight = parsedDetails["weight"] as? Double,
-                usage = parsedDetails["usage"] as? List<String>
+                laptopUsage = parsedDetails["usage"] as? List<String>
             )
         } catch (e: Exception) {
             println("제품 파싱 중 오류 발생: ${e.message}")
