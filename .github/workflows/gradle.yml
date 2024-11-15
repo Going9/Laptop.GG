@@ -50,10 +50,6 @@ jobs:
       - name: Docker Login
         run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Create Database Schema
-        run: |
-            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker exec -i laptopgg-db-1 mysql -u${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS laptopgg CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci;"
-
       - name: Pull Latest Images and Deploy with Docker Compose
         run: |
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose down
