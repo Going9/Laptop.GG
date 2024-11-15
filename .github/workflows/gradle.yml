@@ -51,10 +51,6 @@ jobs:
         run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Pull Latest Images and Deploy with Docker Compose
-        run: |
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose down
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }} docker-compose pull
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} DOCKERHUB_PASSWORD=${{ secrets.DOCKERHUB_PASSWORD }} docker-compose up -d
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -62,3 +58,8 @@ jobs:
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        run: |
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose down
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose pull
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose up -d
+        
