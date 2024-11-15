@@ -77,15 +77,14 @@ class CrawlerServiceTest(
                 val products = crawlerService.fetchProductList()
 
                 // 스레드 안정성을 위해서 메인 스레드에서 제품 데이터 추출
-                val productDataList = products.map { product ->
-                    crawlerService.extractProductData(product)
-                }
+//                val productDataList = products.map { product ->
+//                    crawlerService.extractProductData(product)
+//                }
 
-                // VT 사용하여 병렬 처리
-                val futures = productDataList.map { productData ->
+                val futures = products.map { product ->
                     executor.submit {
+                        val productData = crawlerService.extractProductData(product)
                         val newLaptop = crawlerService.parseProductDetails(productData)
-                        // 파싱 성공했을 때,
                         if (newLaptop != null) {
                             crawlerService.saveOrUpdateLaptop(newLaptop)
                         }
