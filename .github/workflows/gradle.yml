@@ -59,7 +59,8 @@ jobs:
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose down
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose pull
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose up -d
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -E -S docker-compose down
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -E -S docker-compose pull
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -E -S docker-compose up -d
+
         
