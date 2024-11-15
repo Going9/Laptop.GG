@@ -1,40 +1,9 @@
-#spring:
-#    datasource:
-#        url: jdbc:sqlite:./LaptopGG.sqlite
-#        driver-class-name: org.sqlite.JDBC
-#        username: ""
-#        password: ""
-#
-#    batch:
-#        jdbc:
-#            initialize-schema: always
-#
-#        job:
-#            enabled: false
-#
-#    jpa:
-#        hibernate:
-#            ddl-auto: create
-#        properties:
-#            hibernate:
-#                dialect: org.hibernate.community.dialect.SQLiteDialect
-#                format_sql: true
-#                highlight_sql: true
-#                use_sql_comments: true
-#        show-sql: false
-#
-#    logging:
-#        level:
-#            org.hibernate.SQL: OFF
-#            org.hibernate.type.descriptor.sql.BasicBinder: OFF
-#
-#---
 spring:
     config:
         activate:
             on-profile: deploy
     datasource:
-        url: jdbc:mariadb://db:3306/laptopgg?useUnicode=true&characterEncoding=utf8mb4&character_set_server=utf8mb4&collation_server=utf8mb4_uca1400_ai_ci
+        url: jdbc:mariadb://db:3306/laptopgg
         driver-class-name: org.mariadb.jdbc.Driver
         username: ${MYSQL_USER}
         password: ${MYSQL_PASSWORD}
