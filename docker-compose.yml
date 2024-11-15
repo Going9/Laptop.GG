@@ -24,7 +24,9 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - /home/iggyu/data/:/var/lib/mysql
+      - /home/iggyu/mariaDB/data/:/var/lib/mysql
+      - /home/iggyu/mariaDB/conf/50-server.cnf:/etc/mysql/mariadb.conf.d/50-server.cnf
+      - /home/iggyu/mariaDB/conf/init.sql:docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
 
