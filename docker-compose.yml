@@ -14,10 +14,10 @@ services:
     image: mariadb:latest
     restart: always
     environment:
-      MARIADB_DATABASE: "${MYSQL_DATABASE}"
-      MARIADB_USER: "${MYSQL_USER}"
-      MARIADB_PASSWORD: "${MYSQL_PASSWORD}"
-      MARIADB_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      - MARIADB_DATABASE="${MYSQL_DATABASE}"
+      - MARIADB_USER="${MYSQL_USER}"
+      - MARIADB_PASSWORD="${MYSQL_PASSWORD}"
+      - MARIADB_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
     ports:
       - "3306:3306"
     volumes:
