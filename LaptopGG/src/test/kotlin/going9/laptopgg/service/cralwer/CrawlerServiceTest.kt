@@ -60,7 +60,7 @@ class CrawlerServiceTest(
     }
 
     @Test
-    fun `test fetchProductList retrieves product list`() {
+    fun `test crawling with VT`() {
         var executor = Executors.newVirtualThreadPerTaskExecutor()
 
         // 초기 작업 수행
