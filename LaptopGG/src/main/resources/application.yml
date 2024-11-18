@@ -38,43 +38,7 @@ spring:
     sql:
         init:
             mode: always
-#---
-#spring:
-#    config:
-#        activate:
-#            on-profile: ubuntu
-#    datasource:
-#        url: jdbc:sqlite:/home/iggyu/data/LaptopGG.sqlite
-#        driver-class-name: org.sqlite.JDBC
-#        username: ""
-#        password: ""
-#
-#    batch:
-#        jdbc:
-#            initialize-schema: always
-#
-#        job:
-#            enabled: false
-#
-#    jpa:
-#        hibernate:
-#            ddl-auto: create
-#        properties:
-#            hibernate:
-#                dialect: org.hibernate.community.dialect.SQLiteDialect
-#                format_sql: true
-#                highlight_sql: true
-#                use_sql_comments: true
-#        show-sql: false
-#
-#    logging:
-#        level:
-#            org.hibernate.SQL: OFF
-#            org.hibernate.type.descriptor.sql.BasicBinder: OFF
-#
-#    api:
-#        base-url: "http://localhost:8080"
-#
+
 ---
 spring:
     config:
