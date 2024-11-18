@@ -1,5 +1,6 @@
 package going9.laptopgg.service.crawler
 
+import going9.laptopgg.domain.laptop.LaptopUsage
 import going9.laptopgg.domain.laptop.NewLaptop
 import going9.laptopgg.domain.repository.NewLaptopRepository
 import org.openqa.selenium.*
@@ -20,8 +21,9 @@ class CrawlerService(
 
     data class ProductData(
         val productName: String,
+        val productPage: String,
         val productImage: String,
-        val productPrice: Int,
+        val productPrice: Int?,
         val productText: String
     )
 
@@ -48,13 +50,21 @@ class CrawlerService(
 
     fun extractProductData(product: WebElement): ProductData {
         val name: String = waitForElementToBePresent(product, ".prod_name > a").text
+        val detailPage: String = waitForElementToBePresent(product, ".prod_name > a").getAttribute("href")
         val image: String = getImageFromProduct(product)
-        val price: Int = waitForElementToBePresent(product, ".prod_pricelist > ul > li:first-of-type > p.price_sect > a")
-            .text.replace(",", "").replace("원", "").toInt()
+        val price: Int? =
+            try {
+                waitForElementToBePresent(product, ".prod_pricelist > ul > li:first-of-type > p.price_sect > a")
+                    .text.replace(",", "").replace("원", "").toInt()
+            } catch(e: Exception) {
+                null
+            }
+
         val text: String = waitForElementToBePresent(product, ".spec_list").text
 
         return ProductData(
             productName = name,
+            productPage = detailPage,
             productImage = image,
             productPrice = price,
             productText = text
@@ -65,15 +75,16 @@ class CrawlerService(
     fun parseProductDetails(data: ProductData): NewLaptop? {
         try {
             val parsedDetails = extractProductDetails(data.productText)
-
-            return NewLaptop(
+            val newLaptop =
+            NewLaptop(
                 name = data.productName,
+                detailPage = data.productPage,
                 imageUrl = data.productImage,
                 price = data.productPrice,
                 cpuManufacturer = parsedDetails["cpuManufacturer"] as? String,
                 cpu = parsedDetails["cpu"] as? String,
                 os = parsedDetails["os"] as? String,
-                screenSize = parsedDetails["screenSize"] as? Double,
+                screenSize = parsedDetails["screenSize"] as? Int,
                 resolution = parsedDetails["resolution"] as? Int,
                 brightness = parsedDetails["brightness"] as? Int,
                 refreshRate = parsedDetails["refreshRate"] as? Int,
@@ -91,8 +102,15 @@ class CrawlerService(
                 storageCapacity = parsedDetails["storageCapacity"] as? Int,
                 storageSlotCount = parsedDetails["storageSlotCount"] as? Int,
                 weight = parsedDetails["weight"] as? Double,
-                laptopUsage = parsedDetails["usage"] as? List<String>
+                laptopUsage = listOf() // 빈 리스트로 초기화
             )
+
+            val usageList = (parsedDetails["usage"] as? List<String>)?.map { usage ->
+                LaptopUsage(usage = usage, newLaptop = newLaptop) // 생성 시 즉시 설정
+            } ?: emptyList()
+
+            return newLaptop
+
         } catch (e: Exception) {
             println("제품 파싱 중 오류 발생: ${e.message}")
             e.printStackTrace()
@@ -278,7 +296,7 @@ class CrawlerService(
                     "storageSlotCount" -> match.groupValues[1].trim().toIntOrNull()
                     "brightness" -> match.groupValues[1].trim().toIntOrNull()
                     "weight" -> match.groupValues[1].trim().toDoubleOrNull()
-                    "screenSize" -> match.groupValues[1].trim().toDoubleOrNull()
+                    "screenSize" -> match.groupValues[1].trim().toDoubleOrNull()?.let { kotlin.math.floor(it).toInt() }
                     "batteryCapacity" -> match.groupValues[1].trim().toDoubleOrNull()
                     else -> match.groupValues[1].trim()
                 }

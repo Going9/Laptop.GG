@@ -1,7 +1,6 @@
 package going9.laptopgg.controller.crawler
 
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.http.ResponseEntity

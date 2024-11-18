@@ -1,22 +1,17 @@
 package going9.laptopgg.domain.laptop
 
-import jakarta.persistence.CollectionTable
-import jakarta.persistence.ElementCollection
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
+import jakarta.persistence.*
 
 @Entity
 data class NewLaptop(
     val name: String,
     val imageUrl: String,
-    var price: Int,
+    val detailPage: String,
+    var price: Int?,
     val cpuManufacturer: String?,
     val cpu: String?,
     val os: String?,
-    val screenSize: Double?,  // 화면 크기 (인치)
+    val screenSize: Int?,  // 화면 크기 (인치)
     val resolution: Int?, // 해상도
     val brightness: Int?,    // 밝기 (니트)
     val refreshRate: Int?,   // 주사율 (Hz)
@@ -35,9 +30,8 @@ data class NewLaptop(
     val storageSlotCount: Int?,     // 저장 장치 슬롯 수
     val weight: Double?,             // 무게 (kg)
 
-    @ElementCollection
-    @CollectionTable(name = "laptop_usage", joinColumns = [JoinColumn(name = "new_laptop_id")])
-    val laptopUsage: List<String>?,
+    @OneToMany(mappedBy = "newLaptop", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var laptopUsage: List<LaptopUsage> = mutableListOf(),
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

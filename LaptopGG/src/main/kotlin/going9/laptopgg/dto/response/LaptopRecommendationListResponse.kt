@@ -1,6 +1,6 @@
 package going9.laptopgg.dto.response
 
-class LaptopRecommendationListResponse(
+data class LaptopRecommendationListResponse(
     val id: Long,
     val score: Double,
     val imgLink: String,
