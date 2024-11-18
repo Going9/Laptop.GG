@@ -76,11 +76,6 @@ class CrawlerServiceTest(
                 // 제품 리스트 가져오기
                 val products = crawlerService.fetchProductList()
 
-                // 스레드 안정성을 위해서 메인 스레드에서 제품 데이터 추출
-//                val productDataList = products.map { product ->
-//                    crawlerService.extractProductData(product)
-//                }
-
                 val futures = products.map { product ->
                     executor.submit {
                         val productData = crawlerService.extractProductData(product)
