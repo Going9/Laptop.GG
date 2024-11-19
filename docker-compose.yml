@@ -8,7 +8,8 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
 
