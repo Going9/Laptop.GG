@@ -7,7 +7,7 @@ services:
       - PROFILE=deploy
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MARIADB_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     depends_on:
       - db
     networks:
