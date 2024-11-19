@@ -9,7 +9,8 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -27,6 +28,11 @@ services:
       - /home/iggyu/mariaDB/data/:/var/lib/mysql
       - /home/iggyu/mariaDB/conf/50-server.cnf:/etc/mysql/mariadb.conf.d/50-server.cnf
       - /home/iggyu/mariaDB/conf/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQL_USER} -p${MYSQL_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
