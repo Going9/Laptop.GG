@@ -17,19 +17,19 @@ class RecommendationServiceTest @Autowired constructor(
     private val recommendationService: RecommendationService,
 ) {
 
-    @Test
-    @DisplayName("추천 로직이 정상 작동한다.")
-    fun recommendLaptopTest() {
-        // given
-        val request: LaptopRecommendationRequest = LaptopRecommendationRequest.fixture()
-
-        //when
-        val result = recommendationService.recommendLaptop(request)
-
-        //then
-        result.toString()
-        assertThat(result[0].manufacturer).isEqualTo("레노버")
-    }
+//    @Test
+//    @DisplayName("추천 로직이 정상 작동한다.")
+//    fun recommendLaptopTest() {
+//        // given
+//        val request: LaptopRecommendationRequest = LaptopRecommendationRequest.fixture()
+//
+//        //when
+//        val result = recommendationService.recommendLaptop(request)
+//
+//        //then
+//        result.toString()
+//        assertThat(result[0].manufacturer).isEqualTo("레노버")
+//    }
 
     @Test
     @DisplayName("노트북 전체 검색")

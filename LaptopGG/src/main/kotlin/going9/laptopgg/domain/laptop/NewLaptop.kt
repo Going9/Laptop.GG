@@ -12,7 +12,7 @@ data class NewLaptop(
     val cpu: String?,
     val os: String?,
     val screenSize: Int?,  // 화면 크기 (인치)
-    val resolution: Int?, // 해상도
+    val resolution: String?, // 해상도
     val brightness: Int?,    // 밝기 (니트)
     val refreshRate: Int?,   // 주사율 (Hz)
     val ramSize: Int?,        // 램 용량 (GB)

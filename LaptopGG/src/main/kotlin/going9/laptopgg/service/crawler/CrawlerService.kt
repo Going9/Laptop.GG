@@ -85,7 +85,7 @@ class CrawlerService(
                 cpu = parsedDetails["cpu"] as? String,
                 os = parsedDetails["os"] as? String,
                 screenSize = parsedDetails["screenSize"] as? Int,
-                resolution = parsedDetails["resolution"] as? Int,
+                resolution = parsedDetails["resolution"] as? String,
                 brightness = parsedDetails["brightness"] as? Int,
                 refreshRate = parsedDetails["refreshRate"] as? Int,
                 ramSize = parsedDetails["ramSize"] as? Int,
@@ -108,6 +108,9 @@ class CrawlerService(
             val usageList = (parsedDetails["usage"] as? List<String>)?.map { usage ->
                 LaptopUsage(usage = usage, newLaptop = newLaptop) // 생성 시 즉시 설정
             } ?: emptyList()
+
+            // `NewLaptop`의 `laptopUsage`를 설정
+            newLaptop.laptopUsage = usageList
 
             return newLaptop
 
@@ -287,11 +290,14 @@ class CrawlerService(
                     "resolution" -> {
                         val width = match.groupValues[1].toInt()
                         val height = match.groupValues[2].toInt()
-                        width * height
+//                        width * height
+                        "$width x $height"
                     }
                     "refreshRate" -> match.groupValues[1].trim().toIntOrNull() ?: 60
                     "ramSize" -> match.groupValues[1].trim().toIntOrNull()
-                    "thunderboltCount" -> match.groupValues[1].trim().toIntOrNull() ?: 0
+                    "thunderboltCount" -> match.groupValues[
+
+                        1].trim().toIntOrNull() ?: 0
                     "usbACount" -> match.groupValues[1].trim().toIntOrNull() ?: 0
                     "storageSlotCount" -> match.groupValues[1].trim().toIntOrNull()
                     "brightness" -> match.groupValues[1].trim().toIntOrNull()

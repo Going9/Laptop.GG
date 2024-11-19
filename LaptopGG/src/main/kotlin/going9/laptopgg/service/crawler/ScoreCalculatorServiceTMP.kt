@@ -94,15 +94,24 @@ class ScoreCalculatorServiceTMP {
         val referenceResolution = 3840 * 2160
         val referenceRefreshRate = 240
         val resolutionScore = if (laptop.resolution != null) {
-            laptop.resolution.toDouble() / referenceResolution
+            val resolutionPattern = Regex("([0-9]+)x([0-9]+)")
+            val match = resolutionPattern.find(laptop.resolution)
+            if (match != null) {
+                val width = match.groupValues[1].toInt()
+                val height = match.groupValues[2].toInt()
+                (width * height).toDouble() / referenceResolution
+            } else {
+                0.25 // 기본값
+            }
         } else {
-            0.25
+            0.25 // 기본값
         }
         val refreshRateScore = if (laptop.refreshRate != null) {
             laptop.refreshRate.toDouble() / referenceRefreshRate
         } else {
             0.25
         }
+
 
         return Pair(resolutionScore, refreshRateScore)
     }

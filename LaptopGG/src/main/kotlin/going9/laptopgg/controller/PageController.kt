@@ -24,6 +24,7 @@ class PageController(
     private val recommendationController: RecommendationController,
     private val commentController: CommentController,
 ) {
+
     @GetMapping("/recommends", "/")
     fun showRecommendationForm(model: Model): String {
         model.addAttribute("laptopRecommendationRequest", LaptopRecommendationRequest.fixture())
@@ -38,10 +39,20 @@ class PageController(
         return "recommendation-list"
     }
 
+//    @GetMapping("/laptops/{laptopId}")
+//    fun showLaptopDetail(@PathVariable laptopId: Long, model: Model): String {
+//        val laptopDetail = laptopController.getLaptop(laptopId)
+//        println(laptopDetail.toString())
+//        val commentsOfLaptop = commentController.getAllComments(laptopId)
+//        model.addAttribute("laptopDetail", laptopDetail)
+//        model.addAttribute("commentsOfLaptop", commentsOfLaptop)
+//        model.addAttribute("commentRequest", CommentRequest())
+//        return "laptop-detail"
+//    }
+
     @GetMapping("/laptops/{laptopId}")
-    fun showLaptopDetail(@PathVariable laptopId: Long, model: Model): String {
-        val laptopDetail = laptopController.getLaptop(laptopId)
-        println(laptopDetail.toString())
+    fun showLaptopDetailTMP(@PathVariable laptopId: Long, model: Model): String {
+        val laptopDetail = laptopController.getLaptopDetail(laptopId)
         val commentsOfLaptop = commentController.getAllComments(laptopId)
         model.addAttribute("laptopDetail", laptopDetail)
         model.addAttribute("commentsOfLaptop", commentsOfLaptop)
