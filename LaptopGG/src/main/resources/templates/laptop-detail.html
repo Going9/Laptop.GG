@@ -64,9 +64,9 @@
                 <span th:if="${laptopDetail.storageSlotCount != null}" th:text="${laptopDetail.storageSlotCount}"></span>
             </li>
             <li class="list-group-item"><strong>램 교체 가능 여부:</strong>
-                <span th:if="${laptopDetail.isRamReplaceable == false}">미지원</span>
+                <span th:if="${laptopDetail.isRamReplaceable == false}">불가능</span>
                 <span th:if="${laptopDetail.isRamReplaceable == null}">알 수 없음</span>
-                <span th:if="${laptopDetail.isRamReplaceable == true}" th:text="${laptopDetail.isRamReplaceable}"></span>
+                <span th:if="${laptopDetail.isRamReplaceable == true}" th:text="${laptopDetail.isRamReplaceable}">가능</span>
             </li>
 
         </ul>
