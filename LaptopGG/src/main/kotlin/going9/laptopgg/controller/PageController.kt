@@ -2,13 +2,15 @@ package going9.laptopgg.controller
 
 import going9.laptopgg.domain.laptop.*
 import going9.laptopgg.dto.request.*
+import going9.laptopgg.service.crawler.RecommendationServiceTMP
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.ModelAttribute
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.RestTemplate
 
 @Controller
@@ -22,6 +24,7 @@ class PageController(
     private val laptopController: LaptopController,
     private val recommendationController: RecommendationController,
     private val commentController: CommentController,
+    private val recommendationServiceTMP: RecommendationServiceTMP,
 ) {
 
     @GetMapping("/recommends", "/")
@@ -36,6 +39,25 @@ class PageController(
         val recommendedLaptops = recommendationController.recommendLaptop(laptopRecommendationRequest)
         model.addAttribute("recommendedLaptops", recommendedLaptops)
         return "recommendation-list"
+    }
+
+    // 추천 결과 화면
+    @PostMapping("/recommendsTMP")
+    fun recommendLaptops(
+        @ModelAttribute laptopRecommendationRequest: LaptopRecommendationRequest,
+        @PageableDefault(size = 10) pageable: Pageable,
+        model: Model
+    ): String {
+        // 서비스 호출
+        val recommendedLaptops = recommendationServiceTMP.recommendLaptops(laptopRecommendationRequest, pageable)
+
+        // 모델에 데이터 추가
+        model.addAttribute("laptopRecommendationRequest", laptopRecommendationRequest)
+        model.addAttribute("recommendedLaptops", recommendedLaptops.content)
+        model.addAttribute("totalPages", recommendedLaptops.totalPages)
+        model.addAttribute("currentPage", recommendedLaptops.number + 1)
+
+        return "recommendation-listTMP"
     }
 
     @GetMapping("/laptops/{laptopId}")

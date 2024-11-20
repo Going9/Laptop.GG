@@ -23,8 +23,8 @@
                 <h2 th:text="${laptop.name}" class="laptop-name">노트북 이름</h2>
             </a>
             <p th:text="'제조사: ' + ${laptop.manufacturer}" class="laptop-manufacturer">제조사</p>
-            <p th:text="'가격: ' + ${laptop.price} + '원'" class="laptop-price">가격</p>
-            <p th:text="'무게: ' + ${laptop.weight} + 'kg'" class="laptop-weight">무게</p>
+            <p th:text="'가격: ' + ${#numbers.formatCurrency(laptop.price)}" class="laptop-price">가격</p>
+            <p th:text="'무게: ' + ${laptop.weight} + ' kg'" class="laptop-weight">무게</p>
         </div>
     </div>
 
