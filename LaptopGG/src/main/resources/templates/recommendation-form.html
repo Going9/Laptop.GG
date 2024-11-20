@@ -13,13 +13,21 @@
         <div class="form-group">
             <div class="label-input-group">
                 <label for="budget">예산 입력: </label>
-                <input type="text" id="budget" th:field="*{budget}">
+                <input type="number" min="0" max="10000000" step="100000" id="budget" th:field="*{budget}" oninput="updateBudgetDisplay()">
+                <!-- 현재 예산 표시 -->
+                <div id="budgetDisplay" style="margin-top: 5px; font-size: 0.9em; color: #555;">
+                    현재 예산: 0원
+                </div>
             </div>
         </div>
         <div class="form-group">
             <div class="label-input-group">
-                <label for="weight">노트북 최대 무게 입력: </label>
-                <input type="text" id="weight" th:field="*{weight}">
+                <label for="weight">노트북 최대 무게 입력(KG): </label>
+                <input type="number" min="0" max="10" step="0.1" id="weight" th:field="*{weight}" oninput="updateWeightDisplay()">
+                <!-- 현재 무게 표시 -->
+                <div id="weightDisplay" style="margin-top: 5px; font-size: 0.9em; color: #555;">
+                    현재 무게: 1.0kg
+                </div>
             </div>
         </div>
 
@@ -61,4 +69,36 @@
     </form>
 </div>
 </body>
+<script>
+    function updateBudgetDisplay() {
+        const budgetInput = document.getElementById('budget');
+        const budgetDisplay = document.getElementById('budgetDisplay');
+        const value = budgetInput.value;
+
+        if (!isNaN(value) && value !== '') {
+            // 숫자를 쉼표로 포맷하고 텍스트 업데이트
+            budgetDisplay.textContent = `현재 예산: ${Number(value).toLocaleString()}원`;
+        } else {
+            budgetDisplay.textContent = '현재 예산: 0원';
+        }
+    }
+
+    function updateWeightDisplay() {
+        const weightInput = document.getElementById('weight');
+        const weightDisplay = document.getElementById('weightDisplay');
+        const value = weightInput.value;
+
+        if (!isNaN(value) && value !== '') {
+            weightDisplay.textContent = `현재 무게: ${value}kg`;
+        } else {
+            weightDisplay.textContent = '현재 무게: 0kg';
+        }
+    }
+
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', () => {
+        updateBudgetDisplay();
+        updateWeightDisplay();
+    });
+</script>
 </html>

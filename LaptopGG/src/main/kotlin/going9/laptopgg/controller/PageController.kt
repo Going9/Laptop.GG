@@ -2,7 +2,6 @@ package going9.laptopgg.controller
 
 import going9.laptopgg.domain.laptop.*
 import going9.laptopgg.dto.request.*
-import going9.laptopgg.service.CommentService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -38,17 +37,6 @@ class PageController(
         model.addAttribute("recommendedLaptops", recommendedLaptops)
         return "recommendation-list"
     }
-
-//    @GetMapping("/laptops/{laptopId}")
-//    fun showLaptopDetail(@PathVariable laptopId: Long, model: Model): String {
-//        val laptopDetail = laptopController.getLaptop(laptopId)
-//        println(laptopDetail.toString())
-//        val commentsOfLaptop = commentController.getAllComments(laptopId)
-//        model.addAttribute("laptopDetail", laptopDetail)
-//        model.addAttribute("commentsOfLaptop", commentsOfLaptop)
-//        model.addAttribute("commentRequest", CommentRequest())
-//        return "laptop-detail"
-//    }
 
     @GetMapping("/laptops/{laptopId}")
     fun showLaptopDetailTMP(@PathVariable laptopId: Long, model: Model): String {

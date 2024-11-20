@@ -24,11 +24,6 @@ class LaptopController(
         laptopService.saveLaptop(laptopRequest)
     }
 
-//    @GetMapping
-//    fun getLaptop(@RequestParam id: Long): LaptopRecommendationDetailResponse {
-//        return laptopService.findLaptopById(id)
-//    }
-
     @GetMapping
     fun getLaptopDetail(@RequestParam id: Long): LaptopDetailResponse {
         return laptopServiceTMP.findLaptopById(id)

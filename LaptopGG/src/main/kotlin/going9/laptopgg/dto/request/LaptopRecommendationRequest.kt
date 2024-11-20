@@ -9,7 +9,7 @@ class LaptopRecommendationRequest(
     companion object {
         fun fixture(
             budget: Int = 1000000,
-            weight: Double = 2.0,
+            weight: Double = 1.0,
             displaySize: List<Int> = listOf(15),
             purpose: PurposeDetail = PurposeDetail.OFFICE
         ): LaptopRecommendationRequest {
