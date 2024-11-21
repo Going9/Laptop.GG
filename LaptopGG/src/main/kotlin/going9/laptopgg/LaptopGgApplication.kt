@@ -18,7 +18,7 @@ class LaptopGgApplication(
 	private val laptopJob: Job,
 ) {
 	// 새벽 4시마다 크롤링 작업을 실행하는 메서드
-	@Scheduled(cron = "0 0 4 * * *") // 매일 새벽 4시 정각에 실행
+	@Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul") // 매일 새벽 4시 정각에 실행
 	fun runScheduledJob() {
 		val jobParameters = JobParametersBuilder()
 			.addLong("time", System.currentTimeMillis())
