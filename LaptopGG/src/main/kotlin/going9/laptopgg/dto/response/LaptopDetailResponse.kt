@@ -1,6 +1,6 @@
 package going9.laptopgg.dto.response
 
-import going9.laptopgg.domain.laptop.NewLaptop
+import going9.laptopgg.domain.laptop.Laptop
 
 data class LaptopDetailResponse(
     val id: Long,
@@ -33,7 +33,7 @@ data class LaptopDetailResponse(
     val usage: List<String>
 ) {
     companion object {
-        fun of(laptop: NewLaptop): LaptopDetailResponse {
+        fun of(laptop: Laptop): LaptopDetailResponse {
             return LaptopDetailResponse(
                 id = laptop.id!!,
                 name = laptop.name,

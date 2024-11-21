@@ -4,7 +4,6 @@ import jakarta.persistence.*
 
 @Entity
 class Comment(
-
     @ManyToOne
     @JoinColumn(name = "laptop_id")
     val laptop: Laptop,

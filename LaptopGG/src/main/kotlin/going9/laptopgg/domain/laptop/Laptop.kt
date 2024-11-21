@@ -3,50 +3,37 @@ package going9.laptopgg.domain.laptop
 import jakarta.persistence.*
 
 @Entity
-class Laptop(
-
-    val imgLink: String,
-    val price: Int,
-    val priceLink: String,
+data class Laptop(
     val name: String,
-    val manufacturer: String,
-    val category: LaptopCategory,
-    val weight: Double,
-    val thunderBoltPorts: Int? = null,
-    val usb4Ports: Int? = null,
-    val batteryCapacity: Int,
-    val sdCardType: String,
-    val isTenKey: Boolean,
+    val imageUrl: String,
+    val detailPage: String,
+    var price: Int?,
+    val cpuManufacturer: String?,
+    val cpu: String?,
+    val os: String?,
+    val screenSize: Int?,  // 화면 크기 (인치)
+    val resolution: String?, // 해상도
+    val brightness: Int?,    // 밝기 (니트)
+    val refreshRate: Int?,   // 주사율 (Hz)
+    val ramSize: Int?,        // 램 용량 (GB)
+    val ramType: String?,     // 램 타입 (예: DDR4)
+    val isRamReplaceable: Boolean?,    // 램 교체 가능 여부
+    val graphicsType: String?,       // 그래픽 타입 (내장/외장)
+    val tgp: Int?,                  // TGP (W) (외장 그래픽에만 적용)
+    val thunderboltCount: Int?,     // 썬더볼트 포트 개수
+    val usbCCount: Int?,            // USB-C 포트 개수
+    val usbACount: Int?,            // USB-A 포트 개수
+    val sdCard: String?,
+    val isSupportsPdCharging: Boolean?, // USB PD 충전 지원 여부
+    val batteryCapacity: Double?,      // 배터리 용량 (Wh)
+    val storageCapacity: Int?,       // 저장 장치 용량 (GB)
+    val storageSlotCount: Int?,     // 저장 장치 슬롯 수
+    val weight: Double?,             // 무게 (kg)
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val cpus: MutableList<LaptopCpu> = mutableListOf(),
-
-    @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val gpus: MutableList<LaptopGpu> = mutableListOf(),
-
-    @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val rams: MutableList<Ram> = mutableListOf(),
-
-    @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val storages: MutableList<Storage> = mutableListOf(),
-
-    @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val displays: MutableList<Display> = mutableListOf(),
-
-    @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val comments: MutableList<Comment> = mutableListOf(),
+    var laptopUsage: List<LaptopUsage> = mutableListOf(),
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
 )
-
-enum class LaptopCategory {
-    OFFICE,
-    OFFICE_LOL,
-    LIGHT_OFFICE,
-    CREATOR,
-    LIGHT_GAMING,
-    MAINSTREAM_GAMING,
-    HEAVY_GAMING
-}

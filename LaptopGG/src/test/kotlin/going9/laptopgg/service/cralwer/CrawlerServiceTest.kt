@@ -1,6 +1,6 @@
 package going9.laptopgg.service.crawler
 
-import going9.laptopgg.domain.repository.NewLaptopRepository
+import going9.laptopgg.domain.repository.LaptopRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.WebDriver
@@ -12,7 +12,7 @@ import java.util.concurrent.Executors
 class CrawlerServiceTest(
 ) {
     @Autowired
-    private lateinit var newLaptopRepository: NewLaptopRepository
+    private lateinit var laptopRepository: LaptopRepository
 
     @Autowired
     private lateinit var crawlerService: CrawlerService

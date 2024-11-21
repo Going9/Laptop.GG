@@ -13,6 +13,6 @@ class LaptopUsage(
     val usage: String,
 
     @ManyToOne
-    @JoinColumn(name = "new_laptop_id", nullable = false)
-    val newLaptop: NewLaptop
+    @JoinColumn(name = "laptop_id", nullable = false)
+    val laptop: Laptop
 )

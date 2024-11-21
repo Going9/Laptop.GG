@@ -1,8 +1,8 @@
 package going9.laptopgg.service.crawler
 
 import going9.laptopgg.domain.laptop.LaptopUsage
-import going9.laptopgg.domain.laptop.NewLaptop
-import going9.laptopgg.domain.repository.NewLaptopRepository
+import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.domain.repository.LaptopRepository
 import org.openqa.selenium.*
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class CrawlerService(
     private val webDriver: WebDriver,
-    private val newLaptopRepository: NewLaptopRepository,
+    private val laptopRepository: LaptopRepository,
 ) {
 
     data class ProductData(
@@ -72,11 +72,11 @@ class CrawlerService(
     }
 
     // 제품 상세 정보 파싱
-    fun parseProductDetails(data: ProductData): NewLaptop? {
+    fun parseProductDetails(data: ProductData): Laptop? {
         try {
             val parsedDetails = extractProductDetails(data.productText)
-            val newLaptop =
-            NewLaptop(
+            val laptop =
+            Laptop(
                 name = data.productName,
                 detailPage = data.productPage,
                 imageUrl = data.productImage,
@@ -106,13 +106,13 @@ class CrawlerService(
             )
 
             val usageList = (parsedDetails["usage"] as? List<String>)?.map { usage ->
-                LaptopUsage(usage = usage, newLaptop = newLaptop) // 생성 시 즉시 설정
+                LaptopUsage(usage = usage, laptop = laptop) // 생성 시 즉시 설정
             } ?: emptyList()
 
             // `NewLaptop`의 `laptopUsage`를 설정
-            newLaptop.laptopUsage = usageList
+            laptop.laptopUsage = usageList
 
-            return newLaptop
+            return laptop
 
         } catch (e: Exception) {
             println("제품 파싱 중 오류 발생: ${e.message}")
@@ -135,13 +135,13 @@ class CrawlerService(
 
     // 랩탑 트랙잭션 단위로 저장
     @Transactional
-    fun saveOrUpdateLaptop(newLaptop: NewLaptop) {
+    fun saveOrUpdateLaptop(laptop: Laptop) {
         try {
-            val existingLaptop = newLaptopRepository.findByName(newLaptop.name)
+            val existingLaptop = laptopRepository.findByName(laptop.name)
             if (existingLaptop != null) {
-                existingLaptop.price = newLaptop.price
+                existingLaptop.price = laptop.price
             } else {
-                newLaptopRepository.save(newLaptop)
+                laptopRepository.save(laptop)
             }
         } catch (e: Exception) {
             println("데이터베이스 작업 중 오류 발생: ${e.message}")
