@@ -15,22 +15,6 @@ class CrawlerController(
     private val crawlerService: CrawlerService,
 ) {
 
-//    @GetMapping("/laptops")
-//    fun startCrawling(): ResponseEntity<String> {
-//        return try {
-//            // 크롤링 잡 실행
-//            val jobParameters = JobParametersBuilder()
-//                .addLong("time", System.currentTimeMillis())
-//                .toJobParameters()
-//
-//            jobLauncher.run(laptopJob, jobParameters)
-//
-//            ResponseEntity.ok("크롤링 시작")
-//        } catch (e: Exception) {
-//            ResponseEntity.status(500).body("${e}")
-//        }
-//    }
-
     @GetMapping("/laptops")
     fun startCrawling() {
         // 초기 작업 수행

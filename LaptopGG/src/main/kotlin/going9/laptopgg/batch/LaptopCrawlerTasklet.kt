@@ -1,6 +1,5 @@
 package going9.laptopgg.batch
 
-import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.crawler.CrawlerService
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -12,7 +11,6 @@ import java.util.concurrent.Executors
 @Component
 class LaptopCrawlerTasklet(
     private val crawlerService: CrawlerService,
-    private val laptopRepository: LaptopRepository,
 ) : Tasklet {
 
     override fun execute(contribution: StepContribution, chunkContext: ChunkContext): RepeatStatus? {

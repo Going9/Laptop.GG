@@ -196,5 +196,10 @@ button[type="submit"], .btn-primary {
     .label-input-group {
         flex-direction: column;
     }
+
+    .container {
+        width: 100%;
+        margin: 0;
+    }
 }
 

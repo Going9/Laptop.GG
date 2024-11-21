@@ -8,9 +8,9 @@ class LaptopRecommendationRequest(
 ) {
     companion object {
         fun fixture(
-            budget: Int = 1000000,
-            weight: Double = 1.0,
-            displaySize: List<Int> = listOf(15),
+            budget: Int = 1500000,
+            weight: Double = 1.5,
+            displaySize: List<Int> = listOf(13, 14, 15, 16),
             purpose: PurposeDetail = PurposeDetail.OFFICE
         ): LaptopRecommendationRequest {
             return LaptopRecommendationRequest(
