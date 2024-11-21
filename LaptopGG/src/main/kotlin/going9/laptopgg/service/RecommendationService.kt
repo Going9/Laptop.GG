@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 @Service
 class RecommendationService(
     val laptopRepository: LaptopRepository,
-    val scoreCalculatorService: ScoreCalculatorService,
+    // val scoreCalculatorService: ScoreCalculatorService,
 ) {
 
 //    @Transactional

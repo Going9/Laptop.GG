@@ -27,7 +27,8 @@ enum class PurposeDetail {
     CREATOR,
     LIGHT_GAMING,
     MAINSTREAM_GAMING,
-    HEAVY_GAMING
+    HEAVY_GAMING,
+    LONG_BATTERY,
 }
 
 

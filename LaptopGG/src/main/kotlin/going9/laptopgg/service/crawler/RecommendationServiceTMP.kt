@@ -35,6 +35,50 @@ class RecommendationServiceTMP(
                     PurposeDetail.OFFICE -> or(
                         path(LaptopUsage::usage).`in`("휴대용", "사무")
                     )
+                    PurposeDetail.LONG_BATTERY -> and(
+                        path(NewLaptop::cpu).`in`(listOf(
+                            "370",
+                            "258V",
+                            "7430U",
+                            "i5-1235U",
+                            "7530U",
+                            "5300U",
+                            "i3-1315U",
+                            "X1E-80-100",
+                            "125U",
+                            "X1P-42-100",
+                            "i3-1215U",
+                            "226V",
+                            "X1E-78-100",
+                            "8505",
+                            "i5-1334U",
+                            "120U",
+                            "5625U",
+                            "5825U",
+                            "7730U",
+                            "5800U",
+                            "5600U",
+                            "5850U",
+                            "i7-1255U",
+                            "5700U",
+                            "5560U",
+                            "5425U",
+                            "365",
+                            "X1P-64-100",
+                            "8840U",
+                            "256V",
+                            "150U",
+                            "5650U",
+                            "288V",
+                            "155U",
+                            "8540U",
+                            "5675U",
+                            "100U",
+                            "360",
+                        )),
+                        path(NewLaptop::batteryCapacity).isNotNull(),
+                        path(NewLaptop::batteryCapacity).gt(60.0)
+                    )
                     PurposeDetail.CREATOR -> path(LaptopUsage::usage).`in`("그래픽작업용")
                     PurposeDetail.LIGHT_OFFICE -> path(LaptopUsage::usage).`in`("휴대용")
                     PurposeDetail.LIGHT_GAMING -> and(
@@ -142,6 +186,50 @@ class RecommendationServiceTMP(
                 when (request.purpose) {
                     PurposeDetail.OFFICE -> or(
                         path(LaptopUsage::usage).`in`("휴대용", "사무")
+                    )
+                    PurposeDetail.LONG_BATTERY -> and(
+                        path(NewLaptop::cpu).`in`(listOf(
+                            "370",
+                            "258V",
+                            "7430U",
+                            "i5-1235U",
+                            "7530U",
+                            "5300U",
+                            "i3-1315U",
+                            "X1E-80-100",
+                            "125U",
+                            "X1P-42-100",
+                            "i3-1215U",
+                            "226V",
+                            "X1E-78-100",
+                            "8505",
+                            "i5-1334U",
+                            "120U",
+                            "5625U",
+                            "5825U",
+                            "7730U",
+                            "5800U",
+                            "5600U",
+                            "5850U",
+                            "i7-1255U",
+                            "5700U",
+                            "5560U",
+                            "5425U",
+                            "365",
+                            "X1P-64-100",
+                            "8840U",
+                            "256V",
+                            "150U",
+                            "5650U",
+                            "288V",
+                            "155U",
+                            "8540U",
+                            "5675U",
+                            "100U",
+                            "360",
+                        )),
+                        path(NewLaptop::batteryCapacity).isNotNull(),
+                        path(NewLaptop::batteryCapacity).gt(60.0)
                     )
                     PurposeDetail.CREATOR -> path(LaptopUsage::usage).`in`("그래픽작업용")
                     PurposeDetail.LIGHT_OFFICE -> path(LaptopUsage::usage).`in`("휴대용")

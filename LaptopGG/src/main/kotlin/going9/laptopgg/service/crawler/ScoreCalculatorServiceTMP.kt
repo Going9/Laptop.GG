@@ -132,6 +132,18 @@ class ScoreCalculatorServiceTMP {
         return if (manufacturer in listOf("삼성전자", "LG전자", "DELL", "HP")) 1.0 else 0.8
     }
 
+    // 배터리 점수
+    private fun calculateBatteryScore(laptop: NewLaptop): Double {
+        val referenceBatteryCapacity = 100.0
+        val batteryScore = if (laptop.batteryCapacity != null) {
+            laptop.batteryCapacity / referenceBatteryCapacity
+        } else {
+            0.4
+        }
+        return batteryScore
+    }
+
+
     // 최종 점수 계산
     fun calculateScore(laptop: NewLaptop, request: LaptopRecommendationRequest): Double {
         val budgetScore = calculateBudgetScore(laptop, request.budget)
@@ -140,10 +152,14 @@ class ScoreCalculatorServiceTMP {
         val ramSlotScore = calculateRamSlotScore(laptop)
         val serviceScore = calculateServiceScore(laptop.name.substringBefore(" "))
         val tgpScore = calculateTgpScore(laptop)
+        val batteryScore = calculateBatteryScore(laptop)
 
         return when (request.purpose) {
             PurposeDetail.OFFICE -> {
                 (budgetScore * 0.3) + (weightScore * 0.4) + (resolutionScore * 0.1) + (serviceScore * 0.2)
+            }
+            PurposeDetail.LONG_BATTERY -> {
+                (batteryScore * 0.5) + (budgetScore * 0.3) + (weightScore * 0.2)
             }
             PurposeDetail.LIGHT_OFFICE -> {
                 (budgetScore * 0.3) + (weightScore * 0.5) + (resolutionScore * 0.1) + (serviceScore * 0.2)
