@@ -67,15 +67,26 @@ class ScoreCalculatorServiceTMP {
         if (laptop.tgp != null && laptop.tgp != 0) {
             val gpuName = laptop.graphicsType!!
             val referenceTgp = when {
-                "3050 TI" in gpuName -> 60
+                "RTX 2000 Ada" in gpuName -> 80
+                "RTX 3500 Ada" in gpuName -> 80
+                "RTX 5000 Ada" in gpuName -> 110
+                "A1000" in gpuName -> 50
+                "2050" in gpuName -> 30
                 "3050" in gpuName -> 80
-                "30" in gpuName -> 150
-                "40" in gpuName -> 100
+                "3050 TI" in gpuName -> 60
+                "3060" in gpuName -> 120
+                "3070" in gpuName -> 130
+                "3070 TI" in gpuName -> 130
+                "3080" in gpuName -> 140
+                "3080 Ti" in gpuName -> 140
+                "4050" in gpuName -> 80
+                "4060" in gpuName -> 100
+                "4070" in gpuName -> 120
                 "4080" in gpuName -> 150
                 "4090" in gpuName -> 150
                 "라데온 RX 6600M" in gpuName -> 80
                 "라데온 RX 6500M" in gpuName -> 80
-                else -> throw IllegalArgumentException("Unknown GPU series in name $gpuName")
+                else -> return 0.5
             }
             return (laptop.tgp!!.toDouble()!! / referenceTgp).coerceAtMost(1.0)
         } else {
