@@ -1,20 +1,23 @@
 services:
   app:
     image: "${DOCKERHUB_USERNAME}/laptop-gg:latest"
+    container_name: app
     ports:
       - "8080:8080"
     environment:
-      - PROFILE=deploy
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://db:3306/${MYSQL_DATABASE}
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
 
   db:
     image: mariadb:latest
+    container_name: db
     restart: always
     environment:
       - MARIADB_DATABASE=${MYSQL_DATABASE}
@@ -29,6 +32,11 @@ services:
       - /home/iggyu/mariaDB/conf/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
     image: nginx:latest

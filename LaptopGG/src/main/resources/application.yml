@@ -2,11 +2,11 @@ spring:
     config:
         activate:
             on-profile: deploy
-    datasource:
-        url: jdbc:mariadb://db:3306/${MYSQL_DATABASE}
-        driver-class-name: org.mariadb.jdbc.Driver
-        username: ${MYSQL_USER}
-        password: ${MYSQL_PASSWORD}
+#    datasource:
+#        url: jdbc:mariadb://db:3306/${MYSQL_DATABASE}
+#        driver-class-name: org.mariadb.jdbc.Driver
+#        username: ${MYSQL_USER}
+#        password: ${MYSQL_PASSWORD}
 
     batch:
         jdbc:
