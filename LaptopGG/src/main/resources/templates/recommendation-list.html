@@ -15,13 +15,67 @@
 </header>
 <body>
 <div class="container" style="margin-top: 70px;">
+    <div class="dropdown d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            정렬방식
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+            <li>
+                <form method="post" th:action="@{/recommends(page=0, sort='price,asc')}" th:object="${laptopRecommendationRequest}">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                    <button class="dropdown-item" type="submit">저렴한 순</button>
+                </form>
+            </li>
+            <li>
+                <form method="post" th:action="@{/recommends(page=0, sort='price,desc')}" th:object="${laptopRecommendationRequest}">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                    <button class="dropdown-item" type="submit">비싼 순</button>
+                </form>
+            </li>
+            <li>
+                <form method="post" th:action="@{/recommends(page=0, sort='weight,asc')}" th:object="${laptopRecommendationRequest}">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                    <button class="dropdown-item" type="submit">가벼운 순</button>
+                </form>
+            </li>
+            <li>
+                <form method="post" th:action="@{/recommends(page=0, sort='weight,desc')}" th:object="${laptopRecommendationRequest}">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                    <button class="dropdown-item" type="submit">무거운 순</button>
+                </form>
+            </li>
+            <li>
+                <form method="post" th:action="@{/recommends(page=0)}" th:object="${laptopRecommendationRequest}">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                    <button class="dropdown-item" type="submit">초기화</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+
     <!-- 추천된 노트북이 없는 경우 -->
     <div th:if="${#lists.isEmpty(recommendedLaptops)}">
         <p>조건에 맞는 노트북을 찾을 수 없습니다. 다시 시도해주세요.</p>
     </div>
 
     <div th:unless="${#lists.isEmpty(recommendedLaptops)}">
-        <div th:each="laptop : ${recommendedLaptops}" class="card my-4">
+        <div th:each="laptop : ${recommendedLaptops}" class="card my-5">
             <a th:href="@{'/laptops/' + ${laptop.id}}">
                 <img th:src="${laptop.imgLink}" alt="추천 노트북 ${laptop.name}" class="card-img-top">
             </a>
@@ -46,33 +100,64 @@
         </div>
     </div>
 
-    <!-- 페이지네이션 -->
-    <div class="pagination" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-        <form id="previous-button" th:if="${currentPage > 1}"
-              th:action="@{/recommends(page=${currentPage - 2})}"
-              th:object="${laptopRecommendationRequest}" method="post" class="pagination-form">
-            <button type="submit" aria-label="이전 페이지">이전</button>
-            <input type="hidden" th:field="*{budget}" />
-            <input type="hidden" th:field="*{weight}" />
-            <input type="hidden" th:field="*{displaySize}" />
-            <input type="hidden" th:field="*{purpose}" />
-        </form>
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <!-- 이전 버튼 -->
+            <li class="page-item" th:classappend="${currentPage <= 1} ? 'disabled'">
+                <form id="previous-page"
+                      th:action="@{/recommends(page=${currentPage - 2}, sort=${currentSort})}"
+                      th:object="${laptopRecommendationRequest}" method="post" class="d-inline">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                </form>
+                <button form="previous-page" class="page-link" type="submit" aria-label="Previous">&laquo;</button>
+            </li>
 
-        <span>페이지 <span th:text="${currentPage}"></span> / <span th:text="${totalPages}"></span></span>
+            <!-- 페이지 번호 -->
+            <li class="page-item" th:if="${currentPage > 3}">
+                <span class="page-link">...</span>
+            </li>
 
-        <form id="next-button" th:if="${currentPage < totalPages}"
-              th:action="@{/recommends(page=${currentPage})}"
-              th:object="${laptopRecommendationRequest}" method="post" class="pagination-form">
-            <button type="submit" aria-label="다음 페이지">다음</button>
-            <input type="hidden" th:field="*{budget}" />
-            <input type="hidden" th:field="*{weight}" />
-            <input type="hidden" th:field="*{displaySize}" />
-            <input type="hidden" th:field="*{purpose}" />
-        </form>
-    </div>
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence((currentPage > 3 ? currentPage - 2 : 1), (currentPage < totalPages - 2 ? currentPage + 2 : totalPages))}"
+                th:classappend="${i == currentPage} ? 'active'">
+                <form th:id="'current-page-' + ${i}"
+                      th:action="@{/recommends(page=${i - 1}, sort=${currentSort})}"
+                      th:object="${laptopRecommendationRequest}"
+                      method="post"
+                      class="d-inline">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                </form>
+                <button th:form="'current-page-' + ${i}" class="page-link" type="submit" th:text="${i}"></button>
+            </li>
+
+
+            <li class="page-item" th:if="${currentPage < totalPages - 2}">
+                <span class="page-link">...</span>
+            </li>
+
+            <!-- 다음 버튼 -->
+            <li class="page-item" th:classappend="${currentPage >= totalPages} ? 'disabled'">
+                <form id="next-page"
+                      th:action="@{/recommends(page=${currentPage}, sort=${currentSort})}"
+                      th:object="${laptopRecommendationRequest}" method="post" class="d-inline">
+                    <input type="hidden" th:field="*{budget}" />
+                    <input type="hidden" th:field="*{weight}" />
+                    <input type="hidden" th:field="*{displaySize}" />
+                    <input type="hidden" th:field="*{purpose}" />
+                </form>
+                <button form="next-page" class="page-link" type="submit" aria-label="Next">&raquo;</button>
+            </li>
+        </ul>
+    </nav>
 
     <!-- 다시 추천받기 버튼 -->
-    <div>
+    <div class="text-center">
         <a href="/recommends" class="btn btn-primary">다시 추천받기</a>
     </div>
 </div>

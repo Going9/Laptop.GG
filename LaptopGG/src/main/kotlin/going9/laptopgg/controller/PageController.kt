@@ -30,6 +30,7 @@ class PageController(
     @PostMapping("/recommends")
     fun recommendLaptops(
         @ModelAttribute laptopRecommendationRequest: LaptopRecommendationRequest,
+        @RequestParam(required = false) sort: String?,
         @PageableDefault(size = 10) pageable: Pageable,
         model: Model
     ): String {
@@ -40,7 +41,9 @@ class PageController(
         model.addAttribute("laptopRecommendationRequest", laptopRecommendationRequest)
         model.addAttribute("recommendedLaptops", recommendedLaptops.content)
         model.addAttribute("totalPages", recommendedLaptops.totalPages)
+        model.addAttribute("currentSort", sort)
         model.addAttribute("currentPage", recommendedLaptops.number + 1)
+        model.addAttribute("totalPage", recommendedLaptops.totalPages)
 
         return "recommendation-list"
     }
