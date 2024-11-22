@@ -86,7 +86,6 @@ class RecommendationService(
                     )
                     PurposeDetail.MAINSTREAM_GAMING -> and(
                         path(LaptopUsage::usage).`in`("게임용"),
-                        path(Laptop::tgp).gt(100),
                         path(Laptop::graphicsType).`in`(listOf(
                             "RTX4090", "RTX4080", "RTX4070", "RTX4060", "RTX4050",
                             "RTX3080 Ti", "RTX3080", "RTX3070 Ti", "RTX3070",
@@ -98,7 +97,6 @@ class RecommendationService(
                     )
                     PurposeDetail.HEAVY_GAMING -> and(
                         path(LaptopUsage::usage).`in`("게임용"),
-                        path(Laptop::tgp).gt(120),
                         path(Laptop::graphicsType).`in`(listOf(
                             "RTX4090",
                             "RTX4080",
