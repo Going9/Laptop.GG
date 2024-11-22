@@ -3,56 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>추천 노트북 상세</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/styles.css}">
+    <title>노트북 상세 정보</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<!--    <link rel="stylesheet" th:href="@{/styles.css}">-->
 </head>
+<header>
+    <nav class="navbar fixed-top navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/recommends">LaptopGG</a>
+        </div>
+    </nav>
+</header>
 <body>
-<div class="container mt-5">
-    <!-- 노트북 이름 -->
-    <div class="text-center mb-5">
-        <h1 th:text="${laptopDetail.name}" class="mb-2">노트북 이름</h1>
-        <p class="text-muted"><strong>제조사:</strong> <span th:text="${laptopDetail.manufacturer}"></span></p>
+<div class="container">
+    <div class="card mb-2" style="margin-top: 70px;">
+        <img th:src="${laptopDetail.imageUrl}" alt="추천 노트북 ${laptop.name}" class="card-img-top">
+    </div>
+    <div class="card mb-2">
+        <div class="card-header">
+            기본 정보
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>이름:</strong> <span th:text="${laptopDetail.name}"></span></li>
+            <li class="list-group-item">
+                <strong>용도:</strong>
+                <span th:text="${#strings.arrayJoin(laptopDetail.usage, ', ')}"></span>
+            </li>
+            <li class="list-group-item"><strong>CPU 제조사:</strong> <span th:text="${laptopDetail.cpuManufacturer}"></span></li>
+            <li class="list-group-item"><strong>CPU 종류:</strong> <span th:text="${laptopDetail.cpu}"></span></li>
+            <li class="list-group-item"><strong>OS:</strong> <span th:text="${laptopDetail.os}"></span></li>
+            <li class="list-group-item">
+                <strong>가격:</strong><span th:text="${#numbers.formatCurrency(laptopDetail.price)}"></span>
+            </li>
+            <li class="list-group-item"><strong>화면 크기:</strong> <span th:text="${laptopDetail.screenSize}"></span>인치</li>
+            <li class="list-group-item"><strong>해상도:</strong> <span th:text="${laptopDetail.resolution}"></span></li>
+            <li class="list-group-item"><strong>밝기:</strong>
+                <span th:if="${laptopDetail.brightness == null}">알 수 없음</span>
+                <span th:if="${laptopDetail.brightness != null}" th:text="${laptopDetail.brightness + ' nit'}"></span>
+            </li>
+            <li class="list-group-item"><strong>램 용량:</strong> <span th:text="${laptopDetail.ramSize}"></span>GB</li>
+            <li class="list-group-item"><strong>그래픽카드 종류:</strong> <span th:text="${laptopDetail.graphicsType}"></span></li>
+            <li class="list-group-item"><strong>무게:</strong> <span th:text="${laptopDetail.weight}"></span>kg</li>
+        </ul>
     </div>
 
-    <!-- 이미지와 기본 정보 -->
-    <div class="row gx-4 gy-4 align-items-center">
-        <!-- 이미지 섹션 -->
-        <div class="col-lg-6 text-center">
-            <img th:src="${laptopDetail.imageUrl}" alt="노트북 이미지" class="img-fluid rounded border shadow-sm" />
+    <div class="card">
+        <div class="card-header">
+            추가 정보
         </div>
-
-        <!-- 기본 정보 섹션 -->
-        <div class="col-lg-6">
-            <ul class="list-group shadow-sm">
-                <li class="list-group-item">
-                    <strong>용도:</strong>
-                    <span th:text="${#strings.arrayJoin(laptopDetail.usage, ', ')}"></span>
-                </li>
-                <li class="list-group-item"><strong>CPU 제조사:</strong> <span th:text="${laptopDetail.cpuManufacturer}"></span></li>
-                <li class="list-group-item"><strong>CPU 종류:</strong> <span th:text="${laptopDetail.cpu}"></span></li>
-                <li class="list-group-item"><strong>OS:</strong> <span th:text="${laptopDetail.os}"></span></li>
-                <li class="list-group-item">
-                    <strong>가격:</strong><span th:text="${#numbers.formatCurrency(laptopDetail.price)}"></span>
-                </li>
-                <li class="list-group-item"><strong>화면 크기:</strong> <span th:text="${laptopDetail.screenSize}"></span>인치</li>
-                <li class="list-group-item"><strong>해상도:</strong> <span th:text="${laptopDetail.resolution}"></span></li>
-                <li class="list-group-item"><strong>밝기:</strong>
-                    <span th:if="${laptopDetail.brightness == null}">알 수 없음</span>
-                    <span th:if="${laptopDetail.brightness != null}" th:text="${laptopDetail.brightness + ' nit'}"></span>
-                </li>
-                <li class="list-group-item"><strong>램 용량:</strong> <span th:text="${laptopDetail.ramSize}"></span>GB</li>
-                <li class="list-group-item"><strong>그래픽카드 종류:</strong> <span th:text="${laptopDetail.graphicsType}"></span></li>
-                <li class="list-group-item"><strong>무게:</strong> <span th:text="${laptopDetail.weight}"></span>kg</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- 추가 정보 -->
-    <div class="mt-5">
-        <h3>추가 정보</h3>
-        <ul class="list-group shadow-sm">
+        <ul class="list-group list-group-flush">
             <li class="list-group-item"><strong>PD 충전 지원:</strong>
                 <span th:if="${laptopDetail.isSupportsPdCharging == true}">지원</span>
                 <span th:if="${laptopDetail.isSupportsPdCharging == false}">미지원</span>
@@ -68,7 +67,6 @@
                 <span th:if="${laptopDetail.isRamReplaceable == null}">알 수 없음</span>
                 <span th:if="${laptopDetail.isRamReplaceable == true}" th:text="${laptopDetail.isRamReplaceable}">가능</span>
             </li>
-
         </ul>
     </div>
 
@@ -78,47 +76,46 @@
     </div>
 
     <!-- 댓글 섹션 -->
-    <div class="mt-5">
-        <h2>댓글 목록</h2>
-        <ul class="list-group shadow-sm" id="comments-list">
-            <li class="list-group-item d-flex justify-content-between align-items-start" th:each="comment : ${commentsOfLaptop}">
-                <div>
-                    <strong th:text="${comment.author}">작성자</strong>
-                    <p th:text="${comment.content}" th:id="'comment' + ${comment.id}" class="mb-1"></p>
-                </div>
-                <div>
-                    <button class="btn btn-link btn-sm text-primary" th:onclick="|enableEdit(${comment.id})|">
-                        <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <button class="btn btn-link btn-sm text-danger" onclick="deleteComment('${comment.id}')">
-                        <i class="bi bi-trash-fill"></i>
-                    </button>
-                </div>
-            </li>
-        </ul>
+<!--    <div class="mt-5">-->
+<!--        <h2>댓글 목록</h2>-->
+<!--        <ul class="list-group shadow-sm" id="comments-list">-->
+<!--            <li class="list-group-item d-flex justify-content-between align-items-start" th:each="comment : ${commentsOfLaptop}">-->
+<!--                <div>-->
+<!--                    <strong th:text="${comment.author}">작성자</strong>-->
+<!--                    <p th:text="${comment.content}" th:id="'comment' + ${comment.id}" class="mb-1"></p>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <button class="btn btn-link btn-sm text-primary" th:onclick="|enableEdit(${comment.id})|">-->
+<!--                        <i class="bi bi-pencil-fill"></i>-->
+<!--                    </button>-->
+<!--                    <button class="btn btn-link btn-sm text-danger" onclick="deleteComment('${comment.id}')">-->
+<!--                        <i class="bi bi-trash-fill"></i>-->
+<!--                    </button>-->
+<!--                </div>-->
+<!--            </li>-->
+<!--        </ul>-->
 
-        <!-- 댓글 작성 폼 -->
-        <div class="mt-4">
-            <h3>댓글 작성</h3>
-            <form th:action="@{/comments}" th:object="${commentRequest}" method="post">
-                <div class="mb-3">
-                    <label for="author" class="form-label">작성자</label>
-                    <input type="text" id="author" th:field="*{author}" class="form-control" placeholder="작성자" required>
-                </div>
-                <div class="mb-3">
-                    <label for="content" class="form-label">내용</label>
-                    <textarea id="content" th:field="*{content}" class="form-control" placeholder="내용 입력" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="passWord" class="form-label">비밀번호</label>
-                    <input type="password" id="passWord" th:field="*{passWord}" class="form-control" placeholder="비밀번호 입력" required>
-                </div>
-                <button type="submit" class="btn btn-primary shadow">등록</button>
-            </form>
-        </div>
-    </div>
+<!--        &lt;!&ndash; 댓글 작성 폼 &ndash;&gt;-->
+<!--        <div class="mt-4">-->
+<!--            <h3>댓글 작성</h3>-->
+<!--            <form th:action="@{/comments}" th:object="${commentRequest}" method="post">-->
+<!--                <div class="mb-3">-->
+<!--                    <label for="author" class="form-label">작성자</label>-->
+<!--                    <input type="text" id="author" th:field="*{author}" class="form-control" placeholder="작성자" required>-->
+<!--                </div>-->
+<!--                <div class="mb-3">-->
+<!--                    <label for="content" class="form-label">내용</label>-->
+<!--                    <textarea id="content" th:field="*{content}" class="form-control" placeholder="내용 입력" required></textarea>-->
+<!--                </div>-->
+<!--                <div class="mb-3">-->
+<!--                    <label for="passWord" class="form-label">비밀번호</label>-->
+<!--                    <input type="password" id="passWord" th:field="*{passWord}" class="form-control" placeholder="비밀번호 입력" required>-->
+<!--                </div>-->
+<!--                <button type="submit" class="btn btn-primary shadow">등록</button>-->
+<!--            </form>-->
+<!--        </div>-->
+<!--    </div>-->
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

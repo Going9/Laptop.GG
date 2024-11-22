@@ -8,4 +8,5 @@ data class LaptopRecommendationListResponse(
     val name: String,
     val manufacturer: String,
     val weight: Double,
+    val screenSize: Int
 )
