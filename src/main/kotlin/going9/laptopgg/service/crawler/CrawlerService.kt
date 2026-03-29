@@ -7,17 +7,6 @@ import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.LaptopProfileFactory
 import going9.laptopgg.service.LaptopProfileService
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.openqa.selenium.By
-import org.openqa.selenium.JavascriptExecutor
-import org.openqa.selenium.NoSuchElementException
-import org.openqa.selenium.StaleElementReferenceException
-import org.openqa.selenium.TimeoutException
-import org.openqa.selenium.WebDriver
-import org.openqa.selenium.WebElement
-import org.openqa.selenium.support.ui.ExpectedConditions
-import org.openqa.selenium.support.ui.WebDriverWait
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
@@ -33,7 +22,6 @@ import org.slf4j.LoggerFactory
 
 @Service
 class CrawlerService(
-    private val webDriverProvider: ObjectProvider<WebDriver>,
     private val laptopRepository: LaptopRepository,
     private val laptopProfileService: LaptopProfileService,
     private val laptopProfileFactory: LaptopProfileFactory,
@@ -109,6 +97,84 @@ class CrawlerService(
         val usages: List<String> = emptyList(),
     )
 
+    internal data class ListRequestContext(
+        val listCategoryCode: String = "758",
+        val categoryCode: String = "758",
+        val physicsCate1: String = "860",
+        val physicsCate2: String = "869",
+        val physicsCate3: String = "0",
+        val physicsCate4: String = "0",
+        val viewMethod: String = "LIST",
+        val sortMethod: String = "SAVEASC",
+        val listCount: String = "30",
+        val group: String = "11",
+        val depth: String = "2",
+        val discountProductRate: String = "0",
+        val initialPriceDisplay: String = "N",
+        val mallMinPriceDisplayYn: String = "Y",
+        val quickDeliveryCategoryYn: String = "N",
+        val quickDeliveryDisplay: String = "",
+        val priceUnitSort: String = "N",
+        val priceUnitSortOrder: String = "A",
+        val simpleDescriptionDisplayYn: String = "Y",
+        val simpleDescriptionOpen: String = "Y",
+        val listPackageType: String = "3",
+        val priceUnit: String = "0",
+        val priceUnitValue: String = "0",
+        val priceUnitClass: String = "",
+        val cmRecommendSort: String = "N",
+        val cmRecommendSortDefault: String = "N",
+        val bundleImagePreview: String = "N",
+        val packageLimit: String = "7",
+        val makerDisplayYn: String = "Y",
+        val dpgZoneUiCategory: String = "N",
+        val assemblyGalleryCategory: String = "N",
+    ) {
+        fun toFormData(page: Int): Map<String, String> {
+            return linkedMapOf(
+                "page" to page.toString(),
+                "listCategoryCode" to listCategoryCode,
+                "categoryCode" to categoryCode,
+                "physicsCate1" to physicsCate1,
+                "physicsCate2" to physicsCate2,
+                "physicsCate3" to physicsCate3,
+                "physicsCate4" to physicsCate4,
+                "viewMethod" to viewMethod,
+                "sortMethod" to sortMethod,
+                "listCount" to listCount,
+                "group" to group,
+                "depth" to depth,
+                "brandName" to "",
+                "makerName" to "",
+                "searchOptionName" to "",
+                "sDiscountProductRate" to discountProductRate,
+                "sInitialPriceDisplay" to initialPriceDisplay,
+                "sPowerLinkKeyword" to "",
+                "oCurrentCategoryCode" to "",
+                "sMallMinPriceDisplayYN" to mallMinPriceDisplayYn,
+                "quickDeliveryCategoryYN" to quickDeliveryCategoryYn,
+                "quickDeliveryDisplay" to quickDeliveryDisplay,
+                "priceUnitSort" to priceUnitSort,
+                "priceUnitSortOrder" to priceUnitSortOrder,
+                "simpleDescriptionDisplayYN" to simpleDescriptionDisplayYn,
+                "simpleDescriptionOpen" to simpleDescriptionOpen,
+                "listPackageType" to listPackageType,
+                "categoryMappingCode" to "",
+                "priceUnit" to priceUnit,
+                "priceUnitValue" to priceUnitValue,
+                "priceUnitClass" to priceUnitClass,
+                "cmRecommendSort" to cmRecommendSort,
+                "cmRecommendSortDefault" to cmRecommendSortDefault,
+                "bundleImagePreview" to bundleImagePreview,
+                "nPackageLimit" to packageLimit,
+                "bMakerDisplayYN" to makerDisplayYn,
+                "dnwSwitchOn" to "",
+                "isDpgZoneUICategory" to dpgZoneUiCategory,
+                "isAssemblyGalleryCategory" to assemblyGalleryCategory,
+            )
+        }
+    }
+
     private enum class SaveResult {
         CREATED,
         UPDATED,
@@ -116,95 +182,180 @@ class CrawlerService(
     }
 
     fun crawlAll(limit: Int? = null): CrawlSummary {
-        val webDriver = webDriverProvider.getObject()
-        val browserCrawler = BrowserCrawler(webDriver)
+        val initialListHtml = fetchListPageHtml()
+        val listRequestContext = extractListRequestContext(initialListHtml)
+        val seenProductCodes = linkedSetOf<String>()
+        var currentPage = 1
+        var processedCount = 0
+        var createdCount = 0
+        var updatedCount = 0
+        var degradedCount = 0
+        val degradedSamples = mutableListOf<String>()
+        var failedCount = 0
+        val failureSamples = mutableListOf<String>()
+        var reachedLimit = false
 
-        return try {
-            browserCrawler.loadLaptopPage()
-            browserCrawler.setupFilters()
+        while (currentPage <= MAX_LIST_PAGES) {
+            val pageStartTime = System.currentTimeMillis()
+            val productCards = fetchProductCards(currentPage, listRequestContext, initialListHtml)
 
-            var processedCount = 0
-            var createdCount = 0
-            var updatedCount = 0
-            var degradedCount = 0
-            val degradedSamples = mutableListOf<String>()
-            var failedCount = 0
-            val failureSamples = mutableListOf<String>()
-            var reachedLimit = false
+            if (productCards.isEmpty()) {
+                logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. page={}", currentPage)
+                break
+            }
 
-            while (true) {
-                val pageStartTime = System.currentTimeMillis()
-                val productCards = browserCrawler.currentProductCards()
+            val freshProductCards = productCards.filter { seenProductCodes.add(it.productCode) }
+            if (freshProductCards.isEmpty()) {
+                logger.info("이미 수집한 상품만 반복되어 크롤링을 종료합니다. page={}", currentPage)
+                break
+            }
 
-                if (productCards.isEmpty()) {
-                    logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다.")
-                    break
-                }
+            for (productCard in freshProductCards) {
+                processedCount++
 
-                for (productCard in productCards) {
-                    processedCount++
-
-                    try {
-                        val buildResult = buildLaptop(productCard)
-                        if (buildResult.isDegraded) {
-                            degradedCount++
-                            recordSample(
-                                samples = degradedSamples,
-                                productCard = productCard,
-                                reason = buildResult.degradationReasons.joinToString(" | "),
-                            )
-                            logger.warn(
-                                "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
-                                productCard.productCode,
-                                productCard.detailPage,
-                                buildResult.degradationReasons,
-                            )
-                        }
-
-                        when (saveOrUpdateLaptop(buildResult.laptop)) {
-                            SaveResult.CREATED -> createdCount++
-                            SaveResult.UPDATED -> updatedCount++
-                            SaveResult.UNCHANGED -> Unit
-                        }
-                    } catch (e: Exception) {
-                        failedCount++
+                try {
+                    val buildResult = buildLaptop(productCard)
+                    if (buildResult.isDegraded) {
+                        degradedCount++
                         recordSample(
-                            samples = failureSamples,
+                            samples = degradedSamples,
                             productCard = productCard,
-                            reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
+                            reason = buildResult.degradationReasons.joinToString(" | "),
                         )
-                        logger.error("상품 크롤링 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
+                        logger.warn(
+                            "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
+                            productCard.productCode,
+                            productCard.detailPage,
+                            buildResult.degradationReasons,
+                        )
                     }
 
-                    if (limit != null && processedCount >= limit) {
-                        reachedLimit = true
-                        break
+                    when (saveOrUpdateLaptop(buildResult.laptop)) {
+                        SaveResult.CREATED -> createdCount++
+                        SaveResult.UPDATED -> updatedCount++
+                        SaveResult.UNCHANGED -> Unit
                     }
+                } catch (e: Exception) {
+                    failedCount++
+                    recordSample(
+                        samples = failureSamples,
+                        productCard = productCard,
+                        reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
+                    )
+                    logger.error("상품 크롤링 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
                 }
 
-                logger.info(
-                    "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / " +
-                        "수집 상품: ${productCards.size}개 / 누적 처리: ${processedCount}개 / " +
-                        "누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
-                )
-
-                if (reachedLimit || !browserCrawler.navigateToNextPage()) {
+                if (limit != null && processedCount >= limit) {
+                    reachedLimit = true
                     break
                 }
             }
 
-            CrawlSummary(
-                processedCount = processedCount,
-                createdCount = createdCount,
-                updatedCount = updatedCount,
-                degradedCount = degradedCount,
-                degradedSamples = degradedSamples.toList(),
-                failedCount = failedCount,
-                failureSamples = failureSamples.toList(),
+            logger.info(
+                "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / page=${currentPage} / " +
+                    "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 누적 처리: ${processedCount}개 / " +
+                    "누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
             )
-        } finally {
-            runCatching { webDriver.quit() }
+
+            if (reachedLimit) {
+                break
+            }
+
+            currentPage++
         }
+
+        if (currentPage > MAX_LIST_PAGES) {
+            logger.warn("목록 페이지 안전 제한({})에 도달해 크롤링을 종료합니다.", MAX_LIST_PAGES)
+        }
+
+        return CrawlSummary(
+            processedCount = processedCount,
+            createdCount = createdCount,
+            updatedCount = updatedCount,
+            degradedCount = degradedCount,
+            degradedSamples = degradedSamples.toList(),
+            failedCount = failedCount,
+            failureSamples = failureSamples.toList(),
+        )
+    }
+
+    private fun fetchListPageHtml(): String {
+        val request = HttpRequest.newBuilder(URI.create(LIST_URL))
+            .timeout(REQUEST_TIMEOUT)
+            .header("User-Agent", USER_AGENT)
+            .GET()
+            .build()
+
+        return sendRequest(request)
+    }
+
+    private fun fetchListPageHtml(page: Int, listRequestContext: ListRequestContext): String {
+        val request = HttpRequest.newBuilder(URI.create(LIST_AJAX_URL))
+            .timeout(REQUEST_TIMEOUT)
+            .header("User-Agent", USER_AGENT)
+            .header("Content-Type", FORM_URLENCODED)
+            .header("Origin", DANAWA_ORIGIN)
+            .header("Referer", LIST_URL)
+            .header("X-Requested-With", "XMLHttpRequest")
+            .POST(HttpRequest.BodyPublishers.ofString(buildFormData(listRequestContext.toFormData(page))))
+            .build()
+
+        return sendRequest(request)
+    }
+
+    private fun fetchProductCards(
+        page: Int,
+        listRequestContext: ListRequestContext,
+        initialListHtml: String,
+    ): List<ProductCard> {
+        val html = if (page == 1) {
+            initialListHtml
+        } else {
+            fetchListPageHtml(page, listRequestContext)
+        }
+
+        return parseListPage(html)
+    }
+
+    internal fun extractListRequestContext(initialListHtml: String): ListRequestContext {
+        val defaults = ListRequestContext()
+
+        return ListRequestContext(
+            listCategoryCode = extractJsScalar(initialListHtml, "nListCategoryCode") ?: defaults.listCategoryCode,
+            categoryCode = extractJsScalar(initialListHtml, "nCategoryCode") ?: defaults.categoryCode,
+            physicsCate1 = extractJsScalar(initialListHtml, "sPhysicsCate1") ?: defaults.physicsCate1,
+            physicsCate2 = extractJsScalar(initialListHtml, "sPhysicsCate2") ?: defaults.physicsCate2,
+            physicsCate3 = extractJsScalar(initialListHtml, "sPhysicsCate3") ?: defaults.physicsCate3,
+            physicsCate4 = extractJsScalar(initialListHtml, "sPhysicsCate4") ?: defaults.physicsCate4,
+            viewMethod = extractJsScalar(initialListHtml, "sPriceCompareListType") ?: defaults.viewMethod,
+            sortMethod = extractJsScalar(initialListHtml, "sPriceCompareListSort")
+                ?: extractJsScalar(initialListHtml, "sProductListSort")
+                ?: defaults.sortMethod,
+            listCount = extractJsScalar(initialListHtml, "nPriceCompareListCount") ?: defaults.listCount,
+            group = extractJsScalar(initialListHtml, "nListGroup") ?: defaults.group,
+            depth = extractJsScalar(initialListHtml, "nListDepth") ?: defaults.depth,
+            discountProductRate = extractJsScalar(initialListHtml, "sDiscountProductRate") ?: defaults.discountProductRate,
+            initialPriceDisplay = extractJsScalar(initialListHtml, "sInitialPriceDisplay") ?: defaults.initialPriceDisplay,
+            quickDeliveryCategoryYn = extractJsScalar(initialListHtml, "quickDeliveryCategoryYN") ?: defaults.quickDeliveryCategoryYn,
+            quickDeliveryDisplay = extractJsScalar(initialListHtml, "quickDeliveryDisplay") ?: defaults.quickDeliveryDisplay,
+            priceUnitSort = extractJsScalar(initialListHtml, "priceUnitSort") ?: defaults.priceUnitSort,
+            priceUnitSortOrder = extractJsScalar(initialListHtml, "priceUnitSortOrder") ?: defaults.priceUnitSortOrder,
+            simpleDescriptionDisplayYn = extractJsScalar(initialListHtml, "simpleDescriptionDisplayYN") ?: defaults.simpleDescriptionDisplayYn,
+            simpleDescriptionOpen = extractJsScalar(initialListHtml, "simpleDescriptionOpen") ?: defaults.simpleDescriptionOpen,
+            listPackageType = extractJsScalar(initialListHtml, "nPriceCompareListPackageType") ?: defaults.listPackageType,
+            priceUnit = extractJsScalar(initialListHtml, "nPriceUnit") ?: defaults.priceUnit,
+            priceUnitValue = extractJsScalar(initialListHtml, "nPriceUnitValue") ?: defaults.priceUnitValue,
+            priceUnitClass = extractJsScalar(initialListHtml, "sPriceUnitClass") ?: defaults.priceUnitClass,
+            cmRecommendSort = extractJsScalar(initialListHtml, "sCmRecommendSort") ?: defaults.cmRecommendSort,
+            cmRecommendSortDefault = extractJsScalar(initialListHtml, "sCmRecommendSortDefault") ?: defaults.cmRecommendSortDefault,
+            bundleImagePreview = extractJsScalar(initialListHtml, "sBundleImagePreview") ?: defaults.bundleImagePreview,
+            packageLimit = extractJsScalar(initialListHtml, "nPriceCompareListPackageLimit") ?: defaults.packageLimit,
+            makerDisplayYn = extractJsScalar(initialListHtml, "sMakerStandardDisplayStatus")
+                ?: extractJsScalar(initialListHtml, "sMakerIndicate")
+                ?: defaults.makerDisplayYn,
+            dpgZoneUiCategory = extractJsScalar(initialListHtml, "isDpgZoneUICategory") ?: defaults.dpgZoneUiCategory,
+            assemblyGalleryCategory = extractJsScalar(initialListHtml, "isAssemblyGalleryCategory") ?: defaults.assemblyGalleryCategory,
+        )
     }
 
     private fun buildLaptop(productCard: ProductCard): BuildLaptopResult {
@@ -828,143 +979,33 @@ class CrawlerService(
         return regex.find(text)?.groupValues?.getOrNull(1)?.trim()
     }
 
-    private fun String.urlEncode(): String {
-        return URLEncoder.encode(this, StandardCharsets.UTF_8)
+    private fun extractJsScalar(html: String, key: String): String? {
+        val escapedKey = Regex.escape(key)
+
+        Regex("""["']?$escapedKey["']?\s*:\s*"([^"]*)"""")
+            .find(html)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { return it }
+
+        return Regex("""["']?$escapedKey["']?\s*:\s*([0-9]+)""")
+            .find(html)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
     }
 
-    private inner class BrowserCrawler(
-        private val webDriver: WebDriver,
-    ) {
-        private val wait = WebDriverWait(webDriver, Duration.ofSeconds(20))
-        private val shortWait = WebDriverWait(webDriver, Duration.ofSeconds(5))
-
-        fun loadLaptopPage() {
-            webDriver.get(LIST_URL)
-            wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("li.prod_item")))
-            logger.info("페이지 타이틀: {}", webDriver.title)
-        }
-
-        fun setupFilters() {
-            wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("li.prod_item")))
-        }
-
-        fun currentProductCards(): List<ProductCard> {
-            wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("li.prod_item")))
-            return parseListPage(webDriver.pageSource)
-        }
-
-        fun navigateToNextPage(): Boolean {
-            val currentPage = saveCurrentPage()
-            val nextPage = currentPage + 1
-            val nextPageButton = findPageButton(nextPage) ?: findNextGroupButton()
-
-            if (nextPageButton == null) {
-                logger.info("마지막 페이지에 도달하여 크롤링을 종료합니다.")
-                return false
-            }
-
-            scrollIntoView(nextPageButton)
-            nextPageButton.click()
-
-            return try {
-                wait.until(ExpectedConditions.textToBe(By.cssSelector(".num.now_on"), nextPage.toString()))
-                true
-            } catch (_: TimeoutException) {
-                logger.warn("다음 페이지 이동에 실패하여 크롤링을 종료합니다.")
-                false
-            }
-        }
-
-        private fun expandCpuCodeSection() {
-            val expandButton = wait.until(
-                ExpectedConditions.elementToBeClickable(
-                    By.xpath("//a[normalize-space()='CPU 코드명']/ancestor::dl[1]//button[contains(@class, 'btn_view_more')]"),
-                ),
-            )
-            scrollIntoView(expandButton)
-            expandButton.click()
-        }
-
-        private fun selectCpuAttributes() {
-            val cpuCodeNames = listOf(
-                "고르곤 포인트",
-                "팬서레이크",
-                "오라이온 3세대",
-                "파이어 레인지",
-                "크라켄 포인트",
-                "애로우레이크",
-                "루나레이크",
-                "스트릭스 헤일로",
-                "스트릭스 포인트",
-                "호크포인트",
-                "랩터레이크-R",
-                "메테오레이크",
-                "트윈레이크",
-                "드래곤 레인지",
-                "피닉스",
-                "랩터레이크",
-                "램브란트-R",
-                "램브란트",
-                "엘더레이크",
-                "엘더레이크-N",
-                "오라이온",
-                "바르셀로-R",
-                "바르셀로",
-                "루시엔",
-                "세잔",
-            )
-
-            cpuCodeNames.forEach { cpuCodeName ->
-                val label = findOptionalElement(
-                    By.xpath("//label[@title=\"$cpuCodeName\"]"),
-                ) ?: return@forEach
-
-                val checkbox = label.findElement(By.cssSelector("input[type='checkbox']"))
-
-                if (!checkbox.isSelected) {
-                    scrollIntoView(label)
-                    label.click()
-                }
-            }
-        }
-
-        private fun saveCurrentPage(): Int {
-            return webDriver.findElement(By.cssSelector(".num.now_on")).text.toInt()
-        }
-
-        private fun findPageButton(page: Int): WebElement? {
-            return findOptionalElement(
-                By.xpath("//div[contains(@class, 'prod_num_nav')]//div[contains(@class, 'number_wrap')]//a[normalize-space()='$page']"),
-            )
-        }
-
-        private fun findNextGroupButton(): WebElement? {
-            return findOptionalElement(By.cssSelector(".prod_num_nav .edge_nav.nav_next"))
-        }
-
-        private fun findOptionalElement(by: By): WebElement? {
-            return try {
-                shortWait.until(ExpectedConditions.presenceOfElementLocated(by))
-            } catch (_: TimeoutException) {
-                null
-            } catch (_: NoSuchElementException) {
-                null
-            } catch (_: StaleElementReferenceException) {
-                null
-            }
-        }
-
-        private fun scrollIntoView(element: WebElement) {
-            (webDriver as JavascriptExecutor).executeScript(
-                "arguments[0].scrollIntoView({block: 'center'});",
-                element,
-            )
-        }
+    private fun String.urlEncode(): String {
+        return URLEncoder.encode(this, StandardCharsets.UTF_8)
     }
 
     companion object {
         private const val USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
         private const val LIST_URL = "https://prod.danawa.com/list/?cate=112758"
+        private const val LIST_AJAX_URL = "https://prod.danawa.com/list/ajax/getProductList.ajax.php"
         private const val DANAWA_ORIGIN = "https://prod.danawa.com"
         private const val PRODUCT_DESCRIPTION_URL = "https://prod.danawa.com/info/ajax/getProductDescription.ajax.php"
         private const val FORM_URLENCODED = "application/x-www-form-urlencoded; charset=UTF-8"
@@ -972,6 +1013,7 @@ class CrawlerService(
         private const val MAX_HTTP_RETRIES = 3
         private const val RETRY_DELAY_MILLIS = 500L
         private const val MAX_FAILURE_SAMPLES = 10
+        private const val MAX_LIST_PAGES = 5000
         private val DISCRETE_GPU_KEYWORDS = listOf(
             "RTX",
             "GTX",

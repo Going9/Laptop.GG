@@ -7,13 +7,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
-import org.openqa.selenium.WebDriver
-import org.springframework.beans.factory.ObjectProvider
 
 class CrawlerServiceNormalizationTest {
-    @Suppress("UNCHECKED_CAST")
     private val crawlerService = CrawlerService(
-        webDriverProvider = mock(ObjectProvider::class.java) as ObjectProvider<WebDriver>,
         laptopRepository = mock(LaptopRepository::class.java),
         laptopProfileService = mock(LaptopProfileService::class.java),
         laptopProfileFactory = LaptopProfileFactory(),
@@ -75,5 +71,52 @@ class CrawlerServiceNormalizationTest {
 
         assertThat(result).hasSize(1)
         assertThat(result.first().detailPage).isEqualTo("https://prod.danawa.com/info/?pcode=123456&cate=112758")
+    }
+
+    @Test
+    fun `list request context is extracted from initial html`() {
+        val html = """
+            <script>
+                var oGlobalSetting = {
+                    nCategoryCode: 758,
+                    nListCategoryCode: 758,
+                    nListGroup: 11,
+                    nListDepth: 2,
+                    sPhysicsCate1: "860",
+                    sPhysicsCate2: "869",
+                    sPhysicsCate3: "0",
+                    sPhysicsCate4: "0"
+                };
+                var oExpansionContent = {
+                    "sPriceCompareListType":"LIST",
+                    "nPriceCompareListPackageType":"3",
+                    "nPriceCompareListCount":"30",
+                    "nPriceCompareListPackageLimit":"7",
+                    "sInitialPriceDisplay":"N",
+                    "sDiscountProductRate":"0",
+                    "nPriceUnit":"0",
+                    "nPriceUnitValue":"0",
+                    "sPriceUnitClass":"",
+                    "sCmRecommendSort":"N",
+                    "sCmRecommendSortDefault":"N",
+                    "sBundleImagePreview":"N",
+                    "sMakerStandardDisplayStatus":"Y"
+                };
+            </script>
+        """.trimIndent()
+
+        val result = crawlerService.extractListRequestContext(html)
+
+        assertThat(result.categoryCode).isEqualTo("758")
+        assertThat(result.listCategoryCode).isEqualTo("758")
+        assertThat(result.group).isEqualTo("11")
+        assertThat(result.depth).isEqualTo("2")
+        assertThat(result.physicsCate1).isEqualTo("860")
+        assertThat(result.physicsCate2).isEqualTo("869")
+        assertThat(result.viewMethod).isEqualTo("LIST")
+        assertThat(result.listCount).isEqualTo("30")
+        assertThat(result.listPackageType).isEqualTo("3")
+        assertThat(result.packageLimit).isEqualTo("7")
+        assertThat(result.makerDisplayYn).isEqualTo("Y")
     }
 }

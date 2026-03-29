@@ -20,6 +20,7 @@ flowchart LR
 - 데이터베이스는 PostgreSQL을 사용합니다.
 - `main` 브랜치에 push 하면 웹 앱이 자동 배포됩니다.
 - 크롤러는 GitHub Actions에서 수동 실행하거나 스케줄 실행합니다.
+- 목록 크롤링은 Danawa HTTP/AJAX 요청 기반이라 Chrome/Selenium 설치가 필요 없습니다.
 
 ## 저장소 구조
 
@@ -129,8 +130,9 @@ JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 동작 방식:
 1. GitHub Actions가 DB 서버로 SSH 접속합니다.
 2. SSH 터널로 PostgreSQL에 연결합니다.
-3. `postgres,crawler` 프로필로 크롤러를 실행합니다.
-4. 크롤링 결과를 DB에 직접 적재합니다.
+3. 목록은 HTTP/AJAX로, 상세는 HTTP 요청으로 수집합니다.
+4. `postgres,crawler` 프로필로 크롤러를 실행합니다.
+5. 크롤링 결과를 DB에 직접 적재합니다.
 
 ## nginx와 도메인
 
