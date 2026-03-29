@@ -7,6 +7,10 @@ on:
         description: "테스트용 처리 개수 제한. 숫자만 입력하세요. 예: 100"
         required: false
         type: number
+      start_page:
+        description: "재개할 시작 페이지. 비워두면 1페이지부터 시작합니다."
+        required: false
+        type: number
       log_sql:
         description: "SQL 로그를 잠깐 켤지 여부"
         required: false
@@ -28,6 +32,7 @@ jobs:
       SPRING_DATASOURCE_PASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
       CRAWLER_LIMIT: ${{ inputs.limit }}
+      CRAWLER_START_PAGE: ${{ inputs.start_page }}
       CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
       CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
 
@@ -80,6 +85,14 @@ jobs:
               exit 1
             fi
             APP_ARGS="${APP_ARGS} --app.crawler.limit=${CRAWLER_LIMIT}"
+          fi
+
+          if [ -n "${CRAWLER_START_PAGE}" ]; then
+            if ! printf '%s' "${CRAWLER_START_PAGE}" | grep -Eq '^[0-9]+$'; then
+              echo "CRAWLER_START_PAGE must be a number like 15." >&2
+              exit 1
+            fi
+            APP_ARGS="${APP_ARGS} --app.crawler.start-page=${CRAWLER_START_PAGE}"
           fi
 
           if [ "${{ inputs.log_sql }}" = "true" ]; then

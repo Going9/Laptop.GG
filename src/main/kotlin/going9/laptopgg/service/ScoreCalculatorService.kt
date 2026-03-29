@@ -9,9 +9,7 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 
 @Service
-class ScoreCalculatorService(
-    private val laptopProfileFactory: LaptopProfileFactory,
-) {
+class ScoreCalculatorService {
     data class ScoreResult(
         val score: Double,
         val reasons: List<String>,
@@ -23,13 +21,15 @@ class ScoreCalculatorService(
         request: LaptopRecommendationRequest,
     ): ScoreResult {
         val useCase = request.resolvedUseCase()
-        val cpuInsights = laptopProfileFactory.resolveCpuInsights(laptop)
-        val gpuInsights = laptopProfileFactory.resolveGpuInsights(laptop)
         val budgetScore = budgetScore(laptop.price, request.budget)
-        val portabilityScore = laptopProfileFactory.portabilityScore(laptop.weight)
-        val displayScore = laptopProfileFactory.displayScore(laptop)
-        val ramScore = laptopProfileFactory.ramScore(laptop.ramSize)
-        val tgpScore = laptopProfileFactory.tgpScore(laptop.tgp, gpuInsights.isIntegrated)
+        val portabilityScore = profile.portabilityScore
+        val displayScore = profile.displayScore
+        val ramScore = profile.ramScore
+        val tgpScore = profile.tgpScore
+        val cpuPerformanceScore = profile.cpuPerformanceScore
+        val lowPowerCpuScore = profile.lowPowerCpuScore
+        val gpuScore = profile.gpuPerformanceScore
+        val creatorGpuScore = (profile.gpuPerformanceScore + profile.gpuCreatorBonus).coerceAtMost(100)
 
         val rawScore = when (useCase) {
             RecommendationUseCase.NOT_SURE -> {
@@ -39,7 +39,7 @@ class ScoreCalculatorService(
                     (budgetScore * 0.14) +
                     (displayScore * 0.10) +
                     (ramScore * 0.08) +
-                    (gpuInsights.performanceScore * 0.08)
+                    (gpuScore * 0.08)
             }
             RecommendationUseCase.OFFICE_STUDY -> {
                 (budgetScore * 0.25) +
@@ -60,35 +60,35 @@ class ScoreCalculatorService(
                     (portabilityScore * 0.20) +
                     (profile.officeScore * 0.15) +
                     (budgetScore * 0.10) +
-                    (cpuInsights.lowPowerScore * 0.10)
+                    (lowPowerCpuScore * 0.10)
             }
             RecommendationUseCase.CASUAL_GAME -> {
-                (gpuInsights.performanceScore * 0.35) +
-                    (cpuInsights.performanceScore * 0.20) +
+                (gpuScore * 0.35) +
+                    (cpuPerformanceScore * 0.20) +
                     (ramScore * 0.15) +
                     (displayScore * 0.10) +
                     (portabilityScore * 0.10) +
                     (budgetScore * 0.10)
             }
             RecommendationUseCase.ONLINE_GAME -> {
-                (gpuInsights.performanceScore * 0.40) +
-                    (cpuInsights.performanceScore * 0.20) +
+                (gpuScore * 0.40) +
+                    (cpuPerformanceScore * 0.20) +
                     (ramScore * 0.15) +
                     (tgpScore * 0.10) +
                     (displayScore * 0.10) +
                     (budgetScore * 0.05)
             }
             RecommendationUseCase.AAA_GAME -> {
-                (gpuInsights.performanceScore * 0.45) +
+                (gpuScore * 0.45) +
                     (tgpScore * 0.20) +
-                    (cpuInsights.performanceScore * 0.15) +
+                    (cpuPerformanceScore * 0.15) +
                     (ramScore * 0.10) +
                     (displayScore * 0.05) +
                     (budgetScore * 0.05)
             }
             RecommendationUseCase.CREATOR -> {
-                (cpuInsights.performanceScore * 0.20) +
-                    ((gpuInsights.performanceScore + gpuInsights.creatorBonus).coerceAtMost(100) * 0.20) +
+                (cpuPerformanceScore * 0.20) +
+                    (creatorGpuScore * 0.20) +
                     (ramScore * 0.20) +
                     (displayScore * 0.20) +
                     (profile.batteryScore * 0.05) +
@@ -106,9 +106,9 @@ class ScoreCalculatorService(
                 displayScore = displayScore,
                 ramScore = ramScore,
                 tgpScore = tgpScore,
-                cpuPerformanceScore = cpuInsights.performanceScore,
-                lowPowerCpuScore = cpuInsights.lowPowerScore,
-                gpuScore = gpuInsights.performanceScore,
+                cpuPerformanceScore = cpuPerformanceScore,
+                lowPowerCpuScore = lowPowerCpuScore,
+                gpuScore = gpuScore,
                 officeScore = profile.officeScore,
                 batteryScore = profile.batteryScore,
                 casualGameScore = profile.casualGameScore,

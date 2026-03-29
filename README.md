@@ -69,7 +69,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/laptopgg
 export SPRING_DATASOURCE_USERNAME=laptopgg
 export SPRING_DATASOURCE_PASSWORD=laptopgg
-./gradlew bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.limit=3'
+./gradlew bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.limit=3 --app.crawler.start-page=1'
 ```
 
 ### 4. 확인 주소
@@ -77,7 +77,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 - 웹: `http://localhost:8080`
 - 추천 화면: `http://localhost:8080/recommends`
 - 상세 화면: `http://localhost:8080/laptops/{id}`
-- 크롤링 API: `GET /api/crawl/laptops?limit=3`
+- 크롤링 API: `GET /api/crawl/laptops?limit=3&startPage=1`
 
 주의:
 - `/api/crawl/laptops` 엔드포인트는 로컬/비배포 프로필에서만 열립니다.
@@ -106,7 +106,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 3. 앱 서버의 `laptopgg.service`를 재시작합니다.
 
 배포 시점 동작:
-- 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`, `V3 크롤링 추적/가격 이력`을 적용합니다.
+- 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`, `V3 크롤링 추적/가격 이력`, `V4 추천 정적 점수 컬럼`을 적용합니다.
 - 기존 PostgreSQL: Flyway가 baseline 후 누락된 후속 마이그레이션만 적용합니다.
 
 앱 서버에서 사용하는 주요 환경 변수 예시:
@@ -126,6 +126,7 @@ JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 크롤러는 `.github/workflows/crawler.yml` 에서 실행합니다.
 
 - 수동 실행 `workflow_dispatch`
+- 재개 실행이 필요하면 `start_page` 입력으로 특정 페이지부터 다시 시작할 수 있습니다.
 - 스케줄 실행 `cron: 17 19 * * *` (한국시간 기준 매일 04:17)
 
 입력 규칙:

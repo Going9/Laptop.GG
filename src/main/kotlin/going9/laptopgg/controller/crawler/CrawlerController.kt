@@ -17,7 +17,8 @@ class CrawlerController(
     @GetMapping("/laptops")
     fun startCrawling(
         @RequestParam(required = false) limit: Int?,
+        @RequestParam(required = false, defaultValue = "1") startPage: Int,
     ): CrawlerService.CrawlSummary {
-        return crawlerService.crawlAll(limit)
+        return crawlerService.crawlAll(limit = limit, startPage = startPage)
     }
 }

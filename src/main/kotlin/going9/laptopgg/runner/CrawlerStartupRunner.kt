@@ -17,22 +17,31 @@ class CrawlerStartupRunner(
     private val applicationContext: ConfigurableApplicationContext,
     private val crawlerService: CrawlerService,
     @Value("\${app.crawler.limit:}") private val defaultLimitRaw: String,
+    @Value("\${app.crawler.start-page:}") private val defaultStartPageRaw: String,
 ) : ApplicationRunner {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
         val defaultLimit = defaultLimitRaw.toIntOrNull()
             ?.takeIf { it > 0 }
+        val defaultStartPage = defaultStartPageRaw.toIntOrNull()
+            ?.takeIf { it > 0 }
 
         val limit = args.getOptionValues("app.crawler.limit")
             ?.firstOrNull()
             ?.toIntOrNull()
             ?: defaultLimit
+        val startPage = args.getOptionValues("app.crawler.start-page")
+            ?.firstOrNull()
+            ?.toIntOrNull()
+            ?: defaultStartPage
+            ?: 1
 
         val exitCode = runCatching {
-            val summary = crawlerService.crawlAll(limit)
+            val summary = crawlerService.crawlAll(limit = limit, startPage = startPage)
             logger.info(
-                "Crawler run finished. processedCount={}, createdCount={}, updatedCount={}, degradedCount={}, failedCount={}",
+                "Crawler run finished. startPage={}, processedCount={}, createdCount={}, updatedCount={}, degradedCount={}, failedCount={}",
+                startPage,
                 summary.processedCount,
                 summary.createdCount,
                 summary.updatedCount,

@@ -21,6 +21,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.roundToInt
 import org.slf4j.LoggerFactory
 
@@ -38,6 +39,11 @@ class CrawlerService(
         .build()
 
     private val objectMapper = jacksonObjectMapper()
+    private val requestPacingLock = Any()
+    @Volatile
+    private var nextAllowedRequestAtMillis = 0L
+    @Volatile
+    private var globalCooldownUntilMillis = 0L
 
     data class CrawlSummary(
         val processedCount: Int,
@@ -202,13 +208,14 @@ class CrawlerService(
         UNCHANGED,
     }
 
-    fun crawlAll(limit: Int? = null): CrawlSummary {
+    fun crawlAll(limit: Int? = null, startPage: Int = 1): CrawlSummary {
         val initialListHtml = fetchListPageHtml()
         val listRequestContext = extractListRequestContext(initialListHtml)
         laptopProfileService.syncMissingProfilesIfNeeded()
+        laptopProfileService.syncIncompleteProfilesIfNeeded()
         val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
         val seenProductCodes = linkedSetOf<String>()
-        var currentPage = 1
+        var currentPage = startPage.coerceAtLeast(1)
         var processedCount = 0
         var createdCount = 0
         var updatedCount = 0
@@ -221,6 +228,7 @@ class CrawlerService(
         var reachedLimit = false
 
         try {
+            logger.info("크롤링을 시작합니다. startPage={}, limit={}", currentPage, limit ?: "ALL")
             while (currentPage <= MAX_LIST_PAGES) {
                 val pageStartTime = System.currentTimeMillis()
                 val productCards = fetchProductCards(currentPage, listRequestContext, initialListHtml)
@@ -944,11 +952,25 @@ class CrawlerService(
 
         repeat(MAX_HTTP_RETRIES) { attempt ->
             try {
+                awaitRequestSlot()
                 val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
-                if (response.statusCode() !in 200..299) {
-                    throw IllegalStateException("HTTP ${response.statusCode()} 요청 실패: ${request.uri()}")
+                if (response.statusCode() in 200..299) {
+                    return response.body()
                 }
-                return response.body()
+
+                if (response.statusCode() in RETRYABLE_STATUS_CODES && attempt < MAX_HTTP_RETRIES - 1) {
+                    val cooldown = retryDelayMillis(attempt, response.statusCode())
+                    extendGlobalCooldown(cooldown)
+                    logger.warn(
+                        "재시도 가능한 HTTP 상태를 감지해 잠시 대기합니다. status={}, wait={}ms, uri={}",
+                        response.statusCode(),
+                        cooldown,
+                        request.uri(),
+                    )
+                    return@repeat
+                }
+
+                throw IllegalStateException("HTTP ${response.statusCode()} 요청 실패: ${request.uri()}")
             } catch (e: IOException) {
                 lastException = e
 
@@ -956,7 +978,9 @@ class CrawlerService(
                     throw e
                 }
 
-                Thread.sleep(RETRY_DELAY_MILLIS)
+                val cooldown = retryDelayMillis(attempt)
+                extendGlobalCooldown(cooldown)
+                logger.warn("I/O 오류로 요청을 재시도합니다. wait={}ms, uri={}, reason={}", cooldown, request.uri(), e.message)
             } catch (e: InterruptedException) {
                 Thread.currentThread().interrupt()
                 throw IllegalStateException("HTTP 요청이 중단되었습니다: ${request.uri()}", e)
@@ -964,6 +988,59 @@ class CrawlerService(
         }
 
         throw IllegalStateException("HTTP 요청 실패: ${request.uri()}", lastException)
+    }
+
+    private fun awaitRequestSlot() {
+        while (true) {
+            val waitMillis = synchronized(requestPacingLock) {
+                val now = System.currentTimeMillis()
+                val allowedAt = maxOf(now, nextAllowedRequestAtMillis, globalCooldownUntilMillis)
+                if (allowedAt <= now) {
+                    nextAllowedRequestAtMillis = now + MIN_REQUEST_INTERVAL_MILLIS + randomJitterMillis(REQUEST_JITTER_MILLIS)
+                    0L
+                } else {
+                    allowedAt - now
+                }
+            }
+
+            if (waitMillis <= 0L) {
+                return
+            }
+
+            Thread.sleep(waitMillis)
+        }
+    }
+
+    private fun extendGlobalCooldown(delayMillis: Long) {
+        if (delayMillis <= 0L) {
+            return
+        }
+
+        synchronized(requestPacingLock) {
+            val candidate = System.currentTimeMillis() + delayMillis
+            if (candidate > globalCooldownUntilMillis) {
+                globalCooldownUntilMillis = candidate
+            }
+        }
+    }
+
+    private fun retryDelayMillis(attempt: Int, statusCode: Int? = null): Long {
+        val baseDelay = when (statusCode) {
+            429 -> 4_000L
+            403 -> 2_500L
+            500, 502, 503, 504 -> 1_500L
+            else -> RETRY_DELAY_MILLIS
+        }
+        val exponential = baseDelay * (1L shl attempt.coerceAtMost(4))
+        return minOf(MAX_RETRY_DELAY_MILLIS, exponential) + randomJitterMillis(RETRY_JITTER_MILLIS)
+    }
+
+    private fun randomJitterMillis(maxJitterMillis: Long): Long {
+        if (maxJitterMillis <= 0L) {
+            return 0L
+        }
+
+        return ThreadLocalRandom.current().nextLong(maxJitterMillis + 1)
     }
 
     private fun buildFormData(data: Map<String, String?>): String {
@@ -1220,11 +1297,16 @@ class CrawlerService(
         private const val FORM_URLENCODED = "application/x-www-form-urlencoded; charset=UTF-8"
         private const val DEFAULT_REFRESH_RATE = 60
         private const val MAX_HTTP_RETRIES = 3
-        private const val RETRY_DELAY_MILLIS = 500L
+        private const val RETRY_DELAY_MILLIS = 800L
+        private const val MAX_RETRY_DELAY_MILLIS = 8_000L
+        private const val RETRY_JITTER_MILLIS = 400L
+        private const val MIN_REQUEST_INTERVAL_MILLIS = 120L
+        private const val REQUEST_JITTER_MILLIS = 80L
         private const val MAX_FAILURE_SAMPLES = 10
         private const val MAX_LIST_PAGES = 5000
         private const val DETAIL_FETCH_CONCURRENCY = 6
         private const val DETAIL_REFRESH_INTERVAL_DAYS = 30L
+        private val RETRYABLE_STATUS_CODES = setOf(403, 429, 500, 502, 503, 504)
         private val DISCRETE_GPU_KEYWORDS = listOf(
             "RTX",
             "GTX",

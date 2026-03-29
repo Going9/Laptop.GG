@@ -21,6 +21,14 @@ class LaptopProfileFactory {
         val onlineGameScore: Int,
         val aaaGameScore: Int,
         val creatorScore: Int,
+        val cpuPerformanceScore: Int,
+        val lowPowerCpuScore: Int,
+        val gpuPerformanceScore: Int,
+        val gpuCreatorBonus: Int,
+        val portabilityScore: Int,
+        val displayScore: Int,
+        val ramScore: Int,
+        val tgpScore: Int,
     )
 
     data class CpuInsights(
@@ -109,6 +117,14 @@ class LaptopProfileFactory {
             onlineGameScore = onlineGameScore,
             aaaGameScore = aaaGameScore,
             creatorScore = creatorScore,
+            cpuPerformanceScore = cpu.performanceScore,
+            lowPowerCpuScore = cpu.lowPowerScore,
+            gpuPerformanceScore = gpu.performanceScore,
+            gpuCreatorBonus = gpu.creatorBonus,
+            portabilityScore = portabilityScore,
+            displayScore = displayScore,
+            ramScore = ramScore,
+            tgpScore = tgpScore,
         )
     }
 

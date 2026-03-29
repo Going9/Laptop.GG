@@ -15,6 +15,8 @@ class LaptopProfileService(
 ) {
     @Volatile
     private var missingProfilesBackfilled = false
+    @Volatile
+    private var incompleteProfilesBackfilled = false
 
     @Transactional
     fun syncMissingProfiles() {
@@ -42,6 +44,31 @@ class LaptopProfileService(
     }
 
     @Transactional
+    fun syncIncompleteProfiles() {
+        laptopProfileRepository.findAllIncompleteStaticScores()
+            .forEach { profile -> syncProfile(profile.laptop) }
+    }
+
+    @Transactional
+    fun syncIncompleteProfilesIfNeeded() {
+        if (incompleteProfilesBackfilled) {
+            return
+        }
+
+        synchronized(this) {
+            if (incompleteProfilesBackfilled) {
+                return
+            }
+
+            if (laptopProfileRepository.countIncompleteStaticScores() > 0) {
+                syncIncompleteProfiles()
+            }
+
+            incompleteProfilesBackfilled = laptopProfileRepository.countIncompleteStaticScores() == 0L
+        }
+    }
+
+    @Transactional
     fun syncProfile(laptop: Laptop): LaptopProfile {
         val laptopId = requireNotNull(laptop.id) { "Laptop must be persisted before syncing a profile." }
         val snapshot = laptopProfileFactory.build(laptop)
@@ -61,6 +88,14 @@ class LaptopProfileService(
                     onlineGameScore = snapshot.onlineGameScore,
                     aaaGameScore = snapshot.aaaGameScore,
                     creatorScore = snapshot.creatorScore,
+                    cpuPerformanceScore = snapshot.cpuPerformanceScore,
+                    lowPowerCpuScore = snapshot.lowPowerCpuScore,
+                    gpuPerformanceScore = snapshot.gpuPerformanceScore,
+                    gpuCreatorBonus = snapshot.gpuCreatorBonus,
+                    portabilityScore = snapshot.portabilityScore,
+                    displayScore = snapshot.displayScore,
+                    ramScore = snapshot.ramScore,
+                    tgpScore = snapshot.tgpScore,
                 ),
             )
         } else {
@@ -78,6 +113,14 @@ class LaptopProfileService(
             existingProfile.onlineGameScore = snapshot.onlineGameScore
             existingProfile.aaaGameScore = snapshot.aaaGameScore
             existingProfile.creatorScore = snapshot.creatorScore
+            existingProfile.cpuPerformanceScore = snapshot.cpuPerformanceScore
+            existingProfile.lowPowerCpuScore = snapshot.lowPowerCpuScore
+            existingProfile.gpuPerformanceScore = snapshot.gpuPerformanceScore
+            existingProfile.gpuCreatorBonus = snapshot.gpuCreatorBonus
+            existingProfile.portabilityScore = snapshot.portabilityScore
+            existingProfile.displayScore = snapshot.displayScore
+            existingProfile.ramScore = snapshot.ramScore
+            existingProfile.tgpScore = snapshot.tgpScore
             laptopProfileRepository.save(existingProfile)
         }
     }
@@ -92,6 +135,14 @@ class LaptopProfileService(
             casualGameScore == snapshot.casualGameScore &&
             onlineGameScore == snapshot.onlineGameScore &&
             aaaGameScore == snapshot.aaaGameScore &&
-            creatorScore == snapshot.creatorScore
+            creatorScore == snapshot.creatorScore &&
+            cpuPerformanceScore == snapshot.cpuPerformanceScore &&
+            lowPowerCpuScore == snapshot.lowPowerCpuScore &&
+            gpuPerformanceScore == snapshot.gpuPerformanceScore &&
+            gpuCreatorBonus == snapshot.gpuCreatorBonus &&
+            portabilityScore == snapshot.portabilityScore &&
+            displayScore == snapshot.displayScore &&
+            ramScore == snapshot.ramScore &&
+            tgpScore == snapshot.tgpScore
     }
 }

@@ -35,6 +35,14 @@ class LaptopProfile(
     var onlineGameScore: Int,
     var aaaGameScore: Int,
     var creatorScore: Int,
+    var cpuPerformanceScore: Int,
+    var lowPowerCpuScore: Int,
+    var gpuPerformanceScore: Int,
+    var gpuCreatorBonus: Int,
+    var portabilityScore: Int,
+    var displayScore: Int,
+    var ramScore: Int,
+    var tgpScore: Int,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
