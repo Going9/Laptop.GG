@@ -7,9 +7,6 @@ import org.springframework.data.jpa.repository.Query
 interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
     fun findByLaptopId(laptopId: Long): LaptopProfile?
 
-    @Query("select p.laptop.id from LaptopProfile p")
-    fun findAllLaptopIds(): List<Long>
-
     @Query(
         """
         select distinct p

@@ -4,6 +4,7 @@ import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpql
 import going9.laptopgg.domain.laptop.Laptop
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 
 interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor {
     @EntityGraph(attributePaths = ["laptopUsage"])
@@ -11,4 +12,18 @@ interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor
 
     @EntityGraph(attributePaths = ["laptopUsage"])
     fun findByDetailPage(detailPage: String): Laptop?
+
+    @Query(
+        """
+        select distinct l
+        from Laptop l
+        left join fetch l.laptopUsage
+        where not exists (
+            select 1
+            from LaptopProfile p
+            where p.laptop = l
+        )
+        """,
+    )
+    fun findAllWithoutProfile(): List<Laptop>
 }

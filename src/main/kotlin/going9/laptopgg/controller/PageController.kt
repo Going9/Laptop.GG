@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate
 
 @Controller
 class PageController(
-    @Value("\${spring.api.base-url:http://localhost:8080}")
+    @Value("\${app.api.base-url:http://localhost:8080}")
     private val apiBaseUrl: String,
     private val restTemplate: RestTemplate,
     private val laptopController: LaptopController,
@@ -82,7 +82,13 @@ class PageController(
         @ModelAttribute commentRequest: CommentRequest,
     ): String {
         val apiUrl = "$apiBaseUrl/api/comments/$commentId/edit"
-        restTemplate.put(apiUrl, commentRequest)
+        restTemplate.put(
+            apiUrl,
+            CommentUpdateRequest(
+                passWord = commentRequest.passWord,
+                content = commentRequest.content,
+            ),
+        )
         return "redirect:/laptops/${commentRequest.laptopId}"
     }
 

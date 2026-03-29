@@ -1,6 +1,6 @@
 package going9.laptopgg.controller
 
-import going9.laptopgg.domain.laptop.Comment
+import going9.laptopgg.dto.request.CommentDeleteRequest
 import going9.laptopgg.dto.request.CommentRequest
 import going9.laptopgg.dto.request.CommentUpdateRequest
 import going9.laptopgg.dto.response.CommentResponse
@@ -15,25 +15,27 @@ class CommentController(
 
     @PostMapping
     fun saveComment(@RequestBody commentRequest: CommentRequest) {
-        println(commentRequest.toString())
         commentService.saveComment(commentRequest)
     }
 
     @GetMapping
-    fun getAllComments(laptopId: Long): List<CommentResponse> {
+    fun getAllComments(@RequestParam laptopId: Long): List<CommentResponse> {
         return commentService.getAllComments(laptopId)
     }
 
     @PutMapping("/{commentId}/edit")
     fun updateComment(
         @PathVariable commentId: Long,
-        @RequestBody request: CommentRequest
+        @RequestBody request: CommentUpdateRequest,
     ) {
         commentService.updateComment(commentId, request)
     }
 
-    @DeleteMapping
-    fun deleteComment(@PathVariable commentId: Long) {
-        commentService.deleteComment(commentId)
+    @DeleteMapping("/{commentId}")
+    fun deleteComment(
+        @PathVariable commentId: Long,
+        @RequestBody request: CommentDeleteRequest,
+    ) {
+        commentService.deleteComment(commentId, request)
     }
 }

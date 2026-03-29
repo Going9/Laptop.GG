@@ -15,13 +15,8 @@ class LaptopProfileService(
 ) {
     @Transactional
     fun syncMissingProfiles() {
-        val existingLaptopIds = laptopProfileRepository.findAllLaptopIds().toSet()
-        val missingLaptops = laptopRepository.findAll()
-            .filter { laptop -> laptop.id != null && laptop.id !in existingLaptopIds }
-
-        missingLaptops.forEach { laptop ->
-            syncProfile(laptop)
-        }
+        laptopRepository.findAllWithoutProfile()
+            .forEach { laptop -> syncProfile(laptop) }
     }
 
     @Transactional

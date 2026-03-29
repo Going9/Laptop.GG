@@ -1,44 +1,19 @@
-spring:
-  datasource:
-    url: jdbc:sqlite:./LaptopGG.sqlite
-    driver-class-name: org.sqlite.JDBC
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.community.dialect.SQLiteDialect
-        format_sql: true
-        highlight_sql: true
-        use_sql_comments: true
-    show-sql: false
-
-  logging:
-    level:
-      org.hibernate.SQL: OFF
-      org.hibernate.type.descriptor.sql.BasicBinder: OFF
-
-  api:
-    base-url: "http://localhost:8080"
-
-  sql:
-    init:
-      mode: never
+logging:
+  level:
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
 
 app:
+  api:
+    base-url: "http://localhost:8080"
   crawler:
     run-on-startup: false
     limit: ${CRAWLER_LIMIT:}
 
----
 spring:
-  config:
-    activate:
-      on-profile: deploy
-
-  api:
-    base-url: "https://laptopgg.com"
+  sql:
+    init:
+      mode: never
 
 ---
 spring:
@@ -67,17 +42,19 @@ spring:
         use_sql_comments: true
     show-sql: false
 
-  logging:
-    level:
-      org.hibernate.SQL: OFF
-      org.hibernate.type.descriptor.sql.BasicBinder: OFF
-
+app:
   api:
     base-url: ${APP_BASE_URL:http://localhost:8080}
 
-  sql:
-    init:
-      mode: never
+---
+spring:
+  config:
+    activate:
+      on-profile: deploy
+
+app:
+  api:
+    base-url: "https://laptopgg.com"
 
 ---
 spring:
@@ -91,73 +68,3 @@ spring:
 app:
   crawler:
     run-on-startup: true
-
----
-spring:
-  config:
-    activate:
-      on-profile: windows
-
-  datasource:
-    url: jdbc:mariadb://localhost:3306/laptopgg
-    driver-class-name: org.mariadb.jdbc.Driver
-    username: "root"
-    password: "0000"
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MariaDBDialect
-        format_sql: true
-        highlight_sql: true
-        use_sql_comments: true
-    show-sql: false
-
-  logging:
-    level:
-      org.hibernate.SQL: OFF
-      org.hibernate.type.descriptor.sql.BasicBinder: OFF
-
-  api:
-    base-url: "http://localhost:8080"
-
-  sql:
-    init:
-      mode: never
-
----
-spring:
-  config:
-    activate:
-      on-profile: local-mariadb
-
-  datasource:
-    url: ${LOCAL_MARIADB_URL:jdbc:mariadb://localhost:3306/laptopgg}
-    driver-class-name: org.mariadb.jdbc.Driver
-    username: ${LOCAL_MARIADB_USERNAME:root}
-    password: ${LOCAL_MARIADB_PASSWORD:0000}
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MariaDBDialect
-        format_sql: true
-        highlight_sql: true
-        use_sql_comments: true
-    show-sql: false
-
-  logging:
-    level:
-      org.hibernate.SQL: OFF
-      org.hibernate.type.descriptor.sql.BasicBinder: OFF
-
-  api:
-    base-url: "http://localhost:8080"
-
-  sql:
-    init:
-      mode: never

@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	id("org.springframework.boot") version "3.2.5"
 	id("io.spring.dependency-management") version "1.1.4"
-	id("org.graalvm.buildtools.native") version "0.9.28"
 	kotlin("jvm") version "1.9.23"
 	kotlin("plugin.spring") version "1.9.23"
 	kotlin("plugin.jpa") version "1.9.23"
@@ -30,14 +29,11 @@ dependencies {
 	implementation("org.seleniumhq.selenium:selenium-java:4.26.0")
 	implementation("org.jsoup:jsoup:1.18.3")
 
-	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:hibernate-support:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.1")
 
-	implementation("org.xerial:sqlite-jdbc:3.45.3.0")
-	implementation("org.mariadb.jdbc:mariadb-java-client:3.5.0")
 	runtimeOnly("org.postgresql:postgresql:42.7.5")
 
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -47,7 +43,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.hibernate.orm:hibernate-core:6.2.7.Final")
-	implementation("org.hibernate.orm:hibernate-community-dialects:6.2.7.Final")
+	implementation("org.springframework.security:spring-security-crypto")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
