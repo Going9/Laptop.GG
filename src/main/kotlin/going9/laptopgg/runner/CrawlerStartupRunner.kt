@@ -32,11 +32,22 @@ class CrawlerStartupRunner(
         val exitCode = runCatching {
             val summary = crawlerService.crawlAll(limit)
             logger.info(
-                "Crawler run finished. processedCount={}, createdCount={}, updatedCount={}",
+                "Crawler run finished. processedCount={}, createdCount={}, updatedCount={}, degradedCount={}, failedCount={}",
                 summary.processedCount,
                 summary.createdCount,
                 summary.updatedCount,
+                summary.degradedCount,
+                summary.failedCount,
             )
+            if (summary.degradedSamples.isNotEmpty()) {
+                logger.warn("Crawler degraded samples: {}", summary.degradedSamples)
+            }
+            if (summary.failureSamples.isNotEmpty()) {
+                logger.warn("Crawler failure samples: {}", summary.failureSamples)
+            }
+            require(summary.failedCount == 0) {
+                "Crawler finished with ${summary.failedCount} failed item(s)."
+            }
             0
         }.getOrElse { exception ->
             logger.error("Crawler run failed.", exception)

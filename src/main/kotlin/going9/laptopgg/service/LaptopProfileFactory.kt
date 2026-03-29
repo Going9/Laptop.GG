@@ -380,7 +380,7 @@ class LaptopProfileFactory {
             return 25
         }
 
-        val value = tgp ?: return 40
+        val value = tgp?.takeIf { it > 0 } ?: return 40
         return when {
             value >= 150 -> 100
             value >= 130 -> 90

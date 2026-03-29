@@ -1,10 +1,10 @@
 package going9.laptopgg.service
 
 import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.repository.LaptopProfileRepository
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.request.RecommendationUseCase
+import going9.laptopgg.dto.request.ScreenSizeMode
 import going9.laptopgg.dto.response.LaptopRecommendationListResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -20,24 +20,28 @@ class RecommendationService(
 ) {
     @Transactional
     fun recommendLaptops(request: LaptopRecommendationRequest, pageable: Pageable): Page<LaptopRecommendationListResponse> {
-        laptopProfileService.syncMissingProfiles()
+        laptopProfileService.syncMissingProfilesIfNeeded()
 
         val useCase = request.resolvedUseCase()
 
-        val candidates = laptopProfileRepository.findAllWithLaptopAndUsage()
+        val candidates = findCandidates(request)
             .filter { profile -> matchesBaseFilters(profile.laptop, request) }
-            .filter { profile -> scoreCalculatorService.gateScore(profile, useCase) >= scoreCalculatorService.gateThreshold(useCase) }
             .map { profile ->
+                val gateScore = scoreCalculatorService.gateScore(profile, useCase)
+                profile to gateScore
+            }
+            .filter { (_, gateScore) -> gateScore >= scoreCalculatorService.gateThreshold(useCase) }
+            .map { (profile, gateScore) ->
                 val scoreResult = scoreCalculatorService.calculateScore(profile.laptop, profile, request)
                 ScoredLaptop(
                     laptop = profile.laptop,
-                    profile = profile,
+                    gateScore = gateScore,
                     score = scoreResult.score,
                     reasons = scoreResult.reasons,
                 )
             }
 
-        val sortedCandidates = sortCandidates(candidates, pageable, useCase)
+        val sortedCandidates = sortCandidates(candidates, pageable)
         val pageContent = paginate(sortedCandidates, pageable)
 
         return PageImpl(
@@ -48,7 +52,7 @@ class RecommendationService(
                     imgLink = candidate.laptop.imageUrl,
                     price = candidate.laptop.price!!,
                     name = candidate.laptop.name,
-                    manufacturer = candidate.laptop.name.substringBefore(" "),
+                    manufacturer = manufacturerName(candidate.laptop.name),
                     weight = candidate.laptop.weight,
                     screenSize = candidate.laptop.screenSize,
                     cpu = candidate.laptop.cpu,
@@ -62,26 +66,33 @@ class RecommendationService(
         )
     }
 
+    private fun findCandidates(request: LaptopRecommendationRequest) =
+        when (request.resolvedScreenSizeMode()) {
+            ScreenSizeMode.SELECT -> laptopProfileRepository.findRecommendationCandidatesByScreenSizes(
+                maxPrice = request.budget,
+                maxWeight = request.maxWeightKg,
+                screenSizes = request.normalizedScreenSizes(),
+            )
+            else -> laptopProfileRepository.findRecommendationCandidates(
+                maxPrice = request.budget,
+                maxWeight = request.maxWeightKg,
+            )
+        }
+
     private fun matchesBaseFilters(
         laptop: Laptop,
         request: LaptopRecommendationRequest,
     ): Boolean {
-        val price = laptop.price ?: return false
-
-        if (price > request.budget) {
-            return false
-        }
         if (!request.matchesScreenSize(laptop.screenSize)) {
             return false
         }
 
-        return laptop.weight == null || laptop.weight!! <= request.maxWeightKg
+        return true
     }
 
     private fun sortCandidates(
         candidates: List<ScoredLaptop>,
         pageable: Pageable,
-        useCase: RecommendationUseCase,
     ): List<ScoredLaptop> {
         if (!pageable.sort.isSorted) {
             return candidates.sortedWith(
@@ -96,13 +107,16 @@ class RecommendationService(
             for (order in orders) {
                 val comparison = when (order.property) {
                     "price" -> compareValues(left.laptop.price, right.laptop.price)
-                    "weight" -> compareNullableWeight(left.laptop.weight, right.laptop.weight)
+                    "weight" -> compareWeight(left.laptop.weight, right.laptop.weight, order.isAscending)
                     "recommended" -> right.score.compareTo(left.score)
                     else -> 0
                 }
 
                 if (comparison != 0) {
-                    return@Comparator if (order.isAscending) comparison else -comparison
+                    return@Comparator when (order.property) {
+                        "weight", "recommended" -> comparison
+                        else -> if (order.isAscending) comparison else -comparison
+                    }
                 }
             }
 
@@ -111,8 +125,7 @@ class RecommendationService(
                 return@Comparator scoreComparison
             }
 
-            val gateComparison = scoreCalculatorService.gateScore(right.profile, useCase)
-                .compareTo(scoreCalculatorService.gateScore(left.profile, useCase))
+            val gateComparison = right.gateScore.compareTo(left.gateScore)
             if (gateComparison != 0) {
                 return@Comparator gateComparison
             }
@@ -131,13 +144,22 @@ class RecommendationService(
         return candidates.subList(startIndex, endIndex)
     }
 
-    private fun compareNullableWeight(left: Double?, right: Double?): Int {
+    private fun compareWeight(left: Double?, right: Double?, ascending: Boolean): Int {
         return when {
             left == null && right == null -> 0
             left == null -> 1
             right == null -> -1
-            else -> left.compareTo(right)
+            ascending -> left.compareTo(right)
+            else -> right.compareTo(left)
         }
+    }
+
+    private fun manufacturerName(name: String): String {
+        return name.trim()
+            .split(Regex("\\s+"))
+            .firstOrNull()
+            ?.takeIf { it.isNotBlank() }
+            ?: "브랜드 확인 불가"
     }
 
     private fun resolutionLabel(resolution: String?): String? {
@@ -168,7 +190,7 @@ class RecommendationService(
 
     private data class ScoredLaptop(
         val laptop: Laptop,
-        val profile: LaptopProfile,
+        val gateScore: Int,
         val score: Double,
         val reasons: List<String>,
     )

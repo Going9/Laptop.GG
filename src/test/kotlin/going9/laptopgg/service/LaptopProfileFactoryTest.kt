@@ -66,6 +66,7 @@ class LaptopProfileFactoryTest {
             name = name,
             imageUrl = "https://example.com/${name.hashCode()}.jpg",
             detailPage = "https://example.com/${name.hashCode()}",
+            productCode = name.hashCode().toString(),
             price = 1_800_000,
             cpuManufacturer = cpuManufacturer,
             cpu = cpu,

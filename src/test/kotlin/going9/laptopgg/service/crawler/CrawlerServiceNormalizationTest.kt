@@ -54,4 +54,26 @@ class CrawlerServiceNormalizationTest {
 
         assertThat(weight).isCloseTo(1.17, offset(0.0001))
     }
+
+    @Test
+    fun `list parser stores canonical detail url by product code`() {
+        val html = """
+            <ul>
+              <li class="prod_item">
+                <a name="productName" href="https://prod.danawa.com/info/?pcode=123456&cate=112758&bookmark=foo">테스트 노트북</a>
+                <div class="prod_pricelist" data-cate="112|758|0|112758">
+                  <span class="text__number">1,234,000</span>
+                </div>
+                <div class="thumb_image">
+                  <img src="https://img.danawa.com/sample.jpg?shrink=330:330" />
+                </div>
+              </li>
+            </ul>
+        """.trimIndent()
+
+        val result = crawlerService.parseListPage(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result.first().detailPage).isEqualTo("https://prod.danawa.com/info/?pcode=123456&cate=112758")
+    }
 }

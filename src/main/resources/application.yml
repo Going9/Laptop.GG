@@ -32,6 +32,7 @@ spring:
       connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
     properties:

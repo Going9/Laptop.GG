@@ -332,6 +332,89 @@ class RecommendationServiceIntegrationTest {
         assertThat(laptop.resolutionLabel).isEqualTo("QHD")
     }
 
+    @Test
+    fun `unknown weight laptops are not excluded from recommendation candidates`() {
+        persistLaptop(
+            name = "Known Weight",
+            price = 1_300_000,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 74.0,
+            weight = 1.35,
+            usages = listOf("사무/인강용"),
+        )
+        persistLaptop(
+            name = "Unknown Weight",
+            price = 1_250_000,
+            cpuManufacturer = "AMD",
+            cpu = "340",
+            graphicsType = "Radeon 840M",
+            batteryCapacity = 76.0,
+            weight = null,
+            usages = listOf("사무/인강용"),
+        )
+
+        val request = LaptopRecommendationRequest(
+            budget = 2_000_000,
+            maxWeightKg = 1.4,
+            screenSizes = listOf(13, 14, 15, 16),
+            useCase = RecommendationUseCase.NOT_SURE,
+        )
+
+        val result = recommendationService.recommendLaptops(request, PageRequest.of(0, 10))
+
+        assertThat(result.content.map { it.name }).contains("Known Weight", "Unknown Weight")
+    }
+
+    @Test
+    fun `weight descending keeps unknown weight at the end`() {
+        persistLaptop(
+            name = "Weight 1.8",
+            price = 1_350_000,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 70.0,
+            weight = 1.8,
+            usages = listOf("사무/인강용"),
+        )
+        persistLaptop(
+            name = "Weight 1.3",
+            price = 1_250_000,
+            cpuManufacturer = "AMD",
+            cpu = "340",
+            graphicsType = "Radeon 840M",
+            batteryCapacity = 76.0,
+            weight = 1.3,
+            usages = listOf("사무/인강용"),
+        )
+        persistLaptop(
+            name = "Weight Unknown",
+            price = 1_150_000,
+            cpuManufacturer = "인텔",
+            cpu = "350",
+            graphicsType = "Arc 140T",
+            batteryCapacity = 82.0,
+            weight = null,
+            usages = listOf("사무/인강용"),
+        )
+
+        val request = LaptopRecommendationRequest(
+            budget = 2_000_000,
+            maxWeightKg = 2.0,
+            screenSizeMode = ScreenSizeMode.ANY,
+            useCase = RecommendationUseCase.NOT_SURE,
+        )
+
+        val result = recommendationService.recommendLaptops(
+            request,
+            PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Order.desc("weight"))),
+        )
+
+        assertThat(result.content.map { it.name }).endsWith("Weight Unknown")
+    }
+
     private fun persistLaptop(
         name: String,
         price: Int,
@@ -339,7 +422,7 @@ class RecommendationServiceIntegrationTest {
         cpu: String,
         graphicsType: String,
         batteryCapacity: Double,
-        weight: Double,
+        weight: Double?,
         screenSize: Int? = 16,
         tgp: Int = 0,
         ramSize: Int = 16,
@@ -349,6 +432,7 @@ class RecommendationServiceIntegrationTest {
             name = name,
             imageUrl = "https://example.com/${name.hashCode()}.jpg",
             detailPage = "https://example.com/${name.hashCode()}",
+            productCode = name.hashCode().toString(),
             price = price,
             cpuManufacturer = cpuManufacturer,
             cpu = cpu,

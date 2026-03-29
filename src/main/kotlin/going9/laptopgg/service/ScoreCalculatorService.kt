@@ -150,8 +150,12 @@ class ScoreCalculatorService(
             return 0
         }
 
-        val normalized = (1.0 - (price.toDouble() / budget.toDouble())) * 100.0
-        return normalized.coerceIn(0.0, 100.0).roundToInt()
+        if (price > budget) {
+            return 0
+        }
+
+        val savingsRatio = (1.0 - (price.toDouble() / budget.toDouble())).coerceIn(0.0, 1.0)
+        return (60.0 + (savingsRatio * 40.0)).roundToInt().coerceIn(0, 100)
     }
 
     private fun buildReasons(

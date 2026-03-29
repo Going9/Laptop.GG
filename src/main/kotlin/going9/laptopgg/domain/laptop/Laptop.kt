@@ -7,6 +7,7 @@ data class Laptop(
     var name: String,
     var imageUrl: String,
     var detailPage: String,
+    var productCode: String? = null,
     var price: Int?,
     var cpuManufacturer: String?,
     var cpu: String?,

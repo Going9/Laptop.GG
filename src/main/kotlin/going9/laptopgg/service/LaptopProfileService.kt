@@ -13,10 +13,32 @@ class LaptopProfileService(
     private val laptopProfileRepository: LaptopProfileRepository,
     private val laptopProfileFactory: LaptopProfileFactory,
 ) {
+    @Volatile
+    private var missingProfilesBackfilled = false
+
     @Transactional
     fun syncMissingProfiles() {
         laptopRepository.findAllWithoutProfile()
             .forEach { laptop -> syncProfile(laptop) }
+    }
+
+    @Transactional
+    fun syncMissingProfilesIfNeeded() {
+        if (missingProfilesBackfilled) {
+            return
+        }
+
+        synchronized(this) {
+            if (missingProfilesBackfilled) {
+                return
+            }
+
+            if (laptopRepository.countWithoutProfile() > 0) {
+                syncMissingProfiles()
+            }
+
+            missingProfilesBackfilled = laptopRepository.countWithoutProfile() == 0L
+        }
     }
 
     @Transactional

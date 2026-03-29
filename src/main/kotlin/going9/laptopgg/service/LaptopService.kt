@@ -11,7 +11,7 @@ class LaptopService(
     private val laptopRepository: LaptopRepository
 ) {
 
-    @Transactional
+    @Transactional(readOnly = true)
     fun findLaptopById(laptopId: Long): LaptopDetailResponse{
         val laptop = laptopRepository.findByOrThrow(laptopId)
         return LaptopDetailResponse.of(laptop)

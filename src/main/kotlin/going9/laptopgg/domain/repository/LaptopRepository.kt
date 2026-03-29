@@ -13,6 +13,12 @@ interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor
     @EntityGraph(attributePaths = ["laptopUsage"])
     fun findByDetailPage(detailPage: String): Laptop?
 
+    @EntityGraph(attributePaths = ["laptopUsage"])
+    fun findAllByDetailPageContaining(detailPageToken: String): List<Laptop>
+
+    @EntityGraph(attributePaths = ["laptopUsage"])
+    fun findByProductCode(productCode: String): Laptop?
+
     @Query(
         """
         select distinct l
@@ -26,4 +32,17 @@ interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor
         """,
     )
     fun findAllWithoutProfile(): List<Laptop>
+
+    @Query(
+        """
+        select count(l)
+        from Laptop l
+        where not exists (
+            select 1
+            from LaptopProfile p
+            where p.laptop = l
+        )
+        """,
+    )
+    fun countWithoutProfile(): Long
 }

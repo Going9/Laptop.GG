@@ -29,6 +29,7 @@ import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import kotlin.math.roundToInt
+import org.slf4j.LoggerFactory
 
 @Service
 class CrawlerService(
@@ -37,6 +38,7 @@ class CrawlerService(
     private val laptopProfileService: LaptopProfileService,
     private val laptopProfileFactory: LaptopProfileFactory,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(20))
         .followRedirects(HttpClient.Redirect.NORMAL)
@@ -48,7 +50,19 @@ class CrawlerService(
         val processedCount: Int,
         val createdCount: Int,
         val updatedCount: Int,
+        val degradedCount: Int,
+        val degradedSamples: List<String>,
+        val failedCount: Int,
+        val failureSamples: List<String>,
     )
+
+    internal data class BuildLaptopResult(
+        val laptop: Laptop,
+        val degradationReasons: List<String>,
+    ) {
+        val isDegraded: Boolean
+            get() = degradationReasons.isNotEmpty()
+    }
 
     internal data class ProductCard(
         val productCode: String,
@@ -112,6 +126,10 @@ class CrawlerService(
             var processedCount = 0
             var createdCount = 0
             var updatedCount = 0
+            var degradedCount = 0
+            val degradedSamples = mutableListOf<String>()
+            var failedCount = 0
+            val failureSamples = mutableListOf<String>()
             var reachedLimit = false
 
             while (true) {
@@ -119,20 +137,44 @@ class CrawlerService(
                 val productCards = browserCrawler.currentProductCards()
 
                 if (productCards.isEmpty()) {
-                    println("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다.")
+                    logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다.")
                     break
                 }
 
                 for (productCard in productCards) {
-                    val laptop = buildLaptop(productCard) ?: continue
-
-                    when (saveOrUpdateLaptop(laptop)) {
-                        SaveResult.CREATED -> createdCount++
-                        SaveResult.UPDATED -> updatedCount++
-                        SaveResult.UNCHANGED -> Unit
-                    }
-
                     processedCount++
+
+                    try {
+                        val buildResult = buildLaptop(productCard)
+                        if (buildResult.isDegraded) {
+                            degradedCount++
+                            recordSample(
+                                samples = degradedSamples,
+                                productCard = productCard,
+                                reason = buildResult.degradationReasons.joinToString(" | "),
+                            )
+                            logger.warn(
+                                "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
+                                productCard.productCode,
+                                productCard.detailPage,
+                                buildResult.degradationReasons,
+                            )
+                        }
+
+                        when (saveOrUpdateLaptop(buildResult.laptop)) {
+                            SaveResult.CREATED -> createdCount++
+                            SaveResult.UPDATED -> updatedCount++
+                            SaveResult.UNCHANGED -> Unit
+                        }
+                    } catch (e: Exception) {
+                        failedCount++
+                        recordSample(
+                            samples = failureSamples,
+                            productCard = productCard,
+                            reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
+                        )
+                        logger.error("상품 크롤링 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
+                    }
 
                     if (limit != null && processedCount >= limit) {
                         reachedLimit = true
@@ -140,9 +182,10 @@ class CrawlerService(
                     }
                 }
 
-                println(
+                logger.info(
                     "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / " +
-                        "수집 상품: ${productCards.size}개 / 누적 처리: ${processedCount}개",
+                        "수집 상품: ${productCards.size}개 / 누적 처리: ${processedCount}개 / " +
+                        "누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
                 )
 
                 if (reachedLimit || !browserCrawler.navigateToNextPage()) {
@@ -154,26 +197,40 @@ class CrawlerService(
                 processedCount = processedCount,
                 createdCount = createdCount,
                 updatedCount = updatedCount,
+                degradedCount = degradedCount,
+                degradedSamples = degradedSamples.toList(),
+                failedCount = failedCount,
+                failureSamples = failureSamples.toList(),
             )
         } finally {
             runCatching { webDriver.quit() }
         }
     }
 
-    private fun buildLaptop(productCard: ProductCard): Laptop? {
-        return try {
-            val detailPageHtml = fetchDetailPageHtml(productCard.detailPage)
-            val detailContext = extractDetailRequestContext(detailPageHtml)
-            val detailSpecHtml = fetchDetailSpecHtml(productCard, detailContext)
-            val parsedSpecTable = detailSpecHtml?.let(::parseSpecTable) ?: ParsedSpecTable(emptyMap(), emptyList())
-            val summaryFallback = parseSummaryFallback(extractSummaryText(detailPageHtml))
-
-            createLaptop(productCard, parsedSpecTable, summaryFallback)
-        } catch (e: Exception) {
-            println("제품 상세 수집 중 오류 발생: ${productCard.detailPage} / ${e.message}")
-            e.printStackTrace()
-            null
+    private fun buildLaptop(productCard: ProductCard): BuildLaptopResult {
+        val degradationReasons = mutableListOf<String>()
+        val detailPageHtml = fetchDetailPageHtml(productCard.detailPage)
+        val detailContext = extractDetailRequestContext(detailPageHtml)
+        if (detailContext == null) {
+            degradationReasons += "상세 스펙 요청 컨텍스트 없음"
         }
+        val detailSpecHtml = fetchDetailSpecHtml(productCard, detailContext)
+        if (detailSpecHtml == null) {
+            degradationReasons += "상세 스펙 테이블 미수집"
+        }
+        val parsedSpecTable = detailSpecHtml?.let(::parseSpecTable) ?: ParsedSpecTable(emptyMap(), emptyList())
+        if (detailSpecHtml != null && parsedSpecTable.values.isEmpty()) {
+            degradationReasons += "상세 스펙 테이블 파싱 결과 비어 있음"
+        }
+        val summaryFallback = parseSummaryFallback(extractSummaryText(detailPageHtml))
+        if (parsedSpecTable.values.isEmpty() && summaryFallback.isEmpty()) {
+            degradationReasons += "상세/요약 스펙 모두 비어 있음"
+        }
+
+        return BuildLaptopResult(
+            laptop = createLaptop(productCard, parsedSpecTable, summaryFallback),
+            degradationReasons = degradationReasons.distinct(),
+        )
     }
 
     private fun createLaptop(
@@ -201,6 +258,7 @@ class CrawlerService(
             name = productCard.productName,
             imageUrl = productCard.imageUrl,
             detailPage = productCard.detailPage,
+            productCode = productCard.productCode,
             price = productCard.price,
             cpuManufacturer = cpuManufacturer,
             cpu = cpu,
@@ -241,67 +299,83 @@ class CrawlerService(
 
     @Transactional
     private fun saveOrUpdateLaptop(laptop: Laptop): SaveResult {
-        return try {
-            val existingLaptop = laptopRepository.findByDetailPage(laptop.detailPage)
-                ?: laptopRepository.findByName(laptop.name)
+        val existingLaptop = findExistingLaptop(laptop)
 
-            if (existingLaptop == null) {
-                val savedLaptop = laptopRepository.save(laptop)
-                laptopProfileService.syncProfile(savedLaptop)
-                SaveResult.CREATED
-            } else {
-                var changed = false
+        if (existingLaptop == null) {
+            val savedLaptop = laptopRepository.save(laptop)
+            laptopProfileService.syncProfile(savedLaptop)
+            return SaveResult.CREATED
+        }
 
-                changed = updateField(existingLaptop.name, laptop.name) { existingLaptop.name = it } || changed
-                changed = updateField(existingLaptop.imageUrl, laptop.imageUrl) { existingLaptop.imageUrl = it } || changed
-                changed = updateField(existingLaptop.detailPage, laptop.detailPage) { existingLaptop.detailPage = it } || changed
-                changed = updateField(existingLaptop.price, laptop.price) { existingLaptop.price = it } || changed
-                changed = updateField(existingLaptop.cpuManufacturer, laptop.cpuManufacturer) { existingLaptop.cpuManufacturer = it } || changed
-                changed = updateField(existingLaptop.cpu, laptop.cpu) { existingLaptop.cpu = it } || changed
-                changed = updateField(existingLaptop.os, laptop.os) { existingLaptop.os = it } || changed
-                changed = updateField(existingLaptop.screenSize, laptop.screenSize) { existingLaptop.screenSize = it } || changed
-                changed = updateField(existingLaptop.resolution, laptop.resolution) { existingLaptop.resolution = it } || changed
-                changed = updateField(existingLaptop.brightness, laptop.brightness) { existingLaptop.brightness = it } || changed
-                changed = updateField(existingLaptop.refreshRate, laptop.refreshRate) { existingLaptop.refreshRate = it } || changed
-                changed = updateField(existingLaptop.ramSize, laptop.ramSize) { existingLaptop.ramSize = it } || changed
-                changed = updateField(existingLaptop.ramType, laptop.ramType) { existingLaptop.ramType = it } || changed
-                changed = updateField(existingLaptop.isRamReplaceable, laptop.isRamReplaceable) { existingLaptop.isRamReplaceable = it } || changed
-                changed = updateField(existingLaptop.graphicsType, laptop.graphicsType) { existingLaptop.graphicsType = it } || changed
-                changed = updateField(existingLaptop.tgp, laptop.tgp) { existingLaptop.tgp = it } || changed
-                changed = updateField(existingLaptop.thunderboltCount, laptop.thunderboltCount) { existingLaptop.thunderboltCount = it } || changed
-                changed = updateField(existingLaptop.usbCCount, laptop.usbCCount) { existingLaptop.usbCCount = it } || changed
-                changed = updateField(existingLaptop.usbACount, laptop.usbACount) { existingLaptop.usbACount = it } || changed
-                changed = updateField(existingLaptop.sdCard, laptop.sdCard) { existingLaptop.sdCard = it } || changed
-                changed = updateField(existingLaptop.isSupportsPdCharging, laptop.isSupportsPdCharging) { existingLaptop.isSupportsPdCharging = it } || changed
-                changed = updateField(existingLaptop.batteryCapacity, laptop.batteryCapacity) { existingLaptop.batteryCapacity = it } || changed
-                changed = updateField(existingLaptop.storageCapacity, laptop.storageCapacity) { existingLaptop.storageCapacity = it } || changed
-                changed = updateField(existingLaptop.storageSlotCount, laptop.storageSlotCount) { existingLaptop.storageSlotCount = it } || changed
-                changed = updateField(existingLaptop.weight, laptop.weight) { existingLaptop.weight = it } || changed
+        var changed = false
 
-                val existingUsages = existingLaptop.laptopUsage.map { it.usage }.sorted()
-                val newUsages = laptop.laptopUsage.map { it.usage }.sorted()
-                if (existingUsages != newUsages) {
-                    existingLaptop.laptopUsage.clear()
-                    laptop.laptopUsage.forEach { usage ->
-                        existingLaptop.laptopUsage.add(LaptopUsage(usage = usage.usage, laptop = existingLaptop))
-                    }
-                    changed = true
-                }
+        changed = updateTextField(existingLaptop.name, laptop.name) { existingLaptop.name = it } || changed
+        changed = updateTextField(existingLaptop.imageUrl, laptop.imageUrl) { existingLaptop.imageUrl = it } || changed
+        changed = updateTextField(existingLaptop.detailPage, laptop.detailPage) { existingLaptop.detailPage = it } || changed
+        changed = updateTextField(existingLaptop.productCode, laptop.productCode) { existingLaptop.productCode = it } || changed
+        changed = updatePresentField(existingLaptop.price, laptop.price) { existingLaptop.price = it } || changed
+        changed = updateTextField(existingLaptop.cpuManufacturer, laptop.cpuManufacturer) { existingLaptop.cpuManufacturer = it } || changed
+        changed = updateTextField(existingLaptop.cpu, laptop.cpu) { existingLaptop.cpu = it } || changed
+        changed = updateTextField(existingLaptop.os, laptop.os) { existingLaptop.os = it } || changed
+        changed = updatePresentField(existingLaptop.screenSize, laptop.screenSize) { existingLaptop.screenSize = it } || changed
+        changed = updateTextField(existingLaptop.resolution, laptop.resolution) { existingLaptop.resolution = it } || changed
+        changed = updatePresentField(existingLaptop.brightness, laptop.brightness) { existingLaptop.brightness = it } || changed
+        changed = updatePresentField(existingLaptop.refreshRate, laptop.refreshRate) { existingLaptop.refreshRate = it } || changed
+        changed = updatePresentField(existingLaptop.ramSize, laptop.ramSize) { existingLaptop.ramSize = it } || changed
+        changed = updateTextField(existingLaptop.ramType, laptop.ramType) { existingLaptop.ramType = it } || changed
+        changed = updatePresentField(existingLaptop.isRamReplaceable, laptop.isRamReplaceable) { existingLaptop.isRamReplaceable = it } || changed
+        changed = updateTextField(existingLaptop.graphicsType, laptop.graphicsType) { existingLaptop.graphicsType = it } || changed
+        changed = updatePresentField(existingLaptop.tgp, laptop.tgp) { existingLaptop.tgp = it } || changed
+        changed = updatePresentField(existingLaptop.thunderboltCount, laptop.thunderboltCount) { existingLaptop.thunderboltCount = it } || changed
+        changed = updatePresentField(existingLaptop.usbCCount, laptop.usbCCount) { existingLaptop.usbCCount = it } || changed
+        changed = updatePresentField(existingLaptop.usbACount, laptop.usbACount) { existingLaptop.usbACount = it } || changed
+        changed = updateTextField(existingLaptop.sdCard, laptop.sdCard) { existingLaptop.sdCard = it } || changed
+        changed = updatePresentField(existingLaptop.isSupportsPdCharging, laptop.isSupportsPdCharging) { existingLaptop.isSupportsPdCharging = it } || changed
+        changed = updatePresentField(existingLaptop.batteryCapacity, laptop.batteryCapacity) { existingLaptop.batteryCapacity = it } || changed
+        changed = updatePresentField(existingLaptop.storageCapacity, laptop.storageCapacity) { existingLaptop.storageCapacity = it } || changed
+        changed = updatePresentField(existingLaptop.storageSlotCount, laptop.storageSlotCount) { existingLaptop.storageSlotCount = it } || changed
+        changed = updatePresentField(existingLaptop.weight, laptop.weight) { existingLaptop.weight = it } || changed
 
-                if (changed) {
-                    val savedLaptop = laptopRepository.save(existingLaptop)
-                    laptopProfileService.syncProfile(savedLaptop)
-                    SaveResult.UPDATED
-                } else {
-                    laptopProfileService.syncProfile(existingLaptop)
-                    SaveResult.UNCHANGED
-                }
+        val existingUsages = existingLaptop.laptopUsage.map { it.usage }.sorted()
+        val newUsages = laptop.laptopUsage.map { it.usage }.sorted()
+        if (newUsages.isNotEmpty() && existingUsages != newUsages) {
+            existingLaptop.laptopUsage.clear()
+            laptop.laptopUsage.forEach { usage ->
+                existingLaptop.laptopUsage.add(LaptopUsage(usage = usage.usage, laptop = existingLaptop))
             }
-        } catch (e: Exception) {
-            println("데이터베이스 작업 중 오류 발생: ${e.message}")
-            e.printStackTrace()
+            changed = true
+        }
+
+        return if (changed) {
+            val savedLaptop = laptopRepository.save(existingLaptop)
+            laptopProfileService.syncProfile(savedLaptop)
+            SaveResult.UPDATED
+        } else {
+            laptopProfileService.syncProfile(existingLaptop)
             SaveResult.UNCHANGED
         }
+    }
+
+    private fun findExistingLaptop(laptop: Laptop): Laptop? {
+        laptop.productCode?.let { productCode ->
+            laptopRepository.findByProductCode(productCode)?.let { return it }
+            laptopRepository.findAllByDetailPageContaining("pcode=$productCode")
+                .singleOrNull()
+                ?.let { return it }
+        }
+        return laptopRepository.findByDetailPage(laptop.detailPage)
+    }
+
+    private fun recordSample(
+        samples: MutableList<String>,
+        productCard: ProductCard,
+        reason: String,
+    ) {
+        if (samples.size >= MAX_FAILURE_SAMPLES) {
+            return
+        }
+
+        samples += "${productCard.productCode} | ${productCard.productName} | $reason"
     }
 
     internal fun parseListPage(html: String): List<ProductCard> {
@@ -332,7 +406,7 @@ class CrawlerService(
                 ProductCard(
                     productCode = productCode,
                     productName = productLink.text().trim(),
-                    detailPage = detailPage,
+                    detailPage = normalizeDetailPage(detailPage, productCode, cateValues[3]),
                     imageUrl = imageUrl,
                     price = parsePrice(priceText),
                     cate1 = cateValues[0],
@@ -391,7 +465,7 @@ class CrawlerService(
         val responseBody = try {
             sendRequest(request)
         } catch (e: Exception) {
-            println("상세 스펙 테이블 요청 실패, 요약 스펙으로 대체합니다: ${productCard.detailPage} / ${e.message}")
+            logger.warn("상세 스펙 테이블 요청 실패, 요약 스펙으로 대체합니다: {} / {}", productCard.detailPage, e.message)
             return null
         }
 
@@ -560,6 +634,11 @@ class CrawlerService(
             ?.toIntOrNull()
     }
 
+    private fun normalizeDetailPage(rawDetailPage: String, productCode: String, categoryCode: String): String {
+        val cate = extractQueryParam(rawDetailPage, "cate") ?: categoryCode
+        return "$DANAWA_ORIGIN/info/?pcode=$productCode&cate=$cate"
+    }
+
     private fun parseScreenSize(value: String?): Int? {
         val inches = Regex("""([0-9.]+)인치""").find(value.orEmpty())?.groupValues?.getOrNull(1)?.toDoubleOrNull()
             ?: return null
@@ -681,22 +760,64 @@ class CrawlerService(
     }
 
     private fun isIntegratedGraphics(graphicsKind: String?, graphicsModel: String?): Boolean {
-        if (graphicsKind?.contains("내장", ignoreCase = true) == true) {
+        val normalizedKind = graphicsKind.orEmpty().uppercase()
+        val normalizedModel = graphicsModel.orEmpty().uppercase()
+
+        if (normalizedKind.contains("외장")) {
+            return false
+        }
+        if (normalizedKind.contains("내장")) {
             return true
         }
 
-        val normalizedModel = graphicsModel.orEmpty()
-        return listOf("Iris", "Arc", "Radeon", "UHD", "Graphics").any { keyword ->
-            normalizedModel.contains(keyword, ignoreCase = true)
-        }
-    }
-
-    private fun <T> updateField(currentValue: T, newValue: T, updater: (T) -> Unit): Boolean {
-        if (currentValue == newValue) {
+        if (DISCRETE_GPU_KEYWORDS.any { normalizedModel.contains(it) }) {
             return false
         }
-        updater(newValue)
+        if (INTEGRATED_GPU_KEYWORDS.any { normalizedModel.contains(it) }) {
+            return true
+        }
+
+        return false
+    }
+
+    private fun updateTextField(currentValue: String?, newValue: String?, updater: (String) -> Unit): Boolean {
+        val normalizedValue = newValue?.trim()?.takeIf { it.isNotBlank() } ?: return false
+        if (currentValue?.trim() == normalizedValue) {
+            return false
+        }
+        updater(normalizedValue)
         return true
+    }
+
+    private fun <T : Any> updatePresentField(currentValue: T?, newValue: T?, updater: (T) -> Unit): Boolean {
+        val normalizedValue = newValue ?: return false
+        if (currentValue == normalizedValue) {
+            return false
+        }
+        updater(normalizedValue)
+        return true
+    }
+
+    private fun SummaryFallback.isEmpty(): Boolean {
+        return cpuManufacturer == null &&
+            cpu == null &&
+            os == null &&
+            screenSize == null &&
+            resolution == null &&
+            brightness == null &&
+            refreshRate == null &&
+            ramSize == null &&
+            ramType == null &&
+            isRamReplaceable == null &&
+            graphicsKind == null &&
+            graphicsModel == null &&
+            tgp == null &&
+            isSupportsPdCharging == null &&
+            batteryCapacity == null &&
+            storageCapacity == null &&
+            storageSlotCount == null &&
+            weight == null &&
+            usages.isEmpty()
     }
 
     private fun extractQueryParam(url: String, key: String): String? {
@@ -720,12 +841,10 @@ class CrawlerService(
         fun loadLaptopPage() {
             webDriver.get(LIST_URL)
             wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("li.prod_item")))
-            println("페이지 타이틀: ${webDriver.title}")
+            logger.info("페이지 타이틀: {}", webDriver.title)
         }
 
         fun setupFilters() {
-            expandCpuCodeSection()
-            selectCpuAttributes()
             wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("li.prod_item")))
         }
 
@@ -740,7 +859,7 @@ class CrawlerService(
             val nextPageButton = findPageButton(nextPage) ?: findNextGroupButton()
 
             if (nextPageButton == null) {
-                println("마지막 페이지에 도달하여 크롤링을 종료합니다.")
+                logger.info("마지막 페이지에 도달하여 크롤링을 종료합니다.")
                 return false
             }
 
@@ -751,7 +870,7 @@ class CrawlerService(
                 wait.until(ExpectedConditions.textToBe(By.cssSelector(".num.now_on"), nextPage.toString()))
                 true
             } catch (_: TimeoutException) {
-                println("다음 페이지 이동에 실패하여 크롤링을 종료합니다.")
+                logger.warn("다음 페이지 이동에 실패하여 크롤링을 종료합니다.")
                 false
             }
         }
@@ -852,6 +971,39 @@ class CrawlerService(
         private const val DEFAULT_REFRESH_RATE = 60
         private const val MAX_HTTP_RETRIES = 3
         private const val RETRY_DELAY_MILLIS = 500L
+        private const val MAX_FAILURE_SAMPLES = 10
+        private val DISCRETE_GPU_KEYWORDS = listOf(
+            "RTX",
+            "GTX",
+            "GEFORCE",
+            "RTX PRO",
+            "RTX A",
+            "ARC B",
+            "ARC A",
+            "RADEON RX",
+        )
+        private val INTEGRATED_GPU_KEYWORDS = listOf(
+            "INTEL GRAPHICS",
+            "IRIS",
+            "UHD",
+            "HD GRAPHICS",
+            "ARC 130T",
+            "ARC 140T",
+            "RADEON 890M",
+            "RADEON 880M",
+            "RADEON 860M",
+            "RADEON 840M",
+            "RADEON 820M",
+            "RADEON 8060S",
+            "RADEON 780M",
+            "RADEON 760M",
+            "RADEON 740M",
+            "RADEON 680M",
+            "RADEON 660M",
+            "RADEON 610M",
+            "RADEON GRAPHICS",
+            "ADRENO",
+        )
         private val REQUEST_TIMEOUT: Duration = Duration.ofSeconds(20)
         private val PRODUCT_DESCRIPTION_INFO_REGEX = Regex(
             """var\s+oProductDescriptionInfo\s*=\s*(\{.*?});""",
