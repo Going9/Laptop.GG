@@ -16,15 +16,18 @@ import org.springframework.stereotype.Component
 class CrawlerStartupRunner(
     private val applicationContext: ConfigurableApplicationContext,
     private val crawlerService: CrawlerService,
-    @Value("\${app.crawler.limit:0}") private val defaultLimit: Int,
+    @Value("\${app.crawler.limit:}") private val defaultLimitRaw: String,
 ) : ApplicationRunner {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
+        val defaultLimit = defaultLimitRaw.toIntOrNull()
+            ?.takeIf { it > 0 }
+
         val limit = args.getOptionValues("app.crawler.limit")
             ?.firstOrNull()
             ?.toIntOrNull()
-            ?: defaultLimit.takeIf { it > 0 }
+            ?: defaultLimit
 
         val exitCode = runCatching {
             val summary = crawlerService.crawlAll(limit)

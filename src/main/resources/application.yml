@@ -29,7 +29,7 @@ spring:
 app:
   crawler:
     run-on-startup: false
-    limit: ${CRAWLER_LIMIT:0}
+    limit: ${CRAWLER_LIMIT:}
 
 ---
 spring:
