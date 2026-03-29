@@ -13,7 +13,7 @@ group = "Going9"
 version = "0.0.1-SNAPSHOT"
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_17
 }
 
 configurations {
@@ -28,9 +28,7 @@ repositories {
 
 dependencies {
 	implementation("org.seleniumhq.selenium:selenium-java:4.26.0")
-
-	implementation("org.springframework.boot:spring-boot-starter-batch:3.3.5")
-	implementation("org.springframework.batch:spring-batch-core:5.1.2")
+	implementation("org.jsoup:jsoup:1.18.3")
 
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.1")
@@ -38,8 +36,9 @@ dependencies {
 	implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.1")
 
-	//implementation("org.xerial:sqlite-jdbc:3.41.2.2")
+	implementation("org.xerial:sqlite-jdbc:3.45.3.0")
 	implementation("org.mariadb.jdbc:mariadb-java-client:3.5.0")
+	runtimeOnly("org.postgresql:postgresql:42.7.5")
 
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -52,13 +51,14 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testRuntimeOnly("com.h2database:h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs += "-Xjsr305=strict"
-		jvmTarget = "21"
+		jvmTarget = "17"
 	}
 }
 

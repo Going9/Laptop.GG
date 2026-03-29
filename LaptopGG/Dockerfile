@@ -23,5 +23,5 @@ ARG JAR_FILE=build/libs/*.jar
 # JAR 파일 복제
 COPY ${JAR_FILE} app.jar
 
-# 실행 명령어에 전달된 프로파일 추가
-ENTRYPOINT ["java", "-Duser.timezone=Asia/Seoul", "-jar", "app.jar", "--spring.profiles.active=${PROFILE}"]
+# 실행 프로필과 추가 JVM 옵션은 환경 변수로 주입
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS:-} -Duser.timezone=Asia/Seoul -jar app.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE:-postgres,deploy}"]

@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: laptopgg-postgres-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: laptopgg
+      POSTGRES_USER: laptopgg
+      POSTGRES_PASSWORD: laptopgg
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      - laptopgg-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U laptopgg -d laptopgg" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  laptopgg-postgres-data:
