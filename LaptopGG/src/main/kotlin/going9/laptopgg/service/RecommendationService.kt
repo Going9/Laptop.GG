@@ -1,9 +1,10 @@
 package going9.laptopgg.service
 
-import going9.laptopgg.domain.laptop.*
-import going9.laptopgg.domain.repository.LaptopRepository
+import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.domain.repository.LaptopProfileRepository
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.dto.request.PurposeDetail
+import going9.laptopgg.dto.request.RecommendationUseCase
 import going9.laptopgg.dto.response.LaptopRecommendationListResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -13,185 +14,166 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class RecommendationService(
-    val laptopRepository: LaptopRepository,
+    private val laptopProfileRepository: LaptopProfileRepository,
+    private val laptopProfileService: LaptopProfileService,
     private val scoreCalculatorService: ScoreCalculatorService,
 ) {
     @Transactional
     fun recommendLaptops(request: LaptopRecommendationRequest, pageable: Pageable): Page<LaptopRecommendationListResponse> {
-        // 조건에 맞는 랩탑 목록 조회 (페이징 추가)
-        val filteredLaptopsPage = laptopRepository.findPage(pageable) {
-            select(
-                entity(Laptop::class)
-            ).from(
-                entity(Laptop::class),
-                join(Laptop::laptopUsage)
-            ).whereAnd(
-                path(Laptop::price).le(request.budget),
-                path(Laptop::weight).le(request.weight),
-                path(Laptop::screenSize).`in`(request.displaySize),
+        laptopProfileService.syncMissingProfiles()
 
-                when (request.purpose) {
-                    PurposeDetail.OFFICE -> or(
-                        path(LaptopUsage::usage).`in`("휴대용", "사무")
-                    )
-                    PurposeDetail.LONG_BATTERY -> and(
-                        path(Laptop::cpu).`in`(listOf(
-                            "370",
-                            "258V",
-                            "7430U",
-                            "i5-1235U",
-                            "7530U",
-                            "5300U",
-                            "i3-1315U",
-                            "X1E-80-100",
-                            "125U",
-                            "X1P-42-100",
-                            "i3-1215U",
-                            "226V",
-                            "X1E-78-100",
-                            "8505",
-                            "i5-1334U",
-                            "120U",
-                            "5625U",
-                            "5825U",
-                            "7730U",
-                            "5800U",
-                            "5600U",
-                            "5850U",
-                            "i7-1255U",
-                            "5700U",
-                            "5560U",
-                            "5425U",
-                            "365",
-                            "X1P-64-100",
-                            "8840U",
-                            "256V",
-                            "150U",
-                            "5650U",
-                            "288V",
-                            "155U",
-                            "8540U",
-                            "5675U",
-                            "100U",
-                            "360",
-                        )),
-                        path(Laptop::batteryCapacity).isNotNull(),
-                        path(Laptop::batteryCapacity).gt(60.0)
-                    )
-                    PurposeDetail.CREATOR -> path(LaptopUsage::usage).`in`("그래픽작업용")
-                    PurposeDetail.LIGHT_OFFICE -> path(LaptopUsage::usage).`in`("휴대용")
-                    PurposeDetail.LIGHT_GAMING -> and(
-                        path(LaptopUsage::usage).`in`("게임용"),
-                        path(Laptop::weight).le(2.0),
-                    )
-                    PurposeDetail.MAINSTREAM_GAMING -> and(
-                        path(LaptopUsage::usage).`in`("게임용"),
-                        path(Laptop::graphicsType).`in`(listOf(
-                            "RTX4090", "RTX4080", "RTX4070", "RTX4060", "RTX4050",
-                            "RTX3080 Ti", "RTX3080", "RTX3070 Ti", "RTX3070",
-                            "RTX3060", "RTX3050 Ti", "RTX3050",
-                            "라데온 RX 7600M XT", "라데온 RX 7600S", "라데온 RX 6800S",
-                            "라데온 RX 6700S", "라데온 RX 6850M XT", "라데온 RX 6700M",
-                            "라데온 RX 6600M", "라데온 RX 6650M", "라데온 RX 6500M",
-                        ))
-                    )
-                    PurposeDetail.HEAVY_GAMING -> and(
-                        path(LaptopUsage::usage).`in`("게임용"),
-                        path(Laptop::graphicsType).`in`(listOf(
-                            "RTX4090",
-                            "RTX4080",
-                            "RTX4070",
-                            "RTX4060",
-                            "RTX4050",
-                            "RTX3080 Ti",
-                            "RTX3080",
-                            "RTX3070 Ti",
-                            "RTX3070",
-                            "RTX3060",
-                            "라데온 RX 7600M XT",
-                            "라데온 RX 7600S",
-                            "라데온 RX 6800S",
-                        ))
-                    )
-                    PurposeDetail.OFFICE_LOL -> and(
-                        path(Laptop::graphicsType).`in`(
-                            listOf(
-                                "Radeon 890M",
-                                "Radeon 880M",
-                                "Radeon 780M",
-                                "Radeon 760M",
-                                "Radeon 740M",
-                                "Radeon 680M",
-                                "Radeon 660M",
-                                "Radeon 610M",
-                                "Iris Xe",
-                                "Arc 130V",
-                                "Arc 140V",
-                                "Arc",
-                                "MX570 A",
-                                "MX570",
-                                "MX550",
-                                "MX450",
-                                "MX350",
-                                "MX330",
-                                "MX250",
-                                "MX230",
-                                "MX150",
-                                "MX130",
-                            )
-                        )
-                    )
-                }
-            )
-        }
+        val useCase = request.resolvedUseCase()
 
-        // Step 2: 점수 계산 후 정렬
-        // 점수 계산
-        val scoredLaptops = filteredLaptopsPage.content.mapNotNull { laptop ->
-            laptop?.let {
-                val score = scoreCalculatorService.calculateScore(it, request)
-                Pair(it, score)
+        val candidates = laptopProfileRepository.findAllWithLaptopAndUsage()
+            .filter { profile -> matchesBaseFilters(profile.laptop, request) }
+            .filter { profile -> scoreCalculatorService.gateScore(profile, useCase) >= scoreCalculatorService.gateThreshold(useCase) }
+            .map { profile ->
+                val scoreResult = scoreCalculatorService.calculateScore(profile.laptop, profile, request)
+                ScoredLaptop(
+                    laptop = profile.laptop,
+                    profile = profile,
+                    score = scoreResult.score,
+                    reasons = scoreResult.reasons,
+                )
             }
-        }
 
-        // 정렬 적용
-        val sortedLaptops = if (pageable.sort.isSorted) {
-            val orders = pageable.sort.toList()
-            scoredLaptops.sortedWith(Comparator { a, b ->
-                for (order in orders) {
-                    val property = order.property
-                    val direction = order.direction
-                    val comparison = when (property) {
-                        "weight" -> a.first.weight!!.compareTo(b.first.weight!!)
-                        "price" -> a.first.price!!.compareTo(b.first.price!!)
-                        else -> 0
-                    }
-                    if (comparison != 0) {
-                        return@Comparator if (direction.isAscending) comparison else -comparison
-                    }
-                }
-                0
-            })
-        } else {
-            // 기본적으로 점수로 내림차순 정렬
-            scoredLaptops.sortedByDescending { it.second }
-        }
+        val sortedCandidates = sortCandidates(candidates, pageable, useCase)
+        val pageContent = paginate(sortedCandidates, pageable)
 
-        // 페이지 형태로 변환
-        val responseContent = sortedLaptops.map { (laptop, score) ->
-            LaptopRecommendationListResponse(
-                id = laptop.id!!,
-                score = score,
-                imgLink = laptop.imageUrl,
-                price = laptop.price!!,
-                name = laptop.name,
-                manufacturer = laptop.name.substringBefore(" "),
-                weight = laptop.weight!!,
-                screenSize = laptop.screenSize!!,
-            )
-        }
-
-        return PageImpl(responseContent, pageable, filteredLaptopsPage.totalElements)
+        return PageImpl(
+            pageContent.map { candidate ->
+                LaptopRecommendationListResponse(
+                    id = candidate.laptop.id!!,
+                    score = candidate.score,
+                    imgLink = candidate.laptop.imageUrl,
+                    price = candidate.laptop.price!!,
+                    name = candidate.laptop.name,
+                    manufacturer = candidate.laptop.name.substringBefore(" "),
+                    weight = candidate.laptop.weight,
+                    screenSize = candidate.laptop.screenSize,
+                    cpu = candidate.laptop.cpu,
+                    gpu = candidate.laptop.graphicsType,
+                    resolutionLabel = resolutionLabel(candidate.laptop.resolution),
+                    reasons = candidate.reasons,
+                )
+            },
+            pageable,
+            candidates.size.toLong(),
+        )
     }
 
+    private fun matchesBaseFilters(
+        laptop: Laptop,
+        request: LaptopRecommendationRequest,
+    ): Boolean {
+        val price = laptop.price ?: return false
+
+        if (price > request.budget) {
+            return false
+        }
+        if (!request.matchesScreenSize(laptop.screenSize)) {
+            return false
+        }
+
+        return laptop.weight == null || laptop.weight!! <= request.maxWeightKg
+    }
+
+    private fun sortCandidates(
+        candidates: List<ScoredLaptop>,
+        pageable: Pageable,
+        useCase: RecommendationUseCase,
+    ): List<ScoredLaptop> {
+        if (!pageable.sort.isSorted) {
+            return candidates.sortedWith(
+                compareByDescending<ScoredLaptop> { it.score }
+                    .thenBy { it.laptop.price ?: Int.MAX_VALUE }
+                    .thenBy { it.laptop.id ?: Long.MAX_VALUE },
+            )
+        }
+
+        val orders = pageable.sort.toList()
+        return candidates.sortedWith(Comparator { left, right ->
+            for (order in orders) {
+                val comparison = when (order.property) {
+                    "price" -> compareValues(left.laptop.price, right.laptop.price)
+                    "weight" -> compareNullableWeight(left.laptop.weight, right.laptop.weight)
+                    "recommended" -> right.score.compareTo(left.score)
+                    else -> 0
+                }
+
+                if (comparison != 0) {
+                    return@Comparator if (order.isAscending) comparison else -comparison
+                }
+            }
+
+            val scoreComparison = right.score.compareTo(left.score)
+            if (scoreComparison != 0) {
+                return@Comparator scoreComparison
+            }
+
+            val gateComparison = scoreCalculatorService.gateScore(right.profile, useCase)
+                .compareTo(scoreCalculatorService.gateScore(left.profile, useCase))
+            if (gateComparison != 0) {
+                return@Comparator gateComparison
+            }
+
+            compareValues(left.laptop.id, right.laptop.id)
+        })
+    }
+
+    private fun paginate(candidates: List<ScoredLaptop>, pageable: Pageable): List<ScoredLaptop> {
+        val startIndex = pageable.offset.toInt().coerceAtMost(candidates.size)
+        val endIndex = (startIndex + pageable.pageSize).coerceAtMost(candidates.size)
+        if (startIndex >= endIndex) {
+            return emptyList()
+        }
+
+        return candidates.subList(startIndex, endIndex)
+    }
+
+    private fun compareNullableWeight(left: Double?, right: Double?): Int {
+        return when {
+            left == null && right == null -> 0
+            left == null -> 1
+            right == null -> -1
+            else -> left.compareTo(right)
+        }
+    }
+
+    private fun resolutionLabel(resolution: String?): String? {
+        val raw = resolution?.trim().orEmpty()
+        if (raw.isBlank()) {
+            return null
+        }
+
+        val normalized = raw.uppercase()
+        return when {
+            normalized.contains("UHD") || normalized.contains("4K") -> "UHD"
+            normalized.contains("QHD") || normalized.contains("WQHD") || normalized.contains("WQXGA") -> "QHD"
+            normalized.contains("FHD") || normalized.contains("WUXGA") -> "FHD"
+            normalized.contains("HD") -> "HD"
+            else -> {
+                val match = RESOLUTION_REGEX.find(normalized) ?: return raw
+                val width = match.groupValues[1].toIntOrNull() ?: return raw
+                when {
+                    width >= 3840 -> "UHD"
+                    width >= 2560 -> "QHD"
+                    width >= 1920 -> "FHD"
+                    width >= 1280 -> "HD"
+                    else -> raw
+                }
+            }
+        }
+    }
+
+    private data class ScoredLaptop(
+        val laptop: Laptop,
+        val profile: LaptopProfile,
+        val score: Double,
+        val reasons: List<String>,
+    )
+
+    companion object {
+        private val RESOLUTION_REGEX = Regex("""(\d{3,4})\s*[xX]\s*(\d{3,4})""")
+    }
 }

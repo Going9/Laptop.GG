@@ -41,3 +41,11 @@ out/
 
 ### env ###
 .env
+
+### Local artifacts ###
+.playwright-cli/
+output/
+LaptopGG/.gradle/
+LaptopGG/build/
+LaptopGG/LaptopGG.sqlite
+docker-compose.local.yml

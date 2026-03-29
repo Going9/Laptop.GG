@@ -43,7 +43,7 @@ data class LaptopDetailResponse(
                 price = laptop.price,
                 cpuManufacturer = laptop.cpuManufacturer,
                 cpu = laptop.cpu,
-                os = laptop.os,
+                os = humanizeOs(laptop.os),
                 screenSize = laptop.screenSize,
                 resolution = laptop.resolution,
                 brightness = laptop.brightness,
@@ -64,6 +64,22 @@ data class LaptopDetailResponse(
                 weight = laptop.weight,
                 usage = laptop.laptopUsage.map { it.usage }
             )
+        }
+
+        private fun humanizeOs(rawOs: String?): String? {
+            val trimmed = rawOs?.trim()?.takeIf { it.isNotBlank() } ?: return null
+            val normalized = trimmed.lowercase()
+
+            return when {
+                normalized == "freedos" || normalized == "free dos" || normalized == "dos" -> "프리도스"
+                normalized.contains("windows") -> trimmed
+                    .replace(Regex("(?i)windows"), "윈도우")
+                    .replace(Regex("(?i)home"), "홈")
+                    .replace(Regex("(?i)pro"), "프로")
+                normalized.contains("macos") || normalized.contains("mac os") -> trimmed.replace(Regex("(?i)mac\\s?os"), "macOS")
+                normalized.contains("linux") -> trimmed.replace(Regex("(?i)linux"), "리눅스")
+                else -> trimmed
+            }
         }
     }
 }

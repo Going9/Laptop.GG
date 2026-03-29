@@ -1,174 +1,239 @@
 package going9.laptopgg.service
 
 import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.dto.request.PurposeDetail
+import going9.laptopgg.dto.request.RecommendationUseCase
 import org.springframework.stereotype.Service
+import kotlin.math.round
+import kotlin.math.roundToInt
 
 @Service
-class ScoreCalculatorService {
-    // 예산 점수
-    private fun calculateBudgetScore(laptop: Laptop, budget: Int): Double {
-        return 1.0 - (laptop.price!!.toDouble() / budget)
-    }
+class ScoreCalculatorService(
+    private val laptopProfileFactory: LaptopProfileFactory,
+) {
+    data class ScoreResult(
+        val score: Double,
+        val reasons: List<String>,
+    )
 
-    // 무게 점수
-    private fun calculateWeightScore(laptop: Laptop, weight: Double): Double {
-        return 1.0 - (laptop.weight!! / weight)
-    }
+    fun calculateScore(
+        laptop: Laptop,
+        profile: LaptopProfile,
+        request: LaptopRecommendationRequest,
+    ): ScoreResult {
+        val useCase = request.resolvedUseCase()
+        val cpuInsights = laptopProfileFactory.resolveCpuInsights(laptop)
+        val gpuInsights = laptopProfileFactory.resolveGpuInsights(laptop)
+        val budgetScore = budgetScore(laptop.price, request.budget)
+        val portabilityScore = laptopProfileFactory.portabilityScore(laptop.weight)
+        val displayScore = laptopProfileFactory.displayScore(laptop)
+        val ramScore = laptopProfileFactory.ramScore(laptop.ramSize)
+        val tgpScore = laptopProfileFactory.tgpScore(laptop.tgp, gpuInsights.isIntegrated)
 
-    // 그래픽 관련 점수
-    fun mapGraphicScore(): Map<String, Double> {
-        val gpus = listOf(
-            "RTX4090",
-            "RTX4080",
-            "RTX4070",
-            "RTX4060",
-            "RTX4050",
-            "RTX3080 Ti",
-            "RTX3080",
-            "RTX3070 Ti",
-            "RTX3070",
-            "RTX3060",
-            "RTX3050 Ti",
-            "RTX3050"
+        val rawScore = when (useCase) {
+            RecommendationUseCase.NOT_SURE -> {
+                (profile.officeScore * 0.24) +
+                    (profile.batteryScore * 0.20) +
+                    (portabilityScore * 0.16) +
+                    (budgetScore * 0.14) +
+                    (displayScore * 0.10) +
+                    (ramScore * 0.08) +
+                    (gpuInsights.performanceScore * 0.08)
+            }
+            RecommendationUseCase.OFFICE_STUDY -> {
+                (budgetScore * 0.25) +
+                    (portabilityScore * 0.20) +
+                    (profile.batteryScore * 0.15) +
+                    (displayScore * 0.10) +
+                    (profile.officeScore * 0.30)
+            }
+            RecommendationUseCase.PORTABLE_OFFICE -> {
+                (portabilityScore * 0.35) +
+                    (profile.batteryScore * 0.25) +
+                    (profile.officeScore * 0.20) +
+                    (budgetScore * 0.10) +
+                    (displayScore * 0.10)
+            }
+            RecommendationUseCase.BATTERY_FIRST -> {
+                (profile.batteryScore * 0.45) +
+                    (portabilityScore * 0.20) +
+                    (profile.officeScore * 0.15) +
+                    (budgetScore * 0.10) +
+                    (cpuInsights.lowPowerScore * 0.10)
+            }
+            RecommendationUseCase.CASUAL_GAME -> {
+                (gpuInsights.performanceScore * 0.35) +
+                    (cpuInsights.performanceScore * 0.20) +
+                    (ramScore * 0.15) +
+                    (displayScore * 0.10) +
+                    (portabilityScore * 0.10) +
+                    (budgetScore * 0.10)
+            }
+            RecommendationUseCase.ONLINE_GAME -> {
+                (gpuInsights.performanceScore * 0.40) +
+                    (cpuInsights.performanceScore * 0.20) +
+                    (ramScore * 0.15) +
+                    (tgpScore * 0.10) +
+                    (displayScore * 0.10) +
+                    (budgetScore * 0.05)
+            }
+            RecommendationUseCase.AAA_GAME -> {
+                (gpuInsights.performanceScore * 0.45) +
+                    (tgpScore * 0.20) +
+                    (cpuInsights.performanceScore * 0.15) +
+                    (ramScore * 0.10) +
+                    (displayScore * 0.05) +
+                    (budgetScore * 0.05)
+            }
+            RecommendationUseCase.CREATOR -> {
+                (cpuInsights.performanceScore * 0.20) +
+                    ((gpuInsights.performanceScore + gpuInsights.creatorBonus).coerceAtMost(100) * 0.20) +
+                    (ramScore * 0.20) +
+                    (displayScore * 0.20) +
+                    (profile.batteryScore * 0.05) +
+                    (portabilityScore * 0.05) +
+                    (budgetScore * 0.10)
+            }
+        }
+
+        return ScoreResult(
+            score = round(rawScore * 10.0) / 10.0,
+            reasons = buildReasons(
+                useCase = useCase,
+                budgetScore = budgetScore,
+                portabilityScore = portabilityScore,
+                displayScore = displayScore,
+                ramScore = ramScore,
+                tgpScore = tgpScore,
+                cpuPerformanceScore = cpuInsights.performanceScore,
+                lowPowerCpuScore = cpuInsights.lowPowerScore,
+                gpuScore = gpuInsights.performanceScore,
+                officeScore = profile.officeScore,
+                batteryScore = profile.batteryScore,
+                casualGameScore = profile.casualGameScore,
+                onlineGameScore = profile.onlineGameScore,
+                aaaGameScore = profile.aaaGameScore,
+                creatorScore = profile.creatorScore,
+            ),
         )
-
-        val maxScore = 1.0
-        val minScore = 0.0
-        val step = (maxScore - minScore) / (gpus.size - 1) // 점수 간격 계산
-
-        return gpus.mapIndexed { index, gpu ->
-            gpu to (maxScore - index * step) // 순서대로 점수 부여
-        }.toMap()
     }
 
-//    private fun calculateGraphicScore(laptop: NewLaptop): Double {
-//        val graphicScores = mapGraphicScore()
-//        val minGraphicScores = laptop.gpus.minOf {
-//                laptopGpu -> graphicScores[laptopGpu.gpu.name]
-//            ?: throw IllegalArgumentException("GPU ${laptopGpu.gpu.name} not found in the score map")
-//        }
-//
-//        return minGraphicScores
-//    }
-
-    private fun calculateTgpScore(laptop: Laptop): Double {
-        if (laptop.tgp != null && laptop.tgp != 0) {
-            val gpuName = laptop.graphicsType!!
-            val referenceTgp = when {
-                "RTX 2000 Ada" in gpuName -> 80
-                "RTX 3500 Ada" in gpuName -> 80
-                "RTX 5000 Ada" in gpuName -> 110
-                "A1000" in gpuName -> 50
-                "2050" in gpuName -> 30
-                "3050" in gpuName -> 80
-                "3050 TI" in gpuName -> 60
-                "3060" in gpuName -> 120
-                "3070" in gpuName -> 130
-                "3070 TI" in gpuName -> 130
-                "3080" in gpuName -> 140
-                "3080 Ti" in gpuName -> 140
-                "4050" in gpuName -> 80
-                "4060" in gpuName -> 100
-                "4070" in gpuName -> 120
-                "4080" in gpuName -> 150
-                "4090" in gpuName -> 150
-                "라데온 RX 6600M" in gpuName -> 80
-                "라데온 RX 6500M" in gpuName -> 80
-                else -> return 0.5
-            }
-            return (laptop.tgp!!.toDouble()!! / referenceTgp).coerceAtMost(1.0)
-        } else {
-            return 0.5
+    fun gateScore(profile: LaptopProfile, useCase: RecommendationUseCase): Int {
+        return when (useCase) {
+            RecommendationUseCase.NOT_SURE -> ((profile.officeScore + profile.batteryScore + profile.casualGameScore) / 3.0).roundToInt()
+            RecommendationUseCase.OFFICE_STUDY -> profile.officeScore
+            RecommendationUseCase.PORTABLE_OFFICE -> profile.officeScore
+            RecommendationUseCase.BATTERY_FIRST -> profile.batteryScore
+            RecommendationUseCase.CASUAL_GAME -> profile.casualGameScore
+            RecommendationUseCase.ONLINE_GAME -> profile.onlineGameScore
+            RecommendationUseCase.AAA_GAME -> profile.aaaGameScore
+            RecommendationUseCase.CREATOR -> profile.creatorScore
         }
     }
 
-    // 램 관련 점수
-    private fun calculateRamSlotScore(laptop: Laptop): Double {
-        val slotCount = laptop.isRamReplaceable
-        return if (slotCount == true) {1.0} else 0.5
+    fun gateThreshold(useCase: RecommendationUseCase): Int {
+        return when (useCase) {
+            RecommendationUseCase.NOT_SURE -> 45
+            RecommendationUseCase.OFFICE_STUDY -> 50
+            RecommendationUseCase.PORTABLE_OFFICE -> 50
+            RecommendationUseCase.BATTERY_FIRST -> 60
+            RecommendationUseCase.CASUAL_GAME -> 45
+            RecommendationUseCase.ONLINE_GAME -> 55
+            RecommendationUseCase.AAA_GAME -> 65
+            RecommendationUseCase.CREATOR -> 50
+        }
     }
 
-    // 디스플레이 관련 점수
-    private fun calculateDisplayScores(laptop: Laptop): Pair<Double, Double> {
-        val referenceResolution = 3840 * 2160
-        val referenceRefreshRate = 240
-        val resolutionScore = if (laptop.resolution != null) {
-            val resolutionPattern = Regex("([0-9]+)x([0-9]+)")
-            val match = resolutionPattern.find(laptop.resolution)
-            if (match != null) {
-                val width = match.groupValues[1].toInt()
-                val height = match.groupValues[2].toInt()
-                (width * height).toDouble() / referenceResolution
-            } else {
-                0.25 // 기본값
-            }
-        } else {
-            0.25 // 기본값
-        }
-        val refreshRateScore = if (laptop.refreshRate != null) {
-            laptop.refreshRate.toDouble() / referenceRefreshRate
-        } else {
-            0.25
+    private fun budgetScore(price: Int?, budget: Int): Int {
+        if (price == null || budget <= 0) {
+            return 0
         }
 
-
-        return Pair(resolutionScore, refreshRateScore)
+        val normalized = (1.0 - (price.toDouble() / budget.toDouble())) * 100.0
+        return normalized.coerceIn(0.0, 100.0).roundToInt()
     }
 
-    // AS 점수
-    private fun calculateServiceScore(manufacturer: String): Double {
-        return if (manufacturer in listOf("삼성전자", "LG전자", "DELL", "HP")) 1.0 else 0.8
-    }
-
-    // 배터리 점수
-    private fun calculateBatteryScore(laptop: Laptop): Double {
-        val referenceBatteryCapacity = 100.0
-        val batteryScore = if (laptop.batteryCapacity != null) {
-            laptop.batteryCapacity / referenceBatteryCapacity
-        } else {
-            0.4
+    private fun buildReasons(
+        useCase: RecommendationUseCase,
+        budgetScore: Int,
+        portabilityScore: Int,
+        displayScore: Int,
+        ramScore: Int,
+        tgpScore: Int,
+        cpuPerformanceScore: Int,
+        lowPowerCpuScore: Int,
+        gpuScore: Int,
+        officeScore: Int,
+        batteryScore: Int,
+        casualGameScore: Int,
+        onlineGameScore: Int,
+        aaaGameScore: Int,
+        creatorScore: Int,
+    ): List<String> {
+        val balancedScore = ((officeScore + batteryScore + casualGameScore) / 3.0).roundToInt()
+        val candidates = when (useCase) {
+            RecommendationUseCase.NOT_SURE -> listOf(
+                "일상용으로 두루 잘 맞아요" to balancedScore,
+                "배터리가 오래가는 편이에요" to batteryScore,
+                "들고 다니기 편한 편이에요" to portabilityScore,
+                "예산에 잘 맞아요" to budgetScore,
+                "문서 작업에 잘 맞아요" to officeScore,
+            )
+            RecommendationUseCase.OFFICE_STUDY -> listOf(
+                "문서 작업에 잘 맞아요" to officeScore,
+                "들고 다니기 편한 편이에요" to portabilityScore,
+                "배터리가 오래가는 편이에요" to batteryScore,
+                "화면이 보기 편해요" to displayScore,
+                "예산에 잘 맞아요" to budgetScore,
+            )
+            RecommendationUseCase.PORTABLE_OFFICE -> listOf(
+                "가볍게 들고 다니기 좋아요" to portabilityScore,
+                "배터리가 오래가는 편이에요" to batteryScore,
+                "업무용으로 무난해요" to officeScore,
+                "화면이 보기 편해요" to displayScore,
+                "예산에 잘 맞아요" to budgetScore,
+            )
+            RecommendationUseCase.BATTERY_FIRST -> listOf(
+                "배터리가 오래가는 편이에요" to batteryScore,
+                "전력 효율이 좋은 편이에요" to lowPowerCpuScore,
+                "들고 다니기 편한 편이에요" to portabilityScore,
+                "문서 작업에 잘 맞아요" to officeScore,
+                "예산에 잘 맞아요" to budgetScore,
+            )
+            RecommendationUseCase.CASUAL_GAME -> listOf(
+                "가벼운 게임에 잘 맞아요" to casualGameScore,
+                "그래픽이 괜찮은 편이에요" to gpuScore,
+                "메모리가 넉넉한 편이에요" to ramScore,
+                "들고 다니기 무난해요" to portabilityScore,
+                "화면이 보기 편해요" to displayScore,
+            )
+            RecommendationUseCase.ONLINE_GAME -> listOf(
+                "온라인 게임에 잘 맞아요" to onlineGameScore,
+                "그래픽이 좋은 편이에요" to gpuScore,
+                "프로세서가 빠른 편이에요" to cpuPerformanceScore,
+                "게임 성능 여유가 있어요" to tgpScore,
+                "메모리가 넉넉한 편이에요" to ramScore,
+            )
+            RecommendationUseCase.AAA_GAME -> listOf(
+                "고사양 게임에 잘 맞아요" to aaaGameScore,
+                "그래픽이 좋은 편이에요" to gpuScore,
+                "게임 성능 여유가 있어요" to tgpScore,
+                "프로세서가 빠른 편이에요" to cpuPerformanceScore,
+                "메모리가 넉넉한 편이에요" to ramScore,
+            )
+            RecommendationUseCase.CREATOR -> listOf(
+                "사진·영상 작업에 잘 맞아요" to creatorScore,
+                "프로세서가 빠른 편이에요" to cpuPerformanceScore,
+                "그래픽이 좋은 편이에요" to gpuScore,
+                "메모리가 넉넉한 편이에요" to ramScore,
+                "화면이 보기 편해요" to displayScore,
+            )
         }
-        return batteryScore
-    }
 
-
-    // 최종 점수 계산
-    fun calculateScore(laptop: Laptop, request: LaptopRecommendationRequest): Double {
-        val budgetScore = calculateBudgetScore(laptop, request.budget)
-        val weightScore = calculateWeightScore(laptop, request.weight)
-        val (resolutionScore, refreshRateScore) = calculateDisplayScores(laptop)
-        val ramSlotScore = calculateRamSlotScore(laptop)
-        val serviceScore = calculateServiceScore(laptop.name.substringBefore(" "))
-        val tgpScore = calculateTgpScore(laptop)
-        val batteryScore = calculateBatteryScore(laptop)
-
-        return when (request.purpose) {
-            PurposeDetail.OFFICE -> {
-                (budgetScore * 0.3) + (weightScore * 0.4) + (resolutionScore * 0.1) + (serviceScore * 0.2)
-            }
-            PurposeDetail.LONG_BATTERY -> {
-                (batteryScore * 0.5) + (budgetScore * 0.3) + (weightScore * 0.2)
-            }
-            PurposeDetail.LIGHT_OFFICE -> {
-                (budgetScore * 0.3) + (weightScore * 0.5) + (resolutionScore * 0.1) + (serviceScore * 0.2)
-            }
-            PurposeDetail.OFFICE_LOL -> {
-                (budgetScore * 0.3) + (weightScore * 0.3) + (resolutionScore * 0.1) + (serviceScore * 0.2) + (refreshRateScore * 0.2)
-            }
-            PurposeDetail.CREATOR -> {
-                (budgetScore * 0.1) + (weightScore * 0.2) + (resolutionScore * 0.3) + (serviceScore * 0.2) + (ramSlotScore * 0.2)
-            }
-            PurposeDetail.LIGHT_GAMING -> {
-                (budgetScore * 0.3) + (weightScore * 0.5) + (refreshRateScore * 0.2)
-            }
-            PurposeDetail.MAINSTREAM_GAMING -> {
-                (budgetScore * 0.3) + (weightScore * 0.2) + (refreshRateScore * 0.2) + (tgpScore * 0.3)
-            }
-            PurposeDetail.HEAVY_GAMING -> {
-                (budgetScore * 0.2) + (refreshRateScore * 0.2) + (tgpScore * 0.6)
-            }
-        }
+        return candidates
+            .sortedByDescending { it.second }
+            .map { it.first }
+            .take(2)
     }
 }

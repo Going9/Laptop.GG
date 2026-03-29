@@ -4,122 +4,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>노트북 상세 정보</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/styles.css}">
 </head>
-<header>
-    <nav class="navbar fixed-top navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/recommends">LaptopGG</a>
-        </div>
-    </nav>
+<body class="app-body page-laptop-detail">
+<header class="site-header">
+    <a class="site-brand" href="/recommends">
+        <span class="site-brand-mark">LaptopGG</span>
+        <span class="site-brand-note">노트북 추천 가이드</span>
+    </a>
 </header>
-<body>
-<div class="container" style="margin-top: 70px;">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-6">
-            <div class="card mb-2" style="margin-top: 70px;">
-                <img th:src="${laptopDetail.imageUrl}" alt="추천 노트북 ${laptop.name}" class="card-img-top">
-            </div>
-            <div class="card mb-2">
-                <div class="card-header">
-                    기본 정보
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>이름:</strong> <span th:text="${laptopDetail.name}"></span></li>
-                    <li class="list-group-item">
-                        <strong>용도:</strong>
-                        <span th:text="${#strings.arrayJoin(laptopDetail.usage, ', ')}"></span>
-                    </li>
-                    <li class="list-group-item"><strong>CPU 제조사:</strong> <span th:text="${laptopDetail.cpuManufacturer}"></span></li>
-                    <li class="list-group-item"><strong>CPU 종류:</strong> <span th:text="${laptopDetail.cpu}"></span></li>
-                    <li class="list-group-item"><strong>OS:</strong> <span th:text="${laptopDetail.os}"></span></li>
-                    <li class="list-group-item">
-                        <strong>가격:</strong><span th:text="${#numbers.formatCurrency(laptopDetail.price)}"></span>
-                    </li>
-                    <li class="list-group-item"><strong>화면 크기:</strong> <span th:text="${laptopDetail.screenSize}"></span>인치</li>
-                    <li class="list-group-item"><strong>해상도:</strong> <span th:text="${laptopDetail.resolution}"></span></li>
-                    <li class="list-group-item"><strong>밝기:</strong>
-                        <span th:if="${laptopDetail.brightness == null}">알 수 없음</span>
-                        <span th:if="${laptopDetail.brightness != null}" th:text="${laptopDetail.brightness + ' nit'}"></span>
-                    </li>
-                    <li class="list-group-item"><strong>램 용량:</strong> <span th:text="${laptopDetail.ramSize}"></span>GB</li>
-                    <li class="list-group-item"><strong>그래픽카드 종류:</strong> <span th:text="${laptopDetail.graphicsType}"></span></li>
-                    <li class="list-group-item"><strong>무게:</strong> <span th:text="${laptopDetail.weight}"></span>kg</li>
-                </ul>
-            </div>
 
-            <div class="card">
-                <div class="card-header">
-                    추가 정보
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>PD 충전 지원:</strong>
-                        <span th:if="${laptopDetail.isSupportsPdCharging == true}">지원</span>
-                        <span th:if="${laptopDetail.isSupportsPdCharging == false}">미지원</span>
-                        <span th:if="${laptopDetail.isSupportsPdCharging == null}">알 수 없음</span>
-                    </li>
-                    <li class="list-group-item"><strong>저장장치 용량:</strong> <span th:text="${laptopDetail.storageCapacity}"></span></li>
-                    <li class="list-group-item"><strong>저장장치 슬롯 수:</strong>
-                        <span th:if="${laptopDetail.storageSlotCount == null}">알 수 없음</span>
-                        <span th:if="${laptopDetail.storageSlotCount != null}" th:text="${laptopDetail.storageSlotCount}"></span>
-                    </li>
-                    <li class="list-group-item"><strong>램 교체 가능 여부:</strong>
-                        <span th:if="${laptopDetail.isRamReplaceable == false}">불가능</span>
-                        <span th:if="${laptopDetail.isRamReplaceable == null}">알 수 없음</span>
-                        <span th:if="${laptopDetail.isRamReplaceable == true}" th:text="${laptopDetail.isRamReplaceable}">가능</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- 구매 버튼 -->
-            <div class="text-center mt-4">
-                <a th:href="${laptopDetail.detailPage}" class="btn btn-primary shadow">구매 페이지로 이동</a>
-            </div>
-
-            <!-- 댓글 섹션 -->
-            <!--    <div class="mt-5">-->
-            <!--        <h2>댓글 목록</h2>-->
-            <!--        <ul class="list-group shadow-sm" id="comments-list">-->
-            <!--            <li class="list-group-item d-flex justify-content-between align-items-start" th:each="comment : ${commentsOfLaptop}">-->
-            <!--                <div>-->
-            <!--                    <strong th:text="${comment.author}">작성자</strong>-->
-            <!--                    <p th:text="${comment.content}" th:id="'comment' + ${comment.id}" class="mb-1"></p>-->
-            <!--                </div>-->
-            <!--                <div>-->
-            <!--                    <button class="btn btn-link btn-sm text-primary" th:onclick="|enableEdit(${comment.id})|">-->
-            <!--                        <i class="bi bi-pencil-fill"></i>-->
-            <!--                    </button>-->
-            <!--                    <button class="btn btn-link btn-sm text-danger" onclick="deleteComment('${comment.id}')">-->
-            <!--                        <i class="bi bi-trash-fill"></i>-->
-            <!--                    </button>-->
-            <!--                </div>-->
-            <!--            </li>-->
-            <!--        </ul>-->
-
-            <!--        &lt;!&ndash; 댓글 작성 폼 &ndash;&gt;-->
-            <!--        <div class="mt-4">-->
-            <!--            <h3>댓글 작성</h3>-->
-            <!--            <form th:action="@{/comments}" th:object="${commentRequest}" method="post">-->
-            <!--                <div class="mb-3">-->
-            <!--                    <label for="author" class="form-label">작성자</label>-->
-            <!--                    <input type="text" id="author" th:field="*{author}" class="form-control" placeholder="작성자" required>-->
-            <!--                </div>-->
-            <!--                <div class="mb-3">-->
-            <!--                    <label for="content" class="form-label">내용</label>-->
-            <!--                    <textarea id="content" th:field="*{content}" class="form-control" placeholder="내용 입력" required></textarea>-->
-            <!--                </div>-->
-            <!--                <div class="mb-3">-->
-            <!--                    <label for="passWord" class="form-label">비밀번호</label>-->
-            <!--                    <input type="password" id="passWord" th:field="*{passWord}" class="form-control" placeholder="비밀번호 입력" required>-->
-            <!--                </div>-->
-            <!--                <button type="submit" class="btn btn-primary shadow">등록</button>-->
-            <!--            </form>-->
-            <!--        </div>-->
-            <!--    </div>-->
+<main class="page-shell detail-shell">
+    <section class="detail-hero">
+        <div class="detail-media-stage reveal" style="--delay: 0.06s;">
+            <img th:src="${laptopDetail.imageUrl}" th:alt="${laptopDetail.name}">
         </div>
-    </div>
-</div>
+
+        <div class="detail-copy">
+            <p class="eyebrow reveal" style="--delay: 0.1s;" th:text="${laptopDetail.manufacturer}"></p>
+            <h1 class="detail-title reveal" style="--delay: 0.16s;" th:text="${laptopDetail.name}"></h1>
+
+            <div class="usage-strip reveal" style="--delay: 0.22s;">
+                <span class="usage-chip" th:each="usage : ${laptopDetail.usage}" th:text="${usage}"></span>
+            </div>
+
+            <div class="detail-price reveal" style="--delay: 0.28s;" th:text="${#numbers.formatCurrency(laptopDetail.price)} + '원'"></div>
+
+            <div class="detail-actions reveal" style="--delay: 0.4s;">
+                <a th:href="${laptopDetail.detailPage}" class="primary-button">다나와에서 보기</a>
+                <a href="/recommends" class="secondary-button">추천 다시 보기</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="metric-band">
+        <div class="metric-card reveal" style="--delay: 0.12s;">
+            <span class="metric-label">프로세서</span>
+            <span class="metric-value" th:text="${laptopDetail.cpu ?: '확인 불가'}"></span>
+        </div>
+        <div class="metric-card reveal" style="--delay: 0.18s;">
+            <span class="metric-label">그래픽</span>
+            <span class="metric-value" th:text="${laptopDetail.graphicsType ?: '확인 불가'}"></span>
+        </div>
+        <div class="metric-card reveal" style="--delay: 0.24s;">
+            <span class="metric-label">무게</span>
+            <span class="metric-value" th:text="${laptopDetail.weight != null ? laptopDetail.weight + 'kg' : '확인 불가'}"></span>
+        </div>
+        <div class="metric-card reveal" style="--delay: 0.3s;">
+            <span class="metric-label">배터리</span>
+            <span class="metric-value" th:text="${laptopDetail.batteryCapacity != null ? laptopDetail.batteryCapacity + 'Wh' : '확인 불가'}"></span>
+        </div>
+    </section>
+
+    <section class="detail-spec-grid">
+        <section class="spec-panel reveal" style="--delay: 0.16s;">
+            <h2 class="spec-panel-title">핵심 사양</h2>
+            <div class="spec-list">
+                <div class="spec-row">
+                    <span class="spec-term">프로세서 제조사</span>
+                    <span class="spec-desc" th:text="${laptopDetail.cpuManufacturer ?: '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">운영체제</span>
+                    <span class="spec-desc" th:text="${laptopDetail.os ?: '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">화면 크기</span>
+                    <span class="spec-desc" th:text="${laptopDetail.screenSize != null ? laptopDetail.screenSize + '형' : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">해상도</span>
+                    <span class="spec-desc" th:text="${laptopDetail.resolution ?: '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">밝기</span>
+                    <span class="spec-desc" th:text="${laptopDetail.brightness != null ? laptopDetail.brightness + '니트' : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">화면 주사율</span>
+                    <span class="spec-desc" th:text="${laptopDetail.refreshRate != null ? laptopDetail.refreshRate + 'Hz' : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">메모리</span>
+                    <span class="spec-desc" th:text="${laptopDetail.ramSize != null ? laptopDetail.ramSize + 'GB · ' + (laptopDetail.ramType ?: '종류 확인 불가') : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">저장 공간</span>
+                    <span class="spec-desc" th:text="${laptopDetail.storageCapacity != null ? laptopDetail.storageCapacity + 'GB' : '확인 불가'}"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="spec-panel reveal" style="--delay: 0.22s;">
+            <h2 class="spec-panel-title">추가 정보</h2>
+            <div class="spec-list">
+                <div class="spec-row">
+                    <span class="spec-term">그래픽 전력 정보</span>
+                    <span class="spec-desc" th:text="${laptopDetail.tgp != null and laptopDetail.tgp > 0 ? laptopDetail.tgp + 'W' : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">썬더볼트 포트</span>
+                    <span class="spec-desc" th:text="${laptopDetail.thunderboltCount != null ? laptopDetail.thunderboltCount + '개' : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">USB-C 포트</span>
+                    <span class="spec-desc" th:text="${laptopDetail.usbCCount != null ? laptopDetail.usbCCount + '개' : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">USB-A 포트</span>
+                    <span class="spec-desc" th:text="${laptopDetail.usbACount != null ? laptopDetail.usbACount + '개' : '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">SD 카드 슬롯</span>
+                    <span class="spec-desc" th:text="${laptopDetail.sdCard ?: '확인 불가'}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">USB-C 충전</span>
+                    <span class="spec-desc" th:text="${laptopDetail.isSupportsPdCharging == null ? '확인 불가' : (laptopDetail.isSupportsPdCharging ? '지원' : '미지원')}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">메모리 교체</span>
+                    <span class="spec-desc" th:text="${laptopDetail.isRamReplaceable == null ? '확인 불가' : (laptopDetail.isRamReplaceable ? '가능' : '불가')}"></span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-term">추가 저장 슬롯</span>
+                    <span class="spec-desc" th:text="${laptopDetail.storageSlotCount != null ? laptopDetail.storageSlotCount + '개' : '확인 불가'}"></span>
+                </div>
+            </div>
+        </section>
+    </section>
+</main>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

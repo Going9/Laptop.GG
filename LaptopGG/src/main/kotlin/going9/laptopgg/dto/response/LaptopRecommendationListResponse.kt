@@ -7,6 +7,10 @@ data class LaptopRecommendationListResponse(
     val price: Int,
     val name: String,
     val manufacturer: String,
-    val weight: Double,
-    val screenSize: Int
+    val weight: Double?,
+    val screenSize: Int?,
+    val cpu: String?,
+    val gpu: String?,
+    val resolutionLabel: String?,
+    val reasons: List<String>,
 )
