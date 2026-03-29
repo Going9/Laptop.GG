@@ -21,11 +21,13 @@ flowchart LR
 - `main` 브랜치에 push 하면 웹 앱이 자동 배포됩니다.
 - 크롤러는 GitHub Actions에서 수동 실행하거나 스케줄 실행합니다.
 - 목록 크롤링은 Danawa HTTP/AJAX 요청 기반이라 Chrome/Selenium 설치가 필요 없습니다.
+- 운영 PostgreSQL 스키마는 Flyway 마이그레이션으로 관리합니다.
 
 ## 저장소 구조
 
 - `src/main/kotlin`: 애플리케이션 코드
 - `src/main/resources`: 설정 파일과 템플릿
+- `src/main/resources/db/migration`: PostgreSQL Flyway 마이그레이션
 - `.github/workflows/ci.yml`: 테스트
 - `.github/workflows/deploy-web.yml`: 웹 배포
 - `.github/workflows/crawler.yml`: 크롤러 실행
@@ -52,6 +54,10 @@ export SPRING_DATASOURCE_USERNAME=laptopgg
 export SPRING_DATASOURCE_PASSWORD=laptopgg
 ./gradlew bootRun --args='--spring.profiles.active=postgres'
 ```
+
+주의:
+- `postgres` 프로필에서는 Flyway가 먼저 스키마를 맞춘 뒤 앱이 기동합니다.
+- 기존 운영 DB처럼 이미 테이블이 있는 환경은 `baseline-on-migrate`로 안전하게 편입됩니다.
 
 ### 3. 크롤러만 단독 실행
 
@@ -91,6 +97,10 @@ export PATH="$JAVA_HOME/bin:$PATH"
 1. GitHub Actions가 JDK 17로 `bootJar`를 빌드합니다.
 2. 생성된 `app.jar`를 앱 서버로 업로드합니다.
 3. 앱 서버의 `laptopgg.service`를 재시작합니다.
+
+배포 시점 동작:
+- 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`를 적용합니다.
+- 기존 PostgreSQL: Flyway가 baseline 후 누락된 후속 마이그레이션만 적용합니다.
 
 앱 서버에서 사용하는 주요 환경 변수 예시:
 

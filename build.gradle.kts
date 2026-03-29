@@ -27,6 +27,7 @@ repositories {
 
 dependencies {
 	implementation("org.jsoup:jsoup:1.18.3")
+	implementation("org.flywaydb:flyway-core")
 
 	implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.1")
 	implementation("com.linecorp.kotlin-jdsl:hibernate-support:3.5.1")
