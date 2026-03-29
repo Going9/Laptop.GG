@@ -2,7 +2,7 @@
 FROM openjdk:21-jdk-slim
 
 # 작업 디렉토리 설정
-WORKDIR /LaptopGG
+WORKDIR /app
 
 # 필요한 툴 설치
 RUN apt-get -y update && apt-get install -y \

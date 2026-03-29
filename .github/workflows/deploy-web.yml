@@ -21,14 +21,13 @@ jobs:
           distribution: "temurin"
 
       - name: Grant execute permission for gradlew
-        run: chmod +x ./LaptopGG/gradlew
+        run: chmod +x ./gradlew
 
       - name: Build jar
-        working-directory: ./LaptopGG
         run: ./gradlew --no-daemon clean bootJar
 
       - name: Prepare artifact
-        run: cp LaptopGG/build/libs/*.jar app.jar
+        run: cp build/libs/*.jar app.jar
 
       - name: Upload jar
         uses: appleboy/scp-action@v0.1.7

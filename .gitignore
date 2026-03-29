@@ -1,6 +1,6 @@
 HELP.md
-backend/LaptopGG/.gradle
-build/
+/.gradle/
+/build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -45,7 +45,5 @@ out/
 ### Local artifacts ###
 .playwright-cli/
 output/
-LaptopGG/.gradle/
-LaptopGG/build/
-LaptopGG/LaptopGG.sqlite
+LaptopGG.sqlite
 docker-compose.local.yml

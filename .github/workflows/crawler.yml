@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       limit:
-        description: "테스트용 처리 개수 제한"
+        description: "테스트용 처리 개수 제한. 숫자만 입력하세요. 예: 100"
         required: false
         type: number
       log_sql:
@@ -41,7 +41,7 @@ jobs:
           distribution: "temurin"
 
       - name: Grant execute permission for gradlew
-        run: chmod +x ./LaptopGG/gradlew
+        run: chmod +x ./gradlew
 
       - name: Install Google Chrome when missing
         run: |
@@ -78,10 +78,19 @@ jobs:
           pg_isready -h 127.0.0.1 -p 5433 -U "${SPRING_DATASOURCE_USERNAME}" -d "${{ secrets.CRAWLER_DB_NAME }}"
 
       - name: Run crawler
-        working-directory: ./LaptopGG
         run: |
           EXTRA_ARGS=""
+          APP_ARGS="--spring.profiles.active=${SPRING_PROFILES_ACTIVE}"
+
+          if [ -n "${CRAWLER_LIMIT}" ]; then
+            if ! printf '%s' "${CRAWLER_LIMIT}" | grep -Eq '^[0-9]+$'; then
+              echo "CRAWLER_LIMIT must be a number like 100. Do not enter limit=100." >&2
+              exit 1
+            fi
+            APP_ARGS="${APP_ARGS} --app.crawler.limit=${CRAWLER_LIMIT}"
+          fi
+
           if [ "${{ inputs.log_sql }}" = "true" ]; then
             EXTRA_ARGS="${EXTRA_ARGS} --logging.level.org.hibernate.SQL=DEBUG"
           fi
-          ./gradlew --no-daemon bootRun --args="--spring.profiles.active=${SPRING_PROFILES_ACTIVE} ${EXTRA_ARGS}"
+          ./gradlew --no-daemon bootRun --args="${APP_ARGS} ${EXTRA_ARGS}"
