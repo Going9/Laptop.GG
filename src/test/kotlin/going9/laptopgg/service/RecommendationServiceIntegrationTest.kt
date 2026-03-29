@@ -2,6 +2,10 @@ package going9.laptopgg.service
 
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
+import going9.laptopgg.domain.laptop.BatteryTier
+import going9.laptopgg.domain.laptop.CpuClass
+import going9.laptopgg.domain.laptop.GpuClass
+import going9.laptopgg.domain.laptop.PortabilityTier
 import going9.laptopgg.domain.repository.LaptopProfileRepository
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.domain.repository.LaptopUsageRepository
@@ -330,6 +334,116 @@ class RecommendationServiceIntegrationTest {
         assertThat(laptop.cpu).isEqualTo("350")
         assertThat(laptop.gpu).isEqualTo("Arc 140T")
         assertThat(laptop.resolutionLabel).isEqualTo("QHD")
+    }
+
+    @Test
+    fun `office recommendation excludes profiles below gate threshold at query stage`() {
+        val officeLaptop = persistLaptop(
+            name = "Office Strong",
+            price = 1_450_000,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 72.0,
+            weight = 1.28,
+            usages = listOf("사무/인강용"),
+        )
+        val weakOfficeLaptop = persistLaptop(
+            name = "Office Weak",
+            price = 1_350_000,
+            cpuManufacturer = "인텔",
+            cpu = "255H",
+            graphicsType = "RTX4060",
+            batteryCapacity = 48.0,
+            weight = 2.45,
+            usages = listOf("게임용"),
+        )
+
+        laptopProfileRepository.findByLaptopId(officeLaptop.id!!)?.apply {
+            cpuClass = CpuClass.LOW_POWER
+            gpuClass = GpuClass.INTEGRATED_MAINSTREAM
+            batteryTier = BatteryTier.HIGH
+            portabilityTier = PortabilityTier.LIGHT
+            officeScore = 82
+            batteryScore = 76
+            casualGameScore = 40
+            onlineGameScore = 22
+            aaaGameScore = 10
+            creatorScore = 38
+        }?.let(laptopProfileRepository::save)
+
+        laptopProfileRepository.findByLaptopId(weakOfficeLaptop.id!!)?.apply {
+            cpuClass = CpuClass.PERFORMANCE
+            gpuClass = GpuClass.DISCRETE_HIGH
+            batteryTier = BatteryTier.LOW
+            portabilityTier = PortabilityTier.HEAVY
+            officeScore = 35
+            batteryScore = 30
+            casualGameScore = 78
+            onlineGameScore = 84
+            aaaGameScore = 72
+            creatorScore = 66
+        }?.let(laptopProfileRepository::save)
+
+        val request = LaptopRecommendationRequest(
+            budget = 2_000_000,
+            maxWeightKg = 3.0,
+            screenSizeMode = ScreenSizeMode.ANY,
+            useCase = RecommendationUseCase.OFFICE_STUDY,
+        )
+
+        val result = recommendationService.recommendLaptops(request, PageRequest.of(0, 10))
+
+        assertThat(result.content.map { it.name }).contains("Office Strong")
+        assertThat(result.content.map { it.name }).doesNotContain("Office Weak")
+    }
+
+    @Test
+    fun `not sure recommendation keeps rounded average boundary candidate`() {
+        val borderlineLaptop = persistLaptop(
+            name = "Not Sure Borderline",
+            price = 1_380_000,
+            cpuManufacturer = "AMD",
+            cpu = "340",
+            graphicsType = "Radeon 840M",
+            batteryCapacity = 70.0,
+            weight = 1.35,
+            usages = listOf("사무/인강용"),
+        )
+        val filteredLaptop = persistLaptop(
+            name = "Not Sure Below Boundary",
+            price = 1_340_000,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 66.0,
+            weight = 1.4,
+            usages = listOf("사무/인강용"),
+        )
+
+        laptopProfileRepository.findByLaptopId(borderlineLaptop.id!!)?.apply {
+            officeScore = 46
+            batteryScore = 44
+            casualGameScore = 44
+        }?.let(laptopProfileRepository::save)
+
+        laptopProfileRepository.findByLaptopId(filteredLaptop.id!!)?.apply {
+            officeScore = 45
+            batteryScore = 44
+            casualGameScore = 44
+        }?.let(laptopProfileRepository::save)
+
+        val request = LaptopRecommendationRequest(
+            budget = 2_000_000,
+            maxWeightKg = 2.0,
+            screenSizeMode = ScreenSizeMode.ANY,
+            useCase = RecommendationUseCase.NOT_SURE,
+        )
+
+        val result = recommendationService.recommendLaptops(request, PageRequest.of(0, 10))
+
+        assertThat(result.content.map { it.name }).contains("Not Sure Borderline")
+        assertThat(result.content.map { it.name }).doesNotContain("Not Sure Below Boundary")
     }
 
     @Test

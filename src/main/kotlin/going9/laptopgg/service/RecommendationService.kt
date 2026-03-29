@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import kotlin.math.ceil
 
 @Service
 class RecommendationService(
@@ -18,20 +18,15 @@ class RecommendationService(
     private val laptopProfileService: LaptopProfileService,
     private val scoreCalculatorService: ScoreCalculatorService,
 ) {
-    @Transactional
     fun recommendLaptops(request: LaptopRecommendationRequest, pageable: Pageable): Page<LaptopRecommendationListResponse> {
         laptopProfileService.syncMissingProfilesIfNeeded()
 
         val useCase = request.resolvedUseCase()
+        val candidateFilter = buildCandidateFilter(request, useCase)
 
-        val candidates = findCandidates(request)
-            .filter { profile -> matchesBaseFilters(profile.laptop, request) }
+        val candidates = findCandidates(request, candidateFilter)
             .map { profile ->
                 val gateScore = scoreCalculatorService.gateScore(profile, useCase)
-                profile to gateScore
-            }
-            .filter { (_, gateScore) -> gateScore >= scoreCalculatorService.gateThreshold(useCase) }
-            .map { (profile, gateScore) ->
                 val scoreResult = scoreCalculatorService.calculateScore(profile.laptop, profile, request)
                 ScoredLaptop(
                     laptop = profile.laptop,
@@ -66,28 +61,62 @@ class RecommendationService(
         )
     }
 
-    private fun findCandidates(request: LaptopRecommendationRequest) =
-        when (request.resolvedScreenSizeMode()) {
-            ScreenSizeMode.SELECT -> laptopProfileRepository.findRecommendationCandidatesByScreenSizes(
-                maxPrice = request.budget,
-                maxWeight = request.maxWeightKg,
+    private fun findCandidates(
+        request: LaptopRecommendationRequest,
+        candidateFilter: CandidateFilter,
+    ) = laptopProfileRepository.findRecommendationCandidates(
+        maxPrice = request.budget,
+        maxWeight = request.maxWeightKg,
+        screenSizes = candidateFilter.screenSizes,
+        screenFilterEnabled = candidateFilter.screenFilterEnabled,
+        includeUnknownScreen = candidateFilter.includeUnknownScreen,
+        minOfficeScore = candidateFilter.minOfficeScore,
+        minBatteryScore = candidateFilter.minBatteryScore,
+        minCasualGameScore = candidateFilter.minCasualGameScore,
+        minOnlineGameScore = candidateFilter.minOnlineGameScore,
+        minAaaGameScore = candidateFilter.minAaaGameScore,
+        minCreatorScore = candidateFilter.minCreatorScore,
+        minNotSureGateTotal = candidateFilter.minNotSureGateTotal,
+    )
+
+    private fun buildCandidateFilter(
+        request: LaptopRecommendationRequest,
+        useCase: RecommendationUseCase,
+    ): CandidateFilter {
+        val gateThreshold = scoreCalculatorService.gateThreshold(useCase)
+        val screenMode = request.resolvedScreenSizeMode()
+
+        val baseFilter = when (screenMode) {
+            ScreenSizeMode.SELECT -> CandidateFilter(
+                screenFilterEnabled = true,
+                includeUnknownScreen = false,
                 screenSizes = request.normalizedScreenSizes(),
             )
-            else -> laptopProfileRepository.findRecommendationCandidates(
-                maxPrice = request.budget,
-                maxWeight = request.maxWeightKg,
+            ScreenSizeMode.ANY -> CandidateFilter(
+                screenFilterEnabled = false,
+                includeUnknownScreen = true,
+                screenSizes = LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES,
+            )
+            ScreenSizeMode.NOT_SURE -> CandidateFilter(
+                screenFilterEnabled = true,
+                includeUnknownScreen = true,
+                screenSizes = LaptopRecommendationRequest.COMMON_SCREEN_SIZES,
             )
         }
 
-    private fun matchesBaseFilters(
-        laptop: Laptop,
-        request: LaptopRecommendationRequest,
-    ): Boolean {
-        if (!request.matchesScreenSize(laptop.screenSize)) {
-            return false
+        return when (useCase) {
+            RecommendationUseCase.NOT_SURE -> baseFilter.copy(
+                minNotSureGateTotal = minimumRoundedAverageTotal(gateThreshold, 3),
+            )
+            RecommendationUseCase.OFFICE_STUDY,
+            RecommendationUseCase.PORTABLE_OFFICE,
+            -> baseFilter.copy(minOfficeScore = gateThreshold)
+            RecommendationUseCase.BATTERY_FIRST -> baseFilter.copy(minBatteryScore = gateThreshold)
+            RecommendationUseCase.CASUAL_GAME -> baseFilter.copy(minCasualGameScore = gateThreshold)
+            RecommendationUseCase.ONLINE_GAME -> baseFilter.copy(minOnlineGameScore = gateThreshold)
+            RecommendationUseCase.AAA_GAME -> baseFilter.copy(minAaaGameScore = gateThreshold)
+            RecommendationUseCase.CREATOR -> baseFilter.copy(minCreatorScore = gateThreshold)
         }
-
-        return true
     }
 
     private fun sortCandidates(
@@ -195,7 +224,25 @@ class RecommendationService(
         val reasons: List<String>,
     )
 
+    private data class CandidateFilter(
+        val screenFilterEnabled: Boolean,
+        val includeUnknownScreen: Boolean,
+        val screenSizes: Collection<Int>,
+        val minOfficeScore: Int? = null,
+        val minBatteryScore: Int? = null,
+        val minCasualGameScore: Int? = null,
+        val minOnlineGameScore: Int? = null,
+        val minAaaGameScore: Int? = null,
+        val minCreatorScore: Int? = null,
+        val minNotSureGateTotal: Int? = null,
+    )
+
     companion object {
         private val RESOLUTION_REGEX = Regex("""(\d{3,4})\s*[xX]\s*(\d{3,4})""")
+
+        private fun minimumRoundedAverageTotal(threshold: Int, componentCount: Int): Int {
+            require(componentCount > 0) { "componentCount must be greater than zero." }
+            return ceil((threshold - 0.5) * componentCount).toInt()
+        }
     }
 }
