@@ -1,0 +1,52 @@
+name: Deploy Web
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./LaptopGG/gradlew
+
+      - name: Build jar
+        working-directory: ./LaptopGG
+        run: ./gradlew --no-daemon clean bootJar
+
+      - name: Prepare artifact
+        run: cp LaptopGG/build/libs/*.jar app.jar
+
+      - name: Upload jar
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.APP_SSH_HOST }}
+          username: ${{ secrets.APP_SSH_USER }}
+          key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.APP_SSH_PORT }}
+          source: "app.jar"
+          target: "/home/ubuntu/laptopgg"
+
+      - name: Restart service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.APP_SSH_HOST }}
+          username: ${{ secrets.APP_SSH_USER }}
+          key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.APP_SSH_PORT }}
+          script: |
+            sudo systemctl restart laptopgg
+            sudo systemctl status laptopgg --no-pager
