@@ -64,6 +64,10 @@ class LaptopProfileService(
                 ),
             )
         } else {
+            if (existingProfile.matches(snapshot)) {
+                return existingProfile
+            }
+
             existingProfile.cpuClass = snapshot.cpuClass
             existingProfile.gpuClass = snapshot.gpuClass
             existingProfile.batteryTier = snapshot.batteryTier
@@ -76,5 +80,18 @@ class LaptopProfileService(
             existingProfile.creatorScore = snapshot.creatorScore
             laptopProfileRepository.save(existingProfile)
         }
+    }
+
+    private fun LaptopProfile.matches(snapshot: LaptopProfileFactory.Snapshot): Boolean {
+        return cpuClass == snapshot.cpuClass &&
+            gpuClass == snapshot.gpuClass &&
+            batteryTier == snapshot.batteryTier &&
+            portabilityTier == snapshot.portabilityTier &&
+            officeScore == snapshot.officeScore &&
+            batteryScore == snapshot.batteryScore &&
+            casualGameScore == snapshot.casualGameScore &&
+            onlineGameScore == snapshot.onlineGameScore &&
+            aaaGameScore == snapshot.aaaGameScore &&
+            creatorScore == snapshot.creatorScore
     }
 }

@@ -8,6 +8,12 @@ import org.springframework.data.jpa.repository.Query
 
 interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor {
     @EntityGraph(attributePaths = ["laptopUsage"])
+    fun findAllByProductCodeIn(productCodes: Collection<String>): List<Laptop>
+
+    @EntityGraph(attributePaths = ["laptopUsage"])
+    fun findAllByDetailPageIn(detailPages: Collection<String>): List<Laptop>
+
+    @EntityGraph(attributePaths = ["laptopUsage"])
     fun findByName(name: String): Laptop?
 
     @EntityGraph(attributePaths = ["laptopUsage"])

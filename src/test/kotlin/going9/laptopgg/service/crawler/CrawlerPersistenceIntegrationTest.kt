@@ -143,11 +143,64 @@ class CrawlerPersistenceIntegrationTest {
         assertThat(refreshed.weight).isEqualTo(1.35)
     }
 
+    @Test
+    fun `saveListSnapshot updates price without touching existing specs`() {
+        val existing = laptopRepository.save(
+            laptop(
+                name = "Fast Path Model",
+                detailPage = "https://prod.danawa.com/info/?pcode=777&cate=112758",
+                productCode = "777",
+                price = 1_290_000,
+            ),
+        )
+
+        val result = invokeSaveListSnapshot(
+            existingLaptop = existing,
+            productCard = CrawlerService.ProductCard(
+                productCode = "777",
+                productName = "Fast Path Model",
+                detailPage = "https://prod.danawa.com/info/?pcode=777&cate=112758",
+                imageUrl = "https://example.com/updated.jpg",
+                price = 1_190_000,
+                cate1 = "112",
+                cate2 = "758",
+                cate3 = "0",
+                cate4 = "112758",
+            ),
+        )
+
+        val refreshed = laptopRepository.findById(existing.id!!).orElseThrow()
+
+        assertThat(result).isEqualTo("UPDATED")
+        assertThat(laptopRepository.count()).isEqualTo(1)
+        assertThat(refreshed.price).isEqualTo(1_190_000)
+        assertThat(refreshed.imageUrl).isEqualTo("https://example.com/updated.jpg")
+        assertThat(refreshed.cpuManufacturer).isEqualTo("인텔")
+        assertThat(refreshed.cpu).isEqualTo("225U")
+        assertThat(refreshed.ramSize).isEqualTo(16)
+        assertThat(refreshed.storageCapacity).isEqualTo(512)
+        assertThat(refreshed.weight).isEqualTo(1.35)
+    }
+
     private fun invokeSaveOrUpdate(laptop: Laptop): String {
         val target = AopTestUtils.getTargetObject<Any>(crawlerService)
         val method = target.javaClass.getDeclaredMethod("saveOrUpdateLaptop", Laptop::class.java)
         method.setAccessible(true)
         return method.invoke(target, laptop).toString()
+    }
+
+    private fun invokeSaveListSnapshot(
+        existingLaptop: Laptop,
+        productCard: CrawlerService.ProductCard,
+    ): String {
+        val target = AopTestUtils.getTargetObject<Any>(crawlerService)
+        val method = target.javaClass.getDeclaredMethod(
+            "saveListSnapshot",
+            Laptop::class.java,
+            CrawlerService.ProductCard::class.java,
+        )
+        method.setAccessible(true)
+        return method.invoke(target, existingLaptop, productCard).toString()
     }
 
     private fun laptop(

@@ -17,6 +17,8 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.time.Duration
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 import org.slf4j.LoggerFactory
 
@@ -175,6 +177,22 @@ class CrawlerService(
         }
     }
 
+    internal data class ExistingLookup(
+        val byProductCode: Map<String, Laptop>,
+        val byDetailPage: Map<String, Laptop>,
+    )
+
+    internal data class DetailRefreshWorkItem(
+        val productCard: ProductCard,
+        val existingLaptop: Laptop?,
+    )
+
+    internal data class DetailRefreshOutcome(
+        val workItem: DetailRefreshWorkItem,
+        val buildResult: BuildLaptopResult? = null,
+        val error: Exception? = null,
+    )
+
     private enum class SaveResult {
         CREATED,
         UPDATED,
@@ -184,99 +202,194 @@ class CrawlerService(
     fun crawlAll(limit: Int? = null): CrawlSummary {
         val initialListHtml = fetchListPageHtml()
         val listRequestContext = extractListRequestContext(initialListHtml)
+        laptopProfileService.syncMissingProfilesIfNeeded()
+        val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
         val seenProductCodes = linkedSetOf<String>()
         var currentPage = 1
         var processedCount = 0
         var createdCount = 0
         var updatedCount = 0
         var degradedCount = 0
+        var priceOnlyUpdatedCount = 0
+        var detailRefreshCount = 0
         val degradedSamples = mutableListOf<String>()
         var failedCount = 0
         val failureSamples = mutableListOf<String>()
         var reachedLimit = false
 
-        while (currentPage <= MAX_LIST_PAGES) {
-            val pageStartTime = System.currentTimeMillis()
-            val productCards = fetchProductCards(currentPage, listRequestContext, initialListHtml)
+        try {
+            while (currentPage <= MAX_LIST_PAGES) {
+                val pageStartTime = System.currentTimeMillis()
+                val productCards = fetchProductCards(currentPage, listRequestContext, initialListHtml)
 
-            if (productCards.isEmpty()) {
-                logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. page={}", currentPage)
-                break
-            }
+                if (productCards.isEmpty()) {
+                    logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. page={}", currentPage)
+                    break
+                }
 
-            val freshProductCards = productCards.filter { seenProductCodes.add(it.productCode) }
-            if (freshProductCards.isEmpty()) {
-                logger.info("이미 수집한 상품만 반복되어 크롤링을 종료합니다. page={}", currentPage)
-                break
-            }
+                val freshProductCards = productCards.filter { seenProductCodes.add(it.productCode) }
+                if (freshProductCards.isEmpty()) {
+                    logger.info("이미 수집한 상품만 반복되어 크롤링을 종료합니다. page={}", currentPage)
+                    break
+                }
 
-            for (productCard in freshProductCards) {
-                processedCount++
+                val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
+                if (remainingQuota == 0) {
+                    break
+                }
 
-                try {
-                    val buildResult = buildLaptop(productCard)
-                    if (buildResult.isDegraded) {
-                        degradedCount++
-                        recordSample(
-                            samples = degradedSamples,
+                val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
+                processedCount += candidateProductCards.size
+
+                val existingLookup = loadExistingLookup(candidateProductCards)
+                val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
+
+                for (productCard in candidateProductCards) {
+                    val existingLaptop = findExistingLaptop(productCard, existingLookup)
+                    if (existingLaptop != null && !needsDetailRefresh(existingLaptop)) {
+                        try {
+                            when (saveListSnapshot(existingLaptop, productCard)) {
+                                SaveResult.UPDATED -> {
+                                    updatedCount++
+                                    priceOnlyUpdatedCount++
+                                }
+                                SaveResult.UNCHANGED -> Unit
+                                SaveResult.CREATED -> Unit
+                            }
+                        } catch (e: Exception) {
+                            failedCount++
+                            recordSample(
+                                samples = failureSamples,
+                                productCard = productCard,
+                                reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
+                            )
+                            logger.error(
+                                "기존 상품 가격/목록 스냅샷 업데이트 중 오류 발생. productCode={}, detailPage={}",
+                                productCard.productCode,
+                                productCard.detailPage,
+                                e,
+                            )
+                        }
+                    } else {
+                        detailRefreshWorkItems += DetailRefreshWorkItem(
                             productCard = productCard,
-                            reason = buildResult.degradationReasons.joinToString(" | "),
+                            existingLaptop = existingLaptop,
                         )
-                        logger.warn(
-                            "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
+                    }
+                }
+
+                detailRefreshCount += detailRefreshWorkItems.size
+                val detailRefreshOutcomes = fetchDetailRefreshOutcomes(detailRefreshWorkItems, detailFetchExecutor)
+
+                for (detailRefreshOutcome in detailRefreshOutcomes) {
+                    val productCard = detailRefreshOutcome.workItem.productCard
+                    val existingLaptop = detailRefreshOutcome.workItem.existingLaptop
+                    try {
+                        val buildResult = detailRefreshOutcome.buildResult
+                        if (buildResult != null) {
+                            if (buildResult.isDegraded) {
+                                degradedCount++
+                                recordSample(
+                                    samples = degradedSamples,
+                                    productCard = productCard,
+                                    reason = buildResult.degradationReasons.joinToString(" | "),
+                                )
+                                logger.warn(
+                                    "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
+                                    productCard.productCode,
+                                    productCard.detailPage,
+                                    buildResult.degradationReasons,
+                                )
+                            }
+
+                            when (saveOrUpdateLaptop(buildResult.laptop, existingLaptop)) {
+                                SaveResult.CREATED -> createdCount++
+                                SaveResult.UPDATED -> updatedCount++
+                                SaveResult.UNCHANGED -> Unit
+                            }
+                            continue
+                        }
+
+                        if (existingLaptop != null) {
+                            when (saveListSnapshot(existingLaptop, productCard)) {
+                                SaveResult.UPDATED -> {
+                                    updatedCount++
+                                    priceOnlyUpdatedCount++
+                                }
+                                SaveResult.UNCHANGED -> Unit
+                                SaveResult.CREATED -> Unit
+                            }
+                        }
+
+                        val error = detailRefreshOutcome.error
+                        failedCount++
+                        recordSample(
+                            samples = failureSamples,
+                            productCard = productCard,
+                            reason = error?.message ?: error?.javaClass?.simpleName ?: "알 수 없는 오류",
+                        )
+                        logger.error(
+                            "상품 상세 재수집 중 오류 발생. productCode={}, detailPage={}",
                             productCard.productCode,
                             productCard.detailPage,
-                            buildResult.degradationReasons,
+                            error,
                         )
+                    } catch (e: Exception) {
+                        failedCount++
+                        recordSample(
+                            samples = failureSamples,
+                            productCard = productCard,
+                            reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
+                        )
+                        logger.error("상품 크롤링 저장 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
                     }
-
-                    when (saveOrUpdateLaptop(buildResult.laptop)) {
-                        SaveResult.CREATED -> createdCount++
-                        SaveResult.UPDATED -> updatedCount++
-                        SaveResult.UNCHANGED -> Unit
-                    }
-                } catch (e: Exception) {
-                    failedCount++
-                    recordSample(
-                        samples = failureSamples,
-                        productCard = productCard,
-                        reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
-                    )
-                    logger.error("상품 크롤링 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
                 }
 
                 if (limit != null && processedCount >= limit) {
                     reachedLimit = true
+                }
+
+                logger.info(
+                    "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / page=${currentPage} / " +
+                        "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
+                        "상세 재수집: ${detailRefreshWorkItems.size}개 / 가격만 갱신: ${priceOnlyUpdatedCount}개 / " +
+                        "누적 처리: ${processedCount}개 / 누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
+                )
+
+                if (reachedLimit) {
                     break
                 }
+
+                currentPage++
+            }
+
+            if (currentPage > MAX_LIST_PAGES) {
+                logger.warn("목록 페이지 안전 제한({})에 도달해 크롤링을 종료합니다.", MAX_LIST_PAGES)
             }
 
             logger.info(
-                "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / page=${currentPage} / " +
-                    "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 누적 처리: ${processedCount}개 / " +
-                    "누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
+                "크롤링 최종 요약: processedCount={}, createdCount={}, updatedCount={}, detailRefreshCount={}, priceOnlyUpdatedCount={}, degradedCount={}, failedCount={}",
+                processedCount,
+                createdCount,
+                updatedCount,
+                detailRefreshCount,
+                priceOnlyUpdatedCount,
+                degradedCount,
+                failedCount,
             )
 
-            if (reachedLimit) {
-                break
-            }
-
-            currentPage++
+            return CrawlSummary(
+                processedCount = processedCount,
+                createdCount = createdCount,
+                updatedCount = updatedCount,
+                degradedCount = degradedCount,
+                degradedSamples = degradedSamples.toList(),
+                failedCount = failedCount,
+                failureSamples = failureSamples.toList(),
+            )
+        } finally {
+            detailFetchExecutor.shutdown()
         }
-
-        if (currentPage > MAX_LIST_PAGES) {
-            logger.warn("목록 페이지 안전 제한({})에 도달해 크롤링을 종료합니다.", MAX_LIST_PAGES)
-        }
-
-        return CrawlSummary(
-            processedCount = processedCount,
-            createdCount = createdCount,
-            updatedCount = updatedCount,
-            degradedCount = degradedCount,
-            degradedSamples = degradedSamples.toList(),
-            failedCount = failedCount,
-            failureSamples = failureSamples.toList(),
-        )
     }
 
     private fun fetchListPageHtml(): String {
@@ -450,7 +563,12 @@ class CrawlerService(
 
     @Transactional
     private fun saveOrUpdateLaptop(laptop: Laptop): SaveResult {
-        val existingLaptop = findExistingLaptop(laptop)
+        return saveOrUpdateLaptop(laptop, null)
+    }
+
+    @Transactional
+    private fun saveOrUpdateLaptop(laptop: Laptop, existingLaptopHint: Laptop?): SaveResult {
+        val existingLaptop = existingLaptopHint ?: findExistingLaptop(laptop)
 
         if (existingLaptop == null) {
             val savedLaptop = laptopRepository.save(laptop)
@@ -502,9 +620,47 @@ class CrawlerService(
             laptopProfileService.syncProfile(savedLaptop)
             SaveResult.UPDATED
         } else {
-            laptopProfileService.syncProfile(existingLaptop)
             SaveResult.UNCHANGED
         }
+    }
+
+    private fun saveListSnapshot(existingLaptop: Laptop, productCard: ProductCard): SaveResult {
+        var changed = false
+
+        changed = updateTextField(existingLaptop.name, productCard.productName) { existingLaptop.name = it } || changed
+        changed = updateTextField(existingLaptop.imageUrl, productCard.imageUrl) { existingLaptop.imageUrl = it } || changed
+        changed = updateTextField(existingLaptop.detailPage, productCard.detailPage) { existingLaptop.detailPage = it } || changed
+        changed = updateTextField(existingLaptop.productCode, productCard.productCode) { existingLaptop.productCode = it } || changed
+        changed = updatePresentField(existingLaptop.price, productCard.price) { existingLaptop.price = it } || changed
+
+        if (!changed) {
+            return SaveResult.UNCHANGED
+        }
+
+        laptopRepository.save(existingLaptop)
+        return SaveResult.UPDATED
+    }
+
+    private fun loadExistingLookup(productCards: List<ProductCard>): ExistingLookup {
+        if (productCards.isEmpty()) {
+            return ExistingLookup(emptyMap(), emptyMap())
+        }
+
+        val byProductCode = laptopRepository.findAllByProductCodeIn(productCards.map { it.productCode }.distinct())
+            .mapNotNull { laptop -> laptop.productCode?.let { it to laptop } }
+            .toMap()
+        val byDetailPage = laptopRepository.findAllByDetailPageIn(productCards.map { it.detailPage }.distinct())
+            .associateBy { laptop -> laptop.detailPage }
+
+        return ExistingLookup(
+            byProductCode = byProductCode,
+            byDetailPage = byDetailPage,
+        )
+    }
+
+    private fun findExistingLaptop(productCard: ProductCard, existingLookup: ExistingLookup): Laptop? {
+        return existingLookup.byProductCode[productCard.productCode]
+            ?: existingLookup.byDetailPage[productCard.detailPage]
     }
 
     private fun findExistingLaptop(laptop: Laptop): Laptop? {
@@ -515,6 +671,47 @@ class CrawlerService(
                 ?.let { return it }
         }
         return laptopRepository.findByDetailPage(laptop.detailPage)
+    }
+
+    private fun needsDetailRefresh(existingLaptop: Laptop): Boolean {
+        return existingLaptop.cpuManufacturer.isNullOrBlank() ||
+            existingLaptop.cpu.isNullOrBlank() ||
+            existingLaptop.os.isNullOrBlank() ||
+            existingLaptop.screenSize == null ||
+            existingLaptop.resolution.isNullOrBlank() ||
+            existingLaptop.ramSize == null ||
+            existingLaptop.graphicsType.isNullOrBlank() ||
+            existingLaptop.storageCapacity == null ||
+            existingLaptop.batteryCapacity == null ||
+            existingLaptop.weight == null ||
+            existingLaptop.laptopUsage.isEmpty()
+    }
+
+    private fun fetchDetailRefreshOutcomes(
+        workItems: List<DetailRefreshWorkItem>,
+        executor: ExecutorService,
+    ): List<DetailRefreshOutcome> {
+        if (workItems.isEmpty()) {
+            return emptyList()
+        }
+
+        return workItems.map { workItem ->
+            executor.submit<DetailRefreshOutcome> {
+                runCatching {
+                    DetailRefreshOutcome(
+                        workItem = workItem,
+                        buildResult = buildLaptop(workItem.productCard),
+                    )
+                }.getOrElse { throwable ->
+                    DetailRefreshOutcome(
+                        workItem = workItem,
+                        error = throwable as? Exception ?: IllegalStateException(throwable.message, throwable),
+                    )
+                }
+            }
+        }.map { future ->
+            future.get()
+        }
     }
 
     private fun recordSample(
@@ -1014,6 +1211,7 @@ class CrawlerService(
         private const val RETRY_DELAY_MILLIS = 500L
         private const val MAX_FAILURE_SAMPLES = 10
         private const val MAX_LIST_PAGES = 5000
+        private const val DETAIL_FETCH_CONCURRENCY = 6
         private val DISCRETE_GPU_KEYWORDS = listOf(
             "RTX",
             "GTX",
