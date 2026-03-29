@@ -2,6 +2,7 @@ package going9.laptopgg.service.crawler
 
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.repository.LaptopProfileRepository
+import going9.laptopgg.domain.repository.LaptopPriceHistoryRepository
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.domain.repository.LaptopUsageRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -27,8 +28,12 @@ class CrawlerPersistenceIntegrationTest {
     @Autowired
     lateinit var laptopProfileRepository: LaptopProfileRepository
 
+    @Autowired
+    lateinit var laptopPriceHistoryRepository: LaptopPriceHistoryRepository
+
     @BeforeEach
     fun setUp() {
+        laptopPriceHistoryRepository.deleteAll()
         laptopProfileRepository.deleteAll()
         laptopUsageRepository.deleteAll()
         laptopRepository.deleteAll()
@@ -58,6 +63,22 @@ class CrawlerPersistenceIntegrationTest {
         assertThat(laptopRepository.count()).isEqualTo(2)
         assertThat(laptopRepository.findByProductCode("A001")).isNotNull
         assertThat(laptopRepository.findByProductCode("B002")).isNotNull
+    }
+
+    @Test
+    fun `saveOrUpdate stores initial price history for new laptop`() {
+        val result = invokeSaveOrUpdate(
+            laptop(
+                name = "Brand New",
+                detailPage = "https://example.com/new",
+                productCode = "NEW1",
+                price = 1_490_000,
+            ),
+        )
+
+        assertThat(result).isEqualTo("CREATED")
+        assertThat(laptopPriceHistoryRepository.count()).isEqualTo(1)
+        assertThat(laptopPriceHistoryRepository.findAll().single().price).isEqualTo(1_490_000)
     }
 
     @Test
@@ -175,6 +196,8 @@ class CrawlerPersistenceIntegrationTest {
         assertThat(laptopRepository.count()).isEqualTo(1)
         assertThat(refreshed.price).isEqualTo(1_190_000)
         assertThat(refreshed.imageUrl).isEqualTo("https://example.com/updated.jpg")
+        assertThat(laptopPriceHistoryRepository.count()).isEqualTo(1)
+        assertThat(laptopPriceHistoryRepository.findAll().single().price).isEqualTo(1_190_000)
         assertThat(refreshed.cpuManufacturer).isEqualTo("인텔")
         assertThat(refreshed.cpu).isEqualTo("225U")
         assertThat(refreshed.ramSize).isEqualTo(16)

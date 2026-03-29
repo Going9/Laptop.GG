@@ -22,6 +22,8 @@ flowchart LR
 - 크롤러는 GitHub Actions에서 수동 실행하거나 스케줄 실행합니다.
 - 목록 크롤링은 Danawa HTTP/AJAX 요청 기반이라 Chrome/Selenium 설치가 필요 없습니다.
 - 운영 PostgreSQL 스키마는 Flyway 마이그레이션으로 관리합니다.
+- 크롤러는 기존 상품의 가격/이미지/링크를 빠르게 갱신하고, 상세 스펙이 비었거나 오래된 상품만 다시 자세히 수집합니다.
+- 가격 변동 이력은 `laptop_price_history` 테이블에 저장합니다.
 
 ## 저장소 구조
 
@@ -89,6 +91,11 @@ export PATH="$JAVA_HOME/bin:$PATH"
 ./gradlew --no-daemon test
 ```
 
+회귀 테스트에는 실제 Danawa 구조를 닮은 HTML fixture가 포함됩니다.
+- `src/test/resources/fixtures/danawa/list-page.html`
+- `src/test/resources/fixtures/danawa/detail-page.html`
+- `src/test/resources/fixtures/danawa/detail-spec.html`
+
 ## 웹 배포
 
 `main` 브랜치에 push 하면 `.github/workflows/deploy-web.yml` 이 실행됩니다.
@@ -99,7 +106,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 3. 앱 서버의 `laptopgg.service`를 재시작합니다.
 
 배포 시점 동작:
-- 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`를 적용합니다.
+- 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`, `V3 크롤링 추적/가격 이력`을 적용합니다.
 - 기존 PostgreSQL: Flyway가 baseline 후 누락된 후속 마이그레이션만 적용합니다.
 
 앱 서버에서 사용하는 주요 환경 변수 예시:
@@ -141,8 +148,10 @@ JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 1. GitHub Actions가 DB 서버로 SSH 접속합니다.
 2. SSH 터널로 PostgreSQL에 연결합니다.
 3. 목록은 HTTP/AJAX로, 상세는 HTTP 요청으로 수집합니다.
-4. `postgres,crawler` 프로필로 크롤러를 실행합니다.
-5. 크롤링 결과를 DB에 직접 적재합니다.
+4. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
+5. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
+6. `postgres,crawler` 프로필로 크롤러를 실행합니다.
+7. 크롤링 결과를 DB에 직접 적재합니다.
 
 ## nginx와 도메인
 

@@ -2,17 +2,20 @@ package going9.laptopgg.service.crawler
 
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.LaptopProfileFactory
+import going9.laptopgg.service.LaptopPriceHistoryService
 import going9.laptopgg.service.LaptopProfileService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import java.time.LocalDateTime
 
 class CrawlerServiceNormalizationTest {
     private val crawlerService = CrawlerService(
         laptopRepository = mock(LaptopRepository::class.java),
         laptopProfileService = mock(LaptopProfileService::class.java),
         laptopProfileFactory = LaptopProfileFactory(),
+        laptopPriceHistoryService = mock(LaptopPriceHistoryService::class.java),
     )
 
     @Test
@@ -118,5 +121,64 @@ class CrawlerServiceNormalizationTest {
         assertThat(result.listPackageType).isEqualTo("3")
         assertThat(result.packageLimit).isEqualTo("7")
         assertThat(result.makerDisplayYn).isEqualTo("Y")
+    }
+
+    @Test
+    fun `detail refresh is skipped for complete recently crawled laptop`() {
+        val laptop = sampleLaptop(lastDetailedCrawledAt = LocalDateTime.now().minusDays(5))
+
+        val result = invokeNeedsDetailRefresh(laptop)
+
+        assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `detail refresh is required for stale laptop even when specs exist`() {
+        val laptop = sampleLaptop(lastDetailedCrawledAt = LocalDateTime.now().minusDays(45))
+
+        val result = invokeNeedsDetailRefresh(laptop)
+
+        assertThat(result).isTrue()
+    }
+
+    private fun invokeNeedsDetailRefresh(laptop: going9.laptopgg.domain.laptop.Laptop): Boolean {
+        val method = crawlerService.javaClass.getDeclaredMethod("needsDetailRefresh", going9.laptopgg.domain.laptop.Laptop::class.java)
+        method.setAccessible(true)
+        return method.invoke(crawlerService, laptop) as Boolean
+    }
+
+    private fun sampleLaptop(lastDetailedCrawledAt: LocalDateTime?): going9.laptopgg.domain.laptop.Laptop {
+        val laptop = going9.laptopgg.domain.laptop.Laptop(
+            name = "테스트 노트북",
+            imageUrl = "https://example.com/test.jpg",
+            detailPage = "https://prod.danawa.com/info/?pcode=1&cate=112758",
+            productCode = "1",
+            price = 1_000_000,
+            cpuManufacturer = "AMD",
+            cpu = "7535HS",
+            os = "윈도우11홈",
+            screenSize = 15,
+            resolution = "1920x1200(WUXGA)",
+            brightness = 300,
+            refreshRate = 60,
+            ramSize = 16,
+            ramType = "LPDDR5X",
+            isRamReplaceable = false,
+            graphicsType = "Radeon 660M",
+            tgp = 0,
+            thunderboltCount = null,
+            usbCCount = 2,
+            usbACount = 2,
+            sdCard = null,
+            isSupportsPdCharging = true,
+            batteryCapacity = 60.0,
+            storageCapacity = 512,
+            storageSlotCount = 1,
+            weight = 1.49,
+            lastDetailedCrawledAt = lastDetailedCrawledAt,
+            laptopUsage = mutableListOf(),
+        )
+        laptop.laptopUsage.add(going9.laptopgg.domain.laptop.LaptopUsage(usage = "사무/인강용", laptop = laptop))
+        return laptop
     }
 }

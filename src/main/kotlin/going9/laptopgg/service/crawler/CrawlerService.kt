@@ -5,6 +5,7 @@ import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.LaptopProfileFactory
+import going9.laptopgg.service.LaptopPriceHistoryService
 import going9.laptopgg.service.LaptopProfileService
 import org.jsoup.Jsoup
 import org.springframework.stereotype.Service
@@ -17,6 +18,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
@@ -27,6 +29,7 @@ class CrawlerService(
     private val laptopRepository: LaptopRepository,
     private val laptopProfileService: LaptopProfileService,
     private val laptopProfileFactory: LaptopProfileFactory,
+    private val laptopPriceHistoryService: LaptopPriceHistoryService,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val httpClient = HttpClient.newBuilder()
@@ -550,6 +553,7 @@ class CrawlerService(
             storageCapacity = parseCapacityInGb(spec["용량"]) ?: summaryFallback.storageCapacity,
             storageSlotCount = parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,
             weight = parseWeightValue(spec["무게"]) ?: summaryFallback.weight,
+            lastDetailedCrawledAt = LocalDateTime.now(),
             laptopUsage = mutableListOf(),
         )
 
@@ -573,9 +577,11 @@ class CrawlerService(
         if (existingLaptop == null) {
             val savedLaptop = laptopRepository.save(laptop)
             laptopProfileService.syncProfile(savedLaptop)
+            laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice = null)
             return SaveResult.CREATED
         }
 
+        val previousPrice = existingLaptop.price
         var changed = false
 
         changed = updateTextField(existingLaptop.name, laptop.name) { existingLaptop.name = it } || changed
@@ -604,6 +610,7 @@ class CrawlerService(
         changed = updatePresentField(existingLaptop.storageCapacity, laptop.storageCapacity) { existingLaptop.storageCapacity = it } || changed
         changed = updatePresentField(existingLaptop.storageSlotCount, laptop.storageSlotCount) { existingLaptop.storageSlotCount = it } || changed
         changed = updatePresentField(existingLaptop.weight, laptop.weight) { existingLaptop.weight = it } || changed
+        changed = updatePresentField(existingLaptop.lastDetailedCrawledAt, laptop.lastDetailedCrawledAt) { existingLaptop.lastDetailedCrawledAt = it } || changed
 
         val existingUsages = existingLaptop.laptopUsage.map { it.usage }.sorted()
         val newUsages = laptop.laptopUsage.map { it.usage }.sorted()
@@ -618,6 +625,7 @@ class CrawlerService(
         return if (changed) {
             val savedLaptop = laptopRepository.save(existingLaptop)
             laptopProfileService.syncProfile(savedLaptop)
+            laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice)
             SaveResult.UPDATED
         } else {
             SaveResult.UNCHANGED
@@ -625,6 +633,7 @@ class CrawlerService(
     }
 
     private fun saveListSnapshot(existingLaptop: Laptop, productCard: ProductCard): SaveResult {
+        val previousPrice = existingLaptop.price
         var changed = false
 
         changed = updateTextField(existingLaptop.name, productCard.productName) { existingLaptop.name = it } || changed
@@ -637,7 +646,8 @@ class CrawlerService(
             return SaveResult.UNCHANGED
         }
 
-        laptopRepository.save(existingLaptop)
+        val savedLaptop = laptopRepository.save(existingLaptop)
+        laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice)
         return SaveResult.UPDATED
     }
 
@@ -684,6 +694,8 @@ class CrawlerService(
             existingLaptop.storageCapacity == null ||
             existingLaptop.batteryCapacity == null ||
             existingLaptop.weight == null ||
+            existingLaptop.lastDetailedCrawledAt == null ||
+            existingLaptop.lastDetailedCrawledAt!!.isBefore(LocalDateTime.now().minusDays(DETAIL_REFRESH_INTERVAL_DAYS)) ||
             existingLaptop.laptopUsage.isEmpty()
     }
 
@@ -1169,7 +1181,7 @@ class CrawlerService(
     }
 
     private fun extractQueryParam(url: String, key: String): String? {
-        return Regex("""(?:\?|&)$key=([^&]+)""").find(url)?.groupValues?.getOrNull(1)
+        return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
     }
 
     private fun extractFirst(text: String, regex: Regex): String? {
@@ -1212,6 +1224,7 @@ class CrawlerService(
         private const val MAX_FAILURE_SAMPLES = 10
         private const val MAX_LIST_PAGES = 5000
         private const val DETAIL_FETCH_CONCURRENCY = 6
+        private const val DETAIL_REFRESH_INTERVAL_DAYS = 30L
         private val DISCRETE_GPU_KEYWORDS = listOf(
             "RTX",
             "GTX",

@@ -1,6 +1,7 @@
 package going9.laptopgg.domain.laptop
 
 import jakarta.persistence.*
+import java.time.LocalDateTime
 
 @Entity
 data class Laptop(
@@ -30,6 +31,7 @@ data class Laptop(
     var storageCapacity: Int?,       // 저장 장치 용량 (GB)
     var storageSlotCount: Int?,     // 저장 장치 슬롯 수
     var weight: Double?,             // 무게 (kg)
+    var lastDetailedCrawledAt: LocalDateTime? = null,
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     var laptopUsage: MutableList<LaptopUsage> = mutableListOf(),
