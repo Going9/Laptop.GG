@@ -106,7 +106,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 3. 앱 서버의 `laptopgg.service`를 재시작합니다.
 
 배포 시점 동작:
-- 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`, `V3 크롤링 추적/가격 이력`, `V4 추천 정적 점수 컬럼`을 적용합니다.
+- 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`, `V3 크롤링 추적/가격 이력`, `V4 추천 정적 점수 컬럼`, `V5 레거시 product_code 보강`을 적용합니다.
 - 기존 PostgreSQL: Flyway가 baseline 후 누락된 후속 마이그레이션만 적용합니다.
 
 앱 서버에서 사용하는 주요 환경 변수 예시:
