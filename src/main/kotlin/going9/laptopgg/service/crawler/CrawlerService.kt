@@ -202,6 +202,11 @@ class CrawlerService(
         val error: Exception? = null,
     )
 
+    internal data class ProductPageBatch(
+        val productCards: List<ProductCard>,
+        val hasNextPage: Boolean,
+    )
+
     private enum class SaveResult {
         CREATED,
         UPDATED,
@@ -212,7 +217,7 @@ class CrawlerService(
         val initialListHtml = fetchListPageHtml()
         val listRequestContext = extractListRequestContext(initialListHtml)
         val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
-        val seenProductCodes = linkedSetOf<String>()
+        val seenDetailPages = linkedSetOf<String>()
         var currentPage = startPage.coerceAtLeast(1)
         var processedCount = 0
         var createdCount = 0
@@ -229,18 +234,15 @@ class CrawlerService(
             logger.info("크롤링을 시작합니다. startPage={}, limit={}", currentPage, limit ?: "ALL")
             while (currentPage <= MAX_LIST_PAGES) {
                 val pageStartTime = System.currentTimeMillis()
-                val productCards = fetchProductCards(currentPage, listRequestContext, initialListHtml)
+                val pageBatch = fetchProductPageBatch(currentPage, listRequestContext, initialListHtml)
+                val productCards = pageBatch.productCards
 
                 if (productCards.isEmpty()) {
                     logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. page={}", currentPage)
                     break
                 }
 
-                val freshProductCards = productCards.filter { seenProductCodes.add(it.productCode) }
-                if (freshProductCards.isEmpty()) {
-                    logger.info("이미 수집한 상품만 반복되어 크롤링을 종료합니다. page={}", currentPage)
-                    break
-                }
+                val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
 
                 val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
                 if (remainingQuota == 0) {
@@ -369,6 +371,11 @@ class CrawlerService(
                     break
                 }
 
+                if (!pageBatch.hasNextPage) {
+                    logger.info("다음 페이지가 없어 크롤링을 종료합니다. page={}", currentPage)
+                    break
+                }
+
                 currentPage++
             }
 
@@ -425,18 +432,21 @@ class CrawlerService(
         return sendRequest(request)
     }
 
-    private fun fetchProductCards(
+    private fun fetchProductPageBatch(
         page: Int,
         listRequestContext: ListRequestContext,
         initialListHtml: String,
-    ): List<ProductCard> {
+    ): ProductPageBatch {
         val html = if (page == 1) {
             initialListHtml
         } else {
             fetchListPageHtml(page, listRequestContext)
         }
 
-        return parseListPage(html)
+        return ProductPageBatch(
+            productCards = parseListPage(html),
+            hasNextPage = hasNextPage(html, page),
+        )
     }
 
     internal fun extractListRequestContext(initialListHtml: String): ListRequestContext {
@@ -781,7 +791,22 @@ class CrawlerService(
                     cate4 = cateValues[3],
                 )
             }
-            .distinctBy { it.productCode }
+            .distinctBy { it.detailPage }
+    }
+
+    internal fun hasNextPage(html: String, currentPage: Int): Boolean {
+        val document = Jsoup.parse(html, LIST_URL)
+        val navigation = document.selectFirst(".num_nav_wrap") ?: return false
+
+        val hasHigherNumberedPage = navigation.select(".number_wrap a.num")
+            .mapNotNull { anchor -> anchor.text().trim().toIntOrNull() }
+            .any { page -> page > currentPage }
+
+        if (hasHigherNumberedPage) {
+            return true
+        }
+
+        return navigation.selectFirst(".edge_nav.nav_next") != null
     }
 
     private fun fetchDetailPageHtml(detailPage: String): String {

@@ -57,6 +57,56 @@ class CrawlerHtmlFixtureParsingTest {
         assertThat(summaryFallback.storageCapacity).isEqualTo(512)
     }
 
+    @Test
+    fun `list parsing keeps cards when product code matches but detail page differs`() {
+        val html = """
+            <html>
+              <body>
+                <ul>
+                  <li class="prod_item">
+                    <a name="productName" href="https://prod.danawa.com/info/?pcode=111&cate=112758">모델 A</a>
+                    <div class="thumb_image"><img src="https://img.danawa.com/a.jpg" /></div>
+                    <div class="prod_pricelist" data-cate="112|758|0|112758"><span class="text__number">1,000</span></div>
+                  </li>
+                  <li class="prod_item">
+                    <a name="productName" href="https://prod.danawa.com/info/?pcode=111&cate=112760">모델 A 변형</a>
+                    <div class="thumb_image"><img src="https://img.danawa.com/b.jpg" /></div>
+                    <div class="prod_pricelist" data-cate="112|758|0|112760"><span class="text__number">2,000</span></div>
+                  </li>
+                </ul>
+              </body>
+            </html>
+        """.trimIndent()
+
+        val productCards = crawlerService.parseListPage(html)
+
+        assertThat(productCards).hasSize(2)
+        assertThat(productCards.map { it.detailPage }).containsExactly(
+            "https://prod.danawa.com/info/?pcode=111&cate=112758",
+            "https://prod.danawa.com/info/?pcode=111&cate=112760",
+        )
+    }
+
+    @Test
+    fun `page navigation detects a next page when navigation block exposes it`() {
+        val html = """
+            <html>
+              <body>
+                <div class="num_nav_wrap">
+                  <div class="number_wrap">
+                    <a class="num now_on">1</a>
+                    <a class="num">2</a>
+                  </div>
+                  <a class="edge_nav nav_next" href="#">다음 페이지</a>
+                </div>
+              </body>
+            </html>
+        """.trimIndent()
+
+        assertThat(crawlerService.hasNextPage(html, currentPage = 1)).isTrue()
+        assertThat(crawlerService.hasNextPage(html, currentPage = 2)).isTrue()
+    }
+
     private fun readFixture(path: String): String {
         return requireNotNull(javaClass.getResource(path)) { "Fixture not found: $path" }.readText()
     }
