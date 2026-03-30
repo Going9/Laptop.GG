@@ -114,6 +114,37 @@ class CrawlerHtmlFixtureParsingTest {
     }
 
     @Test
+    fun `page diagnostics extract count and next page hint`() {
+        val html = """
+            <html>
+              <body>
+                <ul class="tab_list_nav">
+                  <li><a href="#"><strong>가격비교</strong><strong>(20,551)</strong></a></li>
+                </ul>
+                <div class="num_nav_wrap">
+                  <div class="number_wrap">
+                    <a class="num now_on">61</a>
+                    <a class="num">62</a>
+                    <a class="num">63</a>
+                    <a class="num">64</a>
+                    <a class="num">65</a>
+                    <a class="num">66</a>
+                    <a class="num">67</a>
+                    <a class="num">68</a>
+                    <a class="num">69</a>
+                  </div>
+                  <a class="edge_nav nav_next" onclick="javascript:movePage(70); return false;">다음 페이지</a>
+                </div>
+              </body>
+            </html>
+        """.trimIndent()
+
+        assertThat(crawlerService.extractPriceCompareCount(html)).isEqualTo(20_551)
+        assertThat(crawlerService.extractVisiblePageNumbers(html)).containsExactly(61, 62, 63, 64, 65, 66, 67, 68, 69)
+        assertThat(crawlerService.extractNextPageHint(html)).isEqualTo(70)
+    }
+
+    @Test
     fun `duplicate tail stops only after repeated signature or sustained duplicate pages`() {
         assertThat(
             crawlerService.shouldStopAtDuplicateTail(

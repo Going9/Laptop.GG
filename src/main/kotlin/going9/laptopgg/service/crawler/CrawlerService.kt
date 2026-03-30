@@ -214,6 +214,9 @@ class CrawlerService(
     internal data class ProductPageBatch(
         val productCards: List<ProductCard>,
         val hasNextPage: Boolean,
+        val priceCompareCount: Int?,
+        val visiblePageNumbers: List<Int>,
+        val nextPageHint: Int?,
     )
 
     private enum class SaveResult {
@@ -293,6 +296,10 @@ class CrawlerService(
                     val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
                     val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
                     val duplicateSkippedCount = productCards.size - freshProductCards.size
+                    val visiblePagesLog = pageBatch.visiblePageNumbers
+                        .takeIf { it.isNotEmpty() }
+                        ?.joinToString(",")
+                        ?: "없음"
                     consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
                         consecutiveDuplicateOnlyPages + 1
                     } else {
@@ -418,6 +425,22 @@ class CrawlerService(
                         reachedLimit = true
                     }
 
+                    if (currentPage == 1 || freshProductCards.isEmpty() || isRepeatedPageSignature) {
+                        logger.info(
+                            "페이지 진단: source={}, page={}, hasNextPage={}, priceCompareCount={}, visiblePages={}, nextPageHint={}, repeatedPageSignature={}, pageSignatureHash={}, firstCard={}, lastCard={}",
+                            crawlSource.key,
+                            currentPage,
+                            pageBatch.hasNextPage,
+                            pageBatch.priceCompareCount ?: "알 수 없음",
+                            visiblePagesLog,
+                            pageBatch.nextPageHint ?: "없음",
+                            isRepeatedPageSignature,
+                            pageSignature.stableHash(),
+                            describeCard(productCards.firstOrNull()),
+                            describeCard(productCards.lastOrNull()),
+                        )
+                    }
+
                     logger.info(
                         "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / source=${crawlSource.key} / page=${currentPage} / " +
                             "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
@@ -437,11 +460,18 @@ class CrawlerService(
                         )
                     ) {
                         logger.info(
-                            "새 detail 페이지가 없는 중복 꼬리 구간으로 판단해 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}",
+                            "새 detail 페이지가 없는 중복 꼬리 구간으로 판단해 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}, hasNextPage={}, visiblePages={}, nextPageHint={}, priceCompareCount={}, pageSignatureHash={}, firstCard={}, lastCard={}",
                             crawlSource.key,
                             currentPage,
                             isRepeatedPageSignature,
                             consecutiveDuplicateOnlyPages,
+                            pageBatch.hasNextPage,
+                            visiblePagesLog,
+                            pageBatch.nextPageHint ?: "없음",
+                            pageBatch.priceCompareCount ?: "알 수 없음",
+                            pageSignature.stableHash(),
+                            describeCard(productCards.firstOrNull()),
+                            describeCard(productCards.lastOrNull()),
                         )
                         break
                     }
@@ -531,6 +561,9 @@ class CrawlerService(
         return ProductPageBatch(
             productCards = parseListPage(html),
             hasNextPage = hasNextPage(html, page),
+            priceCompareCount = extractPriceCompareCount(html),
+            visiblePageNumbers = extractVisiblePageNumbers(html),
+            nextPageHint = extractNextPageHint(html),
         )
     }
 
@@ -909,6 +942,31 @@ class CrawlerService(
             consecutiveDuplicateOnlyPages >= MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES
     }
 
+    internal fun extractPriceCompareCount(html: String): Int? {
+        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
+        return document.select(".tab_list_nav a")
+            .map { it.text().trim() }
+            .firstOrNull { it.contains("가격비교") }
+            ?.let { PRICE_COMPARE_COUNT_REGEX.find(it)?.groupValues?.get(1) }
+            ?.replace(",", "")
+            ?.toIntOrNull()
+    }
+
+    internal fun extractVisiblePageNumbers(html: String): List<Int> {
+        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
+        return document.select(".num_nav_wrap .number_wrap a.num")
+            .mapNotNull { it.text().trim().toIntOrNull() }
+    }
+
+    internal fun extractNextPageHint(html: String): Int? {
+        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
+        val onclick = document.selectFirst(".num_nav_wrap .edge_nav.nav_next")
+            ?.attr("onclick")
+            ?.takeIf { it.isNotBlank() }
+            ?: return null
+        return MOVE_PAGE_REGEX.find(onclick)?.groupValues?.get(1)?.toIntOrNull()
+    }
+
     internal fun createPageSignature(productCards: List<ProductCard>): String {
         return productCards.joinToString("||") { it.detailPage }
     }
@@ -1227,6 +1285,19 @@ class CrawlerService(
         return buildFormData(data.entries.map { it.key to it.value })
     }
 
+    private fun describeCard(productCard: ProductCard?): String {
+        if (productCard == null) {
+            return "없음"
+        }
+
+        val cate = extractQueryParam(productCard.detailPage, "cate") ?: productCard.cate4
+        return "${productCard.productCode}@${cate}"
+    }
+
+    private fun String.stableHash(): String {
+        return hashCode().toUInt().toString(16)
+    }
+
     private fun normalizeImageUrl(url: String): String {
         if (url.isBlank()) {
             return ""
@@ -1484,6 +1555,8 @@ class CrawlerService(
         private const val MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES = 5
         private const val DETAIL_FETCH_CONCURRENCY = 6
         private const val DETAIL_REFRESH_INTERVAL_DAYS = 30L
+        private val PRICE_COMPARE_COUNT_REGEX = Regex("""\(([\d,]+)\)""")
+        private val MOVE_PAGE_REGEX = Regex("""movePage\((\d+)\)""")
         private val RETRYABLE_STATUS_CODES = setOf(403, 429, 500, 502, 503, 504)
         private val DISCRETE_GPU_KEYWORDS = listOf(
             "RTX",
