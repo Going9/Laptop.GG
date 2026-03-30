@@ -28,7 +28,17 @@ jobs:
         run: ./gradlew --no-daemon clean bootJar
 
       - name: Prepare artifact
-        run: cp build/libs/*.jar app.jar
+        run: cp build/libs/*.jar app-${GITHUB_SHA}.jar
+
+      - name: Prepare remote release directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.APP_SSH_HOST }}
+          username: ${{ secrets.APP_SSH_USER }}
+          key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.APP_SSH_PORT }}
+          script: |
+            mkdir -p /home/ubuntu/laptopgg/releases
 
       - name: Upload jar
         uses: appleboy/scp-action@v0.1.7
@@ -37,8 +47,8 @@ jobs:
           username: ${{ secrets.APP_SSH_USER }}
           key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.APP_SSH_PORT }}
-          source: "app.jar"
-          target: "/home/ubuntu/laptopgg"
+          source: "app-${{ github.sha }}.jar"
+          target: "/home/ubuntu/laptopgg/releases/"
 
       - name: Restart service
         uses: appleboy/ssh-action@v1.0.3
@@ -48,5 +58,12 @@ jobs:
           key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.APP_SSH_PORT }}
           script: |
+            mv /home/ubuntu/laptopgg/releases/app-${{ github.sha }}.jar /home/ubuntu/laptopgg/app.jar
             sudo systemctl restart laptopgg
             sudo systemctl status laptopgg --no-pager
+            for i in {1..20}; do
+              curl -fsS http://127.0.0.1:8080 >/dev/null && exit 0
+              sleep 2
+            done
+            echo "Web health check failed after deploy." >&2
+            exit 1

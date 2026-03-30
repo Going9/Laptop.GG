@@ -102,8 +102,9 @@ export PATH="$JAVA_HOME/bin:$PATH"
 
 배포 순서:
 1. GitHub Actions가 JDK 17로 `bootJar`를 빌드합니다.
-2. 생성된 `app.jar`를 앱 서버로 업로드합니다.
-3. 앱 서버의 `laptopgg.service`를 재시작합니다.
+2. 생성된 jar를 임시 release 경로로 업로드합니다.
+3. 앱 서버에서 `app.jar`로 원자적으로 교체합니다.
+4. `laptopgg.service`를 재시작하고 `127.0.0.1:8080` 헬스 체크까지 확인합니다.
 
 배포 시점 동작:
 - 신규 PostgreSQL: Flyway가 `V1 초기 스키마`, `V2 추천 인덱스`, `V3 크롤링 추적/가격 이력`, `V4 추천 정적 점수 컬럼`, `V5 레거시 product_code 보강`을 적용합니다.
@@ -119,7 +120,7 @@ SPRING_DATASOURCE_PASSWORD=<db-password>
 JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 ```
 
-`systemd` 서비스는 `app.jar`만 교체되면 재기동되도록 구성하는 방식을 권장합니다.
+`systemd` 서비스는 `app.jar`를 직접 읽고, 배포는 임시 파일 업로드 후 `mv`로 교체하는 방식을 권장합니다. 이렇게 하면 업로드 중 반쯤 복사된 jar를 잡고 기동하는 일을 피할 수 있습니다.
 
 ## 크롤러 운영
 
