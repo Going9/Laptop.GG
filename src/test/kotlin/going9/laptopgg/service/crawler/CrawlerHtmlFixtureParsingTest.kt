@@ -107,6 +107,66 @@ class CrawlerHtmlFixtureParsingTest {
         assertThat(crawlerService.hasNextPage(html, currentPage = 2)).isTrue()
     }
 
+    @Test
+    fun `duplicate tail stops only after repeated signature or sustained duplicate pages`() {
+        assertThat(
+            crawlerService.shouldStopAtDuplicateTail(
+                freshProductCount = 1,
+                isRepeatedPageSignature = false,
+                consecutiveDuplicateOnlyPages = 3,
+            ),
+        ).isFalse()
+
+        assertThat(
+            crawlerService.shouldStopAtDuplicateTail(
+                freshProductCount = 0,
+                isRepeatedPageSignature = true,
+                consecutiveDuplicateOnlyPages = 1,
+            ),
+        ).isTrue()
+
+        assertThat(
+            crawlerService.shouldStopAtDuplicateTail(
+                freshProductCount = 0,
+                isRepeatedPageSignature = false,
+                consecutiveDuplicateOnlyPages = 5,
+            ),
+        ).isTrue()
+    }
+
+    @Test
+    fun `page signature is based on detail pages in order`() {
+        val cards = listOf(
+            CrawlerService.ProductCard(
+                productCode = "111",
+                productName = "A",
+                detailPage = "https://prod.danawa.com/info/?pcode=111&cate=112758",
+                imageUrl = "https://img.danawa.com/a.jpg",
+                price = 1000,
+                cate1 = "112",
+                cate2 = "758",
+                cate3 = "0",
+                cate4 = "112758",
+            ),
+            CrawlerService.ProductCard(
+                productCode = "111",
+                productName = "A variant",
+                detailPage = "https://prod.danawa.com/info/?pcode=111&cate=112760",
+                imageUrl = "https://img.danawa.com/b.jpg",
+                price = 2000,
+                cate1 = "112",
+                cate2 = "758",
+                cate3 = "0",
+                cate4 = "112760",
+            ),
+        )
+
+        assertThat(crawlerService.createPageSignature(cards))
+            .isEqualTo(
+                "https://prod.danawa.com/info/?pcode=111&cate=112758||https://prod.danawa.com/info/?pcode=111&cate=112760",
+            )
+    }
+
     private fun readFixture(path: String): String {
         return requireNotNull(javaClass.getResource(path)) { "Fixture not found: $path" }.readText()
     }

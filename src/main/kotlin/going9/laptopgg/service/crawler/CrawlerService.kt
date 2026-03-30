@@ -218,6 +218,7 @@ class CrawlerService(
         val listRequestContext = extractListRequestContext(initialListHtml)
         val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
         val seenDetailPages = linkedSetOf<String>()
+        val seenPageSignatures = linkedSetOf<String>()
         var currentPage = startPage.coerceAtLeast(1)
         var processedCount = 0
         var createdCount = 0
@@ -225,6 +226,7 @@ class CrawlerService(
         var degradedCount = 0
         var priceOnlyUpdatedCount = 0
         var detailRefreshCount = 0
+        var consecutiveDuplicateOnlyPages = 0
         val degradedSamples = mutableListOf<String>()
         var failedCount = 0
         val failureSamples = mutableListOf<String>()
@@ -242,7 +244,15 @@ class CrawlerService(
                     break
                 }
 
+                val pageSignature = createPageSignature(productCards)
+                val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
                 val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
+                val duplicateSkippedCount = productCards.size - freshProductCards.size
+                consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
+                    consecutiveDuplicateOnlyPages + 1
+                } else {
+                    0
+                }
 
                 val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
                 if (remainingQuota == 0) {
@@ -251,6 +261,7 @@ class CrawlerService(
 
                 val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
                 processedCount += candidateProductCards.size
+                var pagePriceOnlyUpdatedCount = 0
 
                 val existingLookup = loadExistingLookup(candidateProductCards)
                 val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
@@ -263,6 +274,7 @@ class CrawlerService(
                                 SaveResult.UPDATED -> {
                                     updatedCount++
                                     priceOnlyUpdatedCount++
+                                    pagePriceOnlyUpdatedCount++
                                 }
                                 SaveResult.UNCHANGED -> Unit
                                 SaveResult.CREATED -> Unit
@@ -326,6 +338,7 @@ class CrawlerService(
                                 SaveResult.UPDATED -> {
                                     updatedCount++
                                     priceOnlyUpdatedCount++
+                                    pagePriceOnlyUpdatedCount++
                                 }
                                 SaveResult.UNCHANGED -> Unit
                                 SaveResult.CREATED -> Unit
@@ -363,11 +376,27 @@ class CrawlerService(
                 logger.info(
                     "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / page=${currentPage} / " +
                         "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
-                        "상세 재수집: ${detailRefreshWorkItems.size}개 / 가격만 갱신: ${priceOnlyUpdatedCount}개 / " +
+                        "상세 재수집: ${detailRefreshWorkItems.size}개 / 중복 스킵: ${duplicateSkippedCount}개 / " +
+                        "가격만 갱신(페이지): ${pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${priceOnlyUpdatedCount}개 / " +
                         "누적 처리: ${processedCount}개 / 누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
                 )
 
                 if (reachedLimit) {
+                    break
+                }
+
+                if (shouldStopAtDuplicateTail(
+                        freshProductCount = freshProductCards.size,
+                        isRepeatedPageSignature = isRepeatedPageSignature,
+                        consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
+                    )
+                ) {
+                    logger.info(
+                        "새 detail 페이지가 없는 중복 꼬리 구간으로 판단해 크롤링을 종료합니다. page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}",
+                        currentPage,
+                        isRepeatedPageSignature,
+                        consecutiveDuplicateOnlyPages,
+                    )
                     break
                 }
 
@@ -807,6 +836,23 @@ class CrawlerService(
         }
 
         return navigation.selectFirst(".edge_nav.nav_next") != null
+    }
+
+    internal fun shouldStopAtDuplicateTail(
+        freshProductCount: Int,
+        isRepeatedPageSignature: Boolean,
+        consecutiveDuplicateOnlyPages: Int,
+    ): Boolean {
+        if (freshProductCount > 0) {
+            return false
+        }
+
+        return isRepeatedPageSignature ||
+            consecutiveDuplicateOnlyPages >= MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES
+    }
+
+    internal fun createPageSignature(productCards: List<ProductCard>): String {
+        return productCards.joinToString("||") { it.detailPage }
     }
 
     private fun fetchDetailPageHtml(detailPage: String): String {
@@ -1327,6 +1373,7 @@ class CrawlerService(
         private const val REQUEST_JITTER_MILLIS = 80L
         private const val MAX_FAILURE_SAMPLES = 10
         private const val MAX_LIST_PAGES = 5000
+        private const val MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES = 5
         private const val DETAIL_FETCH_CONCURRENCY = 6
         private const val DETAIL_REFRESH_INTERVAL_DAYS = 30L
         private val RETRYABLE_STATUS_CODES = setOf(403, 429, 500, 502, 503, 504)
