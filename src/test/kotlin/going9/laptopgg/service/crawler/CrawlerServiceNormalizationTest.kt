@@ -108,7 +108,13 @@ class CrawlerServiceNormalizationTest {
             </script>
         """.trimIndent()
 
-        val result = crawlerService.extractListRequestContext(html)
+        val result = crawlerService.extractListRequestContext(
+            html,
+            CrawlerService.CrawlSource(
+                key = "fixture",
+                listUrl = "https://prod.danawa.com/list/?cate=112758",
+            ),
+        )
 
         assertThat(result.categoryCode).isEqualTo("758")
         assertThat(result.listCategoryCode).isEqualTo("758")

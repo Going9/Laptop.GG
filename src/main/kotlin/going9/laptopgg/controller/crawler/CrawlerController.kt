@@ -18,7 +18,8 @@ class CrawlerController(
     fun startCrawling(
         @RequestParam(required = false) limit: Int?,
         @RequestParam(required = false, defaultValue = "1") startPage: Int,
+        @RequestParam(required = false) filterProfile: String?,
     ): CrawlerService.CrawlSummary {
-        return crawlerService.crawlAll(limit = limit, startPage = startPage)
+        return crawlerService.crawlAll(limit = limit, startPage = startPage, filterProfileRaw = filterProfile)
     }
 }

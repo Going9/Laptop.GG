@@ -20,7 +20,13 @@ class CrawlerHtmlFixtureParsingTest {
     fun `list fixture keeps context and canonical product card fields`() {
         val html = readFixture("/fixtures/danawa/list-page.html")
 
-        val requestContext = crawlerService.extractListRequestContext(html)
+        val requestContext = crawlerService.extractListRequestContext(
+            html,
+            CrawlerService.CrawlSource(
+                key = "fixture",
+                listUrl = "https://prod.danawa.com/list/?cate=112758",
+            ),
+        )
         val productCards = crawlerService.parseListPage(html)
 
         assertThat(requestContext.categoryCode).isEqualTo("758")
@@ -165,6 +171,45 @@ class CrawlerHtmlFixtureParsingTest {
             .isEqualTo(
                 "https://prod.danawa.com/info/?pcode=111&cate=112758||https://prod.danawa.com/info/?pcode=111&cate=112760",
             )
+    }
+
+    @Test
+    fun `core filter profile resolves codename source plus apple source`() {
+        val crawlSources = crawlerService.resolveCrawlSources(CrawlerService.FilterProfile.CORE)
+
+        assertThat(crawlSources).hasSize(2)
+        assertThat(crawlSources.first().key).isEqualTo("notebook-core-codename")
+        assertThat(crawlSources.first().attributeFilters.map { it.name })
+            .contains("팬서레이크", "고르곤 포인트", "오라이온")
+        assertThat(crawlSources.last().key).isEqualTo("apple-macbook")
+        assertThat(crawlSources.last().attributeFilters).isEmpty()
+    }
+
+    @Test
+    fun `list request form data keeps repeated cpu codename filters`() {
+        val context = CrawlerService.ListRequestContext(
+            searchAttributeValues = listOf(
+                "758|6492|1137658|OR",
+                "758|6492|1137661|OR",
+            ),
+        )
+
+        val formData = context.toFormData(page = 1)
+
+        assertThat(formData).contains("page" to "1")
+        assertThat(formData.filter { it.first == "searchAttributeValue[]" })
+            .containsExactly(
+                "searchAttributeValue[]" to "758|6492|1137658|OR",
+                "searchAttributeValue[]" to "758|6492|1137661|OR",
+            )
+    }
+
+    @Test
+    fun `unknown filter profile falls back to core`() {
+        assertThat(crawlerService.resolveFilterProfile("weird-profile"))
+            .isEqualTo(CrawlerService.FilterProfile.CORE)
+        assertThat(crawlerService.resolveFilterProfile("none"))
+            .isEqualTo(CrawlerService.FilterProfile.NONE)
     }
 
     private fun readFixture(path: String): String {

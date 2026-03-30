@@ -18,6 +18,7 @@ class CrawlerStartupRunner(
     private val crawlerService: CrawlerService,
     @Value("\${app.crawler.limit:}") private val defaultLimitRaw: String,
     @Value("\${app.crawler.start-page:}") private val defaultStartPageRaw: String,
+    @Value("\${app.crawler.filter-profile:core}") private val defaultFilterProfileRaw: String,
 ) : ApplicationRunner {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -36,11 +37,17 @@ class CrawlerStartupRunner(
             ?.toIntOrNull()
             ?: defaultStartPage
             ?: 1
+        val filterProfile = args.getOptionValues("app.crawler.filter-profile")
+            ?.firstOrNull()
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?: defaultFilterProfileRaw
 
         val exitCode = runCatching {
-            val summary = crawlerService.crawlAll(limit = limit, startPage = startPage)
+            val summary = crawlerService.crawlAll(limit = limit, startPage = startPage, filterProfileRaw = filterProfile)
             logger.info(
-                "Crawler run finished. startPage={}, processedCount={}, createdCount={}, updatedCount={}, degradedCount={}, failedCount={}",
+                "Crawler run finished. filterProfile={}, startPage={}, processedCount={}, createdCount={}, updatedCount={}, degradedCount={}, failedCount={}",
+                filterProfile,
                 startPage,
                 summary.processedCount,
                 summary.createdCount,

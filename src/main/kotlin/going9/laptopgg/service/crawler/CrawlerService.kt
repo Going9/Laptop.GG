@@ -109,6 +109,7 @@ class CrawlerService(
     )
 
     internal data class ListRequestContext(
+        val listUrl: String = NOTEBOOK_LIST_URL,
         val listCategoryCode: String = "758",
         val categoryCode: String = "758",
         val physicsCate1: String = "860",
@@ -140,51 +141,59 @@ class CrawlerService(
         val makerDisplayYn: String = "Y",
         val dpgZoneUiCategory: String = "N",
         val assemblyGalleryCategory: String = "N",
+        val searchAttributeValues: List<String> = emptyList(),
     ) {
-        fun toFormData(page: Int): Map<String, String> {
-            return linkedMapOf(
-                "page" to page.toString(),
-                "listCategoryCode" to listCategoryCode,
-                "categoryCode" to categoryCode,
-                "physicsCate1" to physicsCate1,
-                "physicsCate2" to physicsCate2,
-                "physicsCate3" to physicsCate3,
-                "physicsCate4" to physicsCate4,
-                "viewMethod" to viewMethod,
-                "sortMethod" to sortMethod,
-                "listCount" to listCount,
-                "group" to group,
-                "depth" to depth,
-                "brandName" to "",
-                "makerName" to "",
-                "searchOptionName" to "",
-                "sDiscountProductRate" to discountProductRate,
-                "sInitialPriceDisplay" to initialPriceDisplay,
-                "sPowerLinkKeyword" to "",
-                "oCurrentCategoryCode" to "",
-                "sMallMinPriceDisplayYN" to mallMinPriceDisplayYn,
-                "quickDeliveryCategoryYN" to quickDeliveryCategoryYn,
-                "quickDeliveryDisplay" to quickDeliveryDisplay,
-                "priceUnitSort" to priceUnitSort,
-                "priceUnitSortOrder" to priceUnitSortOrder,
-                "simpleDescriptionDisplayYN" to simpleDescriptionDisplayYn,
-                "simpleDescriptionOpen" to simpleDescriptionOpen,
-                "listPackageType" to listPackageType,
-                "categoryMappingCode" to "",
-                "priceUnit" to priceUnit,
-                "priceUnitValue" to priceUnitValue,
-                "priceUnitClass" to priceUnitClass,
-                "cmRecommendSort" to cmRecommendSort,
-                "cmRecommendSortDefault" to cmRecommendSortDefault,
-                "bundleImagePreview" to bundleImagePreview,
-                "nPackageLimit" to packageLimit,
-                "bMakerDisplayYN" to makerDisplayYn,
-                "dnwSwitchOn" to "",
-                "isDpgZoneUICategory" to dpgZoneUiCategory,
-                "isAssemblyGalleryCategory" to assemblyGalleryCategory,
-            )
+        fun toFormData(page: Int): List<Pair<String, String?>> {
+            return buildList {
+                add("page" to page.toString())
+                add("listCategoryCode" to listCategoryCode)
+                add("categoryCode" to categoryCode)
+                add("physicsCate1" to physicsCate1)
+                add("physicsCate2" to physicsCate2)
+                add("physicsCate3" to physicsCate3)
+                add("physicsCate4" to physicsCate4)
+                add("viewMethod" to viewMethod)
+                add("sortMethod" to sortMethod)
+                add("listCount" to listCount)
+                add("group" to group)
+                add("depth" to depth)
+                add("brandName" to "")
+                add("makerName" to "")
+                add("searchOptionName" to "")
+                searchAttributeValues.forEach { add("searchAttributeValue[]" to it) }
+                add("sDiscountProductRate" to discountProductRate)
+                add("sInitialPriceDisplay" to initialPriceDisplay)
+                add("sPowerLinkKeyword" to "")
+                add("oCurrentCategoryCode" to "")
+                add("sMallMinPriceDisplayYN" to mallMinPriceDisplayYn)
+                add("quickDeliveryCategoryYN" to quickDeliveryCategoryYn)
+                add("quickDeliveryDisplay" to quickDeliveryDisplay)
+                add("priceUnitSort" to priceUnitSort)
+                add("priceUnitSortOrder" to priceUnitSortOrder)
+                add("simpleDescriptionDisplayYN" to simpleDescriptionDisplayYn)
+                add("simpleDescriptionOpen" to simpleDescriptionOpen)
+                add("listPackageType" to listPackageType)
+                add("categoryMappingCode" to "")
+                add("priceUnit" to priceUnit)
+                add("priceUnitValue" to priceUnitValue)
+                add("priceUnitClass" to priceUnitClass)
+                add("cmRecommendSort" to cmRecommendSort)
+                add("cmRecommendSortDefault" to cmRecommendSortDefault)
+                add("bundleImagePreview" to bundleImagePreview)
+                add("nPackageLimit" to packageLimit)
+                add("bMakerDisplayYN" to makerDisplayYn)
+                add("dnwSwitchOn" to "")
+                add("isDpgZoneUICategory" to dpgZoneUiCategory)
+                add("isAssemblyGalleryCategory" to assemblyGalleryCategory)
+            }
         }
     }
+
+    internal data class CrawlSource(
+        val key: String,
+        val listUrl: String,
+        val attributeFilters: List<CrawlerAttributeFilter> = emptyList(),
+    )
 
     internal data class ExistingLookup(
         val byProductCode: Map<String, Laptop>,
@@ -213,72 +222,187 @@ class CrawlerService(
         UNCHANGED,
     }
 
-    fun crawlAll(limit: Int? = null, startPage: Int = 1): CrawlSummary {
-        val initialListHtml = fetchListPageHtml()
-        val listRequestContext = extractListRequestContext(initialListHtml)
+    internal enum class FilterProfile {
+        NONE,
+        CORE,
+        EXTENDED,
+    }
+
+    fun crawlAll(limit: Int? = null, startPage: Int = 1, filterProfileRaw: String? = null): CrawlSummary {
+        val filterProfile = resolveFilterProfile(filterProfileRaw)
         val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
         val seenDetailPages = linkedSetOf<String>()
-        val seenPageSignatures = linkedSetOf<String>()
-        var currentPage = startPage.coerceAtLeast(1)
         var processedCount = 0
         var createdCount = 0
         var updatedCount = 0
         var degradedCount = 0
         var priceOnlyUpdatedCount = 0
         var detailRefreshCount = 0
-        var consecutiveDuplicateOnlyPages = 0
         val degradedSamples = mutableListOf<String>()
         var failedCount = 0
         val failureSamples = mutableListOf<String>()
         var reachedLimit = false
+        var hitMaxListPages = false
 
         try {
-            logger.info("크롤링을 시작합니다. startPage={}, limit={}", currentPage, limit ?: "ALL")
-            while (currentPage <= MAX_LIST_PAGES) {
-                val pageStartTime = System.currentTimeMillis()
-                val pageBatch = fetchProductPageBatch(currentPage, listRequestContext, initialListHtml)
-                val productCards = pageBatch.productCards
+            val crawlSources = resolveCrawlSources(filterProfile)
+            logger.info(
+                "크롤링을 시작합니다. filterProfile={}, sourceCount={}, startPage={}, limit={}",
+                filterProfile.name.lowercase(),
+                crawlSources.size,
+                startPage.coerceAtLeast(1),
+                limit ?: "ALL",
+            )
 
-                if (productCards.isEmpty()) {
-                    logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. page={}", currentPage)
-                    break
+            crawlSources.forEachIndexed { index, crawlSource ->
+                if (reachedLimit) {
+                    return@forEachIndexed
                 }
 
-                val pageSignature = createPageSignature(productCards)
-                val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
-                val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
-                val duplicateSkippedCount = productCards.size - freshProductCards.size
-                consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
-                    consecutiveDuplicateOnlyPages + 1
-                } else {
-                    0
-                }
+                val initialListHtml = fetchListPageHtml(crawlSource.listUrl)
+                val listRequestContext = extractListRequestContext(initialListHtml, crawlSource)
+                val seenPageSignatures = linkedSetOf<String>()
+                var currentPage = if (index == 0) startPage.coerceAtLeast(1) else 1
+                var consecutiveDuplicateOnlyPages = 0
+                val sourceInitialUsesPageHtml = crawlSource.attributeFilters.isEmpty()
 
-                val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
-                if (remainingQuota == 0) {
-                    break
-                }
+                logger.info(
+                    "크롤 소스를 시작합니다. source={}, startPage={}, attributeFilterCount={}, filters={}",
+                    crawlSource.key,
+                    currentPage,
+                    crawlSource.attributeFilters.size,
+                    crawlSource.attributeFilters.joinToString { it.name }.ifBlank { "없음" },
+                )
 
-                val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
-                processedCount += candidateProductCards.size
-                var pagePriceOnlyUpdatedCount = 0
+                while (currentPage <= MAX_LIST_PAGES) {
+                    val pageStartTime = System.currentTimeMillis()
+                    val pageBatch = fetchProductPageBatch(
+                        page = currentPage,
+                        listRequestContext = listRequestContext,
+                        initialListHtml = initialListHtml,
+                        useInitialListHtml = sourceInitialUsesPageHtml,
+                    )
+                    val productCards = pageBatch.productCards
 
-                val existingLookup = loadExistingLookup(candidateProductCards)
-                val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
+                    if (productCards.isEmpty()) {
+                        logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
+                        break
+                    }
 
-                for (productCard in candidateProductCards) {
-                    val existingLaptop = findExistingLaptop(productCard, existingLookup)
-                    if (existingLaptop != null && !needsDetailRefresh(existingLaptop)) {
-                        try {
-                            when (saveListSnapshot(existingLaptop, productCard)) {
-                                SaveResult.UPDATED -> {
-                                    updatedCount++
-                                    priceOnlyUpdatedCount++
-                                    pagePriceOnlyUpdatedCount++
+                    val pageSignature = createPageSignature(productCards)
+                    val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
+                    val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
+                    val duplicateSkippedCount = productCards.size - freshProductCards.size
+                    consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
+                        consecutiveDuplicateOnlyPages + 1
+                    } else {
+                        0
+                    }
+
+                    val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
+                    if (remainingQuota == 0) {
+                        break
+                    }
+
+                    val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
+                    processedCount += candidateProductCards.size
+                    var pagePriceOnlyUpdatedCount = 0
+
+                    val existingLookup = loadExistingLookup(candidateProductCards)
+                    val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
+
+                    for (productCard in candidateProductCards) {
+                        val existingLaptop = findExistingLaptop(productCard, existingLookup)
+                        if (existingLaptop != null && !needsDetailRefresh(existingLaptop)) {
+                            try {
+                                when (saveListSnapshot(existingLaptop, productCard)) {
+                                    SaveResult.UPDATED -> {
+                                        updatedCount++
+                                        priceOnlyUpdatedCount++
+                                        pagePriceOnlyUpdatedCount++
+                                    }
+                                    SaveResult.UNCHANGED -> Unit
+                                    SaveResult.CREATED -> Unit
                                 }
-                                SaveResult.UNCHANGED -> Unit
-                                SaveResult.CREATED -> Unit
+                            } catch (e: Exception) {
+                                failedCount++
+                                recordSample(
+                                    samples = failureSamples,
+                                    productCard = productCard,
+                                    reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
+                                )
+                                logger.error(
+                                    "기존 상품 가격/목록 스냅샷 업데이트 중 오류 발생. productCode={}, detailPage={}",
+                                    productCard.productCode,
+                                    productCard.detailPage,
+                                    e,
+                                )
                             }
+                        } else {
+                            detailRefreshWorkItems += DetailRefreshWorkItem(
+                                productCard = productCard,
+                                existingLaptop = existingLaptop,
+                            )
+                        }
+                    }
+
+                    detailRefreshCount += detailRefreshWorkItems.size
+                    val detailRefreshOutcomes = fetchDetailRefreshOutcomes(detailRefreshWorkItems, detailFetchExecutor)
+
+                    for (detailRefreshOutcome in detailRefreshOutcomes) {
+                        val productCard = detailRefreshOutcome.workItem.productCard
+                        val existingLaptop = detailRefreshOutcome.workItem.existingLaptop
+                        try {
+                            val buildResult = detailRefreshOutcome.buildResult
+                            if (buildResult != null) {
+                                if (buildResult.isDegraded) {
+                                    degradedCount++
+                                    recordSample(
+                                        samples = degradedSamples,
+                                        productCard = productCard,
+                                        reason = buildResult.degradationReasons.joinToString(" | "),
+                                    )
+                                    logger.warn(
+                                        "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
+                                        productCard.productCode,
+                                        productCard.detailPage,
+                                        buildResult.degradationReasons,
+                                    )
+                                }
+
+                                when (saveOrUpdateLaptop(buildResult.laptop, existingLaptop)) {
+                                    SaveResult.CREATED -> createdCount++
+                                    SaveResult.UPDATED -> updatedCount++
+                                    SaveResult.UNCHANGED -> Unit
+                                }
+                                continue
+                            }
+
+                            if (existingLaptop != null) {
+                                when (saveListSnapshot(existingLaptop, productCard)) {
+                                    SaveResult.UPDATED -> {
+                                        updatedCount++
+                                        priceOnlyUpdatedCount++
+                                        pagePriceOnlyUpdatedCount++
+                                    }
+                                    SaveResult.UNCHANGED -> Unit
+                                    SaveResult.CREATED -> Unit
+                                }
+                            }
+
+                            val error = detailRefreshOutcome.error
+                            failedCount++
+                            recordSample(
+                                samples = failureSamples,
+                                productCard = productCard,
+                                reason = error?.message ?: error?.javaClass?.simpleName ?: "알 수 없는 오류",
+                            )
+                            logger.error(
+                                "상품 상세 재수집 중 오류 발생. productCode={}, detailPage={}",
+                                productCard.productCode,
+                                productCard.detailPage,
+                                error,
+                            )
                         } catch (e: Exception) {
                             failedCount++
                             recordSample(
@@ -286,129 +410,60 @@ class CrawlerService(
                                 productCard = productCard,
                                 reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
                             )
-                            logger.error(
-                                "기존 상품 가격/목록 스냅샷 업데이트 중 오류 발생. productCode={}, detailPage={}",
-                                productCard.productCode,
-                                productCard.detailPage,
-                                e,
-                            )
+                            logger.error("상품 크롤링 저장 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
                         }
-                    } else {
-                        detailRefreshWorkItems += DetailRefreshWorkItem(
-                            productCard = productCard,
-                            existingLaptop = existingLaptop,
-                        )
                     }
-                }
 
-                detailRefreshCount += detailRefreshWorkItems.size
-                val detailRefreshOutcomes = fetchDetailRefreshOutcomes(detailRefreshWorkItems, detailFetchExecutor)
-
-                for (detailRefreshOutcome in detailRefreshOutcomes) {
-                    val productCard = detailRefreshOutcome.workItem.productCard
-                    val existingLaptop = detailRefreshOutcome.workItem.existingLaptop
-                    try {
-                        val buildResult = detailRefreshOutcome.buildResult
-                        if (buildResult != null) {
-                            if (buildResult.isDegraded) {
-                                degradedCount++
-                                recordSample(
-                                    samples = degradedSamples,
-                                    productCard = productCard,
-                                    reason = buildResult.degradationReasons.joinToString(" | "),
-                                )
-                                logger.warn(
-                                    "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
-                                    productCard.productCode,
-                                    productCard.detailPage,
-                                    buildResult.degradationReasons,
-                                )
-                            }
-
-                            when (saveOrUpdateLaptop(buildResult.laptop, existingLaptop)) {
-                                SaveResult.CREATED -> createdCount++
-                                SaveResult.UPDATED -> updatedCount++
-                                SaveResult.UNCHANGED -> Unit
-                            }
-                            continue
-                        }
-
-                        if (existingLaptop != null) {
-                            when (saveListSnapshot(existingLaptop, productCard)) {
-                                SaveResult.UPDATED -> {
-                                    updatedCount++
-                                    priceOnlyUpdatedCount++
-                                    pagePriceOnlyUpdatedCount++
-                                }
-                                SaveResult.UNCHANGED -> Unit
-                                SaveResult.CREATED -> Unit
-                            }
-                        }
-
-                        val error = detailRefreshOutcome.error
-                        failedCount++
-                        recordSample(
-                            samples = failureSamples,
-                            productCard = productCard,
-                            reason = error?.message ?: error?.javaClass?.simpleName ?: "알 수 없는 오류",
-                        )
-                        logger.error(
-                            "상품 상세 재수집 중 오류 발생. productCode={}, detailPage={}",
-                            productCard.productCode,
-                            productCard.detailPage,
-                            error,
-                        )
-                    } catch (e: Exception) {
-                        failedCount++
-                        recordSample(
-                            samples = failureSamples,
-                            productCard = productCard,
-                            reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
-                        )
-                        logger.error("상품 크롤링 저장 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
+                    if (limit != null && processedCount >= limit) {
+                        reachedLimit = true
                     }
-                }
 
-                if (limit != null && processedCount >= limit) {
-                    reachedLimit = true
-                }
-
-                logger.info(
-                    "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / page=${currentPage} / " +
-                        "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
-                        "상세 재수집: ${detailRefreshWorkItems.size}개 / 중복 스킵: ${duplicateSkippedCount}개 / " +
-                        "가격만 갱신(페이지): ${pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${priceOnlyUpdatedCount}개 / " +
-                        "누적 처리: ${processedCount}개 / 누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
-                )
-
-                if (reachedLimit) {
-                    break
-                }
-
-                if (shouldStopAtDuplicateTail(
-                        freshProductCount = freshProductCards.size,
-                        isRepeatedPageSignature = isRepeatedPageSignature,
-                        consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
-                    )
-                ) {
                     logger.info(
-                        "새 detail 페이지가 없는 중복 꼬리 구간으로 판단해 크롤링을 종료합니다. page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}",
-                        currentPage,
-                        isRepeatedPageSignature,
-                        consecutiveDuplicateOnlyPages,
+                        "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / source=${crawlSource.key} / page=${currentPage} / " +
+                            "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
+                            "상세 재수집: ${detailRefreshWorkItems.size}개 / 중복 스킵: ${duplicateSkippedCount}개 / " +
+                            "가격만 갱신(페이지): ${pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${priceOnlyUpdatedCount}개 / " +
+                            "누적 처리: ${processedCount}개 / 누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
                     )
-                    break
+
+                    if (reachedLimit) {
+                        break
+                    }
+
+                    if (shouldStopAtDuplicateTail(
+                            freshProductCount = freshProductCards.size,
+                            isRepeatedPageSignature = isRepeatedPageSignature,
+                            consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
+                        )
+                    ) {
+                        logger.info(
+                            "새 detail 페이지가 없는 중복 꼬리 구간으로 판단해 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}",
+                            crawlSource.key,
+                            currentPage,
+                            isRepeatedPageSignature,
+                            consecutiveDuplicateOnlyPages,
+                        )
+                        break
+                    }
+
+                    if (!pageBatch.hasNextPage) {
+                        logger.info("다음 페이지가 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
+                        break
+                    }
+
+                    currentPage++
                 }
 
-                if (!pageBatch.hasNextPage) {
-                    logger.info("다음 페이지가 없어 크롤링을 종료합니다. page={}", currentPage)
-                    break
+                if (currentPage > MAX_LIST_PAGES) {
+                    hitMaxListPages = true
                 }
-
-                currentPage++
             }
 
-            if (currentPage > MAX_LIST_PAGES) {
+            if (!reachedLimit && crawlSources.isNotEmpty() && processedCount > 0) {
+                logger.info("모든 크롤 소스를 순회했습니다. filterProfile={}", filterProfile.name.lowercase())
+            }
+
+            if (hitMaxListPages) {
                 logger.warn("목록 페이지 안전 제한({})에 도달해 크롤링을 종료합니다.", MAX_LIST_PAGES)
             }
 
@@ -437,8 +492,8 @@ class CrawlerService(
         }
     }
 
-    private fun fetchListPageHtml(): String {
-        val request = HttpRequest.newBuilder(URI.create(LIST_URL))
+    private fun fetchListPageHtml(listUrl: String): String {
+        val request = HttpRequest.newBuilder(URI.create(listUrl))
             .timeout(REQUEST_TIMEOUT)
             .header("User-Agent", USER_AGENT)
             .GET()
@@ -453,7 +508,7 @@ class CrawlerService(
             .header("User-Agent", USER_AGENT)
             .header("Content-Type", FORM_URLENCODED)
             .header("Origin", DANAWA_ORIGIN)
-            .header("Referer", LIST_URL)
+            .header("Referer", listRequestContext.listUrl)
             .header("X-Requested-With", "XMLHttpRequest")
             .POST(HttpRequest.BodyPublishers.ofString(buildFormData(listRequestContext.toFormData(page))))
             .build()
@@ -465,8 +520,9 @@ class CrawlerService(
         page: Int,
         listRequestContext: ListRequestContext,
         initialListHtml: String,
+        useInitialListHtml: Boolean,
     ): ProductPageBatch {
-        val html = if (page == 1) {
+        val html = if (page == 1 && useInitialListHtml) {
             initialListHtml
         } else {
             fetchListPageHtml(page, listRequestContext)
@@ -478,10 +534,11 @@ class CrawlerService(
         )
     }
 
-    internal fun extractListRequestContext(initialListHtml: String): ListRequestContext {
+    internal fun extractListRequestContext(initialListHtml: String, crawlSource: CrawlSource): ListRequestContext {
         val defaults = ListRequestContext()
 
         return ListRequestContext(
+            listUrl = crawlSource.listUrl,
             listCategoryCode = extractJsScalar(initialListHtml, "nListCategoryCode") ?: defaults.listCategoryCode,
             categoryCode = extractJsScalar(initialListHtml, "nCategoryCode") ?: defaults.categoryCode,
             physicsCate1 = extractJsScalar(initialListHtml, "sPhysicsCate1") ?: defaults.physicsCate1,
@@ -516,6 +573,7 @@ class CrawlerService(
                 ?: defaults.makerDisplayYn,
             dpgZoneUiCategory = extractJsScalar(initialListHtml, "isDpgZoneUICategory") ?: defaults.dpgZoneUiCategory,
             assemblyGalleryCategory = extractJsScalar(initialListHtml, "isAssemblyGalleryCategory") ?: defaults.assemblyGalleryCategory,
+            searchAttributeValues = crawlSource.attributeFilters.map { it.value },
         )
     }
 
@@ -784,7 +842,7 @@ class CrawlerService(
     }
 
     internal fun parseListPage(html: String): List<ProductCard> {
-        val document = Jsoup.parse(html, LIST_URL)
+        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
 
         return document.select("li.prod_item")
             .mapNotNull { productItem ->
@@ -824,7 +882,7 @@ class CrawlerService(
     }
 
     internal fun hasNextPage(html: String, currentPage: Int): Boolean {
-        val document = Jsoup.parse(html, LIST_URL)
+        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
         val navigation = document.selectFirst(".num_nav_wrap") ?: return false
 
         val hasHigherNumberedPage = navigation.select(".number_wrap a.num")
@@ -853,6 +911,51 @@ class CrawlerService(
 
     internal fun createPageSignature(productCards: List<ProductCard>): String {
         return productCards.joinToString("||") { it.detailPage }
+    }
+
+    internal fun resolveFilterProfile(rawValue: String?): FilterProfile {
+        return when (rawValue?.trim()?.lowercase()) {
+            null, "", "core" -> FilterProfile.CORE
+            "none", "all" -> FilterProfile.NONE
+            "extended" -> FilterProfile.EXTENDED
+            else -> {
+                logger.warn("알 수 없는 crawler filter profile='{}'. 기본값 core를 사용합니다.", rawValue)
+                FilterProfile.CORE
+            }
+        }
+    }
+
+    internal fun resolveCrawlSources(filterProfile: FilterProfile): List<CrawlSource> {
+        val mainSource = when (filterProfile) {
+            FilterProfile.NONE -> {
+                CrawlSource(
+                    key = "notebook-all",
+                    listUrl = NOTEBOOK_LIST_URL,
+                )
+            }
+            FilterProfile.CORE -> {
+                CrawlSource(
+                    key = "notebook-core-codename",
+                    listUrl = NOTEBOOK_LIST_URL,
+                    attributeFilters = CrawlerFilterSets.coreCpuCodenames,
+                )
+            }
+            FilterProfile.EXTENDED -> {
+                CrawlSource(
+                    key = "notebook-extended-codename",
+                    listUrl = NOTEBOOK_LIST_URL,
+                    attributeFilters = CrawlerFilterSets.extendedCpuCodenames,
+                )
+            }
+        }
+
+        return listOf(
+            mainSource,
+            CrawlSource(
+                key = "apple-macbook",
+                listUrl = APPLE_MACBOOK_LIST_URL,
+            ),
+        )
     }
 
     private fun fetchDetailPageHtml(detailPage: String): String {
@@ -1112,12 +1215,16 @@ class CrawlerService(
         return ThreadLocalRandom.current().nextLong(maxJitterMillis + 1)
     }
 
-    private fun buildFormData(data: Map<String, String?>): String {
-        return data.entries
-            .filter { !it.value.isNullOrBlank() }
+    private fun buildFormData(data: Iterable<Pair<String, String?>>): String {
+        return data
+            .filter { !it.second.isNullOrBlank() }
             .joinToString("&") { (key, value) ->
                 "${key.urlEncode()}=${value.orEmpty().urlEncode()}"
             }
+    }
+
+    private fun buildFormData(data: Map<String, String?>): String {
+        return buildFormData(data.entries.map { it.key to it.value })
     }
 
     private fun normalizeImageUrl(url: String): String {
@@ -1359,7 +1466,8 @@ class CrawlerService(
 
     companion object {
         private const val USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-        private const val LIST_URL = "https://prod.danawa.com/list/?cate=112758"
+        private const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
+        private const val APPLE_MACBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=11236463"
         private const val LIST_AJAX_URL = "https://prod.danawa.com/list/ajax/getProductList.ajax.php"
         private const val DANAWA_ORIGIN = "https://prod.danawa.com"
         private const val PRODUCT_DESCRIPTION_URL = "https://prod.danawa.com/info/ajax/getProductDescription.ajax.php"

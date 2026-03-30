@@ -69,7 +69,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/laptopgg
 export SPRING_DATASOURCE_USERNAME=laptopgg
 export SPRING_DATASOURCE_PASSWORD=laptopgg
-./gradlew bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.limit=3 --app.crawler.start-page=1'
+./gradlew bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.limit=3 --app.crawler.start-page=1 --app.crawler.filter-profile=core'
 ```
 
 ### 4. 확인 주소
@@ -77,7 +77,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 - 웹: `http://localhost:8080`
 - 추천 화면: `http://localhost:8080/recommends`
 - 상세 화면: `http://localhost:8080/laptops/{id}`
-- 크롤링 API: `GET /api/crawl/laptops?limit=3&startPage=1`
+- 크롤링 API: `GET /api/crawl/laptops?limit=3&startPage=1&filterProfile=core`
 
 주의:
 - `/api/crawl/laptops` 엔드포인트는 로컬/비배포 프로필에서만 열립니다.
@@ -128,11 +128,16 @@ JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 
 - 수동 실행 `workflow_dispatch`
 - 재개 실행이 필요하면 `start_page` 입력으로 특정 페이지부터 다시 시작할 수 있습니다.
+- `filter_profile` 입력으로 수집 범위를 고를 수 있습니다.
 - 스케줄 실행 `cron: 17 19 * * *` (한국시간 기준 매일 04:17)
 
 입력 규칙:
 - `테스트용 처리 개수 제한` 칸에는 `100`처럼 숫자만 입력합니다.
 - 빈칸으로 두면 전체 크롤링을 실행합니다.
+- `수집 범위`는 `core`, `extended`, `none` 중 하나를 사용합니다.
+- 기본값 `core`는 최신 Intel/AMD/ARM CPU 코드명과 Apple 맥북 카테고리만 수집합니다.
+- `extended`는 조금 더 오래된 CPU 코드명까지 넓힙니다.
+- `none`은 CPU 코드명 필터 없이 노트북 전체 목록을 수집합니다.
 
 필요한 GitHub Secrets:
 
@@ -150,10 +155,11 @@ JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 1. GitHub Actions가 DB 서버로 SSH 접속합니다.
 2. SSH 터널로 PostgreSQL에 연결합니다.
 3. 목록은 HTTP/AJAX로, 상세는 HTTP 요청으로 수집합니다.
-4. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
-5. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
-6. `postgres,crawler` 프로필로 크롤러를 실행합니다.
-7. 크롤링 결과를 DB에 직접 적재합니다.
+4. 기본값 `core`에서는 다나와 `CPU 코드명` 필터를 목록 단계에서 적용하고, Apple 맥북은 별도 카테고리로 수집합니다.
+5. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
+6. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
+7. `postgres,crawler` 프로필로 크롤러를 실행합니다.
+8. 크롤링 결과를 DB에 직접 적재합니다.
 
 ## nginx와 도메인
 

@@ -11,6 +11,15 @@ on:
         description: "재개할 시작 페이지. 비워두면 1페이지부터 시작합니다."
         required: false
         type: number
+      filter_profile:
+        description: "수집 범위. core=최신 위주, extended=조금 더 넓게, none=필터 없음"
+        required: false
+        default: core
+        type: choice
+        options:
+          - core
+          - extended
+          - none
       log_sql:
         description: "SQL 로그를 잠깐 켤지 여부"
         required: false
@@ -33,6 +42,7 @@ jobs:
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
       CRAWLER_LIMIT: ${{ inputs.limit }}
       CRAWLER_START_PAGE: ${{ inputs.start_page }}
+      CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile }}
       CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
       CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
 
@@ -93,6 +103,17 @@ jobs:
               exit 1
             fi
             APP_ARGS="${APP_ARGS} --app.crawler.start-page=${CRAWLER_START_PAGE}"
+          fi
+
+          if [ -n "${CRAWLER_FILTER_PROFILE}" ]; then
+            case "${CRAWLER_FILTER_PROFILE}" in
+              core|extended|none) ;;
+              *)
+                echo "CRAWLER_FILTER_PROFILE must be one of: core, extended, none." >&2
+                exit 1
+                ;;
+            esac
+            APP_ARGS="${APP_ARGS} --app.crawler.filter-profile=${CRAWLER_FILTER_PROFILE}"
           fi
 
           if [ "${{ inputs.log_sql }}" = "true" ]; then
