@@ -211,8 +211,6 @@ class CrawlerService(
     fun crawlAll(limit: Int? = null, startPage: Int = 1): CrawlSummary {
         val initialListHtml = fetchListPageHtml()
         val listRequestContext = extractListRequestContext(initialListHtml)
-        laptopProfileService.syncMissingProfilesIfNeeded()
-        laptopProfileService.syncIncompleteProfilesIfNeeded()
         val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
         val seenProductCodes = linkedSetOf<String>()
         var currentPage = startPage.coerceAtLeast(1)

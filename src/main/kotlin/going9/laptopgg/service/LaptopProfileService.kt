@@ -4,6 +4,7 @@ import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.repository.LaptopProfileRepository
 import going9.laptopgg.domain.repository.LaptopRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,6 +14,10 @@ class LaptopProfileService(
     private val laptopProfileRepository: LaptopProfileRepository,
     private val laptopProfileFactory: LaptopProfileFactory,
 ) {
+    companion object {
+        private const val PROFILE_BACKFILL_BATCH_SIZE = 100
+    }
+
     @Volatile
     private var missingProfilesBackfilled = false
     @Volatile
@@ -20,8 +25,7 @@ class LaptopProfileService(
 
     @Transactional
     fun syncMissingProfiles() {
-        laptopRepository.findAllWithoutProfile()
-            .forEach { laptop -> syncProfile(laptop) }
+        syncMissingProfilesBatch()
     }
 
     @Transactional
@@ -36,7 +40,7 @@ class LaptopProfileService(
             }
 
             if (laptopRepository.countWithoutProfile() > 0) {
-                syncMissingProfiles()
+                syncMissingProfilesBatch()
             }
 
             missingProfilesBackfilled = laptopRepository.countWithoutProfile() == 0L
@@ -45,8 +49,7 @@ class LaptopProfileService(
 
     @Transactional
     fun syncIncompleteProfiles() {
-        laptopProfileRepository.findAllIncompleteStaticScores()
-            .forEach { profile -> syncProfile(profile.laptop) }
+        syncIncompleteProfilesBatch()
     }
 
     @Transactional
@@ -61,11 +64,39 @@ class LaptopProfileService(
             }
 
             if (laptopProfileRepository.countIncompleteStaticScores() > 0) {
-                syncIncompleteProfiles()
+                syncIncompleteProfilesBatch()
             }
 
             incompleteProfilesBackfilled = laptopProfileRepository.countIncompleteStaticScores() == 0L
         }
+    }
+
+    @Transactional
+    fun syncMissingProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
+        val ids = laptopRepository.findIdsWithoutProfile(PageRequest.of(0, limit))
+        if (ids.isEmpty()) {
+            missingProfilesBackfilled = true
+            return 0
+        }
+
+        laptopRepository.findAllWithUsageByIdIn(ids)
+            .forEach { laptop -> syncProfile(laptop) }
+
+        return ids.size
+    }
+
+    @Transactional
+    fun syncIncompleteProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
+        val ids = laptopProfileRepository.findLaptopIdsWithIncompleteStaticScores(PageRequest.of(0, limit))
+        if (ids.isEmpty()) {
+            incompleteProfilesBackfilled = true
+            return 0
+        }
+
+        laptopRepository.findAllWithUsageByIdIn(ids)
+            .forEach { laptop -> syncProfile(laptop) }
+
+        return ids.size
     }
 
     @Transactional
