@@ -149,7 +149,6 @@ class CrawlerHtmlFixtureParsingTest {
         assertThat(
             crawlerService.shouldStopAtDuplicateTail(
                 freshProductCount = 1,
-                isRepeatedPageSignature = false,
                 consecutiveDuplicateOnlyPages = 3,
             ),
         ).isFalse()
@@ -157,15 +156,13 @@ class CrawlerHtmlFixtureParsingTest {
         assertThat(
             crawlerService.shouldStopAtDuplicateTail(
                 freshProductCount = 0,
-                isRepeatedPageSignature = true,
                 consecutiveDuplicateOnlyPages = 1,
             ),
-        ).isTrue()
+        ).isFalse()
 
         assertThat(
             crawlerService.shouldStopAtDuplicateTail(
                 freshProductCount = 0,
-                isRepeatedPageSignature = false,
                 consecutiveDuplicateOnlyPages = 5,
             ),
         ).isTrue()

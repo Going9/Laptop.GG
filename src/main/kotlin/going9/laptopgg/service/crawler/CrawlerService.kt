@@ -262,75 +262,158 @@ class CrawlerService(
                     return@forEachIndexed
                 }
 
-                val initialListHtml = fetchListPageHtml(crawlSource.listUrl)
-                val listRequestContext = extractListRequestContext(initialListHtml, crawlSource)
-                val seenPageSignatures = linkedSetOf<String>()
-                var currentPage = if (index == 0) startPage.coerceAtLeast(1) else 1
-                var consecutiveDuplicateOnlyPages = 0
-                val sourceInitialUsesPageHtml = crawlSource.attributeFilters.isEmpty()
+                DanawaListBrowserSession(
+                    crawlSource = crawlSource,
+                    logger = logger,
+                    userAgent = USER_AGENT,
+                ).use { listBrowserSession ->
+                    val seenPageSignatures = linkedSetOf<String>()
+                    var currentPage = if (index == 0) startPage.coerceAtLeast(1) else 1
+                    var consecutiveDuplicateOnlyPages = 0
 
-                logger.info(
-                    "크롤 소스를 시작합니다. source={}, startPage={}, attributeFilterCount={}, filters={}",
-                    crawlSource.key,
-                    currentPage,
-                    crawlSource.attributeFilters.size,
-                    crawlSource.attributeFilters.joinToString { it.name }.ifBlank { "없음" },
-                )
-
-                while (currentPage <= MAX_LIST_PAGES) {
-                    val pageStartTime = System.currentTimeMillis()
-                    val pageBatch = fetchProductPageBatch(
-                        page = currentPage,
-                        listRequestContext = listRequestContext,
-                        initialListHtml = initialListHtml,
-                        useInitialListHtml = sourceInitialUsesPageHtml,
+                    logger.info(
+                        "크롤 소스를 시작합니다. source={}, startPage={}, attributeFilterCount={}, filters={}",
+                        crawlSource.key,
+                        currentPage,
+                        crawlSource.attributeFilters.size,
+                        crawlSource.attributeFilters.joinToString { it.name }.ifBlank { "없음" },
                     )
-                    val productCards = pageBatch.productCards
 
-                    if (productCards.isEmpty()) {
-                        logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
-                        break
-                    }
+                    while (currentPage <= MAX_LIST_PAGES) {
+                        val pageStartTime = System.currentTimeMillis()
+                        val pageBatch = buildProductPageBatch(
+                            page = currentPage,
+                            html = listBrowserSession.fetchPageHtml(currentPage),
+                        )
+                        val latestListRequestTrace = listBrowserSession.latestListRequestTrace()
+                        val productCards = pageBatch.productCards
+                        val expectedLastPage = pageBatch.priceCompareCount
+                            ?.takeIf { it > 0 }
+                            ?.let { ((it - 1) / pageBatch.productCards.size.coerceAtLeast(1)) + 1 }
 
-                    val pageSignature = createPageSignature(productCards)
-                    val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
-                    val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
-                    val duplicateSkippedCount = productCards.size - freshProductCards.size
-                    val visiblePagesLog = pageBatch.visiblePageNumbers
-                        .takeIf { it.isNotEmpty() }
-                        ?.joinToString(",")
-                        ?: "없음"
-                    consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
-                        consecutiveDuplicateOnlyPages + 1
-                    } else {
-                        0
-                    }
+                        if (productCards.isEmpty()) {
+                            logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
+                            break
+                        }
 
-                    val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
-                    if (remainingQuota == 0) {
-                        break
-                    }
+                        val pageSignature = createPageSignature(productCards)
+                        val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
+                        val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
+                        val duplicateSkippedCount = productCards.size - freshProductCards.size
+                        val visiblePagesLog = pageBatch.visiblePageNumbers
+                            .takeIf { it.isNotEmpty() }
+                            ?.joinToString(",")
+                            ?: "없음"
+                        consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
+                            consecutiveDuplicateOnlyPages + 1
+                        } else {
+                            0
+                        }
 
-                    val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
-                    processedCount += candidateProductCards.size
-                    var pagePriceOnlyUpdatedCount = 0
+                        val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
+                        if (remainingQuota == 0) {
+                            break
+                        }
 
-                    val existingLookup = loadExistingLookup(candidateProductCards)
-                    val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
+                        val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
+                        processedCount += candidateProductCards.size
+                        var pagePriceOnlyUpdatedCount = 0
 
-                    for (productCard in candidateProductCards) {
-                        val existingLaptop = findExistingLaptop(productCard, existingLookup)
-                        if (existingLaptop != null && !needsDetailRefresh(existingLaptop)) {
-                            try {
-                                when (saveListSnapshot(existingLaptop, productCard)) {
-                                    SaveResult.UPDATED -> {
-                                        updatedCount++
-                                        priceOnlyUpdatedCount++
-                                        pagePriceOnlyUpdatedCount++
+                        val existingLookup = loadExistingLookup(candidateProductCards)
+                        val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
+
+                        for (productCard in candidateProductCards) {
+                            val existingLaptop = findExistingLaptop(productCard, existingLookup)
+                            if (existingLaptop != null && !needsDetailRefresh(existingLaptop)) {
+                                try {
+                                    when (saveListSnapshot(existingLaptop, productCard)) {
+                                        SaveResult.UPDATED -> {
+                                            updatedCount++
+                                            priceOnlyUpdatedCount++
+                                            pagePriceOnlyUpdatedCount++
+                                        }
+                                        SaveResult.UNCHANGED -> Unit
+                                        SaveResult.CREATED -> Unit
                                     }
-                                    SaveResult.UNCHANGED -> Unit
-                                    SaveResult.CREATED -> Unit
+                                } catch (e: Exception) {
+                                    failedCount++
+                                    recordSample(
+                                        samples = failureSamples,
+                                        productCard = productCard,
+                                        reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
+                                    )
+                                    logger.error(
+                                        "기존 상품 가격/목록 스냅샷 업데이트 중 오류 발생. productCode={}, detailPage={}",
+                                        productCard.productCode,
+                                        productCard.detailPage,
+                                        e,
+                                    )
                                 }
+                            } else {
+                                detailRefreshWorkItems += DetailRefreshWorkItem(
+                                    productCard = productCard,
+                                    existingLaptop = existingLaptop,
+                                )
+                            }
+                        }
+
+                        detailRefreshCount += detailRefreshWorkItems.size
+                        val detailRefreshOutcomes = fetchDetailRefreshOutcomes(detailRefreshWorkItems, detailFetchExecutor)
+
+                        for (detailRefreshOutcome in detailRefreshOutcomes) {
+                            val productCard = detailRefreshOutcome.workItem.productCard
+                            val existingLaptop = detailRefreshOutcome.workItem.existingLaptop
+                            try {
+                                val buildResult = detailRefreshOutcome.buildResult
+                                if (buildResult != null) {
+                                    if (buildResult.isDegraded) {
+                                        degradedCount++
+                                        recordSample(
+                                            samples = degradedSamples,
+                                            productCard = productCard,
+                                            reason = buildResult.degradationReasons.joinToString(" | "),
+                                        )
+                                        logger.warn(
+                                            "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
+                                            productCard.productCode,
+                                            productCard.detailPage,
+                                            buildResult.degradationReasons,
+                                        )
+                                    }
+
+                                    when (saveOrUpdateLaptop(buildResult.laptop, existingLaptop)) {
+                                        SaveResult.CREATED -> createdCount++
+                                        SaveResult.UPDATED -> updatedCount++
+                                        SaveResult.UNCHANGED -> Unit
+                                    }
+                                    continue
+                                }
+
+                                if (existingLaptop != null) {
+                                    when (saveListSnapshot(existingLaptop, productCard)) {
+                                        SaveResult.UPDATED -> {
+                                            updatedCount++
+                                            priceOnlyUpdatedCount++
+                                            pagePriceOnlyUpdatedCount++
+                                        }
+                                        SaveResult.UNCHANGED -> Unit
+                                        SaveResult.CREATED -> Unit
+                                    }
+                                }
+
+                                val error = detailRefreshOutcome.error
+                                failedCount++
+                                recordSample(
+                                    samples = failureSamples,
+                                    productCard = productCard,
+                                    reason = error?.message ?: error?.javaClass?.simpleName ?: "알 수 없는 오류",
+                                )
+                                logger.error(
+                                    "상품 상세 재수집 중 오류 발생. productCode={}, detailPage={}",
+                                    productCard.productCode,
+                                    productCard.detailPage,
+                                    error,
+                                )
                             } catch (e: Exception) {
                                 failedCount++
                                 recordSample(
@@ -338,154 +421,97 @@ class CrawlerService(
                                     productCard = productCard,
                                     reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
                                 )
-                                logger.error(
-                                    "기존 상품 가격/목록 스냅샷 업데이트 중 오류 발생. productCode={}, detailPage={}",
-                                    productCard.productCode,
-                                    productCard.detailPage,
-                                    e,
-                                )
+                                logger.error("상품 크롤링 저장 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
                             }
-                        } else {
-                            detailRefreshWorkItems += DetailRefreshWorkItem(
-                                productCard = productCard,
-                                existingLaptop = existingLaptop,
+                        }
+
+                        if (limit != null && processedCount >= limit) {
+                            reachedLimit = true
+                        }
+
+                        if (currentPage == 1 || freshProductCards.isEmpty() || isRepeatedPageSignature) {
+                            logger.info(
+                                "페이지 진단: source={}, page={}, hasNextPage={}, priceCompareCount={}, expectedLastPage={}, visiblePages={}, nextPageHint={}, repeatedPageSignature={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
+                                crawlSource.key,
+                                currentPage,
+                                pageBatch.hasNextPage,
+                                pageBatch.priceCompareCount ?: "알 수 없음",
+                                expectedLastPage ?: "알 수 없음",
+                                visiblePagesLog,
+                                pageBatch.nextPageHint ?: "없음",
+                                isRepeatedPageSignature,
+                                pageSignature.stableHash(),
+                                describeCard(productCards.firstOrNull()),
+                                describeCard(productCards.lastOrNull()),
+                                latestListRequestTrace?.page ?: "알 수 없음",
+                                latestListRequestTrace?.sortMethod ?: "알 수 없음",
+                                latestListRequestTrace?.filterValueCount ?: "알 수 없음",
+                                latestListRequestTrace?.distinctFilterValueCount ?: "알 수 없음",
                             )
                         }
-                    }
 
-                    detailRefreshCount += detailRefreshWorkItems.size
-                    val detailRefreshOutcomes = fetchDetailRefreshOutcomes(detailRefreshWorkItems, detailFetchExecutor)
+                        logger.info(
+                            "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / source=${crawlSource.key} / page=${currentPage} / " +
+                                "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
+                                "상세 재수집: ${detailRefreshWorkItems.size}개 / 중복 스킵: ${duplicateSkippedCount}개 / " +
+                                "가격만 갱신(페이지): ${pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${priceOnlyUpdatedCount}개 / " +
+                                "누적 처리: ${processedCount}개 / 누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
+                        )
 
-                    for (detailRefreshOutcome in detailRefreshOutcomes) {
-                        val productCard = detailRefreshOutcome.workItem.productCard
-                        val existingLaptop = detailRefreshOutcome.workItem.existingLaptop
-                        try {
-                            val buildResult = detailRefreshOutcome.buildResult
-                            if (buildResult != null) {
-                                if (buildResult.isDegraded) {
-                                    degradedCount++
-                                    recordSample(
-                                        samples = degradedSamples,
-                                        productCard = productCard,
-                                        reason = buildResult.degradationReasons.joinToString(" | "),
-                                    )
-                                    logger.warn(
-                                        "상품 일부 스펙을 요약/기존값으로 보완했습니다. productCode={}, detailPage={}, reasons={}",
-                                        productCard.productCode,
-                                        productCard.detailPage,
-                                        buildResult.degradationReasons,
-                                    )
-                                }
-
-                                when (saveOrUpdateLaptop(buildResult.laptop, existingLaptop)) {
-                                    SaveResult.CREATED -> createdCount++
-                                    SaveResult.UPDATED -> updatedCount++
-                                    SaveResult.UNCHANGED -> Unit
-                                }
-                                continue
-                            }
-
-                            if (existingLaptop != null) {
-                                when (saveListSnapshot(existingLaptop, productCard)) {
-                                    SaveResult.UPDATED -> {
-                                        updatedCount++
-                                        priceOnlyUpdatedCount++
-                                        pagePriceOnlyUpdatedCount++
-                                    }
-                                    SaveResult.UNCHANGED -> Unit
-                                    SaveResult.CREATED -> Unit
-                                }
-                            }
-
-                            val error = detailRefreshOutcome.error
-                            failedCount++
-                            recordSample(
-                                samples = failureSamples,
-                                productCard = productCard,
-                                reason = error?.message ?: error?.javaClass?.simpleName ?: "알 수 없는 오류",
-                            )
-                            logger.error(
-                                "상품 상세 재수집 중 오류 발생. productCode={}, detailPage={}",
-                                productCard.productCode,
-                                productCard.detailPage,
-                                error,
-                            )
-                        } catch (e: Exception) {
-                            failedCount++
-                            recordSample(
-                                samples = failureSamples,
-                                productCard = productCard,
-                                reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
-                            )
-                            logger.error("상품 크롤링 저장 중 오류 발생. productCode={}, detailPage={}", productCard.productCode, productCard.detailPage, e)
+                        if (reachedLimit) {
+                            break
                         }
+
+                        if (expectedLastPage != null && currentPage >= expectedLastPage) {
+                            logger.info(
+                                "총 상품 수 기준 마지막 페이지에 도달해 크롤링을 종료합니다. source={}, page={}, priceCompareCount={}, expectedLastPage={}, hasNextPage={}",
+                                crawlSource.key,
+                                currentPage,
+                                pageBatch.priceCompareCount,
+                                expectedLastPage,
+                                pageBatch.hasNextPage,
+                            )
+                            break
+                        }
+
+                        if (shouldStopAtDuplicateTail(
+                                freshProductCount = freshProductCards.size,
+                                consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
+                            )
+                        ) {
+                            logger.info(
+                                "브라우저 페이지네이션에서도 새 detail 페이지가 없는 반복 목록이 이어져 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}, hasNextPage={}, visiblePages={}, nextPageHint={}, priceCompareCount={}, expectedLastPage={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
+                                crawlSource.key,
+                                currentPage,
+                                isRepeatedPageSignature,
+                                consecutiveDuplicateOnlyPages,
+                                pageBatch.hasNextPage,
+                                visiblePagesLog,
+                                pageBatch.nextPageHint ?: "없음",
+                                pageBatch.priceCompareCount ?: "알 수 없음",
+                                expectedLastPage ?: "알 수 없음",
+                                pageSignature.stableHash(),
+                                describeCard(productCards.firstOrNull()),
+                                describeCard(productCards.lastOrNull()),
+                                latestListRequestTrace?.page ?: "알 수 없음",
+                                latestListRequestTrace?.sortMethod ?: "알 수 없음",
+                                latestListRequestTrace?.filterValueCount ?: "알 수 없음",
+                                latestListRequestTrace?.distinctFilterValueCount ?: "알 수 없음",
+                            )
+                            break
+                        }
+
+                        if (!pageBatch.hasNextPage) {
+                            logger.info("다음 페이지가 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
+                            break
+                        }
+
+                        currentPage++
                     }
 
-                    if (limit != null && processedCount >= limit) {
-                        reachedLimit = true
+                    if (currentPage > MAX_LIST_PAGES) {
+                        hitMaxListPages = true
                     }
-
-                    if (currentPage == 1 || freshProductCards.isEmpty() || isRepeatedPageSignature) {
-                        logger.info(
-                            "페이지 진단: source={}, page={}, hasNextPage={}, priceCompareCount={}, visiblePages={}, nextPageHint={}, repeatedPageSignature={}, pageSignatureHash={}, firstCard={}, lastCard={}",
-                            crawlSource.key,
-                            currentPage,
-                            pageBatch.hasNextPage,
-                            pageBatch.priceCompareCount ?: "알 수 없음",
-                            visiblePagesLog,
-                            pageBatch.nextPageHint ?: "없음",
-                            isRepeatedPageSignature,
-                            pageSignature.stableHash(),
-                            describeCard(productCards.firstOrNull()),
-                            describeCard(productCards.lastOrNull()),
-                        )
-                    }
-
-                    logger.info(
-                        "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / source=${crawlSource.key} / page=${currentPage} / " +
-                            "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
-                            "상세 재수집: ${detailRefreshWorkItems.size}개 / 중복 스킵: ${duplicateSkippedCount}개 / " +
-                            "가격만 갱신(페이지): ${pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${priceOnlyUpdatedCount}개 / " +
-                            "누적 처리: ${processedCount}개 / 누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
-                    )
-
-                    if (reachedLimit) {
-                        break
-                    }
-
-                    if (shouldStopAtDuplicateTail(
-                            freshProductCount = freshProductCards.size,
-                            isRepeatedPageSignature = isRepeatedPageSignature,
-                            consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
-                        )
-                    ) {
-                        logger.info(
-                            "새 detail 페이지가 없는 중복 꼬리 구간으로 판단해 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}, hasNextPage={}, visiblePages={}, nextPageHint={}, priceCompareCount={}, pageSignatureHash={}, firstCard={}, lastCard={}",
-                            crawlSource.key,
-                            currentPage,
-                            isRepeatedPageSignature,
-                            consecutiveDuplicateOnlyPages,
-                            pageBatch.hasNextPage,
-                            visiblePagesLog,
-                            pageBatch.nextPageHint ?: "없음",
-                            pageBatch.priceCompareCount ?: "알 수 없음",
-                            pageSignature.stableHash(),
-                            describeCard(productCards.firstOrNull()),
-                            describeCard(productCards.lastOrNull()),
-                        )
-                        break
-                    }
-
-                    if (!pageBatch.hasNextPage) {
-                        logger.info("다음 페이지가 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
-                        break
-                    }
-
-                    currentPage++
-                }
-
-                if (currentPage > MAX_LIST_PAGES) {
-                    hitMaxListPages = true
                 }
             }
 
@@ -546,18 +572,10 @@ class CrawlerService(
         return sendRequest(request)
     }
 
-    private fun fetchProductPageBatch(
+    private fun buildProductPageBatch(
         page: Int,
-        listRequestContext: ListRequestContext,
-        initialListHtml: String,
-        useInitialListHtml: Boolean,
+        html: String,
     ): ProductPageBatch {
-        val html = if (page == 1 && useInitialListHtml) {
-            initialListHtml
-        } else {
-            fetchListPageHtml(page, listRequestContext)
-        }
-
         return ProductPageBatch(
             productCards = parseListPage(html),
             hasNextPage = hasNextPage(html, page),
@@ -931,19 +949,26 @@ class CrawlerService(
 
     internal fun shouldStopAtDuplicateTail(
         freshProductCount: Int,
-        isRepeatedPageSignature: Boolean,
         consecutiveDuplicateOnlyPages: Int,
     ): Boolean {
         if (freshProductCount > 0) {
             return false
         }
 
-        return isRepeatedPageSignature ||
-            consecutiveDuplicateOnlyPages >= MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES
+        return consecutiveDuplicateOnlyPages >= MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES
     }
 
     internal fun extractPriceCompareCount(html: String): Int? {
         val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
+        val hiddenCount = document.selectFirst("#totalProductCount")
+            ?.attr("value")
+            ?.takeIf { it.isNotBlank() }
+            ?.replace(",", "")
+            ?.toIntOrNull()
+        if (hiddenCount != null) {
+            return hiddenCount
+        }
+
         return document.select(".tab_list_nav a")
             .map { it.text().trim() }
             .firstOrNull { it.contains("가격비교") }

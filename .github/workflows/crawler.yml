@@ -59,6 +59,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Install Playwright Chromium
+        run: ./gradlew --no-daemon installPlaywrightBrowsers
+
       - name: Prepare SSH key
         env:
           CRAWLER_SSH_PRIVATE_KEY: ${{ secrets.CRAWLER_SSH_PRIVATE_KEY }}
