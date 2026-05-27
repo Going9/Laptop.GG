@@ -4,11 +4,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
-	id("org.springframework.boot") version "3.2.5" apply false
-	id("io.spring.dependency-management") version "1.1.4" apply false
-	kotlin("jvm") version "1.9.23" apply false
-	kotlin("plugin.spring") version "1.9.23" apply false
-	kotlin("plugin.jpa") version "1.9.23" apply false
+	id("org.springframework.boot") version "3.5.14" apply false
+	id("io.spring.dependency-management") version "1.1.7" apply false
+	kotlin("jvm") version "1.9.25" apply false
+	kotlin("plugin.spring") version "1.9.25" apply false
+	kotlin("plugin.jpa") version "1.9.25" apply false
 }
 
 allprojects {
