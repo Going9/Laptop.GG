@@ -10,6 +10,8 @@
 6. Start with `sudo systemctl start laptopgg`.
 7. Verify with `curl -fsS http://127.0.0.1:8080/actuator/health/readiness`.
 
+`JAVA_OPTS` includes `-XX:TieredStopAtLevel=1` because the production app runs on a 1-core server and startup latency matters more than peak JIT throughput.
+
 ## Nginx Setup
 
 1. Copy `ops/nginx/laptopgg.conf` to `/etc/nginx/sites-available/laptopgg.conf`.
