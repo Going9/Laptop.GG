@@ -1,13 +1,11 @@
 package going9.laptopgg.service.crawler
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.LaptopProfileFactory
 import going9.laptopgg.service.LaptopPriceHistoryService
 import going9.laptopgg.service.LaptopProfileService
-import org.jsoup.Jsoup
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.IOException
@@ -22,7 +20,6 @@ import java.time.LocalDateTime
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadLocalRandom
-import kotlin.math.roundToInt
 import org.slf4j.LoggerFactory
 
 @Service
@@ -38,7 +35,6 @@ class CrawlerService(
         .followRedirects(HttpClient.Redirect.NORMAL)
         .build()
 
-    private val objectMapper = jacksonObjectMapper()
     private val requestPacingLock = Any()
     @Volatile
     private var nextAllowedRequestAtMillis = 0L
@@ -219,7 +215,7 @@ class CrawlerService(
         val nextPageHint: Int?,
     )
 
-    private enum class SaveResult {
+    internal enum class SaveResult {
         CREATED,
         UPDATED,
         UNCHANGED,
@@ -262,11 +258,11 @@ class CrawlerService(
                     return@forEachIndexed
                 }
 
-                DanawaListBrowserSession(
-                    crawlSource = crawlSource,
-                    logger = logger,
-                    userAgent = USER_AGENT,
-                ).use { listBrowserSession ->
+                val listRequestContext = createListRequestContext(crawlSource)
+                val requestFilterCount = listRequestContext.searchAttributeValues.size
+                val requestDistinctFilterCount = listRequestContext.searchAttributeValues.toSet().size
+
+                run {
                     val seenPageSignatures = linkedSetOf<String>()
                     var currentPage = if (index == 0) startPage.coerceAtLeast(1) else 1
                     var consecutiveDuplicateOnlyPages = 0
@@ -283,9 +279,8 @@ class CrawlerService(
                         val pageStartTime = System.currentTimeMillis()
                         val pageBatch = buildProductPageBatch(
                             page = currentPage,
-                            html = listBrowserSession.fetchPageHtml(currentPage),
+                            html = fetchListPageHtml(currentPage, listRequestContext),
                         )
-                        val latestListRequestTrace = listBrowserSession.latestListRequestTrace()
                         val productCards = pageBatch.productCards
                         val expectedLastPage = pageBatch.priceCompareCount
                             ?.takeIf { it > 0 }
@@ -296,7 +291,7 @@ class CrawlerService(
                             break
                         }
 
-                        val pageSignature = createPageSignature(productCards)
+                        val pageSignature = DanawaListParser.createPageSignature(productCards)
                         val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
                         val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
                         val duplicateSkippedCount = productCards.size - freshProductCards.size
@@ -324,7 +319,7 @@ class CrawlerService(
 
                         for (productCard in candidateProductCards) {
                             val existingLaptop = findExistingLaptop(productCard, existingLookup)
-                            if (existingLaptop != null && !needsDetailRefresh(existingLaptop)) {
+                            if (existingLaptop != null && !DetailRefreshPolicy.needsRefresh(existingLaptop)) {
                                 try {
                                     when (saveListSnapshot(existingLaptop, productCard)) {
                                         SaveResult.UPDATED -> {
@@ -443,10 +438,10 @@ class CrawlerService(
                                 pageSignature.stableHash(),
                                 describeCard(productCards.firstOrNull()),
                                 describeCard(productCards.lastOrNull()),
-                                latestListRequestTrace?.page ?: "알 수 없음",
-                                latestListRequestTrace?.sortMethod ?: "알 수 없음",
-                                latestListRequestTrace?.filterValueCount ?: "알 수 없음",
-                                latestListRequestTrace?.distinctFilterValueCount ?: "알 수 없음",
+                                currentPage,
+                                listRequestContext.sortMethod,
+                                requestFilterCount,
+                                requestDistinctFilterCount,
                             )
                         }
 
@@ -480,7 +475,7 @@ class CrawlerService(
                             )
                         ) {
                             logger.info(
-                                "브라우저 페이지네이션에서도 새 detail 페이지가 없는 반복 목록이 이어져 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}, hasNextPage={}, visiblePages={}, nextPageHint={}, priceCompareCount={}, expectedLastPage={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
+                                "AJAX 페이지네이션에서도 새 detail 페이지가 없는 반복 목록이 이어져 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}, hasNextPage={}, visiblePages={}, nextPageHint={}, priceCompareCount={}, expectedLastPage={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
                                 crawlSource.key,
                                 currentPage,
                                 isRepeatedPageSignature,
@@ -493,10 +488,10 @@ class CrawlerService(
                                 pageSignature.stableHash(),
                                 describeCard(productCards.firstOrNull()),
                                 describeCard(productCards.lastOrNull()),
-                                latestListRequestTrace?.page ?: "알 수 없음",
-                                latestListRequestTrace?.sortMethod ?: "알 수 없음",
-                                latestListRequestTrace?.filterValueCount ?: "알 수 없음",
-                                latestListRequestTrace?.distinctFilterValueCount ?: "알 수 없음",
+                                currentPage,
+                                listRequestContext.sortMethod,
+                                requestFilterCount,
+                                requestDistinctFilterCount,
                             )
                             break
                         }
@@ -548,6 +543,12 @@ class CrawlerService(
         }
     }
 
+    private fun createListRequestContext(crawlSource: CrawlSource): ListRequestContext {
+        val initialListHtml = fetchListPageHtml(crawlSource.listUrl)
+        return DanawaListParser.extractListRequestContext(initialListHtml, crawlSource)
+            .copy(sortMethod = LIST_SORT_METHOD)
+    }
+
     private fun fetchListPageHtml(listUrl: String): String {
         val request = HttpRequest.newBuilder(URI.create(listUrl))
             .timeout(REQUEST_TIMEOUT)
@@ -577,61 +578,18 @@ class CrawlerService(
         html: String,
     ): ProductPageBatch {
         return ProductPageBatch(
-            productCards = parseListPage(html),
-            hasNextPage = hasNextPage(html, page),
-            priceCompareCount = extractPriceCompareCount(html),
-            visiblePageNumbers = extractVisiblePageNumbers(html),
-            nextPageHint = extractNextPageHint(html),
-        )
-    }
-
-    internal fun extractListRequestContext(initialListHtml: String, crawlSource: CrawlSource): ListRequestContext {
-        val defaults = ListRequestContext()
-
-        return ListRequestContext(
-            listUrl = crawlSource.listUrl,
-            listCategoryCode = extractJsScalar(initialListHtml, "nListCategoryCode") ?: defaults.listCategoryCode,
-            categoryCode = extractJsScalar(initialListHtml, "nCategoryCode") ?: defaults.categoryCode,
-            physicsCate1 = extractJsScalar(initialListHtml, "sPhysicsCate1") ?: defaults.physicsCate1,
-            physicsCate2 = extractJsScalar(initialListHtml, "sPhysicsCate2") ?: defaults.physicsCate2,
-            physicsCate3 = extractJsScalar(initialListHtml, "sPhysicsCate3") ?: defaults.physicsCate3,
-            physicsCate4 = extractJsScalar(initialListHtml, "sPhysicsCate4") ?: defaults.physicsCate4,
-            viewMethod = extractJsScalar(initialListHtml, "sPriceCompareListType") ?: defaults.viewMethod,
-            sortMethod = extractJsScalar(initialListHtml, "sPriceCompareListSort")
-                ?: extractJsScalar(initialListHtml, "sProductListSort")
-                ?: defaults.sortMethod,
-            listCount = extractJsScalar(initialListHtml, "nPriceCompareListCount") ?: defaults.listCount,
-            group = extractJsScalar(initialListHtml, "nListGroup") ?: defaults.group,
-            depth = extractJsScalar(initialListHtml, "nListDepth") ?: defaults.depth,
-            discountProductRate = extractJsScalar(initialListHtml, "sDiscountProductRate") ?: defaults.discountProductRate,
-            initialPriceDisplay = extractJsScalar(initialListHtml, "sInitialPriceDisplay") ?: defaults.initialPriceDisplay,
-            quickDeliveryCategoryYn = extractJsScalar(initialListHtml, "quickDeliveryCategoryYN") ?: defaults.quickDeliveryCategoryYn,
-            quickDeliveryDisplay = extractJsScalar(initialListHtml, "quickDeliveryDisplay") ?: defaults.quickDeliveryDisplay,
-            priceUnitSort = extractJsScalar(initialListHtml, "priceUnitSort") ?: defaults.priceUnitSort,
-            priceUnitSortOrder = extractJsScalar(initialListHtml, "priceUnitSortOrder") ?: defaults.priceUnitSortOrder,
-            simpleDescriptionDisplayYn = extractJsScalar(initialListHtml, "simpleDescriptionDisplayYN") ?: defaults.simpleDescriptionDisplayYn,
-            simpleDescriptionOpen = extractJsScalar(initialListHtml, "simpleDescriptionOpen") ?: defaults.simpleDescriptionOpen,
-            listPackageType = extractJsScalar(initialListHtml, "nPriceCompareListPackageType") ?: defaults.listPackageType,
-            priceUnit = extractJsScalar(initialListHtml, "nPriceUnit") ?: defaults.priceUnit,
-            priceUnitValue = extractJsScalar(initialListHtml, "nPriceUnitValue") ?: defaults.priceUnitValue,
-            priceUnitClass = extractJsScalar(initialListHtml, "sPriceUnitClass") ?: defaults.priceUnitClass,
-            cmRecommendSort = extractJsScalar(initialListHtml, "sCmRecommendSort") ?: defaults.cmRecommendSort,
-            cmRecommendSortDefault = extractJsScalar(initialListHtml, "sCmRecommendSortDefault") ?: defaults.cmRecommendSortDefault,
-            bundleImagePreview = extractJsScalar(initialListHtml, "sBundleImagePreview") ?: defaults.bundleImagePreview,
-            packageLimit = extractJsScalar(initialListHtml, "nPriceCompareListPackageLimit") ?: defaults.packageLimit,
-            makerDisplayYn = extractJsScalar(initialListHtml, "sMakerStandardDisplayStatus")
-                ?: extractJsScalar(initialListHtml, "sMakerIndicate")
-                ?: defaults.makerDisplayYn,
-            dpgZoneUiCategory = extractJsScalar(initialListHtml, "isDpgZoneUICategory") ?: defaults.dpgZoneUiCategory,
-            assemblyGalleryCategory = extractJsScalar(initialListHtml, "isAssemblyGalleryCategory") ?: defaults.assemblyGalleryCategory,
-            searchAttributeValues = crawlSource.attributeFilters.map { it.value },
+            productCards = DanawaListParser.parseListPage(html),
+            hasNextPage = DanawaListParser.hasNextPage(html, page),
+            priceCompareCount = DanawaListParser.extractPriceCompareCount(html),
+            visiblePageNumbers = DanawaListParser.extractVisiblePageNumbers(html),
+            nextPageHint = DanawaListParser.extractNextPageHint(html),
         )
     }
 
     private fun buildLaptop(productCard: ProductCard): BuildLaptopResult {
         val degradationReasons = mutableListOf<String>()
         val detailPageHtml = fetchDetailPageHtml(productCard.detailPage)
-        val detailContext = extractDetailRequestContext(detailPageHtml)
+        val detailContext = DanawaDetailParser.extractDetailRequestContext(detailPageHtml)
         if (detailContext == null) {
             degradationReasons += "상세 스펙 요청 컨텍스트 없음"
         }
@@ -639,12 +597,12 @@ class CrawlerService(
         if (detailSpecHtml == null) {
             degradationReasons += "상세 스펙 테이블 미수집"
         }
-        val parsedSpecTable = detailSpecHtml?.let(::parseSpecTable) ?: ParsedSpecTable(emptyMap(), emptyList())
+        val parsedSpecTable = detailSpecHtml?.let(DanawaDetailParser::parseSpecTable) ?: ParsedSpecTable(emptyMap(), emptyList())
         if (detailSpecHtml != null && parsedSpecTable.values.isEmpty()) {
             degradationReasons += "상세 스펙 테이블 파싱 결과 비어 있음"
         }
-        val summaryFallback = parseSummaryFallback(extractSummaryText(detailPageHtml))
-        if (parsedSpecTable.values.isEmpty() && summaryFallback.isEmpty()) {
+        val summaryFallback = DanawaDetailParser.parseSummaryFallback(DanawaDetailParser.extractSummaryText(detailPageHtml))
+        if (parsedSpecTable.values.isEmpty() && DanawaDetailParser.isEmpty(summaryFallback)) {
             degradationReasons += "상세/요약 스펙 모두 비어 있음"
         }
 
@@ -683,30 +641,30 @@ class CrawlerService(
             price = productCard.price,
             cpuManufacturer = cpuManufacturer,
             cpu = cpu,
-            os = normalizeOs(spec["운영체제(OS)"] ?: summaryFallback.os),
-            screenSize = parseScreenSize(spec["화면 크기"]) ?: summaryFallback.screenSize,
+            os = DanawaDetailParser.normalizeOs(spec["운영체제(OS)"] ?: summaryFallback.os),
+            screenSize = DanawaDetailParser.parseScreenSize(spec["화면 크기"]) ?: summaryFallback.screenSize,
             resolution = spec["해상도"] ?: summaryFallback.resolution,
-            brightness = parseIntValue(spec["밝기"]) ?: summaryFallback.brightness,
-            refreshRate = parseIntValue(spec["주사율"]) ?: summaryFallback.refreshRate ?: DEFAULT_REFRESH_RATE,
-            ramSize = parseCapacityInGb(spec["램"]) ?: summaryFallback.ramSize,
+            brightness = DanawaDetailParser.parseIntValue(spec["밝기"]) ?: summaryFallback.brightness,
+            refreshRate = DanawaDetailParser.parseIntValue(spec["주사율"]) ?: summaryFallback.refreshRate ?: DEFAULT_REFRESH_RATE,
+            ramSize = DanawaDetailParser.parseCapacityInGb(spec["램"]) ?: summaryFallback.ramSize,
             ramType = spec["램 타입"] ?: summaryFallback.ramType,
-            isRamReplaceable = parsePossible(spec["램 교체"]) ?: summaryFallback.isRamReplaceable,
+            isRamReplaceable = DanawaDetailParser.parsePossible(spec["램 교체"]) ?: summaryFallback.isRamReplaceable,
             graphicsType = gpuModel,
-            tgp = parseIntValue(spec["TGP"])
+            tgp = DanawaDetailParser.parseIntValue(spec["TGP"])
                 ?: summaryFallback.tgp
                 ?: if (isIntegratedGraphics(gpuKind, gpuModel)) 0 else null,
-            thunderboltCount = parseThunderboltCount(spec),
-            usbCCount = parseUsbCCount(spec),
-            usbACount = parseCountValue(spec["USB-A"]),
-            sdCard = parseSdCard(spec),
+            thunderboltCount = DanawaDetailParser.parseThunderboltCount(spec),
+            usbCCount = DanawaDetailParser.parseUsbCCount(spec),
+            usbACount = DanawaDetailParser.parseCountValue(spec["USB-A"]),
+            sdCard = DanawaDetailParser.parseSdCard(spec),
             isSupportsPdCharging = when {
                 spec["전원"] != null -> spec["전원"]!!.contains("USB-PD", ignoreCase = true)
                 else -> summaryFallback.isSupportsPdCharging
             },
-            batteryCapacity = parseDoubleValue(spec["배터리"]) ?: summaryFallback.batteryCapacity,
-            storageCapacity = parseCapacityInGb(spec["용량"]) ?: summaryFallback.storageCapacity,
-            storageSlotCount = parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,
-            weight = parseWeightValue(spec["무게"]) ?: summaryFallback.weight,
+            batteryCapacity = DanawaDetailParser.parseDoubleValue(spec["배터리"]) ?: summaryFallback.batteryCapacity,
+            storageCapacity = DanawaDetailParser.parseCapacityInGb(spec["용량"]) ?: summaryFallback.storageCapacity,
+            storageSlotCount = DanawaDetailParser.parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,
+            weight = DanawaDetailParser.parseWeightValue(spec["무게"]) ?: summaryFallback.weight,
             lastDetailedCrawledAt = LocalDateTime.now(),
             laptopUsage = mutableListOf(),
         )
@@ -720,7 +678,7 @@ class CrawlerService(
     }
 
     @Transactional
-    private fun saveOrUpdateLaptop(laptop: Laptop): SaveResult {
+    internal fun saveOrUpdateLaptop(laptop: Laptop): SaveResult {
         return saveOrUpdateLaptop(laptop, null)
     }
 
@@ -786,7 +744,7 @@ class CrawlerService(
         }
     }
 
-    private fun saveListSnapshot(existingLaptop: Laptop, productCard: ProductCard): SaveResult {
+    internal fun saveListSnapshot(existingLaptop: Laptop, productCard: ProductCard): SaveResult {
         val previousPrice = existingLaptop.price
         var changed = false
 
@@ -837,22 +795,6 @@ class CrawlerService(
         return laptopRepository.findByDetailPage(laptop.detailPage)
     }
 
-    private fun needsDetailRefresh(existingLaptop: Laptop): Boolean {
-        return existingLaptop.cpuManufacturer.isNullOrBlank() ||
-            existingLaptop.cpu.isNullOrBlank() ||
-            existingLaptop.os.isNullOrBlank() ||
-            existingLaptop.screenSize == null ||
-            existingLaptop.resolution.isNullOrBlank() ||
-            existingLaptop.ramSize == null ||
-            existingLaptop.graphicsType.isNullOrBlank() ||
-            existingLaptop.storageCapacity == null ||
-            existingLaptop.batteryCapacity == null ||
-            existingLaptop.weight == null ||
-            existingLaptop.lastDetailedCrawledAt == null ||
-            existingLaptop.lastDetailedCrawledAt!!.isBefore(LocalDateTime.now().minusDays(DETAIL_REFRESH_INTERVAL_DAYS)) ||
-            existingLaptop.laptopUsage.isEmpty()
-    }
-
     private fun fetchDetailRefreshOutcomes(
         workItems: List<DetailRefreshWorkItem>,
         executor: ExecutorService,
@@ -892,61 +834,6 @@ class CrawlerService(
         samples += "${productCard.productCode} | ${productCard.productName} | $reason"
     }
 
-    internal fun parseListPage(html: String): List<ProductCard> {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-
-        return document.select("li.prod_item")
-            .mapNotNull { productItem ->
-                val productLink = productItem.selectFirst("a[name=productName]") ?: return@mapNotNull null
-                val detailPage = productLink.attr("href").trim()
-                val productCode = extractQueryParam(detailPage, "pcode") ?: return@mapNotNull null
-                val cateValues = productItem.selectFirst(".prod_pricelist")
-                    ?.attr("data-cate")
-                    ?.split("|")
-                    ?.map { it.trim() }
-                    ?.takeIf { it.size == 4 }
-                    ?: return@mapNotNull null
-
-                val imageElement = productItem.selectFirst(".thumb_image img")
-                val imageUrl = normalizeImageUrl(
-                    imageElement?.attr("src")
-                        ?.takeIf { it.isNotBlank() && !it.contains("noImg") }
-                        ?: imageElement?.attr("data-original").orEmpty(),
-                )
-
-                val priceText = productItem.selectFirst(".prod_pricelist .text__number")?.text()
-                    ?: productItem.selectFirst(".price_sect a")?.text()
-
-                ProductCard(
-                    productCode = productCode,
-                    productName = productLink.text().trim(),
-                    detailPage = normalizeDetailPage(detailPage, productCode, cateValues[3]),
-                    imageUrl = imageUrl,
-                    price = parsePrice(priceText),
-                    cate1 = cateValues[0],
-                    cate2 = cateValues[1],
-                    cate3 = cateValues[2],
-                    cate4 = cateValues[3],
-                )
-            }
-            .distinctBy { it.detailPage }
-    }
-
-    internal fun hasNextPage(html: String, currentPage: Int): Boolean {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        val navigation = document.selectFirst(".num_nav_wrap") ?: return false
-
-        val hasHigherNumberedPage = navigation.select(".number_wrap a.num")
-            .mapNotNull { anchor -> anchor.text().trim().toIntOrNull() }
-            .any { page -> page > currentPage }
-
-        if (hasHigherNumberedPage) {
-            return true
-        }
-
-        return navigation.selectFirst(".edge_nav.nav_next") != null
-    }
-
     internal fun shouldStopAtDuplicateTail(
         freshProductCount: Int,
         consecutiveDuplicateOnlyPages: Int,
@@ -956,44 +843,6 @@ class CrawlerService(
         }
 
         return consecutiveDuplicateOnlyPages >= MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES
-    }
-
-    internal fun extractPriceCompareCount(html: String): Int? {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        val hiddenCount = document.selectFirst("#totalProductCount")
-            ?.attr("value")
-            ?.takeIf { it.isNotBlank() }
-            ?.replace(",", "")
-            ?.toIntOrNull()
-        if (hiddenCount != null) {
-            return hiddenCount
-        }
-
-        return document.select(".tab_list_nav a")
-            .map { it.text().trim() }
-            .firstOrNull { it.contains("가격비교") }
-            ?.let { PRICE_COMPARE_COUNT_REGEX.find(it)?.groupValues?.get(1) }
-            ?.replace(",", "")
-            ?.toIntOrNull()
-    }
-
-    internal fun extractVisiblePageNumbers(html: String): List<Int> {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        return document.select(".num_nav_wrap .number_wrap a.num")
-            .mapNotNull { it.text().trim().toIntOrNull() }
-    }
-
-    internal fun extractNextPageHint(html: String): Int? {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        val onclick = document.selectFirst(".num_nav_wrap .edge_nav.nav_next")
-            ?.attr("onclick")
-            ?.takeIf { it.isNotBlank() }
-            ?: return null
-        return MOVE_PAGE_REGEX.find(onclick)?.groupValues?.get(1)?.toIntOrNull()
-    }
-
-    internal fun createPageSignature(productCards: List<ProductCard>): String {
-        return productCards.joinToString("||") { it.detailPage }
     }
 
     internal fun resolveFilterProfile(rawValue: String?): FilterProfile {
@@ -1093,113 +942,6 @@ class CrawlerService(
         }
 
         return responseBody.takeIf { it.contains("spec_tbl") }
-    }
-
-    internal fun extractDetailRequestContext(detailPageHtml: String): DetailRequestContext? {
-        val match = PRODUCT_DESCRIPTION_INFO_REGEX.find(detailPageHtml) ?: return null
-        val infoMap = objectMapper.readValue(match.groupValues[1], Map::class.java)
-            .mapNotNull { (key, value) ->
-                val stringKey = key as? String ?: return@mapNotNull null
-                val stringValue = value as? String ?: return@mapNotNull null
-                stringKey to stringValue
-            }
-            .toMap()
-
-        return DetailRequestContext(
-            makerName = infoMap["makerName"]?.trim(),
-            productName = infoMap["productName"]?.trim(),
-            prodType = infoMap["prodType"]?.trim(),
-        )
-    }
-
-    private fun extractSummaryText(detailPageHtml: String): String {
-        return Jsoup.parse(detailPageHtml, DANAWA_ORIGIN)
-            .selectFirst(".summary_info .spec_list")
-            ?.text()
-            .orEmpty()
-    }
-
-    internal fun parseSpecTable(html: String): ParsedSpecTable {
-        val document = Jsoup.parse(html, DANAWA_ORIGIN)
-        val specTable = document.selectFirst("table.spec_tbl") ?: return ParsedSpecTable(emptyMap(), emptyList())
-
-        val values = linkedMapOf<String, String>()
-        val usages = mutableListOf<String>()
-        var currentSection: String? = null
-
-        specTable.select("tr").forEach { row ->
-            val children = row.children()
-            if (children.isEmpty()) {
-                return@forEach
-            }
-
-            if (children.size == 1 && children.first()?.tagName() == "th" && row.select("td").isEmpty()) {
-                currentSection = children.first()!!.text().trim()
-                return@forEach
-            }
-
-            var index = 0
-            while (index + 1 < children.size) {
-                val keyCell = children[index]
-                val valueCell = children.getOrNull(index + 1)
-
-                if (keyCell.tagName() == "th" && valueCell?.tagName() == "td") {
-                    val key = keyCell.text().trim()
-                    val value = valueCell.text().trim()
-
-                    if (key.isNotBlank()) {
-                        if (currentSection == "용도" && value == "○") {
-                            usages += key
-                        } else if (value.isNotBlank()) {
-                            values[key] = value
-                        }
-                    }
-                }
-
-                index += 2
-            }
-        }
-
-        return ParsedSpecTable(
-            values = values,
-            usages = usages.distinct(),
-        )
-    }
-
-    internal fun parseSummaryFallback(summaryText: String): SummaryFallback {
-        val normalizedText = summaryText.replace(Regex("\\s+"), " ").trim()
-        if (normalizedText.isBlank()) {
-            return SummaryFallback()
-        }
-
-        return SummaryFallback(
-            cpuManufacturer = extractFirst(normalizedText, Regex("""\[CPU\]\s*(인텔|Intel|AMD|APPLE|Apple|퀄컴|Qualcomm)""", RegexOption.IGNORE_CASE))
-                ?.let(::normalizeCpuManufacturer),
-            cpu = extractFirst(normalizedText, Regex("""\[CPU\][^\[]*?/\s*([A-Za-z0-9\-]+)\s*\(""", RegexOption.IGNORE_CASE)),
-            os = extractFirst(
-                normalizedText,
-                Regex("""(OS미포함\(프리도스\)|윈도우11홈|윈도우11프로|윈도우11|윈도우10 프로|윈도우10|macOS|리눅스|크롬OS|Whale OS)"""),
-            ),
-            screenSize = parseScreenSize(extractFirst(normalizedText, Regex("""([0-9.]+cm\([0-9.]+인치\))"""))),
-            resolution = extractFirst(normalizedText, Regex("""해상도\s*:\s*([0-9]+x[0-9]+\([^)]+\))""")),
-            brightness = parseIntValue(extractFirst(normalizedText, Regex("""밝기\s*:\s*([0-9]+nit)"""))),
-            refreshRate = parseIntValue(extractFirst(normalizedText, Regex("""주사율\s*:\s*([0-9]+Hz)"""))),
-            ramSize = parseCapacityInGb(extractFirst(normalizedText, Regex("""램\s*:\s*([0-9]+GB)"""))),
-            isRamReplaceable = parsePossible(extractFirst(normalizedText, Regex("""램 교체\s*:\s*(가능|불가능)"""))),
-            graphicsKind = extractFirst(normalizedText, Regex("""\[그래픽\]\s*([^/]+)"""))?.trim(),
-            graphicsModel = extractFirst(normalizedText, Regex("""\[그래픽\]\s*[^/]+/\s*([^/]+)"""))?.trim(),
-            tgp = parseIntValue(extractFirst(normalizedText, Regex("""TGP\s*:\s*([0-9]+W)"""))),
-            isSupportsPdCharging = normalizedText.contains("USB-PD"),
-            batteryCapacity = parseDoubleValue(extractFirst(normalizedText, Regex("""배터리\s*:\s*([0-9.]+Wh)"""))),
-            storageCapacity = parseCapacityInGb(extractFirst(normalizedText, Regex("""용량\s*:\s*([0-9.]+(?:TB|GB))"""))),
-            storageSlotCount = parseCountValue(extractFirst(normalizedText, Regex("""저장 슬롯\s*:\s*([0-9]+개)"""))),
-            weight = parseWeightValue(normalizedText),
-            usages = extractFirst(normalizedText, Regex("""용도\s*:\s*([^\[]+)"""))
-                ?.split(",")
-                ?.map { it.trim() }
-                ?.filter { it.isNotBlank() }
-                ?: emptyList(),
-        )
     }
 
     private fun sendRequest(request: HttpRequest): String {
@@ -1315,7 +1057,7 @@ class CrawlerService(
             return "없음"
         }
 
-        val cate = extractQueryParam(productCard.detailPage, "cate") ?: productCard.cate4
+        val cate = DanawaListParser.extractQueryParam(productCard.detailPage, "cate") ?: productCard.cate4
         return "${productCard.productCode}@${cate}"
     }
 
@@ -1323,121 +1065,8 @@ class CrawlerService(
         return hashCode().toUInt().toString(16)
     }
 
-    private fun normalizeImageUrl(url: String): String {
-        if (url.isBlank()) {
-            return ""
-        }
-
-        val normalizedUrl = when {
-            url.startsWith("//") -> "https:$url"
-            else -> url
-        }
-
-        return normalizedUrl.replace(Regex("shrink=\\d+:\\d+"), "shrink=500:500")
-    }
-
-    private fun parsePrice(priceText: String?): Int? {
-        return priceText
-            ?.replace(Regex("[^0-9]"), "")
-            ?.takeIf { it.isNotBlank() }
-            ?.toIntOrNull()
-    }
-
-    private fun normalizeDetailPage(rawDetailPage: String, productCode: String, categoryCode: String): String {
-        val cate = extractQueryParam(rawDetailPage, "cate") ?: categoryCode
-        return "$DANAWA_ORIGIN/info/?pcode=$productCode&cate=$cate"
-    }
-
-    private fun parseScreenSize(value: String?): Int? {
-        val inches = Regex("""([0-9.]+)인치""").find(value.orEmpty())?.groupValues?.getOrNull(1)?.toDoubleOrNull()
-            ?: return null
-        return inches.toInt()
-    }
-
-    private fun parseIntValue(value: String?): Int? {
-        return Regex("""([0-9]+)""").find(value.orEmpty())?.groupValues?.getOrNull(1)?.toIntOrNull()
-    }
-
-    private fun parseDoubleValue(value: String?): Double? {
-        return Regex("""([0-9]+(?:\.[0-9]+)?)""").find(value.orEmpty())?.groupValues?.getOrNull(1)?.toDoubleOrNull()
-    }
-
-    internal fun parseWeightValue(value: String?): Double? {
-        val text = value.orEmpty()
-        val kilogramWeights = Regex("""([0-9]+(?:\.[0-9]+)?)\s*kg""", RegexOption.IGNORE_CASE)
-            .findAll(text)
-            .mapNotNull { match -> match.groupValues.getOrNull(1)?.toDoubleOrNull() }
-            .toList()
-        val gramWeights = Regex("""([0-9]+(?:\.[0-9]+)?)\s*g""", RegexOption.IGNORE_CASE)
-            .findAll(text)
-            .mapNotNull { match -> match.groupValues.getOrNull(1)?.toDoubleOrNull()?.div(1000.0) }
-            .toList()
-
-        return (kilogramWeights + gramWeights)
-            .filter { it > 0 }
-            .maxOrNull()
-    }
-
-    private fun parseCapacityInGb(value: String?): Int? {
-        val match = Regex("""([0-9]+(?:\.[0-9]+)?)(TB|GB)""", RegexOption.IGNORE_CASE).find(value.orEmpty()) ?: return null
-        val amount = match.groupValues[1].toDoubleOrNull() ?: return null
-        val unit = match.groupValues[2].uppercase()
-
-        return when (unit) {
-            "TB" -> (amount * 1024).roundToInt()
-            "GB" -> amount.roundToInt()
-            else -> null
-        }
-    }
-
-    private fun parseCountValue(value: String?): Int? {
-        return Regex("""([0-9]+)개""").find(value.orEmpty())?.groupValues?.getOrNull(1)?.toIntOrNull()
-    }
-
-    private fun parsePossible(value: String?): Boolean? {
-        return when (value?.trim()) {
-            "가능" -> true
-            "불가능" -> false
-            else -> null
-        }
-    }
-
-    private fun parseThunderboltCount(spec: Map<String, String>): Int? {
-        val count = spec.entries
-            .filter { it.key.startsWith("썬더볼트") }
-            .sumOf { parseCountValue(it.value) ?: 0 }
-
-        return count.takeIf { it > 0 }
-    }
-
-    private fun parseUsbCCount(spec: Map<String, String>): Int? {
-        val directCount = parseCountValue(spec["USB-C"])
-        if (directCount != null) {
-            return directCount
-        }
-
-        val thunderboltCount = spec.entries
-            .filter { it.key.startsWith("썬더볼트") && it.value.contains("USB-C겸용") }
-            .sumOf { parseCountValue(it.value) ?: 0 }
-
-        return thunderboltCount.takeIf { it > 0 }
-    }
-
-    private fun parseSdCard(spec: Map<String, String>): String? {
-        return when {
-            spec["SD카드"] == "○" -> "SD카드"
-            spec["MicroSD카드"] == "○" -> "MicroSD카드"
-            else -> null
-        }
-    }
-
-    private fun normalizeOs(rawOs: String?): String? {
-        val value = rawOs?.trim()?.takeIf { it.isNotBlank() } ?: return null
-        return if (value.contains("미포함")) "freedos" else value
-    }
-
     private fun resolveCpuManufacturer(rawManufacturer: String?, productName: String, rawCpu: String?): String? {
-        rawManufacturer?.let(::normalizeCpuManufacturer)?.let { return it }
+        rawManufacturer?.let(DanawaDetailParser::normalizeCpuManufacturer)?.let { return it }
 
         val normalizedName = productName.uppercase()
         val normalizedCpu = rawCpu.orEmpty().uppercase()
@@ -1456,16 +1085,6 @@ class CrawlerService(
     internal fun resolveCpuModel(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
         return laptopProfileFactory.resolveCpuToken(rawCpu, cpuManufacturer, productName)
             ?: rawCpu?.trim()?.takeIf { it.isNotBlank() }
-    }
-
-    private fun normalizeCpuManufacturer(rawManufacturer: String): String {
-        return when {
-            rawManufacturer.contains("intel", ignoreCase = true) || rawManufacturer.contains("인텔") -> "인텔"
-            rawManufacturer.contains("amd", ignoreCase = true) -> "AMD"
-            rawManufacturer.contains("apple", ignoreCase = true) || rawManufacturer.contains("애플") -> "애플(ARM)"
-            rawManufacturer.contains("qualcomm", ignoreCase = true) || rawManufacturer.contains("퀄컴") -> "퀄컴"
-            else -> rawManufacturer.trim()
-        }
     }
 
     private fun isIntegratedGraphics(graphicsKind: String?, graphicsModel: String?): Boolean {
@@ -1507,55 +1126,6 @@ class CrawlerService(
         return true
     }
 
-    private fun SummaryFallback.isEmpty(): Boolean {
-        return cpuManufacturer == null &&
-            cpu == null &&
-            os == null &&
-            screenSize == null &&
-            resolution == null &&
-            brightness == null &&
-            refreshRate == null &&
-            ramSize == null &&
-            ramType == null &&
-            isRamReplaceable == null &&
-            graphicsKind == null &&
-            graphicsModel == null &&
-            tgp == null &&
-            isSupportsPdCharging == null &&
-            batteryCapacity == null &&
-            storageCapacity == null &&
-            storageSlotCount == null &&
-            weight == null &&
-            usages.isEmpty()
-    }
-
-    private fun extractQueryParam(url: String, key: String): String? {
-        return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
-    }
-
-    private fun extractFirst(text: String, regex: Regex): String? {
-        return regex.find(text)?.groupValues?.getOrNull(1)?.trim()
-    }
-
-    private fun extractJsScalar(html: String, key: String): String? {
-        val escapedKey = Regex.escape(key)
-
-        Regex("""["']?$escapedKey["']?\s*:\s*"([^"]*)"""")
-            .find(html)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-            ?.let { return it }
-
-        return Regex("""["']?$escapedKey["']?\s*:\s*([0-9]+)""")
-            .find(html)
-            ?.groupValues
-            ?.getOrNull(1)
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-    }
-
     private fun String.urlEncode(): String {
         return URLEncoder.encode(this, StandardCharsets.UTF_8)
     }
@@ -1565,6 +1135,7 @@ class CrawlerService(
         private const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
         private const val APPLE_MACBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=11236463"
         private const val LIST_AJAX_URL = "https://prod.danawa.com/list/ajax/getProductList.ajax.php"
+        private const val LIST_SORT_METHOD = "MinPrice"
         private const val DANAWA_ORIGIN = "https://prod.danawa.com"
         private const val PRODUCT_DESCRIPTION_URL = "https://prod.danawa.com/info/ajax/getProductDescription.ajax.php"
         private const val FORM_URLENCODED = "application/x-www-form-urlencoded; charset=UTF-8"
@@ -1579,9 +1150,6 @@ class CrawlerService(
         private const val MAX_LIST_PAGES = 5000
         private const val MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES = 5
         private const val DETAIL_FETCH_CONCURRENCY = 6
-        private const val DETAIL_REFRESH_INTERVAL_DAYS = 30L
-        private val PRICE_COMPARE_COUNT_REGEX = Regex("""\(([\d,]+)\)""")
-        private val MOVE_PAGE_REGEX = Regex("""movePage\((\d+)\)""")
         private val RETRYABLE_STATUS_CODES = setOf(403, 429, 500, 502, 503, 504)
         private val DISCRETE_GPU_KEYWORDS = listOf(
             "RTX",
@@ -1616,9 +1184,5 @@ class CrawlerService(
             "ADRENO",
         )
         private val REQUEST_TIMEOUT: Duration = Duration.ofSeconds(20)
-        private val PRODUCT_DESCRIPTION_INFO_REGEX = Regex(
-            """var\s+oProductDescriptionInfo\s*=\s*(\{.*?});""",
-            setOf(RegexOption.DOT_MATCHES_ALL),
-        )
     }
 }

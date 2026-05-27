@@ -1,5 +1,7 @@
 package going9.laptopgg.service.crawler
 
+import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.domain.laptop.LaptopUsage
 import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.LaptopProfileFactory
 import going9.laptopgg.service.LaptopPriceHistoryService
@@ -42,14 +44,14 @@ class CrawlerServiceNormalizationTest {
 
     @Test
     fun `weight parser supports gram values`() {
-        val weight = crawlerService.parseWeightValue("891g")
+        val weight = DanawaDetailParser.parseWeightValue("891g")
 
         assertThat(weight).isCloseTo(0.891, offset(0.0001))
     }
 
     @Test
     fun `weight parser keeps the practical package weight when multiple values exist`() {
-        val weight = crawlerService.parseWeightValue("0.87kg / 1.17kg")
+        val weight = DanawaDetailParser.parseWeightValue("0.87kg / 1.17kg")
 
         assertThat(weight).isCloseTo(1.17, offset(0.0001))
     }
@@ -70,7 +72,7 @@ class CrawlerServiceNormalizationTest {
             </ul>
         """.trimIndent()
 
-        val result = crawlerService.parseListPage(html)
+        val result = DanawaListParser.parseListPage(html)
 
         assertThat(result).hasSize(1)
         assertThat(result.first().detailPage).isEqualTo("https://prod.danawa.com/info/?pcode=123456&cate=112758")
@@ -108,7 +110,7 @@ class CrawlerServiceNormalizationTest {
             </script>
         """.trimIndent()
 
-        val result = crawlerService.extractListRequestContext(
+        val result = DanawaListParser.extractListRequestContext(
             html,
             CrawlerService.CrawlSource(
                 key = "fixture",
@@ -131,30 +133,26 @@ class CrawlerServiceNormalizationTest {
 
     @Test
     fun `detail refresh is skipped for complete recently crawled laptop`() {
-        val laptop = sampleLaptop(lastDetailedCrawledAt = LocalDateTime.now().minusDays(5))
+        val now = LocalDateTime.parse("2026-05-27T10:00:00")
+        val laptop = sampleLaptop(lastDetailedCrawledAt = now.minusDays(5))
 
-        val result = invokeNeedsDetailRefresh(laptop)
+        val result = DetailRefreshPolicy.needsRefresh(laptop, now)
 
         assertThat(result).isFalse()
     }
 
     @Test
     fun `detail refresh is required for stale laptop even when specs exist`() {
-        val laptop = sampleLaptop(lastDetailedCrawledAt = LocalDateTime.now().minusDays(45))
+        val now = LocalDateTime.parse("2026-05-27T10:00:00")
+        val laptop = sampleLaptop(lastDetailedCrawledAt = now.minusDays(45))
 
-        val result = invokeNeedsDetailRefresh(laptop)
+        val result = DetailRefreshPolicy.needsRefresh(laptop, now)
 
         assertThat(result).isTrue()
     }
 
-    private fun invokeNeedsDetailRefresh(laptop: going9.laptopgg.domain.laptop.Laptop): Boolean {
-        val method = crawlerService.javaClass.getDeclaredMethod("needsDetailRefresh", going9.laptopgg.domain.laptop.Laptop::class.java)
-        method.setAccessible(true)
-        return method.invoke(crawlerService, laptop) as Boolean
-    }
-
-    private fun sampleLaptop(lastDetailedCrawledAt: LocalDateTime?): going9.laptopgg.domain.laptop.Laptop {
-        val laptop = going9.laptopgg.domain.laptop.Laptop(
+    private fun sampleLaptop(lastDetailedCrawledAt: LocalDateTime?): Laptop {
+        val laptop = Laptop(
             name = "테스트 노트북",
             imageUrl = "https://example.com/test.jpg",
             detailPage = "https://prod.danawa.com/info/?pcode=1&cate=112758",
@@ -184,7 +182,7 @@ class CrawlerServiceNormalizationTest {
             lastDetailedCrawledAt = lastDetailedCrawledAt,
             laptopUsage = mutableListOf(),
         )
-        laptop.laptopUsage.add(going9.laptopgg.domain.laptop.LaptopUsage(usage = "사무/인강용", laptop = laptop))
+        laptop.laptopUsage.add(LaptopUsage(usage = "사무/인강용", laptop = laptop))
         return laptop
     }
 }

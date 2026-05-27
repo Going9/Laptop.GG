@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.util.AopTestUtils
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest(properties = ["spring.profiles.active=test"])
@@ -59,7 +58,7 @@ class CrawlerPersistenceIntegrationTest {
             ),
         )
 
-        assertThat(result).isEqualTo("CREATED")
+        assertThat(result).isEqualTo(CrawlerService.SaveResult.CREATED)
         assertThat(laptopRepository.count()).isEqualTo(2)
         assertThat(laptopRepository.findByProductCode("A001")).isNotNull
         assertThat(laptopRepository.findByProductCode("B002")).isNotNull
@@ -76,7 +75,7 @@ class CrawlerPersistenceIntegrationTest {
             ),
         )
 
-        assertThat(result).isEqualTo("CREATED")
+        assertThat(result).isEqualTo(CrawlerService.SaveResult.CREATED)
         assertThat(laptopPriceHistoryRepository.count()).isEqualTo(1)
         assertThat(laptopPriceHistoryRepository.findAll().single().price).isEqualTo(1_490_000)
     }
@@ -103,7 +102,7 @@ class CrawlerPersistenceIntegrationTest {
 
         val refreshed = laptopRepository.findById(existing.id!!).orElseThrow()
 
-        assertThat(result).isEqualTo("UPDATED")
+        assertThat(result).isEqualTo(CrawlerService.SaveResult.UPDATED)
         assertThat(laptopRepository.count()).isEqualTo(1)
         assertThat(refreshed.productCode).isEqualTo("P999")
         assertThat(refreshed.price).isEqualTo(1_150_000)
@@ -153,7 +152,7 @@ class CrawlerPersistenceIntegrationTest {
         val result = invokeSaveOrUpdate(sparseUpdate)
         val refreshed = laptopRepository.findById(existing.id!!).orElseThrow()
 
-        assertThat(result).isEqualTo("UNCHANGED")
+        assertThat(result).isEqualTo(CrawlerService.SaveResult.UNCHANGED)
         assertThat(refreshed.name).isEqualTo("Stable Model")
         assertThat(refreshed.imageUrl).contains(".jpg")
         assertThat(refreshed.price).isEqualTo(1_390_000)
@@ -192,7 +191,7 @@ class CrawlerPersistenceIntegrationTest {
 
         val refreshed = laptopRepository.findById(existing.id!!).orElseThrow()
 
-        assertThat(result).isEqualTo("UPDATED")
+        assertThat(result).isEqualTo(CrawlerService.SaveResult.UPDATED)
         assertThat(laptopRepository.count()).isEqualTo(1)
         assertThat(refreshed.price).isEqualTo(1_190_000)
         assertThat(refreshed.imageUrl).isEqualTo("https://example.com/updated.jpg")
@@ -205,25 +204,15 @@ class CrawlerPersistenceIntegrationTest {
         assertThat(refreshed.weight).isEqualTo(1.35)
     }
 
-    private fun invokeSaveOrUpdate(laptop: Laptop): String {
-        val target = AopTestUtils.getTargetObject<Any>(crawlerService)
-        val method = target.javaClass.getDeclaredMethod("saveOrUpdateLaptop", Laptop::class.java)
-        method.setAccessible(true)
-        return method.invoke(target, laptop).toString()
+    private fun invokeSaveOrUpdate(laptop: Laptop): CrawlerService.SaveResult {
+        return crawlerService.saveOrUpdateLaptop(laptop)
     }
 
     private fun invokeSaveListSnapshot(
         existingLaptop: Laptop,
         productCard: CrawlerService.ProductCard,
-    ): String {
-        val target = AopTestUtils.getTargetObject<Any>(crawlerService)
-        val method = target.javaClass.getDeclaredMethod(
-            "saveListSnapshot",
-            Laptop::class.java,
-            CrawlerService.ProductCard::class.java,
-        )
-        method.setAccessible(true)
-        return method.invoke(target, existingLaptop, productCard).toString()
+    ): CrawlerService.SaveResult {
+        return crawlerService.saveListSnapshot(existingLaptop, productCard)
     }
 
     private fun laptop(

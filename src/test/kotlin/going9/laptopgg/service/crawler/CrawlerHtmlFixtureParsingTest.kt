@@ -20,14 +20,14 @@ class CrawlerHtmlFixtureParsingTest {
     fun `list fixture keeps context and canonical product card fields`() {
         val html = readFixture("/fixtures/danawa/list-page.html")
 
-        val requestContext = crawlerService.extractListRequestContext(
+        val requestContext = DanawaListParser.extractListRequestContext(
             html,
             CrawlerService.CrawlSource(
                 key = "fixture",
                 listUrl = "https://prod.danawa.com/list/?cate=112758",
             ),
         )
-        val productCards = crawlerService.parseListPage(html)
+        val productCards = DanawaListParser.parseListPage(html)
 
         assertThat(requestContext.categoryCode).isEqualTo("758")
         assertThat(requestContext.listCount).isEqualTo("30")
@@ -42,9 +42,9 @@ class CrawlerHtmlFixtureParsingTest {
         val detailPageHtml = readFixture("/fixtures/danawa/detail-page.html")
         val detailSpecHtml = readFixture("/fixtures/danawa/detail-spec.html")
 
-        val detailRequestContext = crawlerService.extractDetailRequestContext(detailPageHtml)
-        val parsedSpecTable = crawlerService.parseSpecTable(detailSpecHtml)
-        val summaryFallback = crawlerService.parseSummaryFallback(
+        val detailRequestContext = DanawaDetailParser.extractDetailRequestContext(detailPageHtml)
+        val parsedSpecTable = DanawaDetailParser.parseSpecTable(detailSpecHtml)
+        val summaryFallback = DanawaDetailParser.parseSummaryFallback(
             Regex("""<div class="spec_list">\s*(.*?)\s*</div>""", setOf(RegexOption.DOT_MATCHES_ALL))
                 .find(detailPageHtml)
                 ?.groupValues
@@ -84,7 +84,7 @@ class CrawlerHtmlFixtureParsingTest {
             </html>
         """.trimIndent()
 
-        val productCards = crawlerService.parseListPage(html)
+        val productCards = DanawaListParser.parseListPage(html)
 
         assertThat(productCards).hasSize(2)
         assertThat(productCards.map { it.detailPage }).containsExactly(
@@ -109,8 +109,8 @@ class CrawlerHtmlFixtureParsingTest {
             </html>
         """.trimIndent()
 
-        assertThat(crawlerService.hasNextPage(html, currentPage = 1)).isTrue()
-        assertThat(crawlerService.hasNextPage(html, currentPage = 2)).isTrue()
+        assertThat(DanawaListParser.hasNextPage(html, currentPage = 1)).isTrue()
+        assertThat(DanawaListParser.hasNextPage(html, currentPage = 2)).isTrue()
     }
 
     @Test
@@ -139,9 +139,9 @@ class CrawlerHtmlFixtureParsingTest {
             </html>
         """.trimIndent()
 
-        assertThat(crawlerService.extractPriceCompareCount(html)).isEqualTo(20_551)
-        assertThat(crawlerService.extractVisiblePageNumbers(html)).containsExactly(61, 62, 63, 64, 65, 66, 67, 68, 69)
-        assertThat(crawlerService.extractNextPageHint(html)).isEqualTo(70)
+        assertThat(DanawaListParser.extractPriceCompareCount(html)).isEqualTo(20_551)
+        assertThat(DanawaListParser.extractVisiblePageNumbers(html)).containsExactly(61, 62, 63, 64, 65, 66, 67, 68, 69)
+        assertThat(DanawaListParser.extractNextPageHint(html)).isEqualTo(70)
     }
 
     @Test
@@ -195,7 +195,7 @@ class CrawlerHtmlFixtureParsingTest {
             ),
         )
 
-        assertThat(crawlerService.createPageSignature(cards))
+        assertThat(DanawaListParser.createPageSignature(cards))
             .isEqualTo(
                 "https://prod.danawa.com/info/?pcode=111&cate=112758||https://prod.danawa.com/info/?pcode=111&cate=112760",
             )

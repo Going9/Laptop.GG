@@ -1,6 +1,7 @@
 package going9.laptopgg.service
 
 import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.repository.LaptopProfileRepository
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.request.RecommendationUseCase
@@ -31,71 +32,57 @@ class RecommendationService(
             findCandidatePage(request, candidateFilter, useCase, sortMode, pageable)
         } else {
             val candidates = findCandidates(request, candidateFilter)
-                .map { profile ->
-                    val gateScore = scoreCalculatorService.gateScore(profile, useCase)
-                    val scoreResult = scoreCalculatorService.calculateScore(profile.laptop, profile, request)
-                    ScoredLaptop(
-                        laptop = profile.laptop,
-                        gateScore = gateScore,
-                        score = scoreResult.score,
-                        reasons = scoreResult.reasons,
-                    )
-                }
+                .map { profile -> scoreCandidate(profile.laptop, profile, request, useCase) }
 
             val sortedCandidates = sortCandidates(candidates, pageable)
             val pageContent = paginate(sortedCandidates, pageable)
             return PageImpl(
-                pageContent.map { candidate ->
-                    LaptopRecommendationListResponse(
-                        id = candidate.laptop.id!!,
-                        score = candidate.score,
-                        imgLink = candidate.laptop.imageUrl,
-                        price = candidate.laptop.price!!,
-                        name = candidate.laptop.name,
-                        manufacturer = manufacturerName(candidate.laptop.name),
-                        weight = candidate.laptop.weight,
-                        screenSize = candidate.laptop.screenSize,
-                        cpu = candidate.laptop.cpu,
-                        gpu = candidate.laptop.graphicsType,
-                        resolutionLabel = resolutionLabel(candidate.laptop.resolution),
-                        reasons = candidate.reasons,
-                    )
-                },
+                pageContent.map(::toResponse),
                 pageable,
                 candidates.size.toLong(),
             )
         }
 
         val pageContent = candidatePage.content.map { profile ->
-            val gateScore = scoreCalculatorService.gateScore(profile, useCase)
-            val scoreResult = scoreCalculatorService.calculateScore(profile.laptop, profile, request)
-            ScoredLaptop(
-                laptop = profile.laptop,
-                gateScore = gateScore,
-                score = scoreResult.score,
-                reasons = scoreResult.reasons,
-            )
+            scoreCandidate(profile.laptop, profile, request, useCase)
         }
 
         return PageImpl(
-            pageContent.map { candidate ->
-                LaptopRecommendationListResponse(
-                    id = candidate.laptop.id!!,
-                    score = candidate.score,
-                    imgLink = candidate.laptop.imageUrl,
-                    price = candidate.laptop.price!!,
-                    name = candidate.laptop.name,
-                    manufacturer = manufacturerName(candidate.laptop.name),
-                    weight = candidate.laptop.weight,
-                    screenSize = candidate.laptop.screenSize,
-                    cpu = candidate.laptop.cpu,
-                    gpu = candidate.laptop.graphicsType,
-                    resolutionLabel = resolutionLabel(candidate.laptop.resolution),
-                    reasons = candidate.reasons,
-                )
-            },
+            pageContent.map(::toResponse),
             pageable,
             candidatePage.totalElements,
+        )
+    }
+
+    private fun scoreCandidate(
+        laptop: Laptop,
+        profile: LaptopProfile,
+        request: LaptopRecommendationRequest,
+        useCase: RecommendationUseCase,
+    ): ScoredLaptop {
+        val scoreResult = scoreCalculatorService.calculateScore(laptop, profile, request)
+        return ScoredLaptop(
+            laptop = laptop,
+            gateScore = scoreCalculatorService.gateScore(profile, useCase),
+            score = scoreResult.score,
+            reasons = scoreResult.reasons,
+        )
+    }
+
+    private fun toResponse(candidate: ScoredLaptop): LaptopRecommendationListResponse {
+        return LaptopRecommendationListResponse(
+            id = candidate.laptop.id!!,
+            score = candidate.score,
+            imgLink = candidate.laptop.imageUrl,
+            price = candidate.laptop.price!!,
+            name = candidate.laptop.name,
+            manufacturer = manufacturerName(candidate.laptop.name),
+            weight = candidate.laptop.weight,
+            screenSize = candidate.laptop.screenSize,
+            cpu = candidate.laptop.cpu,
+            gpu = candidate.laptop.graphicsType,
+            resolutionLabel = resolutionLabel(candidate.laptop.resolution),
+            reasons = candidate.reasons,
         )
     }
 

@@ -1,4 +1,3 @@
-import org.gradle.api.tasks.SourceSetContainer
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -27,7 +26,6 @@ repositories {
 }
 
 dependencies {
-	implementation("com.microsoft.playwright:playwright:1.58.0")
 	implementation("org.jsoup:jsoup:1.18.3")
 	implementation("org.flywaydb:flyway-core")
 
@@ -61,12 +59,4 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-}
-
-tasks.register<JavaExec>("installPlaywrightBrowsers") {
-	group = "playwright"
-	description = "Installs the Chromium browser binaries used by the crawler."
-	classpath = project.extensions.getByType<SourceSetContainer>()["main"].runtimeClasspath
-	mainClass.set("com.microsoft.playwright.CLI")
-	args("install", "--with-deps", "chromium")
 }

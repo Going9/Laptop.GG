@@ -1,22 +1,28 @@
 package going9.laptopgg.controller
 
-import going9.laptopgg.dto.request.*
-import org.springframework.beans.factory.annotation.Value
+import going9.laptopgg.dto.request.CommentRequest
+import going9.laptopgg.dto.request.CommentUpdateRequest
+import going9.laptopgg.dto.request.LaptopRecommendationRequest
+import going9.laptopgg.dto.request.RecommendationUseCase
+import going9.laptopgg.dto.request.ScreenSizeMode
+import going9.laptopgg.service.CommentService
+import going9.laptopgg.service.LaptopService
+import going9.laptopgg.service.RecommendationService
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.client.RestTemplate
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class PageController(
-    @Value("\${app.api.base-url:http://localhost:8080}")
-    private val apiBaseUrl: String,
-    private val restTemplate: RestTemplate,
-    private val laptopController: LaptopController,
-    private val recommendationController: RecommendationController,
-    private val commentController: CommentController,
+    private val laptopService: LaptopService,
+    private val recommendationService: RecommendationService,
+    private val commentService: CommentService,
 ) {
 
     @GetMapping("/recommends", "/")
@@ -30,7 +36,6 @@ class PageController(
         return "recommendation-form"
     }
 
-    // 추천 결과 화면
     @PostMapping("/recommends")
     fun recommendLaptops(
         @ModelAttribute laptopRecommendationRequest: LaptopRecommendationRequest,
@@ -38,10 +43,7 @@ class PageController(
         @PageableDefault(size = 10) pageable: Pageable,
         model: Model
     ): String {
-        // 서비스 호출
-        val recommendedLaptops = recommendationController.recommendLaptops(laptopRecommendationRequest, pageable)
-
-        // 모델에 데이터 추가
+        val recommendedLaptops = recommendationService.recommendLaptops(laptopRecommendationRequest, pageable)
         val resolvedUseCase = laptopRecommendationRequest.resolvedUseCase()
         model.addAttribute("laptopRecommendationRequest", laptopRecommendationRequest)
         model.addAttribute("recommendedLaptops", recommendedLaptops.content)
@@ -60,30 +62,27 @@ class PageController(
 
     @GetMapping("/laptops/{laptopId}")
     fun showLaptopDetail(@PathVariable laptopId: Long, model: Model): String {
-        val laptopDetail = laptopController.getLaptopDetail(laptopId)
-        val commentsOfLaptop = commentController.getAllComments(laptopId)
+        val laptopDetail = laptopService.findLaptopById(laptopId)
+        val commentsOfLaptop = commentService.getAllComments(laptopId)
         model.addAttribute("laptopDetail", laptopDetail)
         model.addAttribute("commentsOfLaptop", commentsOfLaptop)
         model.addAttribute("commentRequest", CommentRequest())
         return "laptop-detail"
     }
 
-    // 코멘트 등록
     @PostMapping("/comments")
     fun addComment(@ModelAttribute commentRequest: CommentRequest): String {
-        commentController.saveComment(commentRequest)
+        commentService.saveComment(commentRequest)
         return "redirect:/laptops/${commentRequest.laptopId}"
     }
 
-    // 코멘트 수정
     @PostMapping("/comments/{commentId}/edit")
     fun editComment(
         @PathVariable commentId: Long,
         @ModelAttribute commentRequest: CommentRequest,
     ): String {
-        val apiUrl = "$apiBaseUrl/api/comments/$commentId/edit"
-        restTemplate.put(
-            apiUrl,
+        commentService.updateComment(
+            commentId,
             CommentUpdateRequest(
                 passWord = commentRequest.passWord,
                 content = commentRequest.content,

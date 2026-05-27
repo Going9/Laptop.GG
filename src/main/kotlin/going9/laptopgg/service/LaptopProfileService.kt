@@ -105,75 +105,70 @@ class LaptopProfileService(
         val snapshot = laptopProfileFactory.build(laptop)
         val existingProfile = laptopProfileRepository.findByLaptopId(laptopId)
 
-        return if (existingProfile == null) {
-            laptopProfileRepository.save(
-                LaptopProfile(
-                    laptop = laptop,
-                    cpuClass = snapshot.cpuClass,
-                    gpuClass = snapshot.gpuClass,
-                    batteryTier = snapshot.batteryTier,
-                    portabilityTier = snapshot.portabilityTier,
-                    officeScore = snapshot.officeScore,
-                    batteryScore = snapshot.batteryScore,
-                    casualGameScore = snapshot.casualGameScore,
-                    onlineGameScore = snapshot.onlineGameScore,
-                    aaaGameScore = snapshot.aaaGameScore,
-                    creatorScore = snapshot.creatorScore,
-                    cpuPerformanceScore = snapshot.cpuPerformanceScore,
-                    lowPowerCpuScore = snapshot.lowPowerCpuScore,
-                    gpuPerformanceScore = snapshot.gpuPerformanceScore,
-                    gpuCreatorBonus = snapshot.gpuCreatorBonus,
-                    portabilityScore = snapshot.portabilityScore,
-                    displayScore = snapshot.displayScore,
-                    ramScore = snapshot.ramScore,
-                    tgpScore = snapshot.tgpScore,
-                ),
-            )
-        } else {
-            if (existingProfile.matches(snapshot)) {
-                return existingProfile
-            }
-
-            existingProfile.cpuClass = snapshot.cpuClass
-            existingProfile.gpuClass = snapshot.gpuClass
-            existingProfile.batteryTier = snapshot.batteryTier
-            existingProfile.portabilityTier = snapshot.portabilityTier
-            existingProfile.officeScore = snapshot.officeScore
-            existingProfile.batteryScore = snapshot.batteryScore
-            existingProfile.casualGameScore = snapshot.casualGameScore
-            existingProfile.onlineGameScore = snapshot.onlineGameScore
-            existingProfile.aaaGameScore = snapshot.aaaGameScore
-            existingProfile.creatorScore = snapshot.creatorScore
-            existingProfile.cpuPerformanceScore = snapshot.cpuPerformanceScore
-            existingProfile.lowPowerCpuScore = snapshot.lowPowerCpuScore
-            existingProfile.gpuPerformanceScore = snapshot.gpuPerformanceScore
-            existingProfile.gpuCreatorBonus = snapshot.gpuCreatorBonus
-            existingProfile.portabilityScore = snapshot.portabilityScore
-            existingProfile.displayScore = snapshot.displayScore
-            existingProfile.ramScore = snapshot.ramScore
-            existingProfile.tgpScore = snapshot.tgpScore
-            laptopProfileRepository.save(existingProfile)
+        if (existingProfile == null) {
+            return laptopProfileRepository.save(newProfile(laptop, snapshot))
         }
+
+        if (!existingProfile.applySnapshot(snapshot)) {
+            return existingProfile
+        }
+
+        return laptopProfileRepository.save(existingProfile)
     }
 
-    private fun LaptopProfile.matches(snapshot: LaptopProfileFactory.Snapshot): Boolean {
-        return cpuClass == snapshot.cpuClass &&
-            gpuClass == snapshot.gpuClass &&
-            batteryTier == snapshot.batteryTier &&
-            portabilityTier == snapshot.portabilityTier &&
-            officeScore == snapshot.officeScore &&
-            batteryScore == snapshot.batteryScore &&
-            casualGameScore == snapshot.casualGameScore &&
-            onlineGameScore == snapshot.onlineGameScore &&
-            aaaGameScore == snapshot.aaaGameScore &&
-            creatorScore == snapshot.creatorScore &&
-            cpuPerformanceScore == snapshot.cpuPerformanceScore &&
-            lowPowerCpuScore == snapshot.lowPowerCpuScore &&
-            gpuPerformanceScore == snapshot.gpuPerformanceScore &&
-            gpuCreatorBonus == snapshot.gpuCreatorBonus &&
-            portabilityScore == snapshot.portabilityScore &&
-            displayScore == snapshot.displayScore &&
-            ramScore == snapshot.ramScore &&
-            tgpScore == snapshot.tgpScore
+    private fun newProfile(laptop: Laptop, snapshot: LaptopProfileFactory.Snapshot): LaptopProfile {
+        return LaptopProfile(
+            laptop = laptop,
+            cpuClass = snapshot.cpuClass,
+            gpuClass = snapshot.gpuClass,
+            batteryTier = snapshot.batteryTier,
+            portabilityTier = snapshot.portabilityTier,
+            officeScore = snapshot.officeScore,
+            batteryScore = snapshot.batteryScore,
+            casualGameScore = snapshot.casualGameScore,
+            onlineGameScore = snapshot.onlineGameScore,
+            aaaGameScore = snapshot.aaaGameScore,
+            creatorScore = snapshot.creatorScore,
+            cpuPerformanceScore = snapshot.cpuPerformanceScore,
+            lowPowerCpuScore = snapshot.lowPowerCpuScore,
+            gpuPerformanceScore = snapshot.gpuPerformanceScore,
+            gpuCreatorBonus = snapshot.gpuCreatorBonus,
+            portabilityScore = snapshot.portabilityScore,
+            displayScore = snapshot.displayScore,
+            ramScore = snapshot.ramScore,
+            tgpScore = snapshot.tgpScore,
+        )
+    }
+
+    private fun LaptopProfile.applySnapshot(snapshot: LaptopProfileFactory.Snapshot): Boolean {
+        var changed = false
+        changed = updateField(cpuClass, snapshot.cpuClass) { cpuClass = it } || changed
+        changed = updateField(gpuClass, snapshot.gpuClass) { gpuClass = it } || changed
+        changed = updateField(batteryTier, snapshot.batteryTier) { batteryTier = it } || changed
+        changed = updateField(portabilityTier, snapshot.portabilityTier) { portabilityTier = it } || changed
+        changed = updateField(officeScore, snapshot.officeScore) { officeScore = it } || changed
+        changed = updateField(batteryScore, snapshot.batteryScore) { batteryScore = it } || changed
+        changed = updateField(casualGameScore, snapshot.casualGameScore) { casualGameScore = it } || changed
+        changed = updateField(onlineGameScore, snapshot.onlineGameScore) { onlineGameScore = it } || changed
+        changed = updateField(aaaGameScore, snapshot.aaaGameScore) { aaaGameScore = it } || changed
+        changed = updateField(creatorScore, snapshot.creatorScore) { creatorScore = it } || changed
+        changed = updateField(cpuPerformanceScore, snapshot.cpuPerformanceScore) { cpuPerformanceScore = it } || changed
+        changed = updateField(lowPowerCpuScore, snapshot.lowPowerCpuScore) { lowPowerCpuScore = it } || changed
+        changed = updateField(gpuPerformanceScore, snapshot.gpuPerformanceScore) { gpuPerformanceScore = it } || changed
+        changed = updateField(gpuCreatorBonus, snapshot.gpuCreatorBonus) { gpuCreatorBonus = it } || changed
+        changed = updateField(portabilityScore, snapshot.portabilityScore) { portabilityScore = it } || changed
+        changed = updateField(displayScore, snapshot.displayScore) { displayScore = it } || changed
+        changed = updateField(ramScore, snapshot.ramScore) { ramScore = it } || changed
+        changed = updateField(tgpScore, snapshot.tgpScore) { tgpScore = it } || changed
+        return changed
+    }
+
+    private fun <T> updateField(currentValue: T, newValue: T, updater: (T) -> Unit): Boolean {
+        if (currentValue == newValue) {
+            return false
+        }
+
+        updater(newValue)
+        return true
     }
 }
