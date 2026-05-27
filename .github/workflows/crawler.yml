@@ -28,6 +28,10 @@ on:
   schedule:
     - cron: "17 19 * * *"
 
+concurrency:
+  group: crawl-laptops-production
+  cancel-in-progress: false
+
 jobs:
   crawl:
     runs-on: ubuntu-latest
@@ -86,6 +90,8 @@ jobs:
 
       - name: Run crawler
         run: |
+          set -o pipefail
+
           EXTRA_ARGS=""
           APP_ARGS="--spring.profiles.active=${SPRING_PROFILES_ACTIVE}"
 
@@ -124,4 +130,19 @@ jobs:
             echo "Crawler jar was not built." >&2
             exit 1
           fi
-          java -jar "${JAR_PATH}" ${APP_ARGS} ${EXTRA_ARGS}
+          java -jar "${JAR_PATH}" ${APP_ARGS} ${EXTRA_ARGS} | tee crawler.log
+
+      - name: Write crawler summary
+        if: always()
+        run: |
+          {
+            echo "## Crawler run"
+            echo
+            if [ -f crawler.log ]; then
+              echo '```'
+              grep 'CRAWLER_SUMMARY' crawler.log | tail -n 1 || tail -n 80 crawler.log
+              echo '```'
+            else
+              echo "Crawler log was not created."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

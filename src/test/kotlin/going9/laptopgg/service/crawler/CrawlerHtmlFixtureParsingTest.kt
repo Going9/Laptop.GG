@@ -9,11 +9,17 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 
 class CrawlerHtmlFixtureParsingTest {
+    private val laptopSnapshotMerger = LaptopSnapshotMerger(LaptopProfileFactory())
+    private val danawaClient = DanawaClient()
     private val crawlerService = CrawlerService(
-        laptopRepository = mock(LaptopRepository::class.java),
-        laptopProfileService = mock(LaptopProfileService::class.java),
-        laptopProfileFactory = LaptopProfileFactory(),
-        laptopPriceHistoryService = mock(LaptopPriceHistoryService::class.java),
+        crawlerPersistenceService = CrawlerPersistenceService(
+            laptopRepository = mock(LaptopRepository::class.java),
+            laptopProfileService = mock(LaptopProfileService::class.java),
+            laptopPriceHistoryService = mock(LaptopPriceHistoryService::class.java),
+        ),
+        listPageCrawler = ListPageCrawler(danawaClient),
+        detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
+        laptopSnapshotMerger = laptopSnapshotMerger,
     )
 
     @Test
@@ -22,7 +28,7 @@ class CrawlerHtmlFixtureParsingTest {
 
         val requestContext = DanawaListParser.extractListRequestContext(
             html,
-            CrawlerService.CrawlSource(
+            CrawlSource(
                 key = "fixture",
                 listUrl = "https://prod.danawa.com/list/?cate=112758",
             ),
@@ -171,7 +177,7 @@ class CrawlerHtmlFixtureParsingTest {
     @Test
     fun `page signature is based on detail pages in order`() {
         val cards = listOf(
-            CrawlerService.ProductCard(
+            ProductCard(
                 productCode = "111",
                 productName = "A",
                 detailPage = "https://prod.danawa.com/info/?pcode=111&cate=112758",
@@ -182,7 +188,7 @@ class CrawlerHtmlFixtureParsingTest {
                 cate3 = "0",
                 cate4 = "112758",
             ),
-            CrawlerService.ProductCard(
+            ProductCard(
                 productCode = "111",
                 productName = "A variant",
                 detailPage = "https://prod.danawa.com/info/?pcode=111&cate=112760",
@@ -203,7 +209,7 @@ class CrawlerHtmlFixtureParsingTest {
 
     @Test
     fun `core filter profile resolves codename source plus apple source`() {
-        val crawlSources = crawlerService.resolveCrawlSources(CrawlerService.FilterProfile.CORE)
+        val crawlSources = crawlerService.resolveCrawlSources(FilterProfile.CORE)
 
         assertThat(crawlSources).hasSize(2)
         assertThat(crawlSources.first().key).isEqualTo("notebook-core-codename")
@@ -215,7 +221,7 @@ class CrawlerHtmlFixtureParsingTest {
 
     @Test
     fun `list request form data keeps repeated cpu codename filters`() {
-        val context = CrawlerService.ListRequestContext(
+        val context = ListRequestContext(
             searchAttributeValues = listOf(
                 "758|6492|1137658|OR",
                 "758|6492|1137661|OR",
@@ -235,9 +241,9 @@ class CrawlerHtmlFixtureParsingTest {
     @Test
     fun `unknown filter profile falls back to core`() {
         assertThat(crawlerService.resolveFilterProfile("weird-profile"))
-            .isEqualTo(CrawlerService.FilterProfile.CORE)
+            .isEqualTo(FilterProfile.CORE)
         assertThat(crawlerService.resolveFilterProfile("none"))
-            .isEqualTo(CrawlerService.FilterProfile.NONE)
+            .isEqualTo(FilterProfile.NONE)
     }
 
     private fun readFixture(path: String): String {

@@ -1,6 +1,10 @@
 package going9.laptopgg.runner
 
+import going9.laptopgg.domain.crawler.CrawlerRunStatus
+import going9.laptopgg.service.crawler.CrawlerAdvisoryLockService
+import going9.laptopgg.service.crawler.CrawlerRunService
 import going9.laptopgg.service.crawler.CrawlerService
+import going9.laptopgg.service.crawler.CrawlSummary
 import kotlin.system.exitProcess
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -16,6 +20,8 @@ import org.springframework.stereotype.Component
 class CrawlerStartupRunner(
     private val applicationContext: ConfigurableApplicationContext,
     private val crawlerService: CrawlerService,
+    private val crawlerAdvisoryLockService: CrawlerAdvisoryLockService,
+    private val crawlerRunService: CrawlerRunService,
     @Value("\${app.crawler.limit:}") private val defaultLimitRaw: String,
     @Value("\${app.crawler.start-page:}") private val defaultStartPageRaw: String,
     @Value("\${app.crawler.filter-profile:core}") private val defaultFilterProfileRaw: String,
@@ -43,33 +49,106 @@ class CrawlerStartupRunner(
             ?.takeIf { it.isNotBlank() }
             ?: defaultFilterProfileRaw
 
-        val exitCode = runCatching {
-            val summary = crawlerService.crawlAll(limit = limit, startPage = startPage, filterProfileRaw = filterProfile)
-            logger.info(
-                "Crawler run finished. filterProfile={}, startPage={}, processedCount={}, createdCount={}, updatedCount={}, degradedCount={}, failedCount={}",
+        val lockResult = runCatching {
+            crawlerAdvisoryLockService.withCrawlerLock {
+                runTrackedCrawler(limit = limit, startPage = startPage, filterProfile = filterProfile)
+            }
+        }.getOrElse { exception ->
+            logger.error("Crawler lock acquisition failed.", exception)
+            exitProcess(SpringApplication.exit(applicationContext, { 1 }))
+        }
+
+        val exitCode = if (lockResult.acquired) {
+            lockResult.value ?: 1
+        } else {
+            val skippedRun = crawlerRunService.skipLocked(
+                filterProfile = filterProfile,
+                startPage = startPage,
+                limit = limit,
+            )
+            logger.warn(
+                "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=0",
+                skippedRun.id,
+                skippedRun.status,
                 filterProfile,
                 startPage,
-                summary.processedCount,
-                summary.createdCount,
-                summary.updatedCount,
-                summary.degradedCount,
-                summary.failedCount,
+                limit ?: "ALL",
             )
+            0
+        }
+
+        exitProcess(SpringApplication.exit(applicationContext, { exitCode }))
+    }
+
+    private fun runTrackedCrawler(limit: Int?, startPage: Int, filterProfile: String): Int {
+        val crawlerRun = crawlerRunService.start(
+            filterProfile = filterProfile,
+            startPage = startPage,
+            limit = limit,
+        )
+        val runId = requireNotNull(crawlerRun.id)
+
+        return runCatching {
+            val summary = crawlerService.crawlAll(limit = limit, startPage = startPage, filterProfileRaw = filterProfile)
+            val finishedStatus = if (summary.failedCount == 0) {
+                CrawlerRunStatus.SUCCEEDED
+            } else {
+                CrawlerRunStatus.FAILED
+            }
+            val errorMessage = if (summary.failedCount == 0) {
+                null
+            } else {
+                "Crawler finished with ${summary.failedCount} failed item(s)."
+            }
+            crawlerRunService.finish(
+                runId = runId,
+                summary = summary,
+                status = finishedStatus,
+                errorMessage = errorMessage,
+            )
+            logCrawlerSummary(runId, finishedStatus, filterProfile, startPage, limit, summary)
             if (summary.degradedSamples.isNotEmpty()) {
                 logger.warn("Crawler degraded samples: {}", summary.degradedSamples)
             }
             if (summary.failureSamples.isNotEmpty()) {
                 logger.warn("Crawler failure samples: {}", summary.failureSamples)
             }
-            require(summary.failedCount == 0) {
-                "Crawler finished with ${summary.failedCount} failed item(s)."
-            }
-            0
+            if (summary.failedCount == 0) 0 else 1
         }.getOrElse { exception ->
-            logger.error("Crawler run failed.", exception)
+            crawlerRunService.fail(runId, exception)
+            logger.error("Crawler run failed. runId={}", runId, exception)
+            logger.error(
+                "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=1",
+                runId,
+                CrawlerRunStatus.FAILED,
+                filterProfile,
+                startPage,
+                limit ?: "ALL",
+            )
             1
         }
+    }
 
-        exitProcess(SpringApplication.exit(applicationContext, { exitCode }))
+    private fun logCrawlerSummary(
+        runId: Long,
+        status: CrawlerRunStatus,
+        filterProfile: String,
+        startPage: Int,
+        limit: Int?,
+        summary: CrawlSummary,
+    ) {
+        logger.info(
+            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount={} createdCount={} updatedCount={} degradedCount={} failedCount={}",
+            runId,
+            status,
+            filterProfile,
+            startPage,
+            limit ?: "ALL",
+            summary.processedCount,
+            summary.createdCount,
+            summary.updatedCount,
+            summary.degradedCount,
+            summary.failedCount,
+        )
     }
 }

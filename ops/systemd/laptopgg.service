@@ -1,0 +1,18 @@
+[Unit]
+Description=LaptopGG Spring Boot web application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/laptopgg
+EnvironmentFile=/etc/laptopgg/laptopgg.env
+ExecStart=/usr/bin/java -Xms128m -Xmx512m -jar /home/ubuntu/laptopgg/app.jar --spring.profiles.active=postgres,deploy
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

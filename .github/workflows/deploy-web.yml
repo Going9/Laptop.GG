@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,8 +28,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Build jar
-        run: ./gradlew --no-daemon clean bootJar
+      - name: Test and build jar
+        run: ./gradlew --no-daemon clean test bootJar
 
       - name: Prepare artifact
         run: cp build/libs/*.jar app-${GITHUB_SHA}.jar
@@ -38,7 +42,7 @@ jobs:
           key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.APP_SSH_PORT }}
           script: |
-            mkdir -p /home/ubuntu/laptopgg/releases
+            mkdir -p /home/ubuntu/laptopgg/releases/${{ github.sha }}
 
       - name: Upload jar
         uses: appleboy/scp-action@v0.1.7
@@ -48,9 +52,9 @@ jobs:
           key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.APP_SSH_PORT }}
           source: "app-${{ github.sha }}.jar"
-          target: "/home/ubuntu/laptopgg/releases/"
+          target: "/home/ubuntu/laptopgg/releases/${{ github.sha }}/"
 
-      - name: Restart service
+      - name: Switch release and health check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.APP_SSH_HOST }}
@@ -58,10 +62,30 @@ jobs:
           key: ${{ secrets.APP_SSH_PRIVATE_KEY }}
           port: ${{ secrets.APP_SSH_PORT }}
           script: |
-            mv /home/ubuntu/laptopgg/releases/app-${{ github.sha }}.jar /home/ubuntu/laptopgg/app.jar
+            set -euo pipefail
+
+            APP_DIR=/home/ubuntu/laptopgg
+            RELEASE_JAR="$APP_DIR/releases/${{ github.sha }}/app-${{ github.sha }}.jar"
+            CURRENT_LINK="$APP_DIR/app.jar"
+            PREVIOUS_TARGET="$(readlink -f "$CURRENT_LINK" || true)"
+
+            if [ ! -f "$RELEASE_JAR" ]; then
+              echo "Release jar not found: $RELEASE_JAR" >&2
+              exit 1
+            fi
+
+            rollback() {
+              if [ -n "$PREVIOUS_TARGET" ] && [ -f "$PREVIOUS_TARGET" ]; then
+                ln -sfn "$PREVIOUS_TARGET" "$CURRENT_LINK"
+                sudo systemctl restart laptopgg || true
+                echo "Rolled back to $PREVIOUS_TARGET" >&2
+              fi
+            }
+
+            ln -sfn "$RELEASE_JAR" "$CURRENT_LINK"
             sudo systemctl restart laptopgg
             for i in {1..60}; do
-              if curl -fsS http://127.0.0.1:8080 >/dev/null; then
+              if curl -fsS http://127.0.0.1:8080/actuator/health/readiness >/dev/null; then
                 sudo systemctl status laptopgg --no-pager
                 exit 0
               fi
@@ -69,6 +93,7 @@ jobs:
                 sudo systemctl status laptopgg --no-pager || true
                 journalctl -u laptopgg -n 120 --no-pager || true
                 echo "laptopgg.service is not active during deploy health check." >&2
+                rollback
                 exit 1
               fi
               sleep 2
@@ -76,4 +101,5 @@ jobs:
             sudo systemctl status laptopgg --no-pager || true
             journalctl -u laptopgg -n 120 --no-pager || true
             echo "Web health check failed after deploy." >&2
+            rollback
             exit 1

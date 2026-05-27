@@ -7,7 +7,7 @@ import kotlin.math.roundToInt
 internal object DanawaDetailParser {
     private val objectMapper = jacksonObjectMapper()
 
-    fun extractDetailRequestContext(detailPageHtml: String): CrawlerService.DetailRequestContext? {
+    fun extractDetailRequestContext(detailPageHtml: String): DetailRequestContext? {
         val match = PRODUCT_DESCRIPTION_INFO_REGEX.find(detailPageHtml) ?: return null
         val infoMap = objectMapper.readValue(match.groupValues[1], Map::class.java)
             .mapNotNull { (key, value) ->
@@ -17,7 +17,7 @@ internal object DanawaDetailParser {
             }
             .toMap()
 
-        return CrawlerService.DetailRequestContext(
+        return DetailRequestContext(
             makerName = infoMap["makerName"]?.trim(),
             productName = infoMap["productName"]?.trim(),
             prodType = infoMap["prodType"]?.trim(),
@@ -31,10 +31,10 @@ internal object DanawaDetailParser {
             .orEmpty()
     }
 
-    fun parseSpecTable(html: String): CrawlerService.ParsedSpecTable {
+    fun parseSpecTable(html: String): ParsedSpecTable {
         val document = Jsoup.parse(html, DANAWA_ORIGIN)
         val specTable = document.selectFirst("table.spec_tbl")
-            ?: return CrawlerService.ParsedSpecTable(emptyMap(), emptyList())
+            ?: return ParsedSpecTable(emptyMap(), emptyList())
 
         val values = linkedMapOf<String, String>()
         val usages = mutableListOf<String>()
@@ -73,19 +73,19 @@ internal object DanawaDetailParser {
             }
         }
 
-        return CrawlerService.ParsedSpecTable(
+        return ParsedSpecTable(
             values = values,
             usages = usages.distinct(),
         )
     }
 
-    fun parseSummaryFallback(summaryText: String): CrawlerService.SummaryFallback {
+    fun parseSummaryFallback(summaryText: String): SummaryFallback {
         val normalizedText = summaryText.replace(Regex("\\s+"), " ").trim()
         if (normalizedText.isBlank()) {
-            return CrawlerService.SummaryFallback()
+            return SummaryFallback()
         }
 
-        return CrawlerService.SummaryFallback(
+        return SummaryFallback(
             cpuManufacturer = extractFirst(
                 normalizedText,
                 Regex("""\[CPU\]\s*(인텔|Intel|AMD|APPLE|Apple|퀄컴|Qualcomm)""", RegexOption.IGNORE_CASE),
@@ -215,7 +215,7 @@ internal object DanawaDetailParser {
         }
     }
 
-    fun isEmpty(summaryFallback: CrawlerService.SummaryFallback): Boolean {
+    fun isEmpty(summaryFallback: SummaryFallback): Boolean {
         return summaryFallback.cpuManufacturer == null &&
             summaryFallback.cpu == null &&
             summaryFallback.os == null &&

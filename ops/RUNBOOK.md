@@ -1,0 +1,82 @@
+# LaptopGG 운영 Runbook
+
+## Web App Setup
+
+1. Copy `ops/env/laptopgg.env.example` to `/etc/laptopgg/laptopgg.env` and fill DB credentials.
+2. Copy `ops/systemd/laptopgg.service` to `/etc/systemd/system/laptopgg.service`.
+3. Run `sudo systemctl daemon-reload && sudo systemctl enable laptopgg`.
+4. Place the first jar under `/home/ubuntu/laptopgg/releases/<sha>/app-<sha>.jar`.
+5. Link it with `ln -sfn /home/ubuntu/laptopgg/releases/<sha>/app-<sha>.jar /home/ubuntu/laptopgg/app.jar`.
+6. Start with `sudo systemctl start laptopgg`.
+7. Verify with `curl -fsS http://127.0.0.1:8080/actuator/health/readiness`.
+
+## Nginx Setup
+
+1. Copy `ops/nginx/laptopgg.conf` to `/etc/nginx/sites-available/laptopgg.conf`.
+2. Link it into `sites-enabled`.
+3. Run `sudo nginx -t && sudo systemctl reload nginx`.
+4. Confirm public pages are reachable.
+5. Confirm `/actuator/*` and `/api/crawl/*` are not publicly reachable.
+
+## Deploy Flow
+
+GitHub Actions deploy runs:
+
+1. `test`
+2. `bootJar`
+3. upload jar to `/home/ubuntu/laptopgg/releases/<sha>/`
+4. switch `/home/ubuntu/laptopgg/app.jar` symlink
+5. restart `laptopgg`
+6. check `/actuator/health/readiness`
+7. rollback symlink to the previous jar if health fails
+
+Manual rollback:
+
+```bash
+cd /home/ubuntu/laptopgg
+ls -lt releases
+ln -sfn /home/ubuntu/laptopgg/releases/<previous-sha>/app-<previous-sha>.jar app.jar
+sudo systemctl restart laptopgg
+curl -fsS http://127.0.0.1:8080/actuator/health/readiness
+```
+
+## Crawler Job
+
+Production crawling is GitHub Actions only.
+
+- Workflow profile: `postgres,crawler`
+- DB access: SSH tunnel to PostgreSQL
+- Duplicate prevention: GitHub Actions `concurrency` plus PostgreSQL advisory lock
+- Audit table: `crawler_run`
+
+Useful query:
+
+```sql
+select id, status, filter_profile, started_at, ended_at,
+       processed_count, created_count, updated_count, degraded_count, failed_count
+from crawler_run
+order by started_at desc
+limit 20;
+```
+
+## DB Backup
+
+Create backup from the DB server:
+
+```bash
+pg_dump -Fc -d laptopgg -U laptopgg -f /var/backups/laptopgg/laptopgg-$(date +%Y%m%d-%H%M%S).dump
+```
+
+Restore into a new database:
+
+```bash
+createdb -U laptopgg laptopgg_restore
+pg_restore -U laptopgg -d laptopgg_restore --clean --if-exists /var/backups/laptopgg/<backup>.dump
+```
+
+## Incident Checks
+
+- Web not responding: `sudo systemctl status laptopgg --no-pager`, then `journalctl -u laptopgg -n 200 --no-pager`.
+- Health failing after deploy: verify symlink target, rollback, then inspect logs.
+- DB connection failures: check env file, DB security list, PostgreSQL listen address, and SSH tunnel for crawler.
+- Crawler stuck: check GitHub Actions run, then `crawler_run` latest row. A `SKIPPED_LOCKED` row means another run held the DB lock.

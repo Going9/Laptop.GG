@@ -160,7 +160,10 @@ interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
                 end) * 0.05)
               else
                 (p.cpuPerformanceScore * 0.20) +
-                ((p.gpuPerformanceScore + p.gpuCreatorBonus) * 0.20) +
+                ((case
+                  when (p.gpuPerformanceScore + p.gpuCreatorBonus) > 100 then 100
+                  else (p.gpuPerformanceScore + p.gpuCreatorBonus)
+                end) * 0.20) +
                 (p.ramScore * 0.20) +
                 (p.displayScore * 0.20) +
                 (p.batteryScore * 0.05) +
@@ -252,7 +255,10 @@ interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
                 end) * 0.05)
               else
                 (p.cpuPerformanceScore * 0.20) +
-                ((p.gpuPerformanceScore + p.gpuCreatorBonus) * 0.20) +
+                ((case
+                  when (p.gpuPerformanceScore + p.gpuCreatorBonus) > 100 then 100
+                  else (p.gpuPerformanceScore + p.gpuCreatorBonus)
+                end) * 0.20) +
                 (p.ramScore * 0.20) +
                 (p.displayScore * 0.20) +
                 (p.batteryScore * 0.05) +
@@ -330,21 +336,6 @@ interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         """,
     )
     fun findAllIncompleteStaticScores(): List<LaptopProfile>
-
-    @Query(
-        """
-        select count(p)
-        from LaptopProfile p
-        where p.cpuPerformanceScore = 0
-          and p.lowPowerCpuScore = 0
-          and p.gpuPerformanceScore = 0
-          and p.portabilityScore = 0
-          and p.displayScore = 0
-          and p.ramScore = 0
-          and p.tgpScore = 0
-        """,
-    )
-    fun countIncompleteStaticScores(): Long
 
     @Query(
         """

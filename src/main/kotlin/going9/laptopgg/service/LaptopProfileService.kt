@@ -39,11 +39,11 @@ class LaptopProfileService(
                 return
             }
 
-            if (laptopRepository.countWithoutProfile() > 0) {
+            if (hasMissingProfiles()) {
                 syncMissingProfilesBatch()
             }
 
-            missingProfilesBackfilled = laptopRepository.countWithoutProfile() == 0L
+            missingProfilesBackfilled = !hasMissingProfiles()
         }
     }
 
@@ -63,11 +63,11 @@ class LaptopProfileService(
                 return
             }
 
-            if (laptopProfileRepository.countIncompleteStaticScores() > 0) {
+            if (hasIncompleteProfiles()) {
                 syncIncompleteProfilesBatch()
             }
 
-            incompleteProfilesBackfilled = laptopProfileRepository.countIncompleteStaticScores() == 0L
+            incompleteProfilesBackfilled = !hasIncompleteProfiles()
         }
     }
 
@@ -138,6 +138,14 @@ class LaptopProfileService(
             ramScore = snapshot.ramScore,
             tgpScore = snapshot.tgpScore,
         )
+    }
+
+    private fun hasMissingProfiles(): Boolean {
+        return laptopRepository.findIdsWithoutProfile(PageRequest.of(0, 1)).isNotEmpty()
+    }
+
+    private fun hasIncompleteProfiles(): Boolean {
+        return laptopProfileRepository.findLaptopIdsWithIncompleteStaticScores(PageRequest.of(0, 1)).isNotEmpty()
     }
 
     private fun LaptopProfile.applySnapshot(snapshot: LaptopProfileFactory.Snapshot): Boolean {

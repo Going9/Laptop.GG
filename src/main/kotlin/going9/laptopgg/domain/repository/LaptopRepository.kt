@@ -40,6 +40,16 @@ interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor
 
     @Query(
         """
+        select distinct l
+        from Laptop l
+        left join fetch l.laptopUsage
+        where l.id = :id
+        """,
+    )
+    fun findWithUsageById(@Param("id") id: Long): Laptop?
+
+    @Query(
+        """
         select l.id
         from Laptop l
         where not exists (
@@ -65,17 +75,4 @@ interface LaptopRepository : JpaRepository<Laptop, Long>, KotlinJdslJpqlExecutor
         """,
     )
     fun findAllWithoutProfile(): List<Laptop>
-
-    @Query(
-        """
-        select count(l)
-        from Laptop l
-        where not exists (
-            select 1
-            from LaptopProfile p
-            where p.laptop = l
-        )
-        """,
-    )
-    fun countWithoutProfile(): Long
 }

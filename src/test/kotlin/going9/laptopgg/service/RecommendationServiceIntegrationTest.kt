@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest(properties = ["spring.profiles.active=test"])
@@ -37,6 +38,9 @@ class RecommendationServiceIntegrationTest {
 
     @Autowired
     lateinit var laptopProfileService: LaptopProfileService
+
+    @Autowired
+    lateinit var scoreCalculatorService: ScoreCalculatorService
 
     @BeforeEach
     fun setUp() {
@@ -528,6 +532,250 @@ class RecommendationServiceIntegrationTest {
 
         assertThat(result.content.map { it.name }).endsWith("Weight Unknown")
     }
+
+    @Test
+    fun `recommended database pages match calculator order for every use case`() {
+        val laptops = persistSortProbeLaptops()
+        overrideProfileScores(
+            laptop = laptops[0],
+            officeScore = 95,
+            batteryScore = 85,
+            casualGameScore = 75,
+            onlineGameScore = 75,
+            aaaGameScore = 75,
+            creatorScore = 80,
+            cpuPerformanceScore = 75,
+            lowPowerCpuScore = 85,
+            gpuPerformanceScore = 70,
+            gpuCreatorBonus = 5,
+            portabilityScore = 95,
+            displayScore = 83,
+            ramScore = 75,
+            tgpScore = 70,
+        )
+        overrideProfileScores(
+            laptop = laptops[1],
+            officeScore = 75,
+            batteryScore = 70,
+            casualGameScore = 95,
+            onlineGameScore = 98,
+            aaaGameScore = 98,
+            creatorScore = 90,
+            cpuPerformanceScore = 90,
+            lowPowerCpuScore = 55,
+            gpuPerformanceScore = 98,
+            gpuCreatorBonus = 8,
+            portabilityScore = 50,
+            displayScore = 90,
+            ramScore = 90,
+            tgpScore = 98,
+        )
+        overrideProfileScores(
+            laptop = laptops[2],
+            officeScore = 85,
+            batteryScore = 80,
+            casualGameScore = 82,
+            onlineGameScore = 84,
+            aaaGameScore = 80,
+            creatorScore = 98,
+            cpuPerformanceScore = 95,
+            lowPowerCpuScore = 75,
+            gpuPerformanceScore = 90,
+            gpuCreatorBonus = 10,
+            portabilityScore = 82,
+            displayScore = 98,
+            ramScore = 100,
+            tgpScore = 80,
+        )
+        overrideProfileScores(
+            laptop = laptops[3],
+            officeScore = 88,
+            batteryScore = 90,
+            casualGameScore = 72,
+            onlineGameScore = 72,
+            aaaGameScore = 70,
+            creatorScore = 75,
+            cpuPerformanceScore = 70,
+            lowPowerCpuScore = 92,
+            gpuPerformanceScore = 65,
+            gpuCreatorBonus = 0,
+            portabilityScore = 100,
+            displayScore = 75,
+            ramScore = 70,
+            tgpScore = 65,
+        )
+
+        RecommendationUseCase.entries.forEach { useCase ->
+            val request = LaptopRecommendationRequest(
+                budget = 2_000_000,
+                maxWeightKg = 3.0,
+                screenSizeMode = ScreenSizeMode.ANY,
+                useCase = useCase,
+            )
+            val actual = listOf(
+                recommendationService.recommendLaptops(request, PageRequest.of(0, 2)).content,
+                recommendationService.recommendLaptops(request, PageRequest.of(1, 2)).content,
+            ).flatten()
+
+            val expectedNames = actual
+                .map { response ->
+                    val profile = laptopProfileRepository.findByLaptopId(response.id)!!
+                    CalculatorSortProbe(
+                        name = response.name,
+                        score = scoreCalculatorService.calculateScore(profile.laptop, profile, request).score,
+                        price = profile.laptop.price,
+                        id = profile.laptop.id!!,
+                    )
+                }
+                .sortedWith(
+                    compareByDescending<CalculatorSortProbe> { it.score }
+                        .thenBy { it.price ?: Int.MAX_VALUE }
+                        .thenBy { it.id },
+                )
+                .map { it.name }
+
+            assertThat(actual.map { it.name })
+                .describedAs("recommended order for $useCase")
+                .isEqualTo(expectedNames)
+        }
+    }
+
+    @Test
+    fun `price and weight database pages keep requested order`() {
+        persistSortProbeLaptops().forEach { laptop ->
+            overrideProfileScores(
+                laptop = laptop,
+                officeScore = 85,
+                batteryScore = 85,
+                casualGameScore = 85,
+                onlineGameScore = 85,
+                aaaGameScore = 85,
+                creatorScore = 85,
+                cpuPerformanceScore = 85,
+                lowPowerCpuScore = 85,
+                gpuPerformanceScore = 85,
+                gpuCreatorBonus = 0,
+                portabilityScore = 85,
+                displayScore = 85,
+                ramScore = 85,
+                tgpScore = 85,
+            )
+        }
+
+        val request = LaptopRecommendationRequest(
+            budget = 2_000_000,
+            maxWeightKg = 3.0,
+            screenSizeMode = ScreenSizeMode.ANY,
+            useCase = RecommendationUseCase.NOT_SURE,
+        )
+
+        assertThat(pagedNames(request, Sort.Order.asc("price")))
+            .isEqualTo(listOf("Budget Light", "Balanced Value", "Creator Slim", "Gaming Power"))
+        assertThat(pagedNames(request, Sort.Order.desc("price")))
+            .isEqualTo(listOf("Gaming Power", "Creator Slim", "Balanced Value", "Budget Light"))
+        assertThat(pagedNames(request, Sort.Order.asc("weight")))
+            .isEqualTo(listOf("Budget Light", "Balanced Value", "Creator Slim", "Gaming Power"))
+        assertThat(pagedNames(request, Sort.Order.desc("weight")))
+            .isEqualTo(listOf("Gaming Power", "Creator Slim", "Balanced Value", "Budget Light"))
+    }
+
+    private fun persistSortProbeLaptops(): List<Laptop> {
+        return listOf(
+            persistLaptop(
+                name = "Balanced Value",
+                price = 1_000_000,
+                cpuManufacturer = "인텔",
+                cpu = "225U",
+                graphicsType = "Intel Graphics",
+                batteryCapacity = 70.0,
+                weight = 1.2,
+                usages = listOf("사무/인강용"),
+            ),
+            persistLaptop(
+                name = "Gaming Power",
+                price = 1_600_000,
+                cpuManufacturer = "인텔",
+                cpu = "275HX",
+                graphicsType = "RTX5070",
+                batteryCapacity = 82.0,
+                weight = 2.0,
+                tgp = 140,
+                usages = listOf("게임용"),
+            ),
+            persistLaptop(
+                name = "Creator Slim",
+                price = 1_400_000,
+                cpuManufacturer = "AMD",
+                cpu = "370",
+                graphicsType = "Radeon 890M",
+                batteryCapacity = 78.0,
+                weight = 1.4,
+                usages = listOf("그래픽작업용"),
+            ),
+            persistLaptop(
+                name = "Budget Light",
+                price = 800_000,
+                cpuManufacturer = "AMD",
+                cpu = "340",
+                graphicsType = "Radeon 840M",
+                batteryCapacity = 76.0,
+                weight = 1.1,
+                usages = listOf("휴대용"),
+            ),
+        )
+    }
+
+    private fun overrideProfileScores(
+        laptop: Laptop,
+        officeScore: Int,
+        batteryScore: Int,
+        casualGameScore: Int,
+        onlineGameScore: Int,
+        aaaGameScore: Int,
+        creatorScore: Int,
+        cpuPerformanceScore: Int,
+        lowPowerCpuScore: Int,
+        gpuPerformanceScore: Int,
+        gpuCreatorBonus: Int,
+        portabilityScore: Int,
+        displayScore: Int,
+        ramScore: Int,
+        tgpScore: Int,
+    ) {
+        laptopProfileRepository.findByLaptopId(laptop.id!!)?.apply {
+            this.officeScore = officeScore
+            this.batteryScore = batteryScore
+            this.casualGameScore = casualGameScore
+            this.onlineGameScore = onlineGameScore
+            this.aaaGameScore = aaaGameScore
+            this.creatorScore = creatorScore
+            this.cpuPerformanceScore = cpuPerformanceScore
+            this.lowPowerCpuScore = lowPowerCpuScore
+            this.gpuPerformanceScore = gpuPerformanceScore
+            this.gpuCreatorBonus = gpuCreatorBonus
+            this.portabilityScore = portabilityScore
+            this.displayScore = displayScore
+            this.ramScore = ramScore
+            this.tgpScore = tgpScore
+        }?.let(laptopProfileRepository::save)
+    }
+
+    private fun pagedNames(
+        request: LaptopRecommendationRequest,
+        order: Sort.Order,
+    ): List<String> {
+        return listOf(
+            recommendationService.recommendLaptops(request, PageRequest.of(0, 2, Sort.by(order))).content,
+            recommendationService.recommendLaptops(request, PageRequest.of(1, 2, Sort.by(order))).content,
+        ).flatten().map { it.name }
+    }
+
+    private data class CalculatorSortProbe(
+        val name: String,
+        val score: Double,
+        val price: Int?,
+        val id: Long,
+    )
 
     private fun persistLaptop(
         name: String,

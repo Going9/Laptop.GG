@@ -13,11 +13,17 @@ import org.mockito.Mockito.mock
 import java.time.LocalDateTime
 
 class CrawlerServiceNormalizationTest {
+    private val laptopSnapshotMerger = LaptopSnapshotMerger(LaptopProfileFactory())
+    private val danawaClient = DanawaClient()
     private val crawlerService = CrawlerService(
-        laptopRepository = mock(LaptopRepository::class.java),
-        laptopProfileService = mock(LaptopProfileService::class.java),
-        laptopProfileFactory = LaptopProfileFactory(),
-        laptopPriceHistoryService = mock(LaptopPriceHistoryService::class.java),
+        crawlerPersistenceService = CrawlerPersistenceService(
+            laptopRepository = mock(LaptopRepository::class.java),
+            laptopProfileService = mock(LaptopProfileService::class.java),
+            laptopPriceHistoryService = mock(LaptopPriceHistoryService::class.java),
+        ),
+        listPageCrawler = ListPageCrawler(danawaClient),
+        detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
+        laptopSnapshotMerger = laptopSnapshotMerger,
     )
 
     @Test
@@ -112,7 +118,7 @@ class CrawlerServiceNormalizationTest {
 
         val result = DanawaListParser.extractListRequestContext(
             html,
-            CrawlerService.CrawlSource(
+            CrawlSource(
                 key = "fixture",
                 listUrl = "https://prod.danawa.com/list/?cate=112758",
             ),

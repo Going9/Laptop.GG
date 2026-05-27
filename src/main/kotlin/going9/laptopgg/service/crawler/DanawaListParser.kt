@@ -3,7 +3,7 @@ package going9.laptopgg.service.crawler
 import org.jsoup.Jsoup
 
 internal object DanawaListParser {
-    fun parseListPage(html: String): List<CrawlerService.ProductCard> {
+    fun parseListPage(html: String): List<ProductCard> {
         val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
 
         return document.select("li.prod_item")
@@ -28,7 +28,7 @@ internal object DanawaListParser {
                 val priceText = productItem.selectFirst(".prod_pricelist .text__number")?.text()
                     ?: productItem.selectFirst(".price_sect a")?.text()
 
-                CrawlerService.ProductCard(
+                ProductCard(
                     productCode = productCode,
                     productName = productLink.text().trim(),
                     detailPage = normalizeDetailPage(detailPage, productCode, cateValues[3]),
@@ -92,17 +92,17 @@ internal object DanawaListParser {
         return MOVE_PAGE_REGEX.find(onclick)?.groupValues?.get(1)?.toIntOrNull()
     }
 
-    fun createPageSignature(productCards: List<CrawlerService.ProductCard>): String {
+    fun createPageSignature(productCards: List<ProductCard>): String {
         return productCards.joinToString("||") { it.detailPage }
     }
 
     fun extractListRequestContext(
         initialListHtml: String,
-        crawlSource: CrawlerService.CrawlSource,
-    ): CrawlerService.ListRequestContext {
-        val defaults = CrawlerService.ListRequestContext()
+        crawlSource: CrawlSource,
+    ): ListRequestContext {
+        val defaults = ListRequestContext()
 
-        return CrawlerService.ListRequestContext(
+        return ListRequestContext(
             listUrl = crawlSource.listUrl,
             listCategoryCode = extractJsScalar(initialListHtml, "nListCategoryCode") ?: defaults.listCategoryCode,
             categoryCode = extractJsScalar(initialListHtml, "nCategoryCode") ?: defaults.categoryCode,

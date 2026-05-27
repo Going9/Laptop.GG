@@ -9,7 +9,9 @@ import kotlin.math.round
 import kotlin.math.roundToInt
 
 @Service
-class ScoreCalculatorService {
+class ScoreCalculatorService(
+    private val recommendationScoringPolicy: RecommendationScoringPolicy,
+) {
     data class ScoreResult(
         val score: Double,
         val reasons: List<String>,
@@ -31,71 +33,22 @@ class ScoreCalculatorService {
         val gpuScore = profile.gpuPerformanceScore
         val creatorGpuScore = (profile.gpuPerformanceScore + profile.gpuCreatorBonus).coerceAtMost(100)
 
-        val rawScore = when (useCase) {
-            RecommendationUseCase.NOT_SURE -> {
-                (profile.officeScore * 0.24) +
-                    (profile.batteryScore * 0.20) +
-                    (portabilityScore * 0.16) +
-                    (budgetScore * 0.14) +
-                    (displayScore * 0.10) +
-                    (ramScore * 0.08) +
-                    (gpuScore * 0.08)
-            }
-            RecommendationUseCase.OFFICE_STUDY -> {
-                (budgetScore * 0.25) +
-                    (portabilityScore * 0.20) +
-                    (profile.batteryScore * 0.15) +
-                    (displayScore * 0.10) +
-                    (profile.officeScore * 0.30)
-            }
-            RecommendationUseCase.PORTABLE_OFFICE -> {
-                (portabilityScore * 0.35) +
-                    (profile.batteryScore * 0.25) +
-                    (profile.officeScore * 0.20) +
-                    (budgetScore * 0.10) +
-                    (displayScore * 0.10)
-            }
-            RecommendationUseCase.BATTERY_FIRST -> {
-                (profile.batteryScore * 0.45) +
-                    (portabilityScore * 0.20) +
-                    (profile.officeScore * 0.15) +
-                    (budgetScore * 0.10) +
-                    (lowPowerCpuScore * 0.10)
-            }
-            RecommendationUseCase.CASUAL_GAME -> {
-                (gpuScore * 0.35) +
-                    (cpuPerformanceScore * 0.20) +
-                    (ramScore * 0.15) +
-                    (displayScore * 0.10) +
-                    (portabilityScore * 0.10) +
-                    (budgetScore * 0.10)
-            }
-            RecommendationUseCase.ONLINE_GAME -> {
-                (gpuScore * 0.40) +
-                    (cpuPerformanceScore * 0.20) +
-                    (ramScore * 0.15) +
-                    (tgpScore * 0.10) +
-                    (displayScore * 0.10) +
-                    (budgetScore * 0.05)
-            }
-            RecommendationUseCase.AAA_GAME -> {
-                (gpuScore * 0.45) +
-                    (tgpScore * 0.20) +
-                    (cpuPerformanceScore * 0.15) +
-                    (ramScore * 0.10) +
-                    (displayScore * 0.05) +
-                    (budgetScore * 0.05)
-            }
-            RecommendationUseCase.CREATOR -> {
-                (cpuPerformanceScore * 0.20) +
-                    (creatorGpuScore * 0.20) +
-                    (ramScore * 0.20) +
-                    (displayScore * 0.20) +
-                    (profile.batteryScore * 0.05) +
-                    (portabilityScore * 0.05) +
-                    (budgetScore * 0.10)
-            }
-        }
+        val rawScore = recommendationScoringPolicy.weightedScore(
+            useCase,
+            RecommendationScoreInputs(
+                budgetScore = budgetScore,
+                portabilityScore = portabilityScore,
+                displayScore = displayScore,
+                ramScore = ramScore,
+                tgpScore = tgpScore,
+                cpuPerformanceScore = cpuPerformanceScore,
+                lowPowerCpuScore = lowPowerCpuScore,
+                gpuScore = gpuScore,
+                creatorGpuScore = creatorGpuScore,
+                officeScore = profile.officeScore,
+                batteryScore = profile.batteryScore,
+            ),
+        )
 
         return ScoreResult(
             score = round(rawScore * 10.0) / 10.0,
@@ -120,29 +73,11 @@ class ScoreCalculatorService {
     }
 
     fun gateScore(profile: LaptopProfile, useCase: RecommendationUseCase): Int {
-        return when (useCase) {
-            RecommendationUseCase.NOT_SURE -> ((profile.officeScore + profile.batteryScore + profile.casualGameScore) / 3.0).roundToInt()
-            RecommendationUseCase.OFFICE_STUDY -> profile.officeScore
-            RecommendationUseCase.PORTABLE_OFFICE -> profile.officeScore
-            RecommendationUseCase.BATTERY_FIRST -> profile.batteryScore
-            RecommendationUseCase.CASUAL_GAME -> profile.casualGameScore
-            RecommendationUseCase.ONLINE_GAME -> profile.onlineGameScore
-            RecommendationUseCase.AAA_GAME -> profile.aaaGameScore
-            RecommendationUseCase.CREATOR -> profile.creatorScore
-        }
+        return recommendationScoringPolicy.gateScore(profile, useCase)
     }
 
     fun gateThreshold(useCase: RecommendationUseCase): Int {
-        return when (useCase) {
-            RecommendationUseCase.NOT_SURE -> 45
-            RecommendationUseCase.OFFICE_STUDY -> 50
-            RecommendationUseCase.PORTABLE_OFFICE -> 50
-            RecommendationUseCase.BATTERY_FIRST -> 60
-            RecommendationUseCase.CASUAL_GAME -> 45
-            RecommendationUseCase.ONLINE_GAME -> 55
-            RecommendationUseCase.AAA_GAME -> 65
-            RecommendationUseCase.CREATOR -> 50
-        }
+        return recommendationScoringPolicy.gateThreshold(useCase)
     }
 
     private fun budgetScore(price: Int?, budget: Int): Int {
