@@ -86,7 +86,7 @@ jobs:
           pg_isready -h 127.0.0.1 -p 5433 -U "${SPRING_DATASOURCE_USERNAME}" -d "${{ secrets.CRAWLER_DB_NAME }}"
 
       - name: Build crawler jar
-        run: ./gradlew --no-daemon bootJar
+        run: ./gradlew --no-daemon :crawler-job:bootJar
 
       - name: Run crawler
         run: |
@@ -125,7 +125,7 @@ jobs:
           if [ "${{ inputs.log_sql }}" = "true" ]; then
             EXTRA_ARGS="${EXTRA_ARGS} --logging.level.org.hibernate.SQL=DEBUG"
           fi
-          JAR_PATH=$(find build/libs -maxdepth 1 -name '*.jar' | head -n 1)
+          JAR_PATH=$(find crawler-job/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*plain.jar' | head -n 1)
           if [ -z "${JAR_PATH}" ]; then
             echo "Crawler jar was not built." >&2
             exit 1

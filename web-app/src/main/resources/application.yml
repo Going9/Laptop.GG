@@ -1,0 +1,116 @@
+logging:
+  level:
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
+
+app:
+  api:
+    base-url: "http://localhost:8080"
+  crawler:
+    run-on-startup: false
+    limit: ${CRAWLER_LIMIT:}
+    start-page: ${CRAWLER_START_PAGE:}
+    filter-profile: ${CRAWLER_FILTER_PROFILE:core}
+
+spring:
+  sql:
+    init:
+      mode: never
+
+server:
+  forward-headers-strategy: framework
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_THREADS_MAX:32}
+      min-spare: ${SERVER_TOMCAT_THREADS_MIN_SPARE:4}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/laptopgg}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:laptopgg}
+    password: ${SPRING_DATASOURCE_PASSWORD:laptopgg}
+    hikari:
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:3}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:1}
+      connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
+    baseline-version: 1
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+
+app:
+  api:
+    base-url: ${APP_BASE_URL:http://localhost:8080}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: legacy-baseline
+
+  flyway:
+    baseline-on-migrate: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: deploy
+
+  flyway:
+    baseline-on-migrate: false
+
+app:
+  api:
+    base-url: "https://laptopgg.com"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: crawler
+
+  main:
+    web-application-type: none
+
+app:
+  crawler:
+    run-on-startup: true

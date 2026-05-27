@@ -2,7 +2,7 @@
 
 ## Web App Setup
 
-1. Copy `ops/env/laptopgg.env.example` to `/etc/laptopgg/laptopgg.env` and fill DB credentials.
+1. Copy `ops/env/laptopgg.env.example` to `/home/ubuntu/laptopgg/laptopgg.env` and fill DB credentials.
 2. Copy `ops/systemd/laptopgg.service` to `/etc/systemd/system/laptopgg.service`.
 3. Run `sudo systemctl daemon-reload && sudo systemctl enable laptopgg`.
 4. Place the first jar under `/home/ubuntu/laptopgg/releases/<sha>/app-<sha>.jar`.
@@ -23,8 +23,8 @@
 GitHub Actions deploy runs:
 
 1. `test`
-2. `bootJar`
-3. upload jar to `/home/ubuntu/laptopgg/releases/<sha>/`
+2. `:web-app:bootJar`
+3. upload the web jar to `/home/ubuntu/laptopgg/releases/<sha>/`
 4. switch `/home/ubuntu/laptopgg/app.jar` symlink
 5. restart `laptopgg`
 6. check `/actuator/health/readiness`
@@ -48,6 +48,7 @@ Production crawling is GitHub Actions only.
 - DB access: SSH tunnel to PostgreSQL
 - Duplicate prevention: GitHub Actions `concurrency` plus PostgreSQL advisory lock
 - Audit table: `crawler_run`
+- Build artifact: `:crawler-job:bootJar`
 
 Useful query:
 
@@ -58,6 +59,21 @@ from crawler_run
 order by started_at desc
 limit 20;
 ```
+
+## DB Observability
+
+Recommended 1GB PostgreSQL baseline:
+
+```conf
+shared_preload_libraries = 'pg_stat_statements'
+pg_stat_statements.track = all
+track_io_timing = on
+log_min_duration_statement = 1000
+max_connections = 30
+effective_cache_size = 768MB
+```
+
+Apply PostgreSQL setting changes separately from app deploys and only after a fresh backup.
 
 ## DB Backup
 
