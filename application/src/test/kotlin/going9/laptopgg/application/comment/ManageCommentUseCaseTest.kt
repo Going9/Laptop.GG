@@ -2,8 +2,9 @@ package going9.laptopgg.application.comment
 
 import going9.laptopgg.application.comment.port.CommentLaptopPort
 import going9.laptopgg.application.comment.port.CommentListRecord
+import going9.laptopgg.application.comment.port.CommentMutationPort
 import going9.laptopgg.application.comment.port.CommentMutationRecord
-import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.CommentQueryPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.AuthenticationFailedException
 import going9.laptopgg.application.common.InvalidCommandException
@@ -19,7 +20,8 @@ class ManageCommentUseCaseTest {
     private val transactionPort = RecordingApplicationTransactionPort()
     private val passwordHashPort = PlainPasswordHashPort(transactionPort)
     private val useCase = CommentUseCaseAssembler.createManageCommentUseCase(
-        commentPort = commentPort,
+        commentQueryPort = commentPort,
+        commentMutationPort = commentPort,
         laptopPort = laptopPort,
         passwordHashPort = passwordHashPort,
         transactionPort = transactionPort,
@@ -177,7 +179,7 @@ class ManageCommentUseCaseTest {
         assertThat(transactionPort.writeCalls).isZero()
     }
 
-    private class InMemoryCommentPort : CommentPort {
+    private class InMemoryCommentPort : CommentQueryPort, CommentMutationPort {
         val records = mutableMapOf<Long, StoredComment>()
         var findAllByLaptopCalls = 0
             private set

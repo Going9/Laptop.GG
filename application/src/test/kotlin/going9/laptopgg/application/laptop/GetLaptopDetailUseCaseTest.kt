@@ -1,8 +1,7 @@
 package going9.laptopgg.application.laptop
 
 import going9.laptopgg.application.comment.port.CommentListRecord
-import going9.laptopgg.application.comment.port.CommentMutationRecord
-import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.CommentQueryPort
 import going9.laptopgg.application.common.InvalidCommandException
 import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
@@ -45,7 +44,7 @@ class GetLaptopDetailUseCaseTest {
         val transactionPort = RecordingApplicationTransactionPort()
         val useCase = LaptopUseCaseAssembler.createGetLaptopDetailPageUseCase(
             laptopPort = laptopPort,
-            commentPort = commentPort,
+            commentQueryPort = commentPort,
             transactionPort = transactionPort,
         )
 
@@ -66,7 +65,7 @@ class GetLaptopDetailUseCaseTest {
         val transactionPort = RecordingApplicationTransactionPort()
         val useCase = LaptopUseCaseAssembler.createGetLaptopDetailPageUseCase(
             laptopPort = laptopPort,
-            commentPort = commentPort,
+            commentQueryPort = commentPort,
             transactionPort = transactionPort,
         )
 
@@ -86,7 +85,7 @@ class GetLaptopDetailUseCaseTest {
         val transactionPort = RecordingApplicationTransactionPort()
         val useCase = LaptopUseCaseAssembler.createGetLaptopDetailPageUseCase(
             laptopPort = laptopPort,
-            commentPort = commentPort,
+            commentQueryPort = commentPort,
             transactionPort = transactionPort,
         )
 
@@ -113,29 +112,13 @@ class GetLaptopDetailUseCaseTest {
 
     private class RecordingCommentPort(
         private val records: List<CommentListRecord> = emptyList(),
-    ) : CommentPort {
+    ) : CommentQueryPort {
         var findAllByLaptopCalls = 0
             private set
-
-        override fun findMutationById(commentId: Long): CommentMutationRecord? {
-            error("findMutationById is not used by this test")
-        }
 
         override fun findAllByLaptopId(laptopId: Long): List<CommentListRecord> {
             findAllByLaptopCalls++
             return records
-        }
-
-        override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {
-            error("add is not used by this test")
-        }
-
-        override fun updateContent(commentId: Long, content: String) {
-            error("updateContent is not used by this test")
-        }
-
-        override fun deleteById(commentId: Long) {
-            error("deleteById is not used by this test")
         }
     }
 

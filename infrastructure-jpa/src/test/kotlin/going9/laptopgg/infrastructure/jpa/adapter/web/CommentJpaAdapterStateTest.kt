@@ -21,7 +21,7 @@ class CommentJpaAdapterStateTest {
         val entityManager = Mockito.mock(EntityManager::class.java)
         val laptop = laptopFixture(id = 3L)
         val savedCommentCaptor = ArgumentCaptor.forClass(Comment::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = entityManager,
         )
@@ -40,9 +40,8 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `findAllByLaptopId reads comments in persisted id order`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentQueryJpaAdapter(
             commentRepository = commentRepository,
-            entityManager = Mockito.mock(EntityManager::class.java),
         )
         Mockito.`when`(commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(3L)).thenReturn(
             listOf(
@@ -60,9 +59,8 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `findAllByLaptopId rejects projected comment without generated id with explicit application error`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentQueryJpaAdapter(
             commentRepository = commentRepository,
-            entityManager = Mockito.mock(EntityManager::class.java),
         )
         Mockito.`when`(commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(3L)).thenReturn(
             listOf(commentListProjection(id = null)),
@@ -76,7 +74,7 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `findMutationById reads only mutation projection`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = Mockito.mock(EntityManager::class.java),
         )
@@ -96,7 +94,7 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `findMutationById rejects projected comment without generated id with explicit application error`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = Mockito.mock(EntityManager::class.java),
         )
@@ -112,7 +110,7 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `findMutationById rejects projected comment without owning laptop id with explicit application error`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = Mockito.mock(EntityManager::class.java),
         )
@@ -128,7 +126,7 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `updateContent delegates to direct update query without loading comment entity`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = Mockito.mock(EntityManager::class.java),
         )
@@ -144,7 +142,7 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `updateContent maps missing direct update row to not found error`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = Mockito.mock(EntityManager::class.java),
         )
@@ -159,7 +157,7 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `deleteById delegates to direct delete query without loading comment entity`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = Mockito.mock(EntityManager::class.java),
         )
@@ -175,7 +173,7 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `deleteById maps missing direct delete row to not found error`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val adapter = CommentJpaAdapter(
+        val adapter = CommentMutationJpaAdapter(
             commentRepository = commentRepository,
             entityManager = Mockito.mock(EntityManager::class.java),
         )

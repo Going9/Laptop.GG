@@ -3,7 +3,8 @@ package going9.laptopgg.web.config
 import going9.laptopgg.application.comment.CommentUseCaseAssembler
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.comment.port.CommentLaptopPort
-import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.CommentMutationPort
+import going9.laptopgg.application.comment.port.CommentQueryPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
@@ -20,13 +21,15 @@ import org.springframework.context.annotation.Configuration
 internal class WebApplicationUseCaseConfig {
     @Bean
     fun manageCommentUseCase(
-        commentPort: CommentPort,
+        commentQueryPort: CommentQueryPort,
+        commentMutationPort: CommentMutationPort,
         laptopPort: CommentLaptopPort,
         passwordHashPort: PasswordHashPort,
         transactionPort: ApplicationTransactionPort,
     ): ManageCommentUseCase {
         return CommentUseCaseAssembler.createManageCommentUseCase(
-            commentPort = commentPort,
+            commentQueryPort = commentQueryPort,
+            commentMutationPort = commentMutationPort,
             laptopPort = laptopPort,
             passwordHashPort = passwordHashPort,
             transactionPort = transactionPort,
@@ -47,12 +50,12 @@ internal class WebApplicationUseCaseConfig {
     @Bean
     fun getLaptopDetailPageUseCase(
         laptopPort: LaptopPort,
-        commentPort: CommentPort,
+        commentQueryPort: CommentQueryPort,
         transactionPort: ApplicationTransactionPort,
     ): GetLaptopDetailPageUseCase {
         return LaptopUseCaseAssembler.createGetLaptopDetailPageUseCase(
             laptopPort = laptopPort,
-            commentPort = commentPort,
+            commentQueryPort = commentQueryPort,
             transactionPort = transactionPort,
         )
     }

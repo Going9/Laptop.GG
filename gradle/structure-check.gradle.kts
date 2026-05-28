@@ -828,13 +828,62 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "comment ports and JPA adapters must not collapse query and mutation responsibilities",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+			),
+		)
+
+		assertPresent(
+			rule = "comment query and mutation workflows must use separate application ports",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentQueryPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentMutationPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentQueryJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""interface CommentQueryPort"""),
+				Regex("""interface CommentMutationPort"""),
+				Regex("""private val commentQueryPort: CommentQueryPort"""),
+				Regex("""private val commentMutationPort: CommentMutationPort"""),
+				Regex("""commentQueryPort\.findAllByLaptopId\(laptopId\)"""),
+				Regex("""commentMutationPort\.findMutationById\(commentId\)"""),
+				Regex("""internal class CommentQueryJpaAdapter"""),
+				Regex(""": CommentQueryPort"""),
+				Regex("""internal class CommentMutationJpaAdapter"""),
+				Regex(""": CommentMutationPort"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "laptop detail read flow must not depend on comment mutation contracts",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopUseCaseAssembler.kt",
+			),
+			patterns = listOf(
+				Regex("""CommentMutationPort"""),
+				Regex("""CommentMutationRecord"""),
+				Regex("""findMutationById"""),
+				Regex("""updateContent"""),
+				Regex("""deleteById"""),
+			),
+		)
+
 		assertPresent(
 			rule = "comment read contracts must expose persisted non-null ids through list and mutation projections",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentQueryPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentMutationPort.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/dto/response/CommentResponse.kt",
-				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentQueryJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
 			),
@@ -890,7 +939,8 @@ val verifyStructure by tasks.registering {
 			rule = "comment read contracts must not expose nullable ids",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentQueryPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentMutationPort.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/dto/response/CommentResponse.kt",
 			),
 			patterns = listOf(
@@ -901,9 +951,9 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "comment list reads must not load password hashes",
 			paths = listOf(
-				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentQueryPort.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
-				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentQueryJpaAdapter.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
 			),
 			patterns = listOf(
@@ -919,7 +969,7 @@ val verifyStructure by tasks.registering {
 			rule = "comment creation must use validated laptop references without reloading laptop rows",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
-				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
 			),
 			patterns = listOf(
@@ -932,7 +982,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "comment creation must not reselect laptop after application validation",
-			paths = listOf("infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt"),
+			paths = listOf("infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt"),
 			patterns = listOf(
 				Regex("""WebLaptopRepository"""),
 				Regex("""getReferenceById\(laptopId\)"""),
@@ -944,15 +994,15 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "comment mutations must not reload comment entities after application password check",
 			paths = listOf(
-				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentMutationPort.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
-				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
 			),
 			patterns = listOf(
 				Regex("""fun findMutationById\(commentId: Long\): CommentMutationRecord\?"""),
-				Regex("""commentPort\.findMutationById\(commentId\)"""),
+				Regex("""commentMutationPort\.findMutationById\(commentId\)"""),
 				Regex("""fun findMutationProjectedById\("""),
 				Regex("""commentRepository\.findMutationProjectedById\(commentId\)"""),
 				Regex("""@Modifying\(clearAutomatically = true, flushAutomatically = true\)"""),
@@ -1116,7 +1166,8 @@ val verifyStructure by tasks.registering {
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationCandidateFilterFactory.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
-				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentQueryJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/LaptopDetailJpaAdapter.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/RecommendationCandidateJpaAdapter.kt",
 			),
@@ -2607,7 +2658,7 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""interface\s+GetLaptopDetailPageUseCase"""),
-				Regex("""commentPort\.findAllByLaptopId\(laptopId\)"""),
+				Regex("""commentQueryPort\.findAllByLaptopId\(laptopId\)"""),
 				Regex("""transactionPort\.read"""),
 				Regex("""createGetLaptopDetailPageUseCase"""),
 				Regex("""private val getLaptopDetailPageUseCase: GetLaptopDetailPageUseCase"""),

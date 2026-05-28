@@ -1,8 +1,9 @@
 package going9.laptopgg.application.comment
 
 import going9.laptopgg.application.comment.port.CommentLaptopPort
+import going9.laptopgg.application.comment.port.CommentMutationPort
 import going9.laptopgg.application.comment.port.CommentMutationRecord
-import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.CommentQueryPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.AuthenticationFailedException
 import going9.laptopgg.application.common.InvalidCommandException
@@ -17,7 +18,8 @@ interface ManageCommentUseCase {
 }
 
 internal class DefaultManageCommentUseCase(
-    private val commentPort: CommentPort,
+    private val commentQueryPort: CommentQueryPort,
+    private val commentMutationPort: CommentMutationPort,
     private val laptopPort: CommentLaptopPort,
     private val passwordHashPort: PasswordHashPort,
     private val transactionPort: ApplicationTransactionPort,
@@ -31,7 +33,7 @@ internal class DefaultManageCommentUseCase(
         }
         val passwordHash = passwordHashPort.hash(command.password)
         transactionPort.write {
-            commentPort.add(
+            commentMutationPort.add(
                 laptopId = command.laptopId,
                 author = author,
                 content = content,
@@ -44,7 +46,7 @@ internal class DefaultManageCommentUseCase(
         validateLaptopId(laptopId)
         return transactionPort.read {
             validateLaptopExists(laptopId)
-            commentPort.findAllByLaptopId(laptopId).map { comment ->
+            commentQueryPort.findAllByLaptopId(laptopId).map { comment ->
                 CommentResult(
                     id = comment.id,
                     author = comment.author,
@@ -61,7 +63,7 @@ internal class DefaultManageCommentUseCase(
         val comment = findCommentInReadTransaction(commentId)
         validatePassword(comment, command.password)
         return transactionPort.write {
-            commentPort.updateContent(commentId, content)
+            commentMutationPort.updateContent(commentId, content)
             CommentMutationResult(laptopId = comment.laptopId)
         }
     }
@@ -72,14 +74,14 @@ internal class DefaultManageCommentUseCase(
         val comment = findCommentInReadTransaction(commentId)
         validatePassword(comment, command.password)
         return transactionPort.write {
-            commentPort.deleteById(commentId)
+            commentMutationPort.deleteById(commentId)
             CommentMutationResult(laptopId = comment.laptopId)
         }
     }
 
     private fun findCommentInReadTransaction(commentId: Long): CommentMutationRecord {
         return transactionPort.read {
-            commentPort.findMutationById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
+            commentMutationPort.findMutationById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
         }
     }
 

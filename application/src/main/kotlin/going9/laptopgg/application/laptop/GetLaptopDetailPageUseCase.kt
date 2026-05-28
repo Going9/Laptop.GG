@@ -1,7 +1,7 @@
 package going9.laptopgg.application.laptop
 
 import going9.laptopgg.application.comment.CommentResult
-import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.CommentQueryPort
 import going9.laptopgg.application.common.InvalidCommandException
 import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
@@ -13,7 +13,7 @@ interface GetLaptopDetailPageUseCase {
 
 internal class DefaultGetLaptopDetailPageUseCase(
     private val laptopPort: LaptopPort,
-    private val commentPort: CommentPort,
+    private val commentQueryPort: CommentQueryPort,
     private val transactionPort: ApplicationTransactionPort,
 ) : GetLaptopDetailPageUseCase {
     override fun get(laptopId: Long): LaptopDetailPageResult {
@@ -22,7 +22,7 @@ internal class DefaultGetLaptopDetailPageUseCase(
             val laptop = laptopPort.findDetailById(laptopId) ?: throw ResourceNotFoundException("Laptop", laptopId)
             LaptopDetailPageResult(
                 laptopDetail = laptop.toLaptopDetailResult(),
-                comments = commentPort.findAllByLaptopId(laptopId).map { comment ->
+                comments = commentQueryPort.findAllByLaptopId(laptopId).map { comment ->
                     CommentResult(
                         id = comment.id,
                         author = comment.author,

@@ -1,11 +1,9 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
-import going9.laptopgg.application.comment.port.CommentListRecord
+import going9.laptopgg.application.comment.port.CommentMutationPort
 import going9.laptopgg.application.comment.port.CommentMutationRecord
-import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.ResourceNotFoundException
-import going9.laptopgg.infrastructure.jpa.repository.web.CommentListProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentMutationProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
@@ -14,16 +12,12 @@ import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Component
 
 @Component
-internal class CommentJpaAdapter(
+internal class CommentMutationJpaAdapter(
     private val commentRepository: CommentRepository,
     private val entityManager: EntityManager,
-) : CommentPort {
+) : CommentMutationPort {
     override fun findMutationById(commentId: Long): CommentMutationRecord? {
         return commentRepository.findMutationProjectedById(commentId)?.toMutationRecord()
-    }
-
-    override fun findAllByLaptopId(laptopId: Long): List<CommentListRecord> {
-        return commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(laptopId).map { it.toListRecord() }
     }
 
     override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {
@@ -55,14 +49,6 @@ internal class CommentJpaAdapter(
             id = id ?: throw ApplicationInvalidStateException("Persisted comment id must not be null."),
             laptopId = laptopId ?: throw ApplicationInvalidStateException("Persisted comment laptop id must not be null."),
             passwordHash = passwordHash,
-        )
-    }
-
-    private fun CommentListProjection.toListRecord(): CommentListRecord {
-        return CommentListRecord(
-            id = id ?: throw ApplicationInvalidStateException("Persisted comment id must not be null."),
-            author = author,
-            content = content,
         )
     }
 }
