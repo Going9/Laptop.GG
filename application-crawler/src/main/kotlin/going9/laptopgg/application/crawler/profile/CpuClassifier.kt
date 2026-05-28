@@ -11,10 +11,12 @@ data class CpuInsights(
     val lowPowerScore: Int,
 )
 
-class CpuClassifier {
+class CpuClassifier(
+    private val cpuTokenResolver: CpuTokenResolver = CpuTokenResolver(),
+) {
     fun classify(laptop: PersistedCrawledLaptopSnapshot): CpuInsights {
-        val resolvedCpu = resolveCpuToken(laptop.cpu, laptop.cpuManufacturer, laptop.name)
-        val normalized = normalizeCpuToken(resolvedCpu)
+        val resolvedCpu = cpuTokenResolver.resolve(laptop.cpu, laptop.cpuManufacturer, laptop.name)
+        val normalized = cpuTokenResolver.normalize(resolvedCpu)
 
         if (normalized.isBlank()) {
             return CpuInsights(
@@ -25,17 +27,16 @@ class CpuClassifier {
             )
         }
 
-        val appleMatch = APPLE_CPU_REGEX.find(normalized)
-        if (appleMatch != null) {
-            val generation = appleMatch.groupValues[1].toIntOrNull() ?: 1
-            val suffix = appleMatch.groupValues[2]
+        val appleCpu = cpuTokenResolver.findAppleCpuToken(normalized)
+        if (appleCpu != null) {
+            val suffix = appleCpu.suffix
             val suffixBonus = when {
                 suffix.contains("ULTRA") -> 18
                 suffix.contains("MAX") -> 12
                 suffix.contains("PRO") -> 8
                 else -> 0
             }
-            val performance = clampScore(60.0 + (generation * 6.0) + suffixBonus.toDouble())
+            val performance = clampScore(60.0 + (appleCpu.generation * 6.0) + suffixBonus.toDouble())
             val lowPower = when {
                 suffix.contains("ULTRA") -> 62
                 suffix.contains("MAX") -> 68
@@ -96,50 +97,11 @@ class CpuClassifier {
         )
     }
 
-    fun resolveCpuToken(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
-        rawCpu?.trim()?.takeIf { it.isNotBlank() }?.let { return it }
-
-        val normalizedName = productName.uppercase()
-            .replace("프로", " PRO")
-            .replace("맥스", " MAX")
-            .replace("울트라", " ULTRA")
-
-        if (cpuManufacturer.orEmpty().contains("애플") || cpuManufacturer.orEmpty().contains("APPLE", ignoreCase = true) ||
-            normalizedName.contains("MACBOOK") || normalizedName.contains("맥북")
-        ) {
-            val match = APPLE_CPU_REGEX.find(normalizedName)
-            if (match != null) {
-                val suffix = match.groupValues[2].trim()
-                return listOf("M${match.groupValues[1]}", suffix)
-                    .filter { it.isNotBlank() }
-                    .joinToString(" ")
-                    .trim()
-            }
-        }
-
-        return when {
-            normalizedName.contains("X ELITE") -> "X Elite"
-            normalizedName.contains("X PLUS") -> "X Plus"
-            else -> null
-        }
-    }
-
-    fun normalizeCpuToken(cpu: String?): String {
-        return cpu.orEmpty()
-            .uppercase()
-            .replace("프로", " PRO")
-            .replace("맥스", " MAX")
-            .replace("울트라", " ULTRA")
-            .replace(Regex("\\s+"), " ")
-            .trim()
-    }
-
     private fun clampScore(value: Double): Int {
         return value.roundToInt().coerceIn(0, 100)
     }
 
     private companion object {
-        private val APPLE_CPU_REGEX = Regex("""M([1-9])(?:\s*(PRO|MAX|ULTRA))?""", RegexOption.IGNORE_CASE)
         private val H_SERIES_REGEX = Regex("""(?:^|[^A-Z])(?:\d{3,5}|I[3579]-\d{4,5})H(?:X)?(?:[^A-Z]|$)""", RegexOption.IGNORE_CASE)
         private val U_SERIES_REGEX = Regex("""(?:^|[^A-Z])(?:\d{3,5}|I[3579]-\d{4,5})U(?:[^A-Z]|$)""", RegexOption.IGNORE_CASE)
         private val V_SERIES_REGEX = Regex("""(?:^|[^A-Z])\d{3,5}V(?:[^A-Z]|$)""", RegexOption.IGNORE_CASE)

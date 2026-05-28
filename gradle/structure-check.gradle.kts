@@ -372,6 +372,18 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "cpu classifier must delegate token resolution",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/CpuClassifier.kt"),
+			patterns = listOf(
+				Regex("""fun\s+resolveCpuToken\b"""),
+				Regex("""fun\s+normalizeCpuToken\b"""),
+				Regex("""productName\.uppercase"""),
+				Regex("""MACBOOK"""),
+				Regex("""맥북"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler laptop ports must be split by use case responsibility",
 			paths = listOf(

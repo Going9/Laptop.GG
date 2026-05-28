@@ -1,6 +1,7 @@
 package going9.laptopgg.job.config
 
 import going9.laptopgg.application.crawler.profile.CpuClassifier
+import going9.laptopgg.application.crawler.profile.CpuTokenResolver
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.run.CrawlerRunLockService
@@ -29,8 +30,13 @@ import org.springframework.context.annotation.Configuration
 @Configuration(proxyBeanMethods = false)
 class CrawlerApplicationUseCaseConfig {
     @Bean
-    fun cpuClassifier(): CpuClassifier {
-        return CpuClassifier()
+    fun cpuTokenResolver(): CpuTokenResolver {
+        return CpuTokenResolver()
+    }
+
+    @Bean
+    fun cpuClassifier(cpuTokenResolver: CpuTokenResolver): CpuClassifier {
+        return CpuClassifier(cpuTokenResolver)
     }
 
     @Bean
@@ -44,8 +50,8 @@ class CrawlerApplicationUseCaseConfig {
     }
 
     @Bean
-    fun crawledCpuModelResolver(cpuClassifier: CpuClassifier): CrawledCpuModelResolver {
-        return CrawledCpuModelResolver(cpuClassifier)
+    fun crawledCpuModelResolver(cpuTokenResolver: CpuTokenResolver): CrawledCpuModelResolver {
+        return CrawledCpuModelResolver(cpuTokenResolver)
     }
 
     @Bean

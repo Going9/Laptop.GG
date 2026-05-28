@@ -1,10 +1,10 @@
 package going9.laptopgg.application.crawler.profile
 
 class CrawledCpuModelResolver(
-    private val cpuClassifier: CpuClassifier = CpuClassifier(),
+    private val cpuTokenResolver: CpuTokenResolver = CpuTokenResolver(),
 ) {
     fun resolve(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
-        return cpuClassifier.resolveCpuToken(rawCpu, cpuManufacturer, productName)
+        return cpuTokenResolver.resolve(rawCpu, cpuManufacturer, productName)
             ?: rawCpu?.trim()?.takeIf { it.isNotBlank() }
     }
 }

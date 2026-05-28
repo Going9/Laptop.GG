@@ -7,6 +7,7 @@ import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersist
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.CpuClassifier
+import going9.laptopgg.application.crawler.profile.CpuTokenResolver
 import going9.laptopgg.application.crawler.profile.GpuClassifier
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
@@ -24,8 +25,13 @@ import org.springframework.context.annotation.Configuration
 @Configuration(proxyBeanMethods = false)
 class IntegrationCrawlerUseCaseConfig {
     @Bean
-    fun cpuClassifier(): CpuClassifier {
-        return CpuClassifier()
+    fun cpuTokenResolver(): CpuTokenResolver {
+        return CpuTokenResolver()
+    }
+
+    @Bean
+    fun cpuClassifier(cpuTokenResolver: CpuTokenResolver): CpuClassifier {
+        return CpuClassifier(cpuTokenResolver)
     }
 
     @Bean
