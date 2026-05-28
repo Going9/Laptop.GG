@@ -1,8 +1,8 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.application.crawler.CrawledLaptopCommand
-import going9.laptopgg.application.crawler.CrawledProductCardCommand
-import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.CrawledProductCardCommand
+import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 
 data class CrawlSummary(
     val processedCount: Int,

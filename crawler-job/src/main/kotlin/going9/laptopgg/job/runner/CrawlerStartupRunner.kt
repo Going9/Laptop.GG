@@ -1,10 +1,10 @@
 package going9.laptopgg.job.runner
 
-import going9.laptopgg.application.crawler.CrawlerRunCompletionStatus
-import going9.laptopgg.application.crawler.CrawlerRunLockUseCase
-import going9.laptopgg.application.crawler.CrawlerRunStatusResult
-import going9.laptopgg.application.crawler.CrawlerRunSummary
-import going9.laptopgg.application.crawler.TrackCrawlerRunUseCase
+import going9.laptopgg.application.crawler.run.CrawlerRunCompletionStatus
+import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
+import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
+import going9.laptopgg.application.crawler.run.CrawlerRunSummary
+import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
 import going9.laptopgg.job.crawler.CrawlerService
 import going9.laptopgg.job.crawler.CrawlSummary
 import going9.laptopgg.job.config.CrawlerJobProperties

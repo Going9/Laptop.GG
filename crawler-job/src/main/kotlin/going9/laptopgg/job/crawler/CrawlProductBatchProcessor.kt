@@ -1,6 +1,6 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import java.util.concurrent.ExecutorService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

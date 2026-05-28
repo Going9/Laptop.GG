@@ -1,8 +1,8 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.application.crawler.CrawledCpuModelResolver
-import going9.laptopgg.application.crawler.CrawledGraphicsModelResolver
-import going9.laptopgg.application.crawler.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
+import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 

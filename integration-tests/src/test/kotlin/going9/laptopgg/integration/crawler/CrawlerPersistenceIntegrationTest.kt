@@ -1,10 +1,14 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.integration.crawler
 
-import going9.laptopgg.persistence.model.laptop.Laptop
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.CrawledProductCardCommand
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.persistence.SaveResult
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
+import going9.laptopgg.persistence.model.laptop.Laptop
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

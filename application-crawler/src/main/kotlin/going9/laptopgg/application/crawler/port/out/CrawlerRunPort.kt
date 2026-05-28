@@ -1,8 +1,8 @@
 package going9.laptopgg.application.crawler.port.out
 
-import going9.laptopgg.application.crawler.CreateCrawlerRunCommand
-import going9.laptopgg.application.crawler.CrawlerRunState
-import going9.laptopgg.application.crawler.UpdateCrawlerRunCommand
+import going9.laptopgg.application.crawler.run.CreateCrawlerRunCommand
+import going9.laptopgg.application.crawler.run.CrawlerRunState
+import going9.laptopgg.application.crawler.run.UpdateCrawlerRunCommand
 
 interface CrawlerRunPort {
     fun create(command: CreateCrawlerRunCommand): CrawlerRunState

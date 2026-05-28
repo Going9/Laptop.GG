@@ -1,7 +1,9 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.recommendation
 
 import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
+import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
+import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
 import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy

@@ -1,8 +1,10 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.profile
 
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 
 class LaptopProfileService(
     private val laptopPort: CrawledLaptopPort,

@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.profile
 
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.CpuClass

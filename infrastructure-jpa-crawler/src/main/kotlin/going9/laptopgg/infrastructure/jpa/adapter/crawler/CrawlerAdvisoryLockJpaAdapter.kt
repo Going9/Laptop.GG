@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
-import going9.laptopgg.application.crawler.CrawlerLockResult
+import going9.laptopgg.application.crawler.run.CrawlerLockResult
 import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import javax.sql.DataSource
 import org.springframework.stereotype.Component

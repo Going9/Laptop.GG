@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.support
 
 import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 

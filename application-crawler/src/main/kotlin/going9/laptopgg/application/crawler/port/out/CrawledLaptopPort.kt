@@ -1,8 +1,8 @@
 package going9.laptopgg.application.crawler.port.out
 
-import going9.laptopgg.application.crawler.CrawledLaptopCommand
-import going9.laptopgg.application.crawler.PersistedCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.UpdateCrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 
 interface CrawledLaptopPort {
     fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot?

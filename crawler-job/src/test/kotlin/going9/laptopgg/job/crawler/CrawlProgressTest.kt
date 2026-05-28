@@ -1,6 +1,6 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.application.crawler.SaveResult
+import going9.laptopgg.application.crawler.persistence.SaveResult
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

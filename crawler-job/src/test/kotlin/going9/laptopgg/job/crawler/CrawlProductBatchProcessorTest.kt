@@ -1,10 +1,10 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.application.crawler.CrawledLaptopCommand
-import going9.laptopgg.application.crawler.ExistingCrawledLaptopLookup
-import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
-import going9.laptopgg.application.crawler.SaveResult
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLookup
+import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.persistence.SaveResult
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import org.assertj.core.api.Assertions.assertThat

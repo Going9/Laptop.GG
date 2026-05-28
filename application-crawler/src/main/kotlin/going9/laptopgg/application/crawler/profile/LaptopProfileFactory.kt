@@ -1,4 +1,6 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.profile
+
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 
 class LaptopProfileFactory(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),

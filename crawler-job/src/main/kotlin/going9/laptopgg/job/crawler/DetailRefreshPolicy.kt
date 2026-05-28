@@ -1,6 +1,6 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import java.time.LocalDateTime
 
 internal object DetailRefreshPolicy {

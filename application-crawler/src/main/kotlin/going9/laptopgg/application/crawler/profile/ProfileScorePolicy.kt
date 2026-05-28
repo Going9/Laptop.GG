@@ -1,5 +1,6 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.profile
 
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.PortabilityTier
 import kotlin.math.roundToInt

@@ -244,18 +244,28 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "application-crawler must not depend on infrastructure or web",
+			rule = "application-crawler must not depend on infrastructure, persistence, or web",
 			paths = listOf("application-crawler/src/main", "application-crawler/src/test", "application-crawler/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.infrastructure"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.web"""),
 				Regex("""going9\.laptopgg\.application\.recommendation"""),
 				Regex("""going9\.laptopgg\.application\.service"""),
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
 				Regex("""project\(":application"\)"""),
+				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""project\(":web-app"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "application-crawler code must live in feature or port packages, not the flat crawler package",
+			paths = listOf("application-crawler/src/main", "application-crawler/src/test"),
+			patterns = listOf(
+				Regex("""^package going9\.laptopgg\.application\.crawler$"""),
 			),
 		)
 
@@ -303,8 +313,8 @@ val verifyStructure by tasks.registering {
 			rule = "crawler profile port must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopProfilePort.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/LaptopProfileService.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/RecommendationScoreService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
 			),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model\.laptop\.LaptopProfile"""),
@@ -316,13 +326,13 @@ val verifyStructure by tasks.registering {
 			rule = "crawler laptop persistence boundary must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopPort.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/SaveCrawledLaptopService.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/LaptopPriceHistoryService.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/LaptopProfileService.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/LaptopProfileFactory.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/CpuClassifier.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/GpuClassifier.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/ProfileScorePolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileFactory.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/CpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/GpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileScorePolicy.kt",
 			),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model\.laptop\.Laptop\b"""),
@@ -334,7 +344,7 @@ val verifyStructure by tasks.registering {
 			rule = "crawler run port must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawlerRunPort.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/TrackCrawlerRunService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt",
 			),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model\.crawler"""),
@@ -471,9 +481,13 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/CrawlerPersistenceModels.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/SaveCrawledLaptopUseCase.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/TrackCrawlerRunUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawlerPersistenceModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunLockUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopDetailResult.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationQuery.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResult.kt",

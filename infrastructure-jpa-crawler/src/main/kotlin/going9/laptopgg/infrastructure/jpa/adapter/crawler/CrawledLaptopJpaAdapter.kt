@@ -1,8 +1,8 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
-import going9.laptopgg.application.crawler.CrawledLaptopCommand
-import going9.laptopgg.application.crawler.PersistedCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.UpdateCrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.laptop.LaptopUsage

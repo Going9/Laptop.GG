@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.run
 
 import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 
@@ -13,8 +13,3 @@ class CrawlerRunLockService(
         return crawlerRunLockPort.withCrawlerLock(block)
     }
 }
-
-data class CrawlerLockResult<T>(
-    val acquired: Boolean,
-    val value: T?,
-)

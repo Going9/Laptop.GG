@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.profile
 
 class CrawledGraphicsModelResolver(
     private val gpuClassifier: GpuClassifier = GpuClassifier(),

@@ -1,6 +1,6 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.application.crawler.SaveResult
+import going9.laptopgg.application.crawler.persistence.SaveResult
 
 internal class CrawlProgress(
     private val maxSampleCount: Int = MAX_SAMPLE_COUNT,

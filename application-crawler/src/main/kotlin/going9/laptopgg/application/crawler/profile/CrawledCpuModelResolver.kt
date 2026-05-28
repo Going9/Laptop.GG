@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.profile
 
 class CrawledCpuModelResolver(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),

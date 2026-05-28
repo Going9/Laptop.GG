@@ -1,16 +1,16 @@
 package going9.laptopgg
 
-import going9.laptopgg.application.crawler.CpuClassifier
-import going9.laptopgg.application.crawler.GpuClassifier
-import going9.laptopgg.application.crawler.CrawlerRunLockService
-import going9.laptopgg.application.crawler.CrawlerRunLockUseCase
-import going9.laptopgg.application.crawler.LaptopPriceHistoryService
-import going9.laptopgg.application.crawler.LaptopProfileFactory
-import going9.laptopgg.application.crawler.LaptopProfileService
-import going9.laptopgg.application.crawler.ProfileScorePolicy
-import going9.laptopgg.application.crawler.RecommendationScoreService
-import going9.laptopgg.application.crawler.SaveCrawledLaptopService
-import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.profile.CpuClassifier
+import going9.laptopgg.application.crawler.profile.GpuClassifier
+import going9.laptopgg.application.crawler.run.CrawlerRunLockService
+import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
+import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
+import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
+import going9.laptopgg.application.crawler.profile.LaptopProfileService
+import going9.laptopgg.application.crawler.profile.ProfileScorePolicy
+import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort

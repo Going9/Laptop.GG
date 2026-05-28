@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
-import going9.laptopgg.application.crawler.UpsertRecommendationScoreCommand
+import going9.laptopgg.application.crawler.recommendation.UpsertRecommendationScoreCommand
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.persistence.model.recommendation.RecommendationScore
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository

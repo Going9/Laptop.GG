@@ -2,10 +2,10 @@ package going9.laptopgg.integration
 
 import going9.laptopgg.InfrastructureJpaTestApplication
 import going9.laptopgg.application.common.PageQuery
-import going9.laptopgg.application.crawler.CrawledLaptopCommand
-import going9.laptopgg.application.crawler.CrawlerRunLockUseCase
-import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
-import going9.laptopgg.application.crawler.SaveResult
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.persistence.SaveResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository

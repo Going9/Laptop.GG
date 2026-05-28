@@ -4,11 +4,11 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
-import going9.laptopgg.application.crawler.CrawledLaptopProfileState
-import going9.laptopgg.application.crawler.LaptopProfileSnapshot
-import going9.laptopgg.application.crawler.LaptopProfileService
-import going9.laptopgg.application.crawler.PersistedCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.RecommendationScoreService
+import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
+import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
+import going9.laptopgg.application.crawler.profile.LaptopProfileService
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.laptop.LaptopUsage

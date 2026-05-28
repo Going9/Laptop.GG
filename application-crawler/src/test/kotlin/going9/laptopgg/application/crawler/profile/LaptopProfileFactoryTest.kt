@@ -1,5 +1,6 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.profile
 
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.GpuClass
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

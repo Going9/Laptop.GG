@@ -1,9 +1,9 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
-import going9.laptopgg.application.crawler.CreateCrawlerRunCommand
-import going9.laptopgg.application.crawler.CrawlerRunState
-import going9.laptopgg.application.crawler.CrawlerRunStatusResult
-import going9.laptopgg.application.crawler.UpdateCrawlerRunCommand
+import going9.laptopgg.application.crawler.run.CreateCrawlerRunCommand
+import going9.laptopgg.application.crawler.run.CrawlerRunState
+import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
+import going9.laptopgg.application.crawler.run.UpdateCrawlerRunCommand
 import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
 import going9.laptopgg.persistence.model.crawler.CrawlerRun
 import going9.laptopgg.persistence.model.crawler.CrawlerRunStatus

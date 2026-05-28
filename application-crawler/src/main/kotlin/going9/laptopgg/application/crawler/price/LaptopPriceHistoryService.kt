@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler
+package going9.laptopgg.application.crawler.price
 
 import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
