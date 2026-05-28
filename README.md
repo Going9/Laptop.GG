@@ -34,7 +34,7 @@ flowchart LR
 - `persistence-model`: JPA entity와 DB 매핑 모델
 - `recommendation-core`: web/crawler가 공유하는 추천 use-case enum과 점수 정책
 - `application`: 추천/상세/댓글 use case와 port
-- `application-crawler`: crawler 저장/동기화 use case, crawler 전용 port, profile/score 정책
+- `application-crawler`: crawler 저장/동기화 use case, feature별 crawler 전용 port, profile/score 정책
 - `infrastructure-jpa-core`: Flyway migration, 공통 persistence 설정
 - `infrastructure-jpa`: web-facing JPA adapter
 - `infrastructure-jpa-crawler`: crawler 저장/프로필/가격 이력/추천 점수 JPA adapter와 crawler repository
@@ -50,6 +50,7 @@ flowchart LR
 - `.github/workflows/crawler.yml`: 크롤러 실행
 - `ops/`: systemd, nginx, env 예시와 운영 runbook
 - `ops/postgres/laptopgg-postgresql.conf`: 1GB PostgreSQL 서버용 관측성/커넥션 baseline
+- `gradle/structure-check.gradle.kts`: 모듈/런타임 경계 회귀를 막는 Gradle 구조 검증 규칙
 
 저장소 루트가 곧 Gradle 프로젝트 루트입니다. 별도 하위 프로젝트로 들어갈 필요가 없습니다.
 
@@ -77,7 +78,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 `web-app`은 web use case bean을 명시적으로 조립하며, `application-crawler`와 crawler JPA adapter는 classpath에 올리지 않습니다.
 `crawler-job`은 Danawa 수집과 application-crawler command 변환만 담당하며, persistence model 조립과 저장 트랜잭션은 application-crawler use case가 처리합니다.
 추천 use-case enum과 점수 정책은 `recommendation-core`에 두어 web 추천 계산과 crawler 점수 projection이 같은 정책을 공유합니다.
-크롤러 저장/이력/추천 점수/중복 실행 lock port는 `application-crawler`에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
+크롤러 저장/이력/추천 점수/중복 실행 lock port는 `application-crawler`의 feature별 `*.port` 패키지에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
 Flyway 마이그레이션과 공통 persistence 설정은 `infrastructure-jpa-core`에 있고, entity scan과 Spring Data repository는 `infrastructure-jpa`와 `infrastructure-jpa-crawler`가 역할별로 소유합니다.
 
 주의:
@@ -168,6 +169,8 @@ JAVA_OPTS=-Xms128m -Xmx384m -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul
 - 기본값 `core`는 최신 Intel/AMD/ARM CPU 코드명과 Apple 맥북 카테고리만 수집합니다.
 - `extended`는 조금 더 오래된 CPU 코드명까지 넓힙니다.
 - `none`은 CPU 코드명 필터 없이 노트북 전체 목록을 수집합니다.
+- `max_list_pages`는 크롤 소스별 목록 페이지 안전 제한이며, 비우면 `5000`을 사용합니다.
+- `detail_fetch_concurrency`는 상세 페이지 동시 수집 수이며, 비우면 `6`을 사용합니다.
 
 필요한 GitHub Secrets:
 
