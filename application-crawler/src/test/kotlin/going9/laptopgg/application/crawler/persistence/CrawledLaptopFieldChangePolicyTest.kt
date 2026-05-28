@@ -28,6 +28,12 @@ class CrawledLaptopFieldChangePolicyTest {
     }
 
     @Test
+    fun `usage normalization trims blanks and preserves first occurrence order`() {
+        assertThat(policy.normalizeUsages(listOf(" 사무 ", "", "게임", "사무")))
+            .containsExactly("사무", "게임")
+    }
+
+    @Test
     fun `update command is changed when any field is present`() {
         assertThat(policy.hasChanges(UpdateCrawledLaptopCommand())).isFalse()
         assertThat(policy.hasChanges(UpdateCrawledLaptopCommand(price = 1_000_000))).isTrue()

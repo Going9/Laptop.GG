@@ -18,15 +18,19 @@ internal class CrawledLaptopFieldChangePolicy {
     }
 
     fun changedUsages(currentUsages: List<String>, newUsages: List<String>): List<String>? {
-        val normalizedUsages = newUsages
-            .map { usage -> usage.trim() }
-            .filter { usage -> usage.isNotBlank() }
-            .distinct()
+        val normalizedUsages = normalizeUsages(newUsages)
         if (normalizedUsages.isEmpty() || currentUsages.sorted() == normalizedUsages.sorted()) {
             return null
         }
 
         return normalizedUsages
+    }
+
+    fun normalizeUsages(usages: List<String>): List<String> {
+        return usages
+            .map { usage -> usage.trim() }
+            .filter { usage -> usage.isNotBlank() }
+            .distinct()
     }
 
     fun hasChanges(updateCommand: UpdateCrawledLaptopCommand): Boolean {

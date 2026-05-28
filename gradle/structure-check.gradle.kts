@@ -561,6 +561,31 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "laptop usage persistence must normalize application writes and reject blank DB values",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopFieldChangePolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopFieldChangePolicyTest.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
+				"infrastructure-jpa-core/src/main/resources/db/migration/V12__laptop_usage_required_value.sql",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
+				"docs/architecture.md",
+			),
+			patterns = listOf(
+				Regex("""fun\s+normalizeUsages\(usages: List<String>\)"""),
+				Regex("""fun\s+normalizedDetailCommand\(command: CrawledLaptopCommand\)"""),
+				Regex("""changeDetector\.normalizedDetailCommand\(command\)"""),
+				Regex("""saveOrUpdate normalizes usage values before persistence"""),
+				Regex("""usage normalization trims blanks and preserves first occurrence order"""),
+				Regex("""chk_laptop_usage_value_required"""),
+				Regex("""CHECK \(laptop_usage IS NOT NULL AND btrim\(laptop_usage\) <> ''\) NOT VALID"""),
+				Regex("""hasMessageContaining\("chk_laptop_usage_value_required"\)"""),
+				Regex("""application 저장 use case에서 trim/filter/distinct 정규화"""),
+			),
+		)
+
+		assertPresent(
 			rule = "comment read contracts must expose persisted non-null ids",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",

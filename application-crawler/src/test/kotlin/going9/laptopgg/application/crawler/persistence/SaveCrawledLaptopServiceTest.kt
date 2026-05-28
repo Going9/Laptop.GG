@@ -69,6 +69,16 @@ class SaveCrawledLaptopServiceTest {
     }
 
     @Test
+    fun `saveOrUpdate normalizes usage values before persistence`() {
+        service.saveOrUpdateLaptop(
+            crawledLaptop(usages = listOf(" 사무/인강용 ", "", "사무/인강용", "영상편집")),
+        )
+
+        assertThat(laptopPort.createdCommand?.usages)
+            .containsExactly("사무/인강용", "영상편집")
+    }
+
+    @Test
     fun `saveListSnapshot rejects missing existing laptop with explicit crawler error`() {
         assertThatThrownBy {
             service.saveListSnapshot(existingLaptopId = 404L, productCard = crawledProductCard())
@@ -135,6 +145,7 @@ class SaveCrawledLaptopServiceTest {
         imageUrl: String = "https://example.com/transaction-boundary.jpg",
         detailPage: String = "https://prod.danawa.com/info/?pcode=TX001&cate=112758",
         price: Int? = 1_490_000,
+        usages: List<String> = listOf("사무/인강용"),
     ): CrawledLaptopCommand {
         return CrawledLaptopCommand(
             name = name,
@@ -164,7 +175,7 @@ class SaveCrawledLaptopServiceTest {
             storageSlotCount = 1,
             weight = 1.35,
             lastDetailedCrawledAt = null,
-            usages = listOf("사무/인강용"),
+            usages = usages,
         )
     }
 
@@ -197,6 +208,9 @@ class SaveCrawledLaptopServiceTest {
     }
 
     private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
+        var createdCommand: CrawledLaptopCommand? = null
+            private set
+
         override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? = null
         override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = null
         override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
@@ -204,6 +218,7 @@ class SaveCrawledLaptopServiceTest {
         override fun findAllByDetailPages(detailPages: Collection<String>): List<PersistedCrawledLaptopSnapshot> = emptyList()
 
         override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
+            createdCommand = command
             return command.toPersistedSnapshot(id = 1L)
         }
 

@@ -30,8 +30,9 @@ internal class SaveCrawledLaptopService(
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
         existingLaptopId?.let(::validateExistingLaptopId)
         validateLaptopCommand(command)
+        val normalizedCommand = changeDetector.normalizedDetailCommand(command)
         return transactionPort.write {
-            saveOrUpdateLaptopInTransaction(command, existingLaptopId)
+            saveOrUpdateLaptopInTransaction(normalizedCommand, existingLaptopId)
         }
     }
 

@@ -129,6 +129,51 @@ class PostgresFlywayMigrationTest {
 
             connection.prepareStatement(
                 """
+                select conname, convalidated
+                from pg_constraint c
+                join pg_class t on t.oid = c.conrelid
+                join pg_namespace n on n.oid = t.relnamespace
+                where n.nspname = 'public'
+                  and t.relname = 'laptop_usage'
+                  and c.contype = 'c'
+                """.trimIndent(),
+            ).use { statement ->
+                statement.executeQuery().use { resultSet ->
+                    val constraints = generateSequence {
+                        if (resultSet.next()) resultSet.getString("conname") to resultSet.getBoolean("convalidated") else null
+                    }.toMap()
+
+                    assertThat(constraints).containsEntry("chk_laptop_usage_value_required", false)
+                }
+            }
+
+            val validLaptopId = connection.prepareStatement(
+                """
+                insert into public.laptop (name, image_url, detail_page)
+                values ('Valid Laptop', 'https://example.com/laptop.jpg', 'https://example.com/detail')
+                returning id
+                """.trimIndent(),
+            ).use { statement ->
+                statement.executeQuery().use { resultSet ->
+                    resultSet.next()
+                    resultSet.getLong("id")
+                }
+            }
+
+            assertThatThrownBy {
+                connection.prepareStatement(
+                    """
+                    insert into public.laptop_usage (laptop_id, laptop_usage)
+                    values (?, ' ')
+                    """.trimIndent(),
+                ).use { statement ->
+                    statement.setLong(1, validLaptopId)
+                    statement.executeUpdate()
+                }
+            }.hasMessageContaining("chk_laptop_usage_value_required")
+
+            connection.prepareStatement(
+                """
                 select column_name
                 from information_schema.columns
                 where table_schema = 'public'

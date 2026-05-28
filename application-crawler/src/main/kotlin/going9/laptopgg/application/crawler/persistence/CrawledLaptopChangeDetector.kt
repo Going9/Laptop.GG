@@ -3,6 +3,10 @@ package going9.laptopgg.application.crawler.persistence
 internal class CrawledLaptopChangeDetector(
     private val fieldChangePolicy: CrawledLaptopFieldChangePolicy = CrawledLaptopFieldChangePolicy(),
 ) {
+    fun normalizedDetailCommand(command: CrawledLaptopCommand): CrawledLaptopCommand {
+        return command.copy(usages = fieldChangePolicy.normalizeUsages(command.usages))
+    }
+
     fun listSnapshotUpdate(
         existingLaptop: PersistedCrawledLaptopSnapshot,
         productCard: CrawledProductCardCommand,
