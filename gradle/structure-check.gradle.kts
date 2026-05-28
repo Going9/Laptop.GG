@@ -328,6 +328,19 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "profile score composer must delegate metrics and use-case weights",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileScorePolicy.kt"),
+			patterns = listOf(
+				Regex("""fun\s+(portabilityScore|portabilityTier|batteryCapacityScore|batteryTier|ramScore|displayScore|tgpScore|usageBoosts|clampScore)\b"""),
+				Regex("""RESOLUTION_REGEX"""),
+				Regex("""REFERENCE_PIXELS"""),
+				Regex("""roundToInt"""),
+				Regex("""(cpu|gpu)\.(performanceScore|lowPowerScore|creatorBonus)\s*\*"""),
+				Regex("""\*\s*0\.[0-9]+"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler laptop persistence boundary must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
