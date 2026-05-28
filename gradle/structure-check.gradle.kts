@@ -523,9 +523,41 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""data class CommentResult\(\s+val id: Long,"""),
 				Regex("""data class CommentRecord\(\s+val id: Long,"""),
+				Regex("""data class CommentRecord\(\s+val id: Long,\s+val laptopId: Long,"""),
 				Regex("""data class CommentResponse\(\s+val id: Long,"""),
 				Regex("""Persisted comment id must not be null"""),
+				Regex("""Persisted comment laptop id must not be null"""),
 				Regex("""findById rejects persisted comment without generated id with explicit application error"""),
+				Regex("""findById rejects persisted comment without owning laptop id with explicit application error"""),
+			),
+		)
+
+		assertPresent(
+			rule = "comment mutation must redirect with canonical owning laptop id",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/CommentPageController.kt",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/CommentPageControllerTest.kt",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/LaptopDetailPageRenderingTest.kt",
+			),
+			patterns = listOf(
+				Regex("""data class CommentMutationResult\(\s+val laptopId: Long,"""),
+				Regex("""fun update\(commentId: Long, command: UpdateCommentCommand\): CommentMutationResult"""),
+				Regex("""fun delete\(commentId: Long, command: DeleteCommentCommand\): CommentMutationResult"""),
+				Regex("""CommentMutationResult\(laptopId = comment\.laptopId\)"""),
+				Regex("""redirect:/laptops/\$\{result\.laptopId\}"""),
+				Regex("""comment edit redirects to canonical laptop detail after service call"""),
+				Regex("""comment delete redirects to canonical laptop detail after service call"""),
+				Regex("""Regex\(\"\"\"name="laptopId\"\"\"\"\)\.findAll\(html\)\.count\(\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "comment edit and delete forms must not post redirect laptop id",
+			paths = listOf("web-app/src/main/resources/templates/laptop-detail.html"),
+			patterns = listOf(
+				Regex("""name="laptopId"\s+th:value="\$\{laptopDetail\.id\}""""),
 			),
 		)
 
@@ -1574,7 +1606,7 @@ val verifyStructure by tasks.registering {
 				Regex("""comment\.id"""),
 				Regex("""'/edit'"""),
 				Regex("""'/delete'"""),
-				Regex("""comment delete redirects to laptop detail after service call"""),
+				Regex("""comment delete redirects to canonical laptop detail after service call"""),
 				Regex("""laptop detail page renders comment create list edit and delete surface"""),
 			),
 		)

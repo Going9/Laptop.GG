@@ -24,14 +24,14 @@ internal class CommentPageController(
         @PathVariable commentId: Long,
         @ModelAttribute commentRequest: CommentRequest,
     ): String {
-        manageCommentUseCase.update(
+        val result = manageCommentUseCase.update(
             commentId,
             CommentUpdateRequest(
                 passWord = commentRequest.passWord,
                 content = commentRequest.content,
             ).toCommand(),
         )
-        return "redirect:/laptops/${commentRequest.laptopId}"
+        return "redirect:/laptops/${result.laptopId}"
     }
 
     @PostMapping("/comments/{commentId}/delete")
@@ -39,10 +39,10 @@ internal class CommentPageController(
         @PathVariable commentId: Long,
         @ModelAttribute commentRequest: CommentRequest,
     ): String {
-        manageCommentUseCase.delete(
+        val result = manageCommentUseCase.delete(
             commentId,
             CommentDeleteRequest(passWord = commentRequest.passWord).toCommand(),
         )
-        return "redirect:/laptops/${commentRequest.laptopId}"
+        return "redirect:/laptops/${result.laptopId}"
     }
 }

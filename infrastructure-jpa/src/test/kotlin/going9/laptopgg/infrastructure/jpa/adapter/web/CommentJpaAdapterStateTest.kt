@@ -34,7 +34,31 @@ class CommentJpaAdapterStateTest {
         }.isInstanceOf(ApplicationInvalidStateException::class.java)
     }
 
-    private fun laptopFixture(): Laptop {
+    @Test
+    fun `findById rejects persisted comment without owning laptop id with explicit application error`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+        )
+        Mockito.`when`(commentRepository.findById(1L)).thenReturn(
+            Optional.of(
+                Comment(
+                    laptop = laptopFixture(id = null),
+                    author = "iggy",
+                    content = "좋아요",
+                    passWord = "hashed:pw",
+                    id = 1L,
+                ),
+            ),
+        )
+
+        assertThatThrownBy {
+            adapter.findById(1L)
+        }.isInstanceOf(ApplicationInvalidStateException::class.java)
+    }
+
+    private fun laptopFixture(id: Long? = null): Laptop {
         return Laptop(
             name = "Laptop",
             imageUrl = "https://example.com/laptop.jpg",
@@ -61,6 +85,7 @@ class CommentJpaAdapterStateTest {
             storageCapacity = null,
             storageSlotCount = null,
             weight = null,
+            id = id,
         )
     }
 }

@@ -12,8 +12,8 @@ import going9.laptopgg.application.common.port.ApplicationTransactionPort
 interface ManageCommentUseCase {
     fun add(command: AddCommentCommand)
     fun listByLaptop(laptopId: Long): List<CommentResult>
-    fun update(commentId: Long, command: UpdateCommentCommand)
-    fun delete(commentId: Long, command: DeleteCommentCommand)
+    fun update(commentId: Long, command: UpdateCommentCommand): CommentMutationResult
+    fun delete(commentId: Long, command: DeleteCommentCommand): CommentMutationResult
 }
 
 internal class DefaultManageCommentUseCase(
@@ -43,23 +43,25 @@ internal class DefaultManageCommentUseCase(
         }
     }
 
-    override fun update(commentId: Long, command: UpdateCommentCommand) {
+    override fun update(commentId: Long, command: UpdateCommentCommand): CommentMutationResult {
         validateCommentId(commentId)
         validateUpdate(command)
-        transactionPort.write {
+        return transactionPort.write {
             val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
             validatePassword(comment, command.password)
             commentPort.updateContent(commentId, command.content)
+            CommentMutationResult(laptopId = comment.laptopId)
         }
     }
 
-    override fun delete(commentId: Long, command: DeleteCommentCommand) {
+    override fun delete(commentId: Long, command: DeleteCommentCommand): CommentMutationResult {
         validateCommentId(commentId)
         validateDelete(command)
-        transactionPort.write {
+        return transactionPort.write {
             val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
             validatePassword(comment, command.password)
             commentPort.deleteById(commentId)
+            CommentMutationResult(laptopId = comment.laptopId)
         }
     }
 

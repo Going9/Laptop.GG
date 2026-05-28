@@ -49,6 +49,7 @@ class LaptopDetailPageRenderingTest {
             "/comments/1/edit",
             "/comments/1/delete",
         )
+        assertThat(Regex("""name="laptopId"""").findAll(html).count()).isEqualTo(1)
     }
 
     private fun laptopDetailResult(id: Long): LaptopDetailResult {

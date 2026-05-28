@@ -49,8 +49,11 @@ internal class CommentJpaAdapter(
     }
 
     private fun Comment.toRecord(): CommentRecord {
+        val commentId = id ?: throw ApplicationInvalidStateException("Persisted comment id must not be null.")
+        val laptopId = laptop.id ?: throw ApplicationInvalidStateException("Persisted comment laptop id must not be null.")
         return CommentRecord(
-            id = id ?: throw ApplicationInvalidStateException("Persisted comment id must not be null."),
+            id = commentId,
+            laptopId = laptopId,
             author = author,
             content = content,
             passwordHash = passWord,

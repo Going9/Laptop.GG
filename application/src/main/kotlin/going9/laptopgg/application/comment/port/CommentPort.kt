@@ -10,6 +10,7 @@ interface CommentPort {
 
 data class CommentRecord(
     val id: Long,
+    val laptopId: Long,
     val author: String,
     val content: String,
     val passwordHash: String,

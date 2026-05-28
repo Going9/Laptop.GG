@@ -164,7 +164,6 @@
                     <form class="comment-inline-form"
                           method="post"
                           th:action="@{'/comments/' + ${comment.id} + '/edit'}">
-                        <input type="hidden" name="laptopId" th:value="${laptopDetail.id}">
                         <textarea name="content" rows="2" maxlength="500" required th:text="${comment.content}"></textarea>
                         <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
                         <button type="submit" class="secondary-button">수정</button>
@@ -172,7 +171,6 @@
                     <form class="comment-delete-form"
                           method="post"
                           th:action="@{'/comments/' + ${comment.id} + '/delete'}">
-                        <input type="hidden" name="laptopId" th:value="${laptopDetail.id}">
                         <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
                         <button type="submit" class="ghost-button">삭제</button>
                     </form>

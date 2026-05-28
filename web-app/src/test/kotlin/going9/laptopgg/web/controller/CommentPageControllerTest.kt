@@ -1,6 +1,7 @@
 package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.comment.AddCommentCommand
+import going9.laptopgg.application.comment.CommentMutationResult
 import going9.laptopgg.application.comment.DeleteCommentCommand
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.comment.UpdateCommentCommand
@@ -31,8 +32,14 @@ class CommentPageControllerTest {
     }
 
     @Test
-    fun `comment edit redirects to laptop detail after service call`() {
-        val request = CommentRequest(laptopId = 3L, author = "iggy", content = "수정", passWord = "pw")
+    fun `comment edit redirects to canonical laptop detail after service call`() {
+        val request = CommentRequest(laptopId = 999L, author = "iggy", content = "수정", passWord = "pw")
+        Mockito.`when`(
+            manageCommentUseCase.update(
+                7L,
+                UpdateCommentCommand(password = "pw", content = "수정"),
+            ),
+        ).thenReturn(CommentMutationResult(laptopId = 3L))
 
         val viewName = controller.editComment(7L, request)
 
@@ -44,8 +51,14 @@ class CommentPageControllerTest {
     }
 
     @Test
-    fun `comment delete redirects to laptop detail after service call`() {
-        val request = CommentRequest(laptopId = 3L, passWord = "pw")
+    fun `comment delete redirects to canonical laptop detail after service call`() {
+        val request = CommentRequest(laptopId = 999L, passWord = "pw")
+        Mockito.`when`(
+            manageCommentUseCase.delete(
+                7L,
+                DeleteCommentCommand(password = "pw"),
+            ),
+        ).thenReturn(CommentMutationResult(laptopId = 3L))
 
         val viewName = controller.deleteComment(7L, request)
 

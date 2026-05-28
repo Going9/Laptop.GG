@@ -64,6 +64,7 @@ class ManageCommentUseCaseTest {
     fun `update rejects password mismatch with explicit authentication error`() {
         commentPort.records[7L] = CommentRecord(
             id = 7L,
+            laptopId = 1L,
             author = "iggy",
             content = "좋아요",
             passwordHash = "hashed:secret",
@@ -72,6 +73,38 @@ class ManageCommentUseCaseTest {
         assertThatThrownBy {
             useCase.update(7L, UpdateCommentCommand(password = "wrong", content = "수정"))
         }.isInstanceOf(AuthenticationFailedException::class.java)
+    }
+
+    @Test
+    fun `update returns owning laptop id from persisted comment`() {
+        commentPort.records[7L] = CommentRecord(
+            id = 7L,
+            laptopId = 3L,
+            author = "iggy",
+            content = "좋아요",
+            passwordHash = "hashed:secret",
+        )
+
+        val result = useCase.update(7L, UpdateCommentCommand(password = "secret", content = "수정"))
+
+        assertThat(result.laptopId).isEqualTo(3L)
+        assertThat(commentPort.records.getValue(7L).content).isEqualTo("수정")
+    }
+
+    @Test
+    fun `delete returns owning laptop id from persisted comment`() {
+        commentPort.records[7L] = CommentRecord(
+            id = 7L,
+            laptopId = 3L,
+            author = "iggy",
+            content = "좋아요",
+            passwordHash = "hashed:secret",
+        )
+
+        val result = useCase.delete(7L, DeleteCommentCommand(password = "secret"))
+
+        assertThat(result.laptopId).isEqualTo(3L)
+        assertThat(commentPort.records).doesNotContainKey(7L)
     }
 
     @Test
@@ -114,7 +147,13 @@ class ManageCommentUseCaseTest {
 
         override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {
             val id = nextId++
-            records[id] = CommentRecord(id = id, author = author, content = content, passwordHash = passwordHash)
+            records[id] = CommentRecord(
+                id = id,
+                laptopId = laptopId,
+                author = author,
+                content = content,
+                passwordHash = passwordHash,
+            )
         }
 
         override fun updateContent(commentId: Long, content: String) {
