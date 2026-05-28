@@ -409,6 +409,15 @@ val verifyStructure by tasks.registering {
 				Regex("""project\(":infrastructure-jpa"\)"""),
 			),
 		)
+
+		assertAbsent(
+			rule = "crawler-job must not keep legacy CPU manufacturer maps outside application-crawler classifiers",
+			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
+			patterns = listOf(
+				Regex("""CpuModelMap"""),
+				Regex("""cpuModelMap"""),
+			),
+		)
 	}
 }
 
