@@ -31,7 +31,7 @@ flowchart LR
 ## 저장소 구조
 
 - `domain`: JPA entity, enum 등 도메인 모델
-- `recommendation-core`: web/crawler가 공유하는 추천 use-case enum과 점수 정책
+- `recommendation-core`: web/crawler가 공유하는 domain-free 추천 use-case enum과 점수 정책
 - `application`: 추천/상세/댓글 use case와 port
 - `application-crawler`: crawler 저장/동기화 use case, crawler 전용 port, profile/score 정책
 - `infrastructure-jpa-core`: shared Spring Data repository, Flyway migration, 공통 persistence 설정

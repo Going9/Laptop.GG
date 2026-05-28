@@ -1,6 +1,5 @@
 package going9.laptopgg.recommendation
 
-import going9.laptopgg.domain.laptop.LaptopProfile
 import kotlin.math.roundToInt
 
 class RecommendationScoringPolicy {
@@ -89,16 +88,16 @@ class RecommendationScoringPolicy {
         }
     }
 
-    fun gateScore(profile: LaptopProfile, useCase: RecommendationUseCase): Int {
+    fun gateScore(inputs: RecommendationGateInputs, useCase: RecommendationUseCase): Int {
         return when (useCase) {
-            RecommendationUseCase.NOT_SURE -> ((profile.officeScore + profile.batteryScore + profile.casualGameScore) / 3.0).roundToInt()
-            RecommendationUseCase.OFFICE_STUDY -> profile.officeScore
-            RecommendationUseCase.PORTABLE_OFFICE -> profile.officeScore
-            RecommendationUseCase.BATTERY_FIRST -> profile.batteryScore
-            RecommendationUseCase.CASUAL_GAME -> profile.casualGameScore
-            RecommendationUseCase.ONLINE_GAME -> profile.onlineGameScore
-            RecommendationUseCase.AAA_GAME -> profile.aaaGameScore
-            RecommendationUseCase.CREATOR -> profile.creatorScore
+            RecommendationUseCase.NOT_SURE -> ((inputs.officeScore + inputs.batteryScore + inputs.casualGameScore) / 3.0).roundToInt()
+            RecommendationUseCase.OFFICE_STUDY -> inputs.officeScore
+            RecommendationUseCase.PORTABLE_OFFICE -> inputs.officeScore
+            RecommendationUseCase.BATTERY_FIRST -> inputs.batteryScore
+            RecommendationUseCase.CASUAL_GAME -> inputs.casualGameScore
+            RecommendationUseCase.ONLINE_GAME -> inputs.onlineGameScore
+            RecommendationUseCase.AAA_GAME -> inputs.aaaGameScore
+            RecommendationUseCase.CREATOR -> inputs.creatorScore
         }
     }
 
@@ -128,4 +127,13 @@ data class RecommendationScoreInputs(
     val creatorGpuScore: Int,
     val officeScore: Int,
     val batteryScore: Int,
+)
+
+data class RecommendationGateInputs(
+    val officeScore: Int,
+    val batteryScore: Int,
+    val casualGameScore: Int,
+    val onlineGameScore: Int,
+    val aaaGameScore: Int,
+    val creatorScore: Int,
 )

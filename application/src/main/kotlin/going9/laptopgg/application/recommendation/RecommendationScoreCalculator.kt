@@ -2,6 +2,7 @@ package going9.laptopgg.application.recommendation
 
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy
 import going9.laptopgg.recommendation.RecommendationUseCase
@@ -72,7 +73,7 @@ class RecommendationScoreCalculator(
     }
 
     fun gateScore(profile: LaptopProfile, useCase: RecommendationUseCase): Int {
-        return recommendationScoringPolicy.gateScore(profile, useCase)
+        return recommendationScoringPolicy.gateScore(profile.toGateInputs(), useCase)
     }
 
     fun gateThreshold(useCase: RecommendationUseCase): Int {
@@ -90,6 +91,17 @@ class RecommendationScoreCalculator(
 
         val savingsRatio = (1.0 - (price.toDouble() / budget.toDouble())).coerceIn(0.0, 1.0)
         return (60.0 + (savingsRatio * 40.0)).roundToInt().coerceIn(0, 100)
+    }
+
+    private fun LaptopProfile.toGateInputs(): RecommendationGateInputs {
+        return RecommendationGateInputs(
+            officeScore = officeScore,
+            batteryScore = batteryScore,
+            casualGameScore = casualGameScore,
+            onlineGameScore = onlineGameScore,
+            aaaGameScore = aaaGameScore,
+            creatorScore = creatorScore,
+        )
     }
 
     private fun buildReasons(

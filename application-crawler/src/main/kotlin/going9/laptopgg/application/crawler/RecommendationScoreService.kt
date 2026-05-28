@@ -3,6 +3,7 @@ package going9.laptopgg.application.crawler
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.recommendation.RecommendationScore
+import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy
 import going9.laptopgg.recommendation.RecommendationUseCase
@@ -22,6 +23,7 @@ class RecommendationScoreService(
         val existingScores = recommendationScorePort.findAllByLaptopId(laptopId)
             .associateBy { it.useCase }
         val inputs = scoreInputs(profile)
+        val gateInputs = gateInputs(profile)
         val now = LocalDateTime.now()
 
         val scores = RecommendationUseCase.entries.map { useCase ->
@@ -33,7 +35,7 @@ class RecommendationScoreService(
                 staticScore = 0.0,
                 budgetWeight = 0.0,
             )
-            score.gateScore = recommendationScoringPolicy.gateScore(profile, useCase)
+            score.gateScore = recommendationScoringPolicy.gateScore(gateInputs, useCase)
             score.staticScore = recommendationScoringPolicy.staticScore(useCase, inputs)
             score.budgetWeight = recommendationScoringPolicy.budgetWeight(useCase)
             score.updatedAt = now
@@ -56,6 +58,17 @@ class RecommendationScoreService(
             creatorGpuScore = (profile.gpuPerformanceScore + profile.gpuCreatorBonus).coerceAtMost(100),
             officeScore = profile.officeScore,
             batteryScore = profile.batteryScore,
+        )
+    }
+
+    private fun gateInputs(profile: LaptopProfile): RecommendationGateInputs {
+        return RecommendationGateInputs(
+            officeScore = profile.officeScore,
+            batteryScore = profile.batteryScore,
+            casualGameScore = profile.casualGameScore,
+            onlineGameScore = profile.onlineGameScore,
+            aaaGameScore = profile.aaaGameScore,
+            creatorScore = profile.creatorScore,
         )
     }
 }
