@@ -935,6 +935,34 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "runtime configs must delegate crawler application object assembly",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerProfileUseCaseConfig.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerPersistenceUseCaseConfig.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerRunUseCaseConfig.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/config/IntegrationCrawlerUseCaseConfig.kt",
+			),
+			patterns = listOf(
+				Regex("""return\s+CpuTokenResolver\("""),
+				Regex("""return\s+CpuClassifier\("""),
+				Regex("""return\s+GpuClassifier\("""),
+				Regex("""return\s+ProfileScorePolicy\("""),
+				Regex("""return\s+CrawledCpuManufacturerResolver\("""),
+				Regex("""return\s+CrawledCpuModelResolver\("""),
+				Regex("""return\s+CrawledGraphicsModelResolver\("""),
+				Regex("""return\s+LaptopProfileFactory\("""),
+				Regex("""return\s+RecommendationScoreService\("""),
+				Regex("""return\s+LaptopProfileService\("""),
+				Regex("""return\s+LaptopPriceHistoryService\("""),
+				Regex("""return\s+SaveCrawledLaptopService\("""),
+				Regex("""return\s+TrackCrawlerRunService\("""),
+				Regex("""return\s+CrawlerRunLockService\("""),
+				Regex("""CrawledLaptopPostSaveSynchronizer\("""),
+				Regex("""ExistingCrawledLaptopLookupLoader\("""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not use root package default component scan",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
 			patterns = listOf(

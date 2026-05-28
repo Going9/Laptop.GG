@@ -1,9 +1,8 @@
 package going9.laptopgg.job.config
 
+import going9.laptopgg.application.crawler.assembly.CrawlerUseCaseAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
-import going9.laptopgg.application.crawler.run.CrawlerRunLockService
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
-import going9.laptopgg.application.crawler.run.TrackCrawlerRunService
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
 import going9.laptopgg.application.crawler.run.port.CrawlerRunLockPort
 import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
@@ -17,7 +16,7 @@ class CrawlerRunUseCaseConfig {
         crawlerRunPort: CrawlerRunPort,
         transactionPort: CrawlerTransactionPort,
     ): TrackCrawlerRunUseCase {
-        return TrackCrawlerRunService(
+        return CrawlerUseCaseAssembler.createTrackCrawlerRunUseCase(
             crawlerRunPort = crawlerRunPort,
             transactionPort = transactionPort,
         )
@@ -25,6 +24,6 @@ class CrawlerRunUseCaseConfig {
 
     @Bean
     fun crawlerRunLockUseCase(crawlerRunLockPort: CrawlerRunLockPort): CrawlerRunLockUseCase {
-        return CrawlerRunLockService(crawlerRunLockPort)
+        return CrawlerUseCaseAssembler.createCrawlerRunLockUseCase(crawlerRunLockPort)
     }
 }

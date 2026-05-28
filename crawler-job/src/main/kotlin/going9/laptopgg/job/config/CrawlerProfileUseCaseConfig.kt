@@ -1,5 +1,6 @@
 package going9.laptopgg.job.config
 
+import going9.laptopgg.application.crawler.assembly.CrawlerUseCaseAssembler
 import going9.laptopgg.application.crawler.profile.CpuClassifier
 import going9.laptopgg.application.crawler.profile.CpuTokenResolver
 import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
@@ -15,37 +16,37 @@ import org.springframework.context.annotation.Configuration
 class CrawlerProfileUseCaseConfig {
     @Bean
     fun cpuTokenResolver(): CpuTokenResolver {
-        return CpuTokenResolver()
+        return CrawlerUseCaseAssembler.createCpuTokenResolver()
     }
 
     @Bean
     fun cpuClassifier(cpuTokenResolver: CpuTokenResolver): CpuClassifier {
-        return CpuClassifier(cpuTokenResolver)
+        return CrawlerUseCaseAssembler.createCpuClassifier(cpuTokenResolver)
     }
 
     @Bean
     fun gpuClassifier(): GpuClassifier {
-        return GpuClassifier()
+        return CrawlerUseCaseAssembler.createGpuClassifier()
     }
 
     @Bean
     fun profileScorePolicy(): ProfileScorePolicy {
-        return ProfileScorePolicy()
+        return CrawlerUseCaseAssembler.createProfileScorePolicy()
     }
 
     @Bean
     fun crawledCpuManufacturerResolver(): CrawledCpuManufacturerResolver {
-        return CrawledCpuManufacturerResolver()
+        return CrawlerUseCaseAssembler.createCrawledCpuManufacturerResolver()
     }
 
     @Bean
     fun crawledCpuModelResolver(cpuTokenResolver: CpuTokenResolver): CrawledCpuModelResolver {
-        return CrawledCpuModelResolver(cpuTokenResolver)
+        return CrawlerUseCaseAssembler.createCrawledCpuModelResolver(cpuTokenResolver)
     }
 
     @Bean
     fun crawledGraphicsModelResolver(gpuClassifier: GpuClassifier): CrawledGraphicsModelResolver {
-        return CrawledGraphicsModelResolver(gpuClassifier)
+        return CrawlerUseCaseAssembler.createCrawledGraphicsModelResolver(gpuClassifier)
     }
 
     @Bean
@@ -54,7 +55,7 @@ class CrawlerProfileUseCaseConfig {
         gpuClassifier: GpuClassifier,
         profileScorePolicy: ProfileScorePolicy,
     ): LaptopProfileFactory {
-        return LaptopProfileFactory(
+        return CrawlerUseCaseAssembler.createLaptopProfileFactory(
             cpuClassifier = cpuClassifier,
             gpuClassifier = gpuClassifier,
             profileScorePolicy = profileScorePolicy,

@@ -1,9 +1,7 @@
 package going9.laptopgg.job.config
 
+import going9.laptopgg.application.crawler.assembly.CrawlerUseCaseAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
-import going9.laptopgg.application.crawler.persistence.CrawledLaptopPostSaveSynchronizer
-import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLookupLoader
-import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
@@ -23,7 +21,7 @@ class CrawlerPersistenceUseCaseConfig {
         recommendationScorePort: RecommendationScorePort,
         transactionPort: CrawlerTransactionPort,
     ): RecommendationScoreService {
-        return RecommendationScoreService(
+        return CrawlerUseCaseAssembler.createRecommendationScoreService(
             recommendationScorePort = recommendationScorePort,
             transactionPort = transactionPort,
         )
@@ -36,7 +34,7 @@ class CrawlerPersistenceUseCaseConfig {
         recommendationScoreService: RecommendationScoreService,
         transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
-        return LaptopProfileService(
+        return CrawlerUseCaseAssembler.createLaptopProfileService(
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreService = recommendationScoreService,
@@ -49,7 +47,7 @@ class CrawlerPersistenceUseCaseConfig {
         laptopPriceHistoryPort: LaptopPriceHistoryPort,
         transactionPort: CrawlerTransactionPort,
     ): LaptopPriceHistoryService {
-        return LaptopPriceHistoryService(
+        return CrawlerUseCaseAssembler.createLaptopPriceHistoryService(
             laptopPriceHistoryPort = laptopPriceHistoryPort,
             transactionPort = transactionPort,
         )
@@ -62,13 +60,10 @@ class CrawlerPersistenceUseCaseConfig {
         laptopPriceHistoryService: LaptopPriceHistoryService,
         transactionPort: CrawlerTransactionPort,
     ): SaveCrawledLaptopUseCase {
-        return SaveCrawledLaptopService(
+        return CrawlerUseCaseAssembler.createSaveCrawledLaptopUseCase(
             laptopPort = laptopPort,
-            existingLookupLoader = ExistingCrawledLaptopLookupLoader(laptopPort),
-            postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
-                laptopProfileService = laptopProfileService,
-                laptopPriceHistoryService = laptopPriceHistoryService,
-            ),
+            laptopProfileService = laptopProfileService,
+            laptopPriceHistoryService = laptopPriceHistoryService,
             transactionPort = transactionPort,
         )
     }

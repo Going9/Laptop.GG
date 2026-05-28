@@ -1,13 +1,18 @@
-package going9.laptopgg.integration.config
+package going9.laptopgg.application.crawler.assembly
 
-import going9.laptopgg.application.crawler.assembly.CrawlerUseCaseAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopPostSaveSynchronizer
+import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLookupLoader
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.CpuClassifier
 import going9.laptopgg.application.crawler.profile.CpuTokenResolver
+import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
+import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
+import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.profile.GpuClassifier
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
@@ -15,65 +20,71 @@ import going9.laptopgg.application.crawler.profile.ProfileScorePolicy
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
+import going9.laptopgg.application.crawler.run.CrawlerRunLockService
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
+import going9.laptopgg.application.crawler.run.TrackCrawlerRunService
+import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
 import going9.laptopgg.application.crawler.run.port.CrawlerRunLockPort
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 
-@Configuration(proxyBeanMethods = false)
-class IntegrationCrawlerUseCaseConfig {
-    @Bean
-    fun cpuTokenResolver(): CpuTokenResolver {
-        return CrawlerUseCaseAssembler.createCpuTokenResolver()
+object CrawlerUseCaseAssembler {
+    fun createCpuTokenResolver(): CpuTokenResolver {
+        return CpuTokenResolver()
     }
 
-    @Bean
-    fun cpuClassifier(cpuTokenResolver: CpuTokenResolver): CpuClassifier {
-        return CrawlerUseCaseAssembler.createCpuClassifier(cpuTokenResolver)
+    fun createCpuClassifier(cpuTokenResolver: CpuTokenResolver): CpuClassifier {
+        return CpuClassifier(cpuTokenResolver)
     }
 
-    @Bean
-    fun gpuClassifier(): GpuClassifier {
-        return CrawlerUseCaseAssembler.createGpuClassifier()
+    fun createGpuClassifier(): GpuClassifier {
+        return GpuClassifier()
     }
 
-    @Bean
-    fun profileScorePolicy(): ProfileScorePolicy {
-        return CrawlerUseCaseAssembler.createProfileScorePolicy()
+    fun createProfileScorePolicy(): ProfileScorePolicy {
+        return ProfileScorePolicy()
     }
 
-    @Bean
-    fun laptopProfileFactory(
+    fun createCrawledCpuManufacturerResolver(): CrawledCpuManufacturerResolver {
+        return CrawledCpuManufacturerResolver()
+    }
+
+    fun createCrawledCpuModelResolver(cpuTokenResolver: CpuTokenResolver): CrawledCpuModelResolver {
+        return CrawledCpuModelResolver(cpuTokenResolver)
+    }
+
+    fun createCrawledGraphicsModelResolver(gpuClassifier: GpuClassifier): CrawledGraphicsModelResolver {
+        return CrawledGraphicsModelResolver(gpuClassifier)
+    }
+
+    fun createLaptopProfileFactory(
         cpuClassifier: CpuClassifier,
         gpuClassifier: GpuClassifier,
         profileScorePolicy: ProfileScorePolicy,
     ): LaptopProfileFactory {
-        return CrawlerUseCaseAssembler.createLaptopProfileFactory(
+        return LaptopProfileFactory(
             cpuClassifier = cpuClassifier,
             gpuClassifier = gpuClassifier,
             profileScorePolicy = profileScorePolicy,
         )
     }
 
-    @Bean
-    fun recommendationScoreService(
+    fun createRecommendationScoreService(
         recommendationScorePort: RecommendationScorePort,
         transactionPort: CrawlerTransactionPort,
     ): RecommendationScoreService {
-        return CrawlerUseCaseAssembler.createRecommendationScoreService(
+        return RecommendationScoreService(
             recommendationScorePort = recommendationScorePort,
             transactionPort = transactionPort,
         )
     }
 
-    @Bean
-    fun laptopProfileService(
+    fun createLaptopProfileService(
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopProfileFactory: LaptopProfileFactory,
         recommendationScoreService: RecommendationScoreService,
         transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
-        return CrawlerUseCaseAssembler.createLaptopProfileService(
+        return LaptopProfileService(
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreService = recommendationScoreService,
@@ -81,34 +92,44 @@ class IntegrationCrawlerUseCaseConfig {
         )
     }
 
-    @Bean
-    fun laptopPriceHistoryService(
+    fun createLaptopPriceHistoryService(
         laptopPriceHistoryPort: LaptopPriceHistoryPort,
         transactionPort: CrawlerTransactionPort,
     ): LaptopPriceHistoryService {
-        return CrawlerUseCaseAssembler.createLaptopPriceHistoryService(
+        return LaptopPriceHistoryService(
             laptopPriceHistoryPort = laptopPriceHistoryPort,
             transactionPort = transactionPort,
         )
     }
 
-    @Bean
-    fun saveCrawledLaptopService(
+    fun createSaveCrawledLaptopUseCase(
         laptopPort: CrawledLaptopPersistencePort,
         laptopProfileService: LaptopProfileService,
         laptopPriceHistoryService: LaptopPriceHistoryService,
         transactionPort: CrawlerTransactionPort,
     ): SaveCrawledLaptopUseCase {
-        return CrawlerUseCaseAssembler.createSaveCrawledLaptopUseCase(
+        return SaveCrawledLaptopService(
             laptopPort = laptopPort,
-            laptopProfileService = laptopProfileService,
-            laptopPriceHistoryService = laptopPriceHistoryService,
+            existingLookupLoader = ExistingCrawledLaptopLookupLoader(laptopPort),
+            postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
+                laptopProfileService = laptopProfileService,
+                laptopPriceHistoryService = laptopPriceHistoryService,
+            ),
             transactionPort = transactionPort,
         )
     }
 
-    @Bean
-    fun crawlerRunLockUseCase(crawlerRunLockPort: CrawlerRunLockPort): CrawlerRunLockUseCase {
-        return CrawlerUseCaseAssembler.createCrawlerRunLockUseCase(crawlerRunLockPort)
+    fun createTrackCrawlerRunUseCase(
+        crawlerRunPort: CrawlerRunPort,
+        transactionPort: CrawlerTransactionPort,
+    ): TrackCrawlerRunUseCase {
+        return TrackCrawlerRunService(
+            crawlerRunPort = crawlerRunPort,
+            transactionPort = transactionPort,
+        )
+    }
+
+    fun createCrawlerRunLockUseCase(crawlerRunLockPort: CrawlerRunLockPort): CrawlerRunLockUseCase {
+        return CrawlerRunLockService(crawlerRunLockPort)
     }
 }
