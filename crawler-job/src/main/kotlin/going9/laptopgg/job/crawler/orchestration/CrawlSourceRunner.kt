@@ -12,6 +12,7 @@ internal class CrawlSourceRunner(
     private val crawlProductBatchProcessor: CrawlProductBatchProcessor,
     private val crawlPageDiagnosticsLogger: CrawlPageDiagnosticsLogger,
     private val stopDecisionLogger: CrawlSourceStopDecisionLogger,
+    private val crawlClock: CrawlClock,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -38,7 +39,7 @@ internal class CrawlSourceRunner(
         )
 
         while (traversalState.currentPage <= maxListPages) {
-            val pageStartTime = System.currentTimeMillis()
+            val pageStartTime = crawlClock.currentTimeMillis()
             val pageBatch = listPageCrawler.fetchProductPageBatch(traversalState.currentPage, listRequestContext)
             val pageAnalysis = traversalState.analyze(pageBatch)
 
@@ -87,7 +88,7 @@ internal class CrawlSourceRunner(
 
             crawlPageDiagnosticsLogger.logPageProcessing(
                 context = diagnosticContext,
-                pageDurationMillis = System.currentTimeMillis() - pageStartTime,
+                pageDurationMillis = crawlClock.currentTimeMillis() - pageStartTime,
                 freshProductCount = pageAnalysis.freshProductCards.size,
                 pageProcessingResult = pageProcessingResult,
                 duplicateSkippedCount = pageAnalysis.duplicateSkippedCount,

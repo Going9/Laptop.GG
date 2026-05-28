@@ -1630,6 +1630,27 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler source traversal must expose deterministic page timing",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlTiming.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",
+			),
+			patterns = listOf(
+				Regex("""internal fun interface CrawlClock"""),
+				Regex("""internal class SystemCrawlClock"""),
+				Regex("""crawlClock\.currentTimeMillis\(\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler source runner must not call system time directly",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt"),
+			patterns = listOf(
+				Regex("""System\.currentTimeMillis"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "Danawa detail html parser must delegate scalar spec value parsing",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailParser.kt"),
