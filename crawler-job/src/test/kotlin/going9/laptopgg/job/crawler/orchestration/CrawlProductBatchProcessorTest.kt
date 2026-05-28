@@ -6,7 +6,7 @@ import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnap
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.SaveResult
 import going9.laptopgg.job.crawler.detail.BuildLaptopResult
-import going9.laptopgg.job.crawler.detail.DetailCrawler
+import going9.laptopgg.job.crawler.danawa.detail.DanawaDetailCrawler
 import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
 import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.list.ProductCard
@@ -19,7 +19,7 @@ import org.mockito.Mockito
 
 class CrawlProductBatchProcessorTest {
     private val saveCrawledLaptopUseCase = Mockito.mock(SaveCrawledLaptopUseCase::class.java)
-    private val detailCrawler = Mockito.mock(DetailCrawler::class.java)
+    private val detailCrawler = Mockito.mock(DanawaDetailCrawler::class.java)
     private val snapshotSaver = CrawlProductSnapshotSaver(saveCrawledLaptopUseCase)
     private val detailRefreshOutcomeHandler = DetailRefreshOutcomeHandler(snapshotSaver)
     private val processor = CrawlProductBatchProcessor(

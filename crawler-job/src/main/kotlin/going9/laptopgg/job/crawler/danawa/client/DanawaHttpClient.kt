@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler.client
+package going9.laptopgg.job.crawler.danawa.client
 
 import java.io.IOException
 import java.net.http.HttpClient

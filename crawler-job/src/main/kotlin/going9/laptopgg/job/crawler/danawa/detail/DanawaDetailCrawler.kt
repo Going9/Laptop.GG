@@ -1,12 +1,15 @@
-package going9.laptopgg.job.crawler.detail
+package going9.laptopgg.job.crawler.danawa.detail
 
-import going9.laptopgg.job.crawler.client.DanawaClient
+import going9.laptopgg.job.crawler.detail.BuildLaptopResult
+import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
+import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
+import going9.laptopgg.job.crawler.danawa.client.DanawaClient
 import going9.laptopgg.job.crawler.list.ProductCard
 import java.util.concurrent.ExecutorService
 import org.springframework.stereotype.Component
 
 @Component
-class DetailCrawler(
+class DanawaDetailCrawler(
     private val danawaClient: DanawaClient,
     private val laptopSnapshotMerger: LaptopSnapshotMerger,
 ) {

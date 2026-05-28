@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler.client
+package going9.laptopgg.job.crawler.danawa.client
 
 import java.util.concurrent.ThreadLocalRandom
 import org.springframework.stereotype.Component

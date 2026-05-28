@@ -1,6 +1,6 @@
-package going9.laptopgg.job.crawler.client
+package going9.laptopgg.job.crawler.danawa.client
 
-import going9.laptopgg.job.crawler.detail.DetailRequestContext
+import going9.laptopgg.job.crawler.danawa.detail.DetailRequestContext
 import going9.laptopgg.job.crawler.list.ListRequestContext
 import going9.laptopgg.job.crawler.list.ProductCard
 import org.slf4j.LoggerFactory

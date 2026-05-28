@@ -1,16 +1,16 @@
-package going9.laptopgg.job.crawler.list
+package going9.laptopgg.job.crawler.danawa.list
 
-import going9.laptopgg.job.crawler.detail.DanawaDetailParser
-import going9.laptopgg.job.crawler.detail.DanawaSummaryFallbackParser
-import going9.laptopgg.job.crawler.client.DanawaListRequestFormData
-import going9.laptopgg.job.crawler.danawa.DanawaListRequestDefaults
+import going9.laptopgg.job.crawler.danawa.detail.DanawaDetailParser
+import going9.laptopgg.job.crawler.danawa.detail.DanawaSummaryFallbackParser
+import going9.laptopgg.job.crawler.danawa.client.DanawaListRequestFormData
+import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.orchestration.DuplicateTailStopPolicy
 import going9.laptopgg.job.crawler.orchestration.ProductPageSignature
 import going9.laptopgg.job.crawler.source.CrawlSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class CrawlerHtmlFixtureParsingTest {
+class DanawaCrawlerHtmlFixtureParsingTest {
     @Test
     fun `list fixture keeps context and canonical product card fields`() {
         val html = readFixture("/fixtures/danawa/list-page.html")

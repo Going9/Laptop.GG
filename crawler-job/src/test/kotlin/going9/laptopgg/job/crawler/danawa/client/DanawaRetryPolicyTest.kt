@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler.client
+package going9.laptopgg.job.crawler.danawa.client
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

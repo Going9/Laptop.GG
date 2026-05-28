@@ -1064,7 +1064,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "Danawa endpoint client must not own low-level HTTP retry or pacing",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client/DanawaClient.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaClient.kt"),
 			patterns = listOf(
 				Regex("""java\.net\.http\.HttpClient"""),
 				Regex("""java\.net\.http\.HttpResponse"""),
@@ -1079,7 +1079,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "Danawa endpoint client must delegate HTTP request construction",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client/DanawaClient.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaClient.kt"),
 			patterns = listOf(
 				Regex("""java\.net\.URI"""),
 				Regex("""java\.net\.http\.HttpRequest"""),
@@ -1096,9 +1096,9 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "Danawa URL constants must stay centralized in the endpoint catalog",
 			paths = listOf(
-				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client",
-				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail",
-				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/list",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source",
 			),
 			patterns = listOf(
@@ -1110,7 +1110,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "Danawa HTTP transport must delegate retry policy and request pacing",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client/DanawaHttpClient.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaHttpClient.kt"),
 			patterns = listOf(
 				Regex("""ThreadLocalRandom"""),
 				Regex("""requestPacingLock"""),
@@ -1126,7 +1126,7 @@ val verifyStructure by tasks.registering {
 			rule = "CrawlerService must delegate source page traversal",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
-				Regex("""ListPageCrawler"""),
+				Regex("""DanawaListPageCrawler"""),
 				Regex("""CrawlProductBatchProcessor"""),
 				Regex("""DanawaListParser"""),
 				Regex("""ProductCard"""),
@@ -1139,7 +1139,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "Danawa detail html parser must delegate scalar spec value parsing",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DanawaDetailParser.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailParser.kt"),
 			patterns = listOf(
 				Regex("""fun\s+(parseScreenSize|parseIntValue|parseDoubleValue|parseWeightValue|parseCapacityInGb|parseCountValue|parsePossible|parseThunderboltCount|parseUsbCCount|parseSdCard|normalizeOs|normalizeCpuManufacturer)\b"""),
 				Regex("""roundToInt"""),
@@ -1149,7 +1149,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "laptop snapshot merger must delegate CPU manufacturer resolution",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/LaptopSnapshotMerger.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/LaptopSnapshotMerger.kt"),
 			patterns = listOf(
 				Regex("""fun\s+resolveCpuManufacturer\b"""),
 				Regex("""normalizeCpuManufacturer"""),
@@ -1161,7 +1161,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "Danawa detail html parser must delegate summary fallback parsing",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DanawaDetailParser.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailParser.kt"),
 			patterns = listOf(
 				Regex("""fun\s+extractSummaryText\b"""),
 				Regex("""fun\s+parseSummaryFallback\b"""),
@@ -1190,7 +1190,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "Danawa product card parser must not own page metadata parsing",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaProductCardParser.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/list/DanawaProductCardParser.kt"),
 			patterns = listOf(
 				Regex("""num_nav_wrap"""),
 				Regex("""totalProductCount"""),
@@ -1202,7 +1202,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "Danawa list page metadata parser must not own product card parsing",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListPageMetadataParser.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/list/DanawaListPageMetadataParser.kt"),
 			patterns = listOf(
 				Regex("""ProductCard\("""),
 				Regex("""prod_item"""),
@@ -1231,6 +1231,30 @@ val verifyStructure by tasks.registering {
 				Regex("""NOTEBOOK_LIST_URL"""),
 				Regex("=\\s*\"758\""),
 				Regex("=\\s*\"SAVEASC\""),
+			),
+		)
+
+		assertPathAbsent(
+			rule = "Danawa HTTP client implementation must not live in the generic crawler client package",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/client",
+			),
+		)
+
+		assertAbsent(
+			rule = "generic crawler list and detail packages must not own Danawa provider implementations",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/list",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/detail",
+			),
+			patterns = listOf(
+				Regex("""Danawa"""),
+				Regex("""DetailRequestContext"""),
+				Regex("""ParsedSpecTable"""),
+				Regex("""SummaryFallback"""),
 			),
 		)
 
@@ -1638,7 +1662,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
 				Regex("""SaveCrawledLaptopUseCase"""),
-				Regex("""DetailCrawler"""),
+				Regex("""DanawaDetailCrawler"""),
 				Regex("""DetailRefreshWorkItem"""),
 				Regex("""DetailRefreshOutcome"""),
 				Regex("""loadExistingLookup"""),

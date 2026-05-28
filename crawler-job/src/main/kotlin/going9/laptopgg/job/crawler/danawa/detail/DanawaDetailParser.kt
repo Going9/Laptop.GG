@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler.detail
+package going9.laptopgg.job.crawler.danawa.detail
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import going9.laptopgg.job.crawler.danawa.DanawaEndpoints

@@ -1,6 +1,7 @@
-package going9.laptopgg.job.crawler.list
+package going9.laptopgg.job.crawler.danawa.list
 
 import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
+import going9.laptopgg.job.crawler.list.ProductCard
 import org.jsoup.Jsoup
 
 internal object DanawaProductCardParser {

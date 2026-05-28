@@ -1,5 +1,6 @@
-package going9.laptopgg.job.crawler.danawa
+package going9.laptopgg.job.crawler.danawa.list
 
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import going9.laptopgg.job.crawler.list.ListRequestContext
 
 internal object DanawaListRequestDefaults {

@@ -1,11 +1,12 @@
-package going9.laptopgg.job.crawler.detail
+package going9.laptopgg.job.crawler.danawa.detail
 
 import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
-import going9.laptopgg.job.crawler.list.DanawaListRequestContextParser
-import going9.laptopgg.job.crawler.list.DanawaProductCardParser
+import going9.laptopgg.job.crawler.danawa.list.DanawaProductCardParser
+import going9.laptopgg.job.crawler.danawa.list.DanawaListRequestContextParser
+import going9.laptopgg.job.crawler.detail.DetailRefreshPolicy
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.source.CrawlSource
 import org.assertj.core.api.Assertions.assertThat
@@ -13,7 +14,7 @@ import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-class CrawlerServiceNormalizationTest {
+class DanawaCrawlerNormalizationTest {
     private val laptopSnapshotMerger = LaptopSnapshotMerger(
         CrawledCpuManufacturerResolver(),
         CrawledCpuModelResolver(),

@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler.client
+package going9.laptopgg.job.crawler.danawa.client
 
 import going9.laptopgg.job.crawler.list.ListRequestContext
 

@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler.detail
+package going9.laptopgg.job.crawler.danawa.detail
 
 import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.jsoup.Jsoup

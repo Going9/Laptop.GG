@@ -1,11 +1,13 @@
-package going9.laptopgg.job.crawler.list
+package going9.laptopgg.job.crawler.danawa.list
 
-import going9.laptopgg.job.crawler.client.DanawaClient
+import going9.laptopgg.job.crawler.danawa.client.DanawaClient
+import going9.laptopgg.job.crawler.list.ListRequestContext
+import going9.laptopgg.job.crawler.list.ProductPageBatch
 import going9.laptopgg.job.crawler.source.CrawlSource
 import org.springframework.stereotype.Component
 
 @Component
-class ListPageCrawler(
+class DanawaListPageCrawler(
     private val danawaClient: DanawaClient,
 ) {
     internal fun createListRequestContext(crawlSource: CrawlSource): ListRequestContext {
