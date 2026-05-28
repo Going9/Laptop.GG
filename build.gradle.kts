@@ -412,6 +412,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "integration tests must reuse infrastructure JPA repository configuration",
+			paths = listOf("integration-tests/src/test"),
+			patterns = listOf(
+				Regex("""EnableJpaRepositories"""),
+				Regex("""org\.springframework\.data\.jpa\.repository\.config"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job tests must not reach into JPA repositories directly",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job",
