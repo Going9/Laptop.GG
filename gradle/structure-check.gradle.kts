@@ -827,6 +827,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "integration test application must compose use case configs instead of owning beans",
+			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/InfrastructureJpaTestApplication.kt"),
+			patterns = listOf(
+				Regex("""@Bean"""),
+				Regex("""fun\s+\w+\("""),
+				Regex("""application\.crawler\.(common|persistence|price|profile|recommendation|run)\.port"""),
+				Regex("""application\.recommendation\.port"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job tests must not reach into JPA repositories directly",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job",
