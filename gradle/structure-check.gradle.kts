@@ -703,16 +703,33 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "crawler service orchestration must be covered without disabled live smoke tests",
 			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlRunContext.kt",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt",
 				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerServiceTest.kt",
 			),
 			patterns = listOf(
+				Regex("""internal class CrawlRunContext"""),
+				Regex("""fun traversalState\(startPage: Int\)"""),
 				Regex("""internal interface CrawlSourceRunUseCase"""),
+				Regex("""runContext: CrawlRunContext"""),
 				Regex(""": CrawlSourceRunUseCase"""),
 				Regex("""private val crawlSourceRunner: CrawlSourceRunUseCase"""),
 				Regex("""crawlAll traverses resolved sources with first requested page only once"""),
 				Regex("""crawlAll stops traversing sources after the limit is reached"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawl source use case must receive shared run context instead of parameter train",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt",
+			),
+			patterns = listOf(
+				Regex("""seenDetailPages"""),
+				Regex("""detailFetchExecutor: DetailFetchExecutor"""),
+				Regex("""progress: CrawlProgress"""),
 			),
 		)
 

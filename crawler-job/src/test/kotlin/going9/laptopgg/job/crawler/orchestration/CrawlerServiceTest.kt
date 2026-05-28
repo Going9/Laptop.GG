@@ -118,14 +118,10 @@ class CrawlerServiceTest {
         override fun runSource(
             crawlSource: CrawlSource,
             startPage: Int,
-            maxListPages: Int,
-            limit: Int?,
-            seenDetailPages: MutableSet<String>,
-            progress: CrawlProgress,
-            detailFetchExecutor: DetailFetchExecutor,
+            runContext: CrawlRunContext,
         ): CrawlSourceRunResult {
-            calls += CrawlSourceRunCall(crawlSource, startPage, maxListPages, limit)
-            progress.recordProcessed(1)
+            calls += CrawlSourceRunCall(crawlSource, startPage, runContext.maxListPages, runContext.limit)
+            runContext.progress.recordProcessed(1)
             failureAfterRecording?.let { throw it }
             return results[calls.lastIndex]
         }

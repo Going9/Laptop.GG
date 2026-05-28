@@ -23,13 +23,18 @@ internal class CrawlerService(
     ): CrawlSummary {
         val resolvedCrawlSources = crawlSourceResolver.resolve(filterProfile)
         val maxListPages = crawlerJobProperties.resolvedMaxListPages()
-        val seenDetailPages = linkedSetOf<String>()
         val progress = CrawlProgress()
         var reachedLimit = false
         var hitMaxListPages = false
 
         try {
             detailFetchExecutorFactory.create().use { detailFetchExecutor ->
+                val runContext = CrawlRunContext(
+                    maxListPages = maxListPages,
+                    limit = limit,
+                    progress = progress,
+                    detailFetchExecutor = detailFetchExecutor,
+                )
                 val crawlSources = resolvedCrawlSources.sources
                 logger.info(
                     "크롤링을 시작합니다. filterProfile={}, sourceCount={}, startPage={}, limit={}",
@@ -47,11 +52,7 @@ internal class CrawlerService(
                     val sourceResult = crawlSourceRunner.runSource(
                         crawlSource = crawlSource,
                         startPage = if (index == 0) startPage.coerceAtLeast(1) else 1,
-                        maxListPages = maxListPages,
-                        limit = limit,
-                        seenDetailPages = seenDetailPages,
-                        progress = progress,
-                        detailFetchExecutor = detailFetchExecutor,
+                        runContext = runContext,
                     )
                     if (sourceResult.reachedLimit) {
                         reachedLimit = true

@@ -1,6 +1,5 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.list.ProductListPageCrawler
 import going9.laptopgg.job.crawler.source.CrawlSource
 import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
@@ -11,11 +10,7 @@ internal interface CrawlSourceRunUseCase {
     fun runSource(
         crawlSource: CrawlSource,
         startPage: Int,
-        maxListPages: Int,
-        limit: Int?,
-        seenDetailPages: MutableSet<String>,
-        progress: CrawlProgress,
-        detailFetchExecutor: DetailFetchExecutor,
+        runContext: CrawlRunContext,
     ): CrawlSourceRunResult
 }
 
@@ -32,12 +27,9 @@ internal class CrawlSourceRunner(
     override fun runSource(
         crawlSource: CrawlSource,
         startPage: Int,
-        maxListPages: Int,
-        limit: Int?,
-        seenDetailPages: MutableSet<String>,
-        progress: CrawlProgress,
-        detailFetchExecutor: DetailFetchExecutor,
+        runContext: CrawlRunContext,
     ): CrawlSourceRunResult {
+        val progress = runContext.progress
         val listRequestContext = try {
             listPageCrawler.createListRequestContext(crawlSource)
         } catch (exception: Exception) {
@@ -50,7 +42,7 @@ internal class CrawlSourceRunner(
         }
         val requestFilterCount = listRequestContext.searchAttributeValues.size
         val requestDistinctFilterCount = listRequestContext.searchAttributeValues.toSet().size
-        val traversalState = CrawlSourceTraversalState(startPage, seenDetailPages)
+        val traversalState = runContext.traversalState(startPage)
 
         logger.info(
             "크롤 소스를 시작합니다. source={}, startPage={}, attributeFilterCount={}, filters={}",
@@ -60,7 +52,7 @@ internal class CrawlSourceRunner(
             crawlSource.attributeFilters.joinToString { it.name }.ifBlank { "없음" },
         )
 
-        while (traversalState.currentPage <= maxListPages) {
+        while (traversalState.currentPage <= runContext.maxListPages) {
             val pageStartTime = crawlClock.currentTimeMillis()
             val pageBatch = try {
                 listPageCrawler.fetchProductPageBatch(traversalState.currentPage, listRequestContext)
@@ -97,7 +89,7 @@ internal class CrawlSourceRunner(
                 requestDistinctFilterCount = requestDistinctFilterCount,
             )
 
-            val remainingQuota = progress.remainingQuota(limit)
+            val remainingQuota = progress.remainingQuota(runContext.limit)
             if (remainingQuota == 0) {
                 break
             }
@@ -106,10 +98,10 @@ internal class CrawlSourceRunner(
             val pageProcessingResult = crawlProductBatchProcessor.process(
                 productCards = candidateProductCards,
                 progress = progress,
-                detailFetchExecutor = detailFetchExecutor,
+                detailFetchExecutor = runContext.detailFetchExecutor,
             )
 
-            if (progress.reachedLimit(limit)) {
+            if (progress.reachedLimit(runContext.limit)) {
                 traversalState.markReachedLimit()
             }
 
@@ -152,7 +144,7 @@ internal class CrawlSourceRunner(
             traversalState.advance()
         }
 
-        return traversalState.toRunResult(maxListPages)
+        return traversalState.toRunResult(runContext.maxListPages)
     }
 
     private fun Exception.toFailureReason(): String {
