@@ -30,9 +30,11 @@ flowchart LR
 
 ## 저장소 구조
 
-- `src/main/kotlin`: 애플리케이션 코드
-- `src/main/resources`: 설정 파일과 템플릿
-- `src/main/resources/db/migration`: PostgreSQL Flyway 마이그레이션
+- `domain`: JPA entity, enum 등 도메인 모델
+- `application`: 추천/상세/댓글/크롤러 저장 use case와 port
+- `infrastructure-jpa`: Spring Data repository, Flyway migration, JPA adapter
+- `web-app`: 사용자 화면, REST API, Thymeleaf/static 리소스
+- `crawler-job`: GitHub Actions에서 실행하는 Danawa 수집 job
 - `.github/workflows/ci.yml`: 테스트
 - `.github/workflows/deploy-web.yml`: 웹 배포
 - `.github/workflows/crawler.yml`: 크롤러 실행
@@ -57,7 +59,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/laptopgg
 export SPRING_DATASOURCE_USERNAME=laptopgg
 export SPRING_DATASOURCE_PASSWORD=laptopgg
-./gradlew bootRun --args='--spring.profiles.active=postgres'
+./gradlew :web-app:bootRun --args='--spring.profiles.active=postgres'
 ```
 
 로컬에서 크롤링 HTTP 엔드포인트까지 열어야 할 때만 `postgres,local-dev`로 실행합니다.
@@ -75,7 +77,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/laptopgg
 export SPRING_DATASOURCE_USERNAME=laptopgg
 export SPRING_DATASOURCE_PASSWORD=laptopgg
-./gradlew bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.limit=3 --app.crawler.start-page=1 --app.crawler.filter-profile=core'
+./gradlew :crawler-job:bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.run-on-startup=true --app.crawler.limit=3 --app.crawler.start-page=1 --app.crawler.filter-profile=core'
 ```
 
 ### 4. 확인 주소
@@ -95,12 +97,13 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 export PATH="$JAVA_HOME/bin:$PATH"
 ./gradlew --no-daemon test
+./gradlew --no-daemon test :web-app:bootJar :crawler-job:bootJar
 ```
 
 회귀 테스트에는 실제 Danawa 구조를 닮은 HTML fixture가 포함됩니다.
-- `src/test/resources/fixtures/danawa/list-page.html`
-- `src/test/resources/fixtures/danawa/detail-page.html`
-- `src/test/resources/fixtures/danawa/detail-spec.html`
+- `crawler-job/src/test/resources/fixtures/danawa/list-page.html`
+- `crawler-job/src/test/resources/fixtures/danawa/detail-page.html`
+- `crawler-job/src/test/resources/fixtures/danawa/detail-spec.html`
 
 CI에서는 `POSTGRES_INTEGRATION_TESTS=true`로 PostgreSQL/Flyway 마이그레이션 검증도 함께 실행합니다.
 
