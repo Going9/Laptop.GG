@@ -1,7 +1,6 @@
 package going9.laptopgg.web.dto.request
 
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
-import going9.laptopgg.application.recommendation.LegacyRecommendationPurpose
 import going9.laptopgg.application.recommendation.ScreenSizeMode
 import going9.laptopgg.recommendation.RecommendationUseCase
 
@@ -19,13 +18,12 @@ class LaptopRecommendationRequest(
             maxWeightKg = maxWeightKg,
             screenSizes = screenSizes,
             screenSizeMode = screenSizeMode,
-            useCase = useCase,
-            purpose = purpose,
+            useCase = resolvedUseCase(),
         )
     }
 
     fun resolvedUseCase(): RecommendationUseCase {
-        return toQuery().resolvedUseCase()
+        return useCase ?: purpose?.toUseCase() ?: RecommendationUseCase.NOT_SURE
     }
 
     fun resolvedScreenSizeMode(): ScreenSizeMode {
@@ -54,6 +52,31 @@ class LaptopRecommendationRequest(
                 screenSizeMode = screenSizeMode,
                 useCase = useCase,
             )
+        }
+    }
+}
+
+enum class LegacyRecommendationPurpose {
+    OFFICE,
+    OFFICE_LOL,
+    LIGHT_OFFICE,
+    CREATOR,
+    LIGHT_GAMING,
+    MAINSTREAM_GAMING,
+    HEAVY_GAMING,
+    LONG_BATTERY,
+    ;
+
+    fun toUseCase(): RecommendationUseCase {
+        return when (this) {
+            OFFICE -> RecommendationUseCase.OFFICE_STUDY
+            OFFICE_LOL -> RecommendationUseCase.CASUAL_GAME
+            LIGHT_OFFICE -> RecommendationUseCase.PORTABLE_OFFICE
+            CREATOR -> RecommendationUseCase.CREATOR
+            LIGHT_GAMING -> RecommendationUseCase.ONLINE_GAME
+            MAINSTREAM_GAMING -> RecommendationUseCase.ONLINE_GAME
+            HEAVY_GAMING -> RecommendationUseCase.AAA_GAME
+            LONG_BATTERY -> RecommendationUseCase.BATTERY_FIRST
         }
     }
 }

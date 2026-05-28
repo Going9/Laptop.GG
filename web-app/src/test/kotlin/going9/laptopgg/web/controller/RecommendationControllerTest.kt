@@ -3,6 +3,8 @@ package going9.laptopgg.web.controller
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationResult
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
+import going9.laptopgg.recommendation.RecommendationUseCase
+import going9.laptopgg.web.dto.request.LegacyRecommendationPurpose
 import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -64,5 +66,24 @@ class RecommendationControllerTest {
         assertThat(pageQuery.size).isEqualTo(25)
         assertThat(pageQuery.sort.single().property).isEqualTo("price")
         assertThat(pageQuery.sort.single().direction.name).isEqualTo("DESC")
+    }
+
+    @Test
+    fun `legacy purpose is adapted at web boundary`() {
+        val request = LaptopRecommendationRequest(purpose = LegacyRecommendationPurpose.OFFICE_LOL)
+
+        assertThat(request.resolvedUseCase()).isEqualTo(RecommendationUseCase.CASUAL_GAME)
+        assertThat(request.toQuery().useCase).isEqualTo(RecommendationUseCase.CASUAL_GAME)
+    }
+
+    @Test
+    fun `explicit use case wins over legacy purpose`() {
+        val request = LaptopRecommendationRequest(
+            useCase = RecommendationUseCase.CREATOR,
+            purpose = LegacyRecommendationPurpose.OFFICE,
+        )
+
+        assertThat(request.resolvedUseCase()).isEqualTo(RecommendationUseCase.CREATOR)
+        assertThat(request.toQuery().useCase).isEqualTo(RecommendationUseCase.CREATOR)
     }
 }

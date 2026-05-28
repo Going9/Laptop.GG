@@ -178,6 +178,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application recommendation contracts must not carry legacy public request aliases",
+			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/recommendation"),
+			patterns = listOf(
+				Regex("""LegacyRecommendationPurpose"""),
+				Regex("""\bpurpose\b"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application services must not encode runtime Spring profiles",
 			paths = listOf("application/src/main", "application-crawler/src/main"),
 			patterns = listOf(
