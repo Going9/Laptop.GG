@@ -3,16 +3,36 @@ package going9.laptopgg.infrastructure.jpa.repository.web
 import going9.laptopgg.persistence.model.laptop.LaptopProfile
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
-    @EntityGraph(attributePaths = ["laptop"])
     @Query(
         value = """
-        select p
+        select l.id as laptopId,
+               l.name as name,
+               l.imageUrl as imageUrl,
+               l.price as price,
+               l.weight as weight,
+               l.screenSize as screenSize,
+               l.cpu as cpu,
+               l.graphicsType as graphicsType,
+               l.resolution as resolution,
+               p.portabilityScore as portabilityScore,
+               p.displayScore as displayScore,
+               p.ramScore as ramScore,
+               p.tgpScore as tgpScore,
+               p.cpuPerformanceScore as cpuPerformanceScore,
+               p.lowPowerCpuScore as lowPowerCpuScore,
+               p.gpuPerformanceScore as gpuPerformanceScore,
+               p.gpuCreatorBonus as gpuCreatorBonus,
+               p.officeScore as officeScore,
+               p.batteryScore as batteryScore,
+               p.casualGameScore as casualGameScore,
+               p.onlineGameScore as onlineGameScore,
+               p.aaaGameScore as aaaGameScore,
+               p.creatorScore as creatorScore
         from LaptopProfile p
         join p.laptop l
         join RecommendationScore rs on rs.laptop = l
@@ -93,5 +113,31 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         @Param("useCase") useCase: String,
         @Param("sortMode") sortMode: String,
         pageable: Pageable,
-    ): Page<LaptopProfile>
+    ): Page<RecommendationCandidateProjection>
+}
+
+interface RecommendationCandidateProjection {
+    val laptopId: Long?
+    val name: String
+    val imageUrl: String
+    val price: Int?
+    val weight: Double?
+    val screenSize: Int?
+    val cpu: String?
+    val graphicsType: String?
+    val resolution: String?
+    val portabilityScore: Int
+    val displayScore: Int
+    val ramScore: Int
+    val tgpScore: Int
+    val cpuPerformanceScore: Int
+    val lowPowerCpuScore: Int
+    val gpuPerformanceScore: Int
+    val gpuCreatorBonus: Int
+    val officeScore: Int
+    val batteryScore: Int
+    val casualGameScore: Int
+    val onlineGameScore: Int
+    val aaaGameScore: Int
+    val creatorScore: Int
 }

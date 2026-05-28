@@ -5,7 +5,7 @@ import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateRecord
 import going9.laptopgg.application.recommendation.port.RecommendationCandidatePageQuery
-import going9.laptopgg.persistence.model.laptop.LaptopProfile
+import going9.laptopgg.infrastructure.jpa.repository.web.RecommendationCandidateProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopProfileRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
@@ -37,20 +37,20 @@ internal class RecommendationCandidateJpaAdapter(
         )
     }
 
-    private fun LaptopProfile.toRecommendationCandidateRecord(): RecommendationCandidateRecord {
-        val laptopId = laptop.id ?: throw ApplicationInvalidStateException("Persisted laptop id must not be null.")
-        val laptopPrice = laptop.price
+    private fun RecommendationCandidateProjection.toRecommendationCandidateRecord(): RecommendationCandidateRecord {
+        val persistedLaptopId = laptopId ?: throw ApplicationInvalidStateException("Persisted laptop id must not be null.")
+        val laptopPrice = price
             ?: throw ApplicationInvalidStateException("Recommendation candidate price must not be null.")
         return RecommendationCandidateRecord(
-            id = laptopId,
-            name = laptop.name,
-            imageUrl = laptop.imageUrl,
+            id = persistedLaptopId,
+            name = name,
+            imageUrl = imageUrl,
             price = laptopPrice,
-            weight = laptop.weight,
-            screenSize = laptop.screenSize,
-            cpu = laptop.cpu,
-            graphicsType = laptop.graphicsType,
-            resolution = laptop.resolution,
+            weight = weight,
+            screenSize = screenSize,
+            cpu = cpu,
+            graphicsType = graphicsType,
+            resolution = resolution,
             portabilityScore = portabilityScore,
             displayScore = displayScore,
             ramScore = ramScore,

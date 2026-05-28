@@ -1941,6 +1941,36 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "recommendation candidate reads must use explicit projections",
+			paths = listOf(
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/WebLaptopProfileRepository.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/RecommendationCandidateJpaAdapter.kt",
+				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/RecommendationCandidateJpaAdapterStateTest.kt",
+			),
+			patterns = listOf(
+				Regex("""interface RecommendationCandidateProjection"""),
+				Regex("""Page<RecommendationCandidateProjection>"""),
+				Regex("""select l\.id as laptopId"""),
+				Regex("""p\.creatorScore as creatorScore"""),
+				Regex("""private fun RecommendationCandidateProjection\.toRecommendationCandidateRecord\(\): RecommendationCandidateRecord"""),
+				Regex("""findRecommendationCandidatePage maps projection without loading profile entity"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "recommendation candidate reads must not load managed profile entities",
+			paths = listOf(
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/WebLaptopProfileRepository.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/RecommendationCandidateJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""@EntityGraph"""),
+				Regex("""select p\s+from LaptopProfile p"""),
+				Regex("""fun LaptopProfile\.toRecommendationCandidateRecord"""),
+			),
+		)
+
+		assertPresent(
 			rule = "recommendation screen size selection must not silently broaden empty explicit selections",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationQueryValidator.kt",
