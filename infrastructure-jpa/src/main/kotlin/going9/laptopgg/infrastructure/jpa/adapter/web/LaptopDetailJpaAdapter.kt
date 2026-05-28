@@ -1,20 +1,15 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
-import going9.laptopgg.application.comment.port.CommentLaptopPort
-import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.application.laptop.port.LaptopDetailRecord
+import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import org.springframework.stereotype.Component
 
 @Component
-class LaptopJpaAdapter(
+class LaptopDetailJpaAdapter(
     private val laptopRepository: WebLaptopRepository,
-) : LaptopPort, CommentLaptopPort {
-    override fun existsById(laptopId: Long): Boolean {
-        return laptopRepository.existsById(laptopId)
-    }
-
+) : LaptopPort {
     override fun findDetailById(laptopId: Long): LaptopDetailRecord? {
         return laptopRepository.findWithUsageById(laptopId)?.toDetailRecord()
     }

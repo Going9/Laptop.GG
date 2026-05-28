@@ -439,6 +439,22 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "web JPA adapters must be named after their application port responsibility",
+			paths = listOf(
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/LaptopJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/LaptopProfileJpaAdapter.kt",
+			),
+		)
+
+		assertAbsent(
+			rule = "web JPA adapters must implement a single application port responsibility",
+			paths = listOf("infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web"),
+			patterns = listOf(
+				Regex("""\)\s*:\s*.*Port,\s*.*Port"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "infrastructure-jpa-core must stay free of application ports and runtime adapters",
 			paths = listOf("infrastructure-jpa-core/src/main", "infrastructure-jpa-core/build.gradle.kts"),

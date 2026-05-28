@@ -10,7 +10,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 
 @Component
-class LaptopProfileJpaAdapter(
+class RecommendationCandidateJpaAdapter(
     private val laptopProfileRepository: WebLaptopProfileRepository,
 ) : RecommendationCandidatePort {
     override fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord> {
