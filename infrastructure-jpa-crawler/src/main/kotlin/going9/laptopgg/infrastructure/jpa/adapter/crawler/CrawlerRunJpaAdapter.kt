@@ -1,14 +1,16 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
+import going9.laptopgg.application.crawler.run.CompleteCrawlerRunCommand
 import going9.laptopgg.application.crawler.run.CreateCrawlerRunCommand
 import going9.laptopgg.application.crawler.run.CrawlerRunState
 import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
+import going9.laptopgg.application.crawler.run.FailCrawlerRunCommand
 import going9.laptopgg.application.crawler.run.UpdateCrawlerRunCommand
 import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerRunRepository
 import going9.laptopgg.persistence.model.crawler.CrawlerRun
 import going9.laptopgg.persistence.model.crawler.CrawlerRunStatus
-import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerRunRepository
 import org.springframework.stereotype.Component
 
 @Component
@@ -30,34 +32,41 @@ internal class CrawlerRunJpaAdapter(
     }
 
     override fun update(command: UpdateCrawlerRunCommand): CrawlerRunState? {
-        val updatedRows = if (command.hasCompletionCounts()) {
-            crawlerRunRepository.updateCompletionById(
-                runId = command.runId,
-                status = command.status.toEntityStatus(),
-                processedCount = command.processedCountValue(),
-                createdCount = command.createdCountValue(),
-                updatedCount = command.updatedCountValue(),
-                detailRefreshCount = command.detailRefreshCountValue(),
-                priceOnlyUpdatedCount = command.priceOnlyUpdatedCountValue(),
-                degradedCount = command.degradedCountValue(),
-                failedCount = command.failedCountValue(),
-                failureSamples = command.failureSamples,
-                errorMessage = command.errorMessage,
-                endedAt = command.endedAt,
-            )
-        } else {
-            crawlerRunRepository.updateFailureById(
-                runId = command.runId,
-                status = command.status.toEntityStatus(),
-                errorMessage = command.errorMessage,
-                endedAt = command.endedAt,
-            )
+        val updatedRows = when (command) {
+            is CompleteCrawlerRunCommand -> updateCompletion(command)
+            is FailCrawlerRunCommand -> updateFailure(command)
         }
 
         if (updatedRows == 0) {
             return null
         }
         return CrawlerRunState(id = command.runId, status = command.status)
+    }
+
+    private fun updateCompletion(command: CompleteCrawlerRunCommand): Int {
+        return crawlerRunRepository.updateCompletionById(
+            runId = command.runId,
+            status = command.status.toEntityStatus(),
+            processedCount = command.processedCount,
+            createdCount = command.createdCount,
+            updatedCount = command.updatedCount,
+            detailRefreshCount = command.detailRefreshCount,
+            priceOnlyUpdatedCount = command.priceOnlyUpdatedCount,
+            degradedCount = command.degradedCount,
+            failedCount = command.failedCount,
+            failureSamples = command.failureSamples,
+            errorMessage = command.errorMessage,
+            endedAt = command.endedAt,
+        )
+    }
+
+    private fun updateFailure(command: FailCrawlerRunCommand): Int {
+        return crawlerRunRepository.updateFailureById(
+            runId = command.runId,
+            status = command.status.toEntityStatus(),
+            errorMessage = command.errorMessage,
+            endedAt = command.endedAt,
+        )
     }
 
     private fun CrawlerRunStatusResult.toEntityStatus(): CrawlerRunStatus {
@@ -81,54 +90,4 @@ internal class CrawlerRunJpaAdapter(
         )
     }
 
-    private fun UpdateCrawlerRunCommand.hasCompletionCounts(): Boolean {
-        val counts = listOf(
-            processedCount,
-            createdCount,
-            updatedCount,
-            detailRefreshCount,
-            priceOnlyUpdatedCount,
-            degradedCount,
-            failedCount,
-        )
-        if (counts.all { it != null }) {
-            return true
-        }
-        if (counts.all { it == null }) {
-            return false
-        }
-        throw CrawlerInvalidStateException("Crawler run completion counts must be all present or all absent.")
-    }
-
-    private fun UpdateCrawlerRunCommand.processedCountValue(): Int {
-        return processedCount ?: throw missingCompletionCount("processedCount")
-    }
-
-    private fun UpdateCrawlerRunCommand.createdCountValue(): Int {
-        return createdCount ?: throw missingCompletionCount("createdCount")
-    }
-
-    private fun UpdateCrawlerRunCommand.updatedCountValue(): Int {
-        return updatedCount ?: throw missingCompletionCount("updatedCount")
-    }
-
-    private fun UpdateCrawlerRunCommand.detailRefreshCountValue(): Int {
-        return detailRefreshCount ?: throw missingCompletionCount("detailRefreshCount")
-    }
-
-    private fun UpdateCrawlerRunCommand.priceOnlyUpdatedCountValue(): Int {
-        return priceOnlyUpdatedCount ?: throw missingCompletionCount("priceOnlyUpdatedCount")
-    }
-
-    private fun UpdateCrawlerRunCommand.degradedCountValue(): Int {
-        return degradedCount ?: throw missingCompletionCount("degradedCount")
-    }
-
-    private fun UpdateCrawlerRunCommand.failedCountValue(): Int {
-        return failedCount ?: throw missingCompletionCount("failedCount")
-    }
-
-    private fun missingCompletionCount(fieldName: String): CrawlerInvalidStateException {
-        return CrawlerInvalidStateException("Crawler run completion count is missing: $fieldName.")
-    }
 }

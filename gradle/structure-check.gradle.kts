@@ -1954,11 +1954,20 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "crawler run updates must use direct update queries",
 			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactory.kt",
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerRunRepository.kt",
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
 				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapterTest.kt",
 			),
 			patterns = listOf(
+				Regex("""sealed interface UpdateCrawlerRunCommand"""),
+				Regex("""data class CompleteCrawlerRunCommand"""),
+				Regex("""data class FailCrawlerRunCommand"""),
+				Regex("""CompleteCrawlerRunCommand\("""),
+				Regex("""FailCrawlerRunCommand\("""),
+				Regex("""is CompleteCrawlerRunCommand -> updateCompletion\(command\)"""),
+				Regex("""is FailCrawlerRunCommand -> updateFailure\(command\)"""),
 				Regex("""@Modifying\(clearAutomatically = true, flushAutomatically = true\)"""),
 				Regex("""fun updateCompletionById\("""),
 				Regex("""fun updateFailureById\("""),
@@ -1967,6 +1976,22 @@ val verifyStructure by tasks.registering {
 				Regex("""update completion delegates to direct update query without loading crawler run entity"""),
 				Regex("""update failure delegates to direct update query without loading crawler run entity"""),
 				Regex("""Mockito\.verify\(crawlerRunRepository, Mockito\.never\(\)\)\.findById"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler run update command must not model completion as nullable count bundle",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""processedCount: Int\? = null"""),
+				Regex("""createdCount: Int\? = null"""),
+				Regex("""updatedCount: Int\? = null"""),
+				Regex("""hasCompletionCounts"""),
+				Regex("""processedCountValue"""),
+				Regex("""all present or all absent"""),
 			),
 		)
 

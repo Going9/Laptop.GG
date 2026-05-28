@@ -1,10 +1,11 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
+import going9.laptopgg.application.crawler.run.CompleteCrawlerRunCommand
 import going9.laptopgg.application.crawler.run.CreateCrawlerRunCommand
 import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
-import going9.laptopgg.application.crawler.run.UpdateCrawlerRunCommand
+import going9.laptopgg.application.crawler.run.FailCrawlerRunCommand
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerRunRepository
 import going9.laptopgg.persistence.model.crawler.CrawlerRun
 import going9.laptopgg.persistence.model.crawler.CrawlerRunStatus
@@ -96,7 +97,7 @@ class CrawlerRunJpaAdapterTest {
         val adapter = CrawlerRunJpaAdapter(crawlerRunRepository)
 
         val state = adapter.update(
-            UpdateCrawlerRunCommand(
+            CompleteCrawlerRunCommand(
                 runId = 7L,
                 status = CrawlerRunStatusResult.SUCCEEDED,
                 processedCount = 10,
@@ -133,9 +134,8 @@ class CrawlerRunJpaAdapterTest {
         val adapter = CrawlerRunJpaAdapter(crawlerRunRepository)
 
         val state = adapter.update(
-            UpdateCrawlerRunCommand(
+            FailCrawlerRunCommand(
                 runId = 7L,
-                status = CrawlerRunStatusResult.FAILED,
                 errorMessage = "network timeout",
                 endedAt = endedAt,
             ),
@@ -162,32 +162,13 @@ class CrawlerRunJpaAdapterTest {
         val adapter = CrawlerRunJpaAdapter(crawlerRunRepository)
 
         val state = adapter.update(
-            UpdateCrawlerRunCommand(
+            FailCrawlerRunCommand(
                 runId = 404L,
-                status = CrawlerRunStatusResult.FAILED,
                 errorMessage = "network timeout",
                 endedAt = endedAt,
             ),
         )
 
         assertThat(state).isNull()
-    }
-
-    @Test
-    fun `update rejects partially populated completion counts with explicit crawler error`() {
-        val crawlerRunRepository = Mockito.mock(CrawlerRunRepository::class.java)
-        val adapter = CrawlerRunJpaAdapter(crawlerRunRepository)
-
-        assertThatThrownBy {
-            adapter.update(
-                UpdateCrawlerRunCommand(
-                    runId = 7L,
-                    status = CrawlerRunStatusResult.SUCCEEDED,
-                    processedCount = 10,
-                    endedAt = LocalDateTime.of(2026, 5, 28, 23, 30),
-                ),
-            )
-        }.isInstanceOf(CrawlerInvalidStateException::class.java)
-            .hasMessageContaining("all present or all absent")
     }
 }

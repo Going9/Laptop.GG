@@ -17,20 +17,34 @@ data class CreateCrawlerRunCommand(
     val errorMessage: String? = null,
 )
 
-data class UpdateCrawlerRunCommand(
-    val runId: Long,
-    val status: CrawlerRunStatusResult,
-    val processedCount: Int? = null,
-    val createdCount: Int? = null,
-    val updatedCount: Int? = null,
-    val detailRefreshCount: Int? = null,
-    val priceOnlyUpdatedCount: Int? = null,
-    val degradedCount: Int? = null,
-    val failedCount: Int? = null,
-    val failureSamples: String? = null,
-    val errorMessage: String? = null,
-    val endedAt: LocalDateTime,
-)
+sealed interface UpdateCrawlerRunCommand {
+    val runId: Long
+    val status: CrawlerRunStatusResult
+    val errorMessage: String?
+    val endedAt: LocalDateTime
+}
+
+data class CompleteCrawlerRunCommand(
+    override val runId: Long,
+    override val status: CrawlerRunStatusResult,
+    val processedCount: Int,
+    val createdCount: Int,
+    val updatedCount: Int,
+    val detailRefreshCount: Int,
+    val priceOnlyUpdatedCount: Int,
+    val degradedCount: Int,
+    val failedCount: Int,
+    val failureSamples: String?,
+    override val errorMessage: String?,
+    override val endedAt: LocalDateTime,
+) : UpdateCrawlerRunCommand
+
+data class FailCrawlerRunCommand(
+    override val runId: Long,
+    override val errorMessage: String?,
+    override val endedAt: LocalDateTime,
+    override val status: CrawlerRunStatusResult = CrawlerRunStatusResult.FAILED,
+) : UpdateCrawlerRunCommand
 
 data class CrawlerRunState(
     val id: Long,

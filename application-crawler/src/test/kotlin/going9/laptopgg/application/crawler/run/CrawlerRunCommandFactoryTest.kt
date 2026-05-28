@@ -44,13 +44,15 @@ class CrawlerRunCommandFactoryTest {
             errorMessage = "x".repeat(4_100),
         )
 
-        assertThat(command.status).isEqualTo(CrawlerRunStatusResult.FAILED)
-        assertThat(command.detailRefreshCount).isEqualTo(12)
-        assertThat(command.priceOnlyUpdatedCount).isEqualTo(3)
-        assertThat(command.failureSamples!!.lines()).hasSize(20)
-        assertThat(command.failureSamples!!.lines().last()).isEqualTo("failure-20")
-        assertThat(command.errorMessage).hasSize(4_000)
-        assertThat(command.endedAt).isEqualTo(endedAt)
+        assertThat(command).isInstanceOf(CompleteCrawlerRunCommand::class.java)
+        val completionCommand = command as CompleteCrawlerRunCommand
+        assertThat(completionCommand.status).isEqualTo(CrawlerRunStatusResult.FAILED)
+        assertThat(completionCommand.detailRefreshCount).isEqualTo(12)
+        assertThat(completionCommand.priceOnlyUpdatedCount).isEqualTo(3)
+        assertThat(completionCommand.failureSamples!!.lines()).hasSize(20)
+        assertThat(completionCommand.failureSamples!!.lines().last()).isEqualTo("failure-20")
+        assertThat(completionCommand.errorMessage).hasSize(4_000)
+        assertThat(completionCommand.endedAt).isEqualTo(endedAt)
     }
 
     @Test

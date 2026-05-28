@@ -157,19 +157,27 @@ class TrackCrawlerRunServiceTest {
         override fun update(command: UpdateCrawlerRunCommand): CrawlerRunState? {
             updateCount++
             val storedRun = stored[command.runId] ?: return null
-            stored[command.runId] = storedRun.copy(
-                status = command.status,
-                processedCount = command.processedCount ?: storedRun.processedCount,
-                createdCount = command.createdCount ?: storedRun.createdCount,
-                updatedCount = command.updatedCount ?: storedRun.updatedCount,
-                detailRefreshCount = command.detailRefreshCount ?: storedRun.detailRefreshCount,
-                priceOnlyUpdatedCount = command.priceOnlyUpdatedCount ?: storedRun.priceOnlyUpdatedCount,
-                degradedCount = command.degradedCount ?: storedRun.degradedCount,
-                failedCount = command.failedCount ?: storedRun.failedCount,
-                failureSamples = command.failureSamples,
-                errorMessage = command.errorMessage,
-                endedAt = command.endedAt,
-            )
+            stored[command.runId] = when (command) {
+                is CompleteCrawlerRunCommand -> storedRun.copy(
+                    status = command.status,
+                    processedCount = command.processedCount,
+                    createdCount = command.createdCount,
+                    updatedCount = command.updatedCount,
+                    detailRefreshCount = command.detailRefreshCount,
+                    priceOnlyUpdatedCount = command.priceOnlyUpdatedCount,
+                    degradedCount = command.degradedCount,
+                    failedCount = command.failedCount,
+                    failureSamples = command.failureSamples,
+                    errorMessage = command.errorMessage,
+                    endedAt = command.endedAt,
+                )
+                is FailCrawlerRunCommand -> storedRun.copy(
+                    status = command.status,
+                    failureSamples = null,
+                    errorMessage = command.errorMessage,
+                    endedAt = command.endedAt,
+                )
+            }
             return stored[command.runId]!!.toState()
         }
 
