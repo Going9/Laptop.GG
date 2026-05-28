@@ -1,65 +1,13 @@
 package going9.laptopgg.web.controller
 
-import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.ApplicationException
+import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.AuthenticationFailedException
 import going9.laptopgg.application.common.InvalidCommandException
 import going9.laptopgg.application.common.ResourceNotFoundException
-import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.http.converter.HttpMessageNotReadableException
-import org.springframework.validation.BindException
-import org.springframework.web.bind.MissingServletRequestParameterException
-import org.springframework.web.bind.annotation.ControllerAdvice
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
-import org.springframework.web.servlet.ModelAndView
 
-@ControllerAdvice
-internal class WebExceptionHandler {
-    @ExceptionHandler(ApplicationException::class)
-    fun handleApplicationException(
-        exception: ApplicationException,
-        request: HttpServletRequest,
-    ): Any {
-        val error = WebErrorDescriptor.from(exception)
-        return render(error, request)
-    }
-
-    @ExceptionHandler(
-        HttpMessageNotReadableException::class,
-        MissingServletRequestParameterException::class,
-        MethodArgumentTypeMismatchException::class,
-        BindException::class,
-    )
-    fun handleFrameworkBadRequest(
-        request: HttpServletRequest,
-    ): Any {
-        val error = WebErrorDescriptor.badRequest()
-        return render(error, request)
-    }
-
-    private fun render(error: WebErrorDescriptor, request: HttpServletRequest): Any {
-        if (request.requestURI.startsWith("/api/")) {
-            return ResponseEntity
-                .status(error.status)
-                .body(WebErrorResponse(code = error.code, message = error.message))
-        }
-
-        return ModelAndView(
-            "error/application-error",
-            mapOf(
-                "statusCode" to error.status.value(),
-                "errorTitle" to error.title,
-                "errorMessage" to error.message,
-            ),
-            error.status,
-        )
-    }
-}
-
-private data class WebErrorDescriptor(
+internal data class WebErrorDescriptor(
     val status: HttpStatus,
     val code: String,
     val title: String,

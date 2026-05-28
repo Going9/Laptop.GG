@@ -10,18 +10,11 @@ import going9.laptopgg.application.comment.port.CommentMutationPort
 import going9.laptopgg.application.comment.port.CommentQueryPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
-import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
-import going9.laptopgg.application.laptop.GetLaptopDetailPageUseCase
-import going9.laptopgg.application.laptop.LaptopUseCaseAssembler
-import going9.laptopgg.application.laptop.port.LaptopPort
-import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.application.recommendation.RecommendationUseCaseAssembler
-import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration(proxyBeanMethods = false)
-internal class WebApplicationUseCaseConfig {
+internal class WebCommentUseCaseConfig {
     @Bean
     fun addCommentUseCase(
         commentMutationPort: CommentMutationPort,
@@ -72,41 +65,6 @@ internal class WebApplicationUseCaseConfig {
         return CommentUseCaseAssembler.createDeleteCommentUseCase(
             commentMutationPort = commentMutationPort,
             passwordHashPort = passwordHashPort,
-            transactionPort = transactionPort,
-        )
-    }
-
-    @Bean
-    fun getLaptopDetailUseCase(
-        laptopPort: LaptopPort,
-        transactionPort: ApplicationTransactionPort,
-    ): GetLaptopDetailUseCase {
-        return LaptopUseCaseAssembler.createGetLaptopDetailUseCase(
-            laptopPort = laptopPort,
-            transactionPort = transactionPort,
-        )
-    }
-
-    @Bean
-    fun getLaptopDetailPageUseCase(
-        laptopPort: LaptopPort,
-        commentQueryPort: CommentQueryPort,
-        transactionPort: ApplicationTransactionPort,
-    ): GetLaptopDetailPageUseCase {
-        return LaptopUseCaseAssembler.createGetLaptopDetailPageUseCase(
-            laptopPort = laptopPort,
-            commentQueryPort = commentQueryPort,
-            transactionPort = transactionPort,
-        )
-    }
-
-    @Bean
-    fun recommendLaptopsUseCase(
-        recommendationCandidatePort: RecommendationCandidatePort,
-        transactionPort: ApplicationTransactionPort,
-    ): RecommendLaptopsUseCase {
-        return RecommendationUseCaseAssembler.createRecommendLaptopsUseCase(
-            recommendationCandidatePort = recommendationCandidatePort,
             transactionPort = transactionPort,
         )
     }

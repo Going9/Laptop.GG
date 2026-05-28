@@ -1086,7 +1086,9 @@ val verifyStructure by tasks.registering {
 			rule = "web-facing application errors must be explicit and mapped at web boundary",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common/ApplicationException.kt",
-				"web-app/src/main/kotlin/going9/laptopgg/web/controller/WebExceptionHandler.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/ApiExceptionHandler.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/PageExceptionHandler.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/WebErrorDescriptor.kt",
 				"web-app/src/main/resources/templates/error/application-error.html",
 				"web-app/src/test/kotlin/going9/laptopgg/LaptopGgApplicationTests.kt",
 				"web-app/src/test/kotlin/going9/laptopgg/web/controller/WebExceptionHandlerTest.kt",
@@ -1101,6 +1103,9 @@ val verifyStructure by tasks.registering {
 				Regex("""class AuthenticationFailedException"""),
 				Regex("""class ApplicationInvalidStateException"""),
 				Regex("""@ControllerAdvice"""),
+				Regex("""@RestControllerAdvice"""),
+				Regex("""RestController::class"""),
+				Regex("""assignableTypes\s*=\s*\["""),
 				Regex("""@ExceptionHandler\(ApplicationException::class\)"""),
 				Regex("""HttpMessageNotReadableException::class"""),
 				Regex("""MethodArgumentTypeMismatchException::class"""),
@@ -1110,7 +1115,7 @@ val verifyStructure by tasks.registering {
 				Regex("""HttpStatus\.BAD_REQUEST"""),
 				Regex("""HttpStatus\.FORBIDDEN"""),
 				Regex("""HttpStatus\.INTERNAL_SERVER_ERROR"""),
-				Regex("""request\.requestURI\.startsWith\("/api/"\)"""),
+				Regex("""ResponseEntity<WebErrorResponse>"""),
 				Regex("""ModelAndView"""),
 				Regex("""error/application-error"""),
 				Regex("""web api maps missing application resources to 404 response"""),
@@ -1123,6 +1128,7 @@ val verifyStructure by tasks.registering {
 				Regex("""web api maps malformed framework requests to 400 response"""),
 				Regex("""web api maps invalid application state to 500 response"""),
 				Regex("""web page maps missing application resources to html error page"""),
+				Regex("""web page maps invalid application state to html error page"""),
 				Regex("""add rejects blank comment fields before persistence"""),
 				Regex("""list rejects missing laptop before reading comments"""),
 				Regex("""list rejects invalid laptop id before reading comments"""),
@@ -1130,6 +1136,17 @@ val verifyStructure by tasks.registering {
 				Regex("""delete rejects invalid comment id before reading comment"""),
 				Regex("""detail query rejects invalid laptop id before persistence"""),
 				Regex("""recommendation query rejects invalid recommendation inputs before persistence"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web error handlers must not branch on request uri",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/controller"),
+			patterns = listOf(
+				Regex("""class WebExceptionHandler"""),
+				Regex("""request\.requestURI"""),
+				Regex("""requestURI\.startsWith"""),
+				Regex("""\): Any \{"""),
 			),
 		)
 
@@ -2687,7 +2704,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopUseCaseAssembler.kt",
-				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebLaptopUseCaseConfig.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/controller/LaptopPageController.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCaseTest.kt",
 			),
@@ -3531,7 +3548,7 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "runtime configs must delegate recommendation use case assembly",
 			paths = listOf(
-				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebRecommendationUseCaseConfig.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/config/IntegrationWebUseCaseConfig.kt",
 			),
 			patterns = listOf(
@@ -3548,7 +3565,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationUseCaseAssembler.kt",
-				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebRecommendationUseCaseConfig.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/config/IntegrationWebUseCaseConfig.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCaseTransactionTest.kt",
 			),
@@ -3566,12 +3583,24 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "runtime configs must delegate web application use case assembly",
-			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt"),
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebCommentUseCaseConfig.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebLaptopUseCaseConfig.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebRecommendationUseCaseConfig.kt",
+			),
 			patterns = listOf(
 				Regex("""return\s+ManageCommentUseCase\("""),
 				Regex("""return\s+GetLaptopDetailUseCase\("""),
 				Regex("""return\s+GetLaptopDetailPageUseCase\("""),
 				Regex("""return\s+RecommendLaptopsUseCase\("""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web runtime use case config must stay feature scoped",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/config"),
+			patterns = listOf(
+				Regex("""WebApplicationUseCaseConfig"""),
 			),
 		)
 
