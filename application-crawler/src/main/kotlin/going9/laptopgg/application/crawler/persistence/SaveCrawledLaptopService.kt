@@ -8,12 +8,14 @@ internal class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPersistencePort,
     private val postSaveSynchronizer: CrawledLaptopPostSaveSynchronizer,
     private val transactionPort: CrawlerTransactionPort,
-    private val changeDetector: CrawledLaptopChangeDetector = CrawledLaptopChangeDetector(),
+    private val commandNormalizer: CrawledLaptopCommandNormalizer = CrawledLaptopCommandNormalizer(),
+    private val updatePlanner: CrawledLaptopUpdatePlanner = CrawledLaptopUpdatePlanner(),
+    private val snapshotPatcher: CrawledLaptopSnapshotPatcher = CrawledLaptopSnapshotPatcher(),
     private val validator: CrawledLaptopCommandValidator = CrawledLaptopCommandValidator(),
 ) : SaveCrawledLaptopUseCase {
     override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         validator.validateExistingLaptopId(existingLaptopId)
-        val normalizedProductCard = changeDetector.normalizedProductCard(productCard)
+        val normalizedProductCard = commandNormalizer.normalizeProductCard(productCard)
         validator.validateProductCard(normalizedProductCard)
         return transactionPort.write {
             saveListSnapshotInTransaction(existingLaptopId, normalizedProductCard)
@@ -22,7 +24,7 @@ internal class SaveCrawledLaptopService(
 
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
         existingLaptopId?.let(validator::validateExistingLaptopId)
-        val normalizedCommand = changeDetector.normalizedDetailCommand(command)
+        val normalizedCommand = commandNormalizer.normalizeDetailCommand(command)
         validator.validateLaptopCommand(normalizedCommand)
         return transactionPort.write {
             saveOrUpdateLaptopInTransaction(normalizedCommand, existingLaptopId)
@@ -32,9 +34,9 @@ internal class SaveCrawledLaptopService(
     private fun saveListSnapshotInTransaction(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         val existingLaptop = laptopPort.findListSnapshotById(existingLaptopId)
             ?: throw CrawlerResourceNotFoundException("Laptop", existingLaptopId)
-        val updateCommand = changeDetector.listSnapshotUpdate(existingLaptop, productCard)
+        val updateCommand = updatePlanner.listSnapshotUpdate(existingLaptop, productCard)
 
-        if (!changeDetector.hasChanges(updateCommand)) {
+        if (!updatePlanner.hasChanges(updateCommand)) {
             return SaveResult.UNCHANGED
         }
 
@@ -66,8 +68,8 @@ internal class SaveCrawledLaptopService(
             return SaveResult.CREATED
         }
 
-        val updateCommand = changeDetector.detailUpdate(existingLaptop, command)
-        if (!changeDetector.hasChanges(updateCommand)) {
+        val updateCommand = updatePlanner.detailUpdate(existingLaptop, command)
+        if (!updatePlanner.hasChanges(updateCommand)) {
             postSaveSynchronizer.afterDetailSnapshot(existingLaptop, previousPrice = existingLaptop.price)
             return SaveResult.UNCHANGED
         }
@@ -75,7 +77,7 @@ internal class SaveCrawledLaptopService(
         if (!laptopPort.updateDetailSnapshot(existingLaptop.id, updateCommand)) {
             throw CrawlerResourceNotFoundException("Laptop", existingLaptop.id)
         }
-        val savedLaptop = changeDetector.applyDetailUpdate(existingLaptop, updateCommand)
+        val savedLaptop = snapshotPatcher.applyDetailUpdate(existingLaptop, updateCommand)
         postSaveSynchronizer.afterDetailSnapshot(savedLaptop, previousPrice = existingLaptop.price)
         return SaveResult.UPDATED
     }

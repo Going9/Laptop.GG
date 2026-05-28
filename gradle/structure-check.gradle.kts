@@ -807,7 +807,7 @@ val verifyStructure by tasks.registering {
 			rule = "laptop usage persistence must normalize application writes and reject blank DB values",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopFieldChangePolicy.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopCommandNormalizer.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopFieldChangePolicyTest.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
@@ -817,8 +817,8 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""fun\s+normalizeUsages\(usages: List<String>\)"""),
-				Regex("""fun\s+normalizedDetailCommand\(command: CrawledLaptopCommand\)"""),
-				Regex("""changeDetector\.normalizedDetailCommand\(command\)"""),
+				Regex("""fun\s+normalizeDetailCommand\(command: CrawledLaptopCommand\)"""),
+				Regex("""commandNormalizer\.normalizeDetailCommand\(command\)"""),
 				Regex("""saveOrUpdate normalizes usage values before persistence"""),
 				Regex("""usage normalization trims blanks and preserves first occurrence order"""),
 				Regex("""chk_laptop_usage_value_required"""),
@@ -1645,9 +1645,17 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
-		assertAbsent(
-			rule = "crawler laptop change detector must delegate field-level change policy",
+		assertPathAbsent(
+			rule = "crawler laptop change detector facade must stay split by responsibility",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt"),
+		)
+
+		assertAbsent(
+			rule = "crawler laptop normalization and update planning must delegate field-level change policy",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopCommandNormalizer.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopUpdatePlanner.kt",
+			),
 			patterns = listOf(
 				Regex("""fun\s+changed(Text|Present|Usages)\b"""),
 				Regex("""newValue\?\.trim\(\)"""),
@@ -1800,7 +1808,7 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "crawler detail snapshot update must avoid second full graph load",
 			paths = listOf(
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopSnapshotPatcher.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerLaptopRepository.kt",
@@ -1815,7 +1823,7 @@ val verifyStructure by tasks.registering {
 				Regex("""fun applyDetailUpdate\("""),
 				Regex("""fun updateDetailSnapshot\(laptopId: Long, command: UpdateCrawledLaptopCommand\): Boolean"""),
 				Regex("""laptopPort\.updateDetailSnapshot\(existingLaptop\.id, updateCommand\)"""),
-				Regex("""changeDetector\.applyDetailUpdate\(existingLaptop, updateCommand\)"""),
+				Regex("""snapshotPatcher\.applyDetailUpdate\(existingLaptop, updateCommand\)"""),
 				Regex("""fun updateDetailSnapshotById\("""),
 				Regex("""interface CrawlerLaptopUsageRepository"""),
 				Regex("""fun deleteByLaptopId\("""),
@@ -2847,8 +2855,10 @@ val verifyStructure by tasks.registering {
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopPostSaveSynchronizer.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/ExistingCrawledLaptopLookupLoader.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopCommandNormalizer.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopFieldChangePolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopSnapshotPatcher.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopUpdatePlanner.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
