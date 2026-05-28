@@ -70,6 +70,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "web-app must not depend on domain models directly",
+			paths = listOf("web-app/src/main", "web-app/src/test", "web-app/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""project\(":domain"\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app must not carry crawler runtime configuration",
 			paths = listOf("web-app/src/main/resources/application.yml"),
 			patterns = listOf(
