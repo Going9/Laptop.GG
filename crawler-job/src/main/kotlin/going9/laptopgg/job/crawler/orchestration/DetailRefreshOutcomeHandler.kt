@@ -2,6 +2,7 @@ package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
 import going9.laptopgg.job.crawler.list.ProductCard
+import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -57,6 +58,9 @@ internal class DetailRefreshOutcomeHandler(
 
             priceOnlyUpdatedCount
         } catch (e: Exception) {
+            if (e.isCrawlerInterruptedFailure()) {
+                throw e
+            }
             progress.recordFailure(
                 productCard = productCard,
                 reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",

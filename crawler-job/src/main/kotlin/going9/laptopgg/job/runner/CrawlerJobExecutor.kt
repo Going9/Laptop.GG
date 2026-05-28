@@ -7,6 +7,7 @@ import going9.laptopgg.application.crawler.run.CrawlerRunSummary
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
 import going9.laptopgg.job.crawler.orchestration.CrawlSummary
 import going9.laptopgg.job.crawler.orchestration.CrawlerService
+import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
 import org.springframework.stereotype.Component
 
 @Component
@@ -22,6 +23,7 @@ internal class CrawlerJobExecutor(
                 runTrackedCrawler(request)
             }
         } catch (exception: Exception) {
+            exception.isCrawlerInterruptedFailure()
             crawlerJobSummaryLogger.logLockFailure(exception)
             return 1
         }
@@ -72,6 +74,7 @@ internal class CrawlerJobExecutor(
             crawlerJobSummaryLogger.logCompleted(runId, finishedStatus, request, summary)
             if (summary.failedCount == 0) 0 else 1
         } catch (failure: Throwable) {
+            failure.isCrawlerInterruptedFailure()
             recordRunFailure(runId, request, failure)
             if (failure is Exception) {
                 1

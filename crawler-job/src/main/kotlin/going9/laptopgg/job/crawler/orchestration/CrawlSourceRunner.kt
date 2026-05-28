@@ -3,6 +3,7 @@ package going9.laptopgg.job.crawler.orchestration
 import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.list.ProductListPageCrawler
 import going9.laptopgg.job.crawler.source.CrawlSource
+import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -40,7 +41,7 @@ internal class CrawlSourceRunner(
         val listRequestContext = try {
             listPageCrawler.createListRequestContext(crawlSource)
         } catch (exception: Exception) {
-            if (exception.isInterruptedFailure()) {
+            if (exception.isCrawlerInterruptedFailure()) {
                 throw exception
             }
             progress.recordSourceFailure(crawlSource.key, exception.toFailureReason())
@@ -64,7 +65,7 @@ internal class CrawlSourceRunner(
             val pageBatch = try {
                 listPageCrawler.fetchProductPageBatch(traversalState.currentPage, listRequestContext)
             } catch (exception: Exception) {
-                if (exception.isInterruptedFailure()) {
+                if (exception.isCrawlerInterruptedFailure()) {
                     throw exception
                 }
                 progress.recordPageFailure(crawlSource.key, traversalState.currentPage, exception.toFailureReason())
@@ -158,21 +159,6 @@ internal class CrawlSourceRunner(
         return message ?: javaClass.simpleName
     }
 
-    private fun Exception.isInterruptedFailure(): Boolean {
-        if (Thread.currentThread().isInterrupted) {
-            return true
-        }
-
-        var cause: Throwable? = this
-        while (cause != null) {
-            if (cause is InterruptedException) {
-                Thread.currentThread().interrupt()
-                return true
-            }
-            cause = cause.cause
-        }
-        return false
-    }
 }
 
 internal data class CrawlSourceRunResult(

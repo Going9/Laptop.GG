@@ -18,7 +18,7 @@
                 <span class="usage-chip" th:each="usage : ${laptopDetail.usage}" th:text="${usage}"></span>
             </div>
 
-            <div class="detail-price reveal delay-028" th:text="${#numbers.formatCurrency(laptopDetail.price)} + '원'"></div>
+            <div class="detail-price reveal delay-028" th:text="${laptopDetail.price != null ? #numbers.formatCurrency(laptopDetail.price) + '원' : '가격 확인 불가'}"></div>
 
             <div class="detail-actions reveal delay-040">
                 <a th:href="${laptopDetail.detailPage}" class="primary-button">다나와에서 보기</a>

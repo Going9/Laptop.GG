@@ -11,6 +11,7 @@ import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
 import java.time.LocalDateTime
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
@@ -68,6 +69,37 @@ class DetailRefreshOutcomeHandlerTest {
         assertThat(progress.toSummary().updatedCount).isEqualTo(1)
         assertThat(progress.toSummary().failedCount).isEqualTo(1)
         assertThat(progress.toSummary().failureSamples).containsExactly("200 | Laptop 200 | detail failed")
+    }
+
+    @Test
+    fun `interrupted save failure is propagated instead of recorded as product failure`() {
+        val productCard = productCard("300")
+        val buildResult = BuildLaptopResult(
+            command = crawledLaptopCommand(productCard),
+            degradationReasons = emptyList(),
+        )
+        val failure = IllegalStateException("interrupted save", InterruptedException("stop"))
+        Mockito.`when`(saveCrawledLaptopUseCase.saveOrUpdateLaptop(buildResult.command, null))
+            .thenThrow(failure)
+        val progress = CrawlProgress()
+
+        try {
+            assertThatThrownBy {
+                handler.handle(
+                    detailRefreshOutcomes = listOf(
+                        DetailRefreshOutcome(
+                            workItem = DetailRefreshWorkItem(productCard = productCard, existingLaptop = null),
+                            buildResult = buildResult,
+                        ),
+                    ),
+                    progress = progress,
+                )
+            }.isSameAs(failure)
+            assertThat(Thread.currentThread().isInterrupted).isTrue()
+            assertThat(progress.toSummary().failedCount).isZero()
+        } finally {
+            Thread.interrupted()
+        }
     }
 
     private fun productCard(code: String): ProductCard {

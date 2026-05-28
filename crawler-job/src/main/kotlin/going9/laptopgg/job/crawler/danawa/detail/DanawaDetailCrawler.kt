@@ -7,6 +7,7 @@ import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.detail.ProductDetailCrawler
 import going9.laptopgg.job.crawler.danawa.client.DanawaClient
 import going9.laptopgg.job.crawler.list.ProductCard
+import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
 import org.springframework.stereotype.Component
 
 @Component
@@ -26,6 +27,9 @@ internal class DanawaDetailCrawler(
                     buildResult = buildLaptop(workItem.productCard),
                 )
             } catch (exception: Exception) {
+                if (exception.isCrawlerInterruptedFailure()) {
+                    throw exception
+                }
                 DetailRefreshOutcome(
                     workItem = workItem,
                     error = exception,

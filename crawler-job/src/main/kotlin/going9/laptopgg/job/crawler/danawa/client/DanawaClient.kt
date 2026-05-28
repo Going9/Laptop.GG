@@ -3,6 +3,7 @@ package going9.laptopgg.job.crawler.danawa.client
 import going9.laptopgg.job.crawler.danawa.detail.DetailRequestContext
 import going9.laptopgg.job.crawler.list.ListRequestContext
 import going9.laptopgg.job.crawler.list.ProductCard
+import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -34,6 +35,9 @@ internal class DanawaClient(
         val responseBody = try {
             danawaHttpClient.send(request)
         } catch (e: DanawaHttpException) {
+            if (e.isCrawlerInterruptedFailure()) {
+                throw e
+            }
             logger.warn("상세 스펙 테이블 요청 실패, 요약 스펙으로 대체합니다: {} / {}", productCard.detailPage, e.message)
             return null
         }

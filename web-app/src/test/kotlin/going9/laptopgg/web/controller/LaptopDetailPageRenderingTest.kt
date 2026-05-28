@@ -52,14 +52,28 @@ class LaptopDetailPageRenderingTest {
         assertThat(Regex("""name="laptopId"""").findAll(html).count()).isEqualTo(1)
     }
 
-    private fun laptopDetailResult(id: Long): LaptopDetailResult {
+    @Test
+    fun `laptop detail page renders unknown price fallback`() {
+        Mockito.`when`(getLaptopDetailUseCase.get(11L)).thenReturn(laptopDetailResult(id = 11L, price = null))
+        Mockito.`when`(manageCommentUseCase.listByLaptop(11L)).thenReturn(emptyList())
+
+        val html = mockMvc.perform(get("/laptops/11"))
+            .andExpect(status().isOk)
+            .andReturn()
+            .response
+            .contentAsString
+
+        assertThat(html).contains("가격 확인 불가")
+    }
+
+    private fun laptopDetailResult(id: Long, price: Int? = 1_490_000): LaptopDetailResult {
         return LaptopDetailResult(
             id = id,
             name = "테스트 노트북",
             imageUrl = "https://example.com/laptop.jpg",
             manufacturer = "테스트",
             detailPage = "https://prod.danawa.com/info/?pcode=1&cate=112758",
-            price = 1_490_000,
+            price = price,
             cpuManufacturer = "인텔",
             cpu = "Core Ultra",
             os = "윈도우11홈",

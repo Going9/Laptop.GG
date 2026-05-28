@@ -551,7 +551,7 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""recordSourceFailure"""),
 				Regex("""recordPageFailure"""),
-				Regex("""isInterruptedFailure"""),
+				Regex("""isCrawlerInterruptedFailure"""),
 				Regex("""목록 페이지 수집에 실패해 현재 소스를 중단합니다"""),
 				Regex("""crawler continues with next source when list page fetch fails"""),
 				Regex("""crawler continues with next source when source request context fails"""),
@@ -1880,6 +1880,19 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "laptop detail page must render nullable price safely",
+			paths = listOf(
+				"web-app/src/main/resources/templates/laptop-detail.html",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/LaptopDetailPageRenderingTest.kt",
+			),
+			patterns = listOf(
+				Regex("""laptopDetail\.price != null"""),
+				Regex("""가격 확인 불가"""),
+				Regex("""laptop detail page renders unknown price fallback"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "thymeleaf templates must keep CSS and behavior in static resources",
 			paths = listOf("web-app/src/main/resources/templates"),
@@ -2319,6 +2332,29 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler interruption must propagate through detail and save fallback boundaries",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/support/CrawlerInterruptedFailure.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaClient.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawler.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DetailFetchExecutor.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductSnapshotSaver.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/DetailRefreshOutcomeHandler.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/support/CrawlerInterruptedFailureTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawlerInterruptionTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration/DetailRefreshOutcomeHandlerTest.kt",
+			),
+			patterns = listOf(
+				Regex("""fun Throwable\.isCrawlerInterruptedFailure"""),
+				Regex("""current is InterruptedException"""),
+				Regex("""isCrawlerInterruptedFailure\(\)"""),
+				Regex("""cause\.isCrawlerInterruptedFailure\(\)"""),
+				Regex("""interrupted detail fetch is propagated"""),
+				Regex("""interrupted save failure is propagated"""),
+			),
+		)
+
+		assertPresent(
 			rule = "detail fetch executor must unwrap worker failures before the job boundary",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DetailFetchExecutor.kt",
@@ -2327,7 +2363,8 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""ExecutionException"""),
-				Regex("""throw exception\.cause \?: exception"""),
+				Regex("""val cause = exception\.cause \?: exception"""),
+				Regex("""throw cause"""),
 				Regex("""fatal detail task error is rethrown without execution wrapper"""),
 				Regex("""\.isSameAs\(error\)"""),
 			),

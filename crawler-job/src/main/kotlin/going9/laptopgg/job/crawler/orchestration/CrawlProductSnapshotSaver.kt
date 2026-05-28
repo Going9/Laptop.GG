@@ -4,6 +4,7 @@ import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.job.crawler.detail.BuildLaptopResult
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
+import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -30,6 +31,9 @@ internal class CrawlProductSnapshotSaver(
             val saveResult = saveCrawledLaptopUseCase.saveListSnapshot(existingLaptopId, productCard.toCommand())
             if (progress.recordPriceOnlySaveResult(saveResult)) 1 else 0
         } catch (e: Exception) {
+            if (e.isCrawlerInterruptedFailure()) {
+                throw e
+            }
             progress.recordFailure(
                 productCard = productCard,
                 reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",

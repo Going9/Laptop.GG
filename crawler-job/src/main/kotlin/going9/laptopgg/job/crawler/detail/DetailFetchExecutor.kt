@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.detail
 
+import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
 import java.io.Closeable
 import java.time.Duration
 import java.util.concurrent.ExecutionException
@@ -34,7 +35,9 @@ internal class DetailFetchExecutor private constructor(
         return try {
             get()
         } catch (exception: ExecutionException) {
-            throw exception.cause ?: exception
+            val cause = exception.cause ?: exception
+            cause.isCrawlerInterruptedFailure()
+            throw cause
         } catch (exception: InterruptedException) {
             Thread.currentThread().interrupt()
             throw exception
