@@ -1,7 +1,7 @@
 package going9.laptopgg.application.comment.port
 
 interface CommentPort {
-    fun findById(commentId: Long): CommentRecord?
+    fun findMutationById(commentId: Long): CommentMutationRecord?
     fun findAllByLaptopId(laptopId: Long): List<CommentListRecord>
     fun add(laptopId: Long, author: String, content: String, passwordHash: String)
     fun updateContent(commentId: Long, content: String)
@@ -14,10 +14,8 @@ data class CommentListRecord(
     val content: String,
 )
 
-data class CommentRecord(
+data class CommentMutationRecord(
     val id: Long,
     val laptopId: Long,
-    val author: String,
-    val content: String,
     val passwordHash: String,
 )

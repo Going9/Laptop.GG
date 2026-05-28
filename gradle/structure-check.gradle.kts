@@ -829,7 +829,7 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
-			rule = "comment read contracts must expose persisted non-null ids",
+			rule = "comment read contracts must expose persisted non-null ids through list and mutation projections",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
@@ -841,17 +841,19 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""data class CommentResult\(\s+val id: Long,"""),
 				Regex("""data class CommentListRecord\(\s+val id: Long,"""),
-				Regex("""data class CommentRecord\(\s+val id: Long,"""),
-				Regex("""data class CommentRecord\(\s+val id: Long,\s+val laptopId: Long,"""),
+				Regex("""data class CommentMutationRecord\(\s+val id: Long,"""),
+				Regex("""data class CommentMutationRecord\(\s+val id: Long,\s+val laptopId: Long,"""),
 				Regex("""data class CommentResponse\(\s+val id: Long,"""),
 				Regex("""interface CommentListProjection"""),
+				Regex("""interface CommentMutationProjection"""),
 				Regex("""Persisted comment id must not be null"""),
 				Regex("""Persisted comment laptop id must not be null"""),
 				Regex("""findAllProjectedByLaptop_IdOrderByIdAsc"""),
+				Regex("""findMutationProjectedById"""),
 				Regex("""findAllByLaptopId reads comments in persisted id order"""),
 				Regex("""findAllByLaptopId rejects projected comment without generated id with explicit application error"""),
-				Regex("""findById rejects persisted comment without generated id with explicit application error"""),
-				Regex("""findById rejects persisted comment without owning laptop id with explicit application error"""),
+				Regex("""findMutationById rejects projected comment without generated id with explicit application error"""),
+				Regex("""findMutationById rejects projected comment without owning laptop id with explicit application error"""),
 			),
 		)
 
@@ -916,11 +918,17 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "comment mutations must not reload comment entities after application password check",
 			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
 			),
 			patterns = listOf(
+				Regex("""fun findMutationById\(commentId: Long\): CommentMutationRecord\?"""),
+				Regex("""commentPort\.findMutationById\(commentId\)"""),
+				Regex("""fun findMutationProjectedById\("""),
+				Regex("""commentRepository\.findMutationProjectedById\(commentId\)"""),
 				Regex("""@Modifying\(clearAutomatically = true, flushAutomatically = true\)"""),
 				Regex("""fun updateContentById\("""),
 				Regex("""fun deleteByCommentId\("""),

@@ -2,8 +2,8 @@ package going9.laptopgg.application.comment
 
 import going9.laptopgg.application.comment.port.CommentLaptopPort
 import going9.laptopgg.application.comment.port.CommentListRecord
+import going9.laptopgg.application.comment.port.CommentMutationRecord
 import going9.laptopgg.application.comment.port.CommentPort
-import going9.laptopgg.application.comment.port.CommentRecord
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.AuthenticationFailedException
 import going9.laptopgg.application.common.InvalidCommandException
@@ -87,7 +87,7 @@ class ManageCommentUseCaseTest {
 
     @Test
     fun `update rejects password mismatch with explicit authentication error`() {
-        commentPort.records[7L] = CommentRecord(
+        commentPort.records[7L] = StoredComment(
             id = 7L,
             laptopId = 1L,
             author = "iggy",
@@ -106,7 +106,7 @@ class ManageCommentUseCaseTest {
 
     @Test
     fun `update returns owning laptop id from persisted comment`() {
-        commentPort.records[7L] = CommentRecord(
+        commentPort.records[7L] = StoredComment(
             id = 7L,
             laptopId = 3L,
             author = "iggy",
@@ -125,7 +125,7 @@ class ManageCommentUseCaseTest {
 
     @Test
     fun `update normalizes display content at application boundary`() {
-        commentPort.records[7L] = CommentRecord(
+        commentPort.records[7L] = StoredComment(
             id = 7L,
             laptopId = 3L,
             author = "iggy",
@@ -140,7 +140,7 @@ class ManageCommentUseCaseTest {
 
     @Test
     fun `delete returns owning laptop id from persisted comment`() {
-        commentPort.records[7L] = CommentRecord(
+        commentPort.records[7L] = StoredComment(
             id = 7L,
             laptopId = 3L,
             author = "iggy",
@@ -163,7 +163,7 @@ class ManageCommentUseCaseTest {
             useCase.update(0L, UpdateCommentCommand(password = "pw", content = "수정"))
         }.isInstanceOf(InvalidCommandException::class.java)
 
-        assertThat(commentPort.findByIdCalls).isZero()
+        assertThat(commentPort.findMutationByIdCalls).isZero()
         assertThat(transactionPort.writeCalls).isZero()
     }
 
@@ -173,21 +173,27 @@ class ManageCommentUseCaseTest {
             useCase.delete(0L, DeleteCommentCommand(password = "pw"))
         }.isInstanceOf(InvalidCommandException::class.java)
 
-        assertThat(commentPort.findByIdCalls).isZero()
+        assertThat(commentPort.findMutationByIdCalls).isZero()
         assertThat(transactionPort.writeCalls).isZero()
     }
 
     private class InMemoryCommentPort : CommentPort {
-        val records = mutableMapOf<Long, CommentRecord>()
+        val records = mutableMapOf<Long, StoredComment>()
         var findAllByLaptopCalls = 0
             private set
-        var findByIdCalls = 0
+        var findMutationByIdCalls = 0
             private set
         private var nextId = 1L
 
-        override fun findById(commentId: Long): CommentRecord? {
-            findByIdCalls++
-            return records[commentId]
+        override fun findMutationById(commentId: Long): CommentMutationRecord? {
+            findMutationByIdCalls++
+            return records[commentId]?.let { record ->
+                CommentMutationRecord(
+                    id = record.id,
+                    laptopId = record.laptopId,
+                    passwordHash = record.passwordHash,
+                )
+            }
         }
 
         override fun findAllByLaptopId(laptopId: Long): List<CommentListRecord> {
@@ -203,7 +209,7 @@ class ManageCommentUseCaseTest {
 
         override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {
             val id = nextId++
-            records[id] = CommentRecord(
+            records[id] = StoredComment(
                 id = id,
                 laptopId = laptopId,
                 author = author,
@@ -221,6 +227,14 @@ class ManageCommentUseCaseTest {
             records.remove(commentId)
         }
     }
+
+    private data class StoredComment(
+        val id: Long,
+        val laptopId: Long,
+        val author: String,
+        val content: String,
+        val passwordHash: String,
+    )
 
     private class InMemoryCommentLaptopPort(
         private val existingIds: Set<Long>,

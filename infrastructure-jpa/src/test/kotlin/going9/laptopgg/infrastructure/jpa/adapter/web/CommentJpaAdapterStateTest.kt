@@ -3,15 +3,13 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentListProjection
+import going9.laptopgg.infrastructure.jpa.repository.web.CommentMutationProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
-import going9.laptopgg.persistence.model.laptop.Laptop
-import going9.laptopgg.persistence.model.web.Comment
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import java.util.Optional
 
 class CommentJpaAdapterStateTest {
     @Test
@@ -51,49 +49,54 @@ class CommentJpaAdapterStateTest {
     }
 
     @Test
-    fun `findById rejects persisted comment without generated id with explicit application error`() {
+    fun `findMutationById reads only mutation projection`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
             laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
         )
-        Mockito.`when`(commentRepository.findById(1L)).thenReturn(
-            Optional.of(
-                Comment(
-                    laptop = laptopFixture(),
-                    author = "iggy",
-                    content = "좋아요",
-                    passWord = "hashed:pw",
-                ),
-            ),
+
+        Mockito.`when`(commentRepository.findMutationProjectedById(1L))
+            .thenReturn(commentMutationProjection(id = 1L, laptopId = 3L))
+
+        val record = adapter.findMutationById(1L)
+
+        assertThat(record?.id).isEqualTo(1L)
+        assertThat(record?.laptopId).isEqualTo(3L)
+        assertThat(record?.passwordHash).isEqualTo("hashed:pw")
+        Mockito.verify(commentRepository).findMutationProjectedById(1L)
+        Mockito.verify(commentRepository, Mockito.never()).findById(Mockito.anyLong())
+    }
+
+    @Test
+    fun `findMutationById rejects projected comment without generated id with explicit application error`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
         )
 
+        Mockito.`when`(commentRepository.findMutationProjectedById(1L))
+            .thenReturn(commentMutationProjection(id = null, laptopId = 3L))
+
         assertThatThrownBy {
-            adapter.findById(1L)
+            adapter.findMutationById(1L)
         }.isInstanceOf(ApplicationInvalidStateException::class.java)
     }
 
     @Test
-    fun `findById rejects persisted comment without owning laptop id with explicit application error`() {
+    fun `findMutationById rejects projected comment without owning laptop id with explicit application error`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
             laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
         )
-        Mockito.`when`(commentRepository.findById(1L)).thenReturn(
-            Optional.of(
-                Comment(
-                    laptop = laptopFixture(id = null),
-                    author = "iggy",
-                    content = "좋아요",
-                    passWord = "hashed:pw",
-                    id = 1L,
-                ),
-            ),
-        )
+
+        Mockito.`when`(commentRepository.findMutationProjectedById(1L))
+            .thenReturn(commentMutationProjection(id = 1L, laptopId = null))
 
         assertThatThrownBy {
-            adapter.findById(1L)
+            adapter.findMutationById(1L)
         }.isInstanceOf(ApplicationInvalidStateException::class.java)
     }
 
@@ -167,34 +170,11 @@ class CommentJpaAdapterStateTest {
         }
     }
 
-    private fun laptopFixture(id: Long? = null): Laptop {
-        return Laptop(
-            name = "Laptop",
-            imageUrl = "https://example.com/laptop.jpg",
-            detailPage = "https://example.com/laptop",
-            price = 1_000_000,
-            cpuManufacturer = null,
-            cpu = null,
-            os = null,
-            screenSize = null,
-            resolution = null,
-            brightness = null,
-            refreshRate = null,
-            ramSize = null,
-            ramType = null,
-            isRamReplaceable = null,
-            graphicsType = null,
-            tgp = null,
-            thunderboltCount = null,
-            usbCCount = null,
-            usbACount = null,
-            sdCard = null,
-            isSupportsPdCharging = null,
-            batteryCapacity = null,
-            storageCapacity = null,
-            storageSlotCount = null,
-            weight = null,
-            id = id,
-        )
+    private fun commentMutationProjection(id: Long?, laptopId: Long?): CommentMutationProjection {
+        return object : CommentMutationProjection {
+            override val id: Long? = id
+            override val laptopId: Long? = laptopId
+            override val passwordHash: String = "hashed:pw"
+        }
     }
 }

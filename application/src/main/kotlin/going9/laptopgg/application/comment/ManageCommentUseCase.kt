@@ -1,7 +1,7 @@
 package going9.laptopgg.application.comment
 
-import going9.laptopgg.application.comment.port.CommentRecord
 import going9.laptopgg.application.comment.port.CommentLaptopPort
+import going9.laptopgg.application.comment.port.CommentMutationRecord
 import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.AuthenticationFailedException
@@ -77,9 +77,9 @@ internal class DefaultManageCommentUseCase(
         }
     }
 
-    private fun findCommentInReadTransaction(commentId: Long): CommentRecord {
+    private fun findCommentInReadTransaction(commentId: Long): CommentMutationRecord {
         return transactionPort.read {
-            commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
+            commentPort.findMutationById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
         }
     }
 
@@ -129,7 +129,7 @@ internal class DefaultManageCommentUseCase(
         return value.trim()
     }
 
-    private fun validatePassword(comment: CommentRecord, password: String) {
+    private fun validatePassword(comment: CommentMutationRecord, password: String) {
         if (!passwordHashPort.matches(password, comment.passwordHash)) {
             throw AuthenticationFailedException("비밀번호가 일치하지 않습니다.")
         }

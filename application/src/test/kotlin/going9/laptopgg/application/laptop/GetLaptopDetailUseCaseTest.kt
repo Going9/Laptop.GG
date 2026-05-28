@@ -1,8 +1,8 @@
 package going9.laptopgg.application.laptop
 
 import going9.laptopgg.application.comment.port.CommentListRecord
+import going9.laptopgg.application.comment.port.CommentMutationRecord
 import going9.laptopgg.application.comment.port.CommentPort
-import going9.laptopgg.application.comment.port.CommentRecord
 import going9.laptopgg.application.common.InvalidCommandException
 import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
@@ -117,8 +117,8 @@ class GetLaptopDetailUseCaseTest {
         var findAllByLaptopCalls = 0
             private set
 
-        override fun findById(commentId: Long): CommentRecord? {
-            error("findById is not used by this test")
+        override fun findMutationById(commentId: Long): CommentMutationRecord? {
+            error("findMutationById is not used by this test")
         }
 
         override fun findAllByLaptopId(laptopId: Long): List<CommentListRecord> {
