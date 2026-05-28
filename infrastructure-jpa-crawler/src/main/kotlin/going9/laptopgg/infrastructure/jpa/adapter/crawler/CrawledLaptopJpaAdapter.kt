@@ -50,10 +50,6 @@ class CrawledLaptopJpaAdapter(
         return laptopRepository.findAllByDetailPageIn(detailPages)
     }
 
-    override fun findAllByDetailPageContaining(detailPageToken: String): List<Laptop> {
-        return laptopRepository.findAllByDetailPageContaining(detailPageToken)
-    }
-
     override fun save(laptop: Laptop): Laptop {
         return laptopRepository.save(laptop)
     }

@@ -95,6 +95,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler persistence must not use detail_page substring fallback",
+			paths = listOf("application-crawler/src/main", "infrastructure-jpa-core/src/main", "infrastructure-jpa-crawler/src/main"),
+			patterns = listOf(
+				Regex("""findAllByDetailPageContaining"""),
+				Regex("""allowLegacyFallback"""),
+				Regex("""detailPageToken"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "recommendation-core must stay a Spring-free shared policy module",
 			paths = listOf("recommendation-core/src/main", "recommendation-core/build.gradle.kts"),
 			patterns = listOf(

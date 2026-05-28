@@ -21,9 +21,6 @@ interface LaptopRepository : JpaRepository<Laptop, Long> {
     fun findByDetailPage(detailPage: String): Laptop?
 
     @EntityGraph(attributePaths = ["laptopUsage"])
-    fun findAllByDetailPageContaining(detailPageToken: String): List<Laptop>
-
-    @EntityGraph(attributePaths = ["laptopUsage"])
     fun findByProductCode(productCode: String): Laptop?
 
     @EntityGraph(attributePaths = ["laptopUsage"])

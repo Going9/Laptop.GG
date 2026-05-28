@@ -53,7 +53,7 @@ class SaveCrawledLaptopService(
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
         val crawledLaptop = command.toLaptop()
         val existingLaptop = existingLaptopId?.let(laptopPort::findWithUsageById)
-            ?: findExistingLaptop(crawledLaptop, allowLegacyFallback = existingLaptopId == null)
+            ?: findExistingLaptop(crawledLaptop)
 
         return saveOrUpdateResolvedLaptop(crawledLaptop, existingLaptop)
     }
@@ -120,20 +120,12 @@ class SaveCrawledLaptopService(
         }
     }
 
-    private fun findExistingLaptop(laptop: Laptop, allowLegacyFallback: Boolean): Laptop? {
+    private fun findExistingLaptop(laptop: Laptop): Laptop? {
         laptop.productCode?.let { productCode ->
             laptopPort.findByProductCode(productCode)?.let { return it }
         }
 
         laptopPort.findByDetailPage(laptop.detailPage)?.let { return it }
-
-        if (allowLegacyFallback) {
-            laptop.productCode?.let { productCode ->
-                laptopPort.findAllByDetailPageContaining("pcode=$productCode")
-                    .singleOrNull()
-                    ?.let { return it }
-            }
-        }
 
         return null
     }

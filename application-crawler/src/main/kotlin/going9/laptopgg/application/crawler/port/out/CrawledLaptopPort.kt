@@ -10,6 +10,5 @@ interface CrawledLaptopPort {
     fun findByDetailPage(detailPage: String): Laptop?
     fun findAllByProductCodes(productCodes: Collection<String>): List<Laptop>
     fun findAllByDetailPages(detailPages: Collection<String>): List<Laptop>
-    fun findAllByDetailPageContaining(detailPageToken: String): List<Laptop>
     fun save(laptop: Laptop): Laptop
 }
