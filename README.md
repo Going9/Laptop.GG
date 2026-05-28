@@ -35,7 +35,7 @@ flowchart LR
 - `recommendation-core`: web/crawler가 공유하는 추천 use-case enum과 점수 정책
 - `application`: 추천/상세/댓글 use case와 port
 - `application-crawler`: crawler 저장/동기화 use case, crawler 전용 port, profile/score 정책
-- `infrastructure-jpa-core`: Flyway migration, entity scan, 공통 persistence 설정
+- `infrastructure-jpa-core`: Flyway migration, 공통 persistence 설정
 - `infrastructure-jpa`: web-facing JPA adapter
 - `infrastructure-jpa-crawler`: crawler 저장/프로필/가격 이력/추천 점수 JPA adapter와 crawler repository
 - `infrastructure-jpa.adapter.web`, `infrastructure-jpa-crawler.adapter.crawler`: 런타임 역할별 JPA adapter
@@ -78,7 +78,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 `crawler-job`은 Danawa 수집과 application-crawler command 변환만 담당하며, persistence model 조립과 저장 트랜잭션은 application-crawler use case가 처리합니다.
 추천 use-case enum과 점수 정책은 `recommendation-core`에 두어 web 추천 계산과 crawler 점수 projection이 같은 정책을 공유합니다.
 크롤러 저장/이력/추천 점수/중복 실행 lock port는 `application-crawler`에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
-Flyway 마이그레이션과 공통 entity scan은 `infrastructure-jpa-core`에 있고, Spring Data repository는 `infrastructure-jpa`와 `infrastructure-jpa-crawler`가 역할별로 소유합니다.
+Flyway 마이그레이션과 공통 persistence 설정은 `infrastructure-jpa-core`에 있고, entity scan과 Spring Data repository는 `infrastructure-jpa`와 `infrastructure-jpa-crawler`가 역할별로 소유합니다.
 
 주의:
 - `postgres` 프로필에서는 Flyway가 먼저 스키마를 맞춘 뒤 앱이 기동합니다.

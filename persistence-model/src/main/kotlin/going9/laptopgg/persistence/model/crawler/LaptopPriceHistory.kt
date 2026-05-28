@@ -1,5 +1,6 @@
-package going9.laptopgg.persistence.model.laptop
+package going9.laptopgg.persistence.model.crawler
 
+import going9.laptopgg.persistence.model.laptop.Laptop
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue

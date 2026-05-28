@@ -55,4 +55,36 @@ class CrawlerJobApplicationTests {
             "crawledCpuModelResolver",
         )
     }
+
+    @Test
+    fun `crawler context scans only crawler persistence entities`() {
+        val entityTypes = entitySimpleNames()
+
+        assertThat(entityTypes).contains(
+            "CrawlerRun",
+            "LaptopPriceHistory",
+            "Laptop",
+            "LaptopProfile",
+            "LaptopUsage",
+            "RecommendationScore",
+        )
+        assertThat(entityTypes).doesNotContain(
+            "Comment",
+        )
+    }
+
+    private fun entitySimpleNames(): Set<String> {
+        val entityManagerFactory = beanFactory.getBean("entityManagerFactory")
+        val metamodel = entityManagerFactory.zeroArgMethod("getMetamodel").invoke(entityManagerFactory)
+        val entities = metamodel.zeroArgMethod("getEntities").invoke(metamodel) as Collection<*>
+
+        return entities.mapNotNull { entityType ->
+            val javaType = entityType?.zeroArgMethod("getJavaType")?.invoke(entityType) as? Class<*>
+            javaType?.simpleName
+        }.toSet()
+    }
+
+    private fun Any.zeroArgMethod(name: String) = javaClass.methods.first { method ->
+        method.name == name && method.parameterCount == 0
+    }
 }

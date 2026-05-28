@@ -90,7 +90,7 @@ val verifyStructure by tasks.registering {
 			":recommendation-core" to emptySet(),
 			":application" to setOf(":recommendation-core"),
 			":application-crawler" to setOf(":laptop-taxonomy", ":recommendation-core"),
-			":infrastructure-jpa-core" to setOf(":persistence-model"),
+			":infrastructure-jpa-core" to emptySet(),
 			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-security" to setOf(":application"),
@@ -358,6 +358,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "infrastructure-jpa-core must not own runtime entity scanning",
+			paths = listOf("infrastructure-jpa-core/src/main", "infrastructure-jpa-core/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""EntityScan"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
+				Regex("""project\(":persistence-model"\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "recommendation-core must stay a Spring-free scoring policy module",
 			paths = listOf("recommendation-core/src/main", "recommendation-core/build.gradle.kts"),
 			patterns = listOf(
@@ -390,6 +400,14 @@ val verifyStructure by tasks.registering {
 				Regex("""(?m)^\s*testImplementation\(project\(":application-crawler"\)\)"""),
 				Regex("""(?m)^\s*implementation\(project\(":infrastructure-jpa-crawler"\)\)"""),
 				Regex("""(?m)^\s*testImplementation\(project\(":infrastructure-jpa-crawler"\)\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web JPA config must not scan crawler-only persistence entities",
+			paths = listOf("infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/config/WebJpaRepositoryConfig.kt"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.persistence\.model\.crawler"""),
 			),
 		)
 
@@ -428,6 +446,14 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler JPA config must not scan web-only persistence entities",
+			paths = listOf("infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/config/CrawlerJpaRepositoryConfig.kt"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.persistence\.model\.web"""),
 			),
 		)
 

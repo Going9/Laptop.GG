@@ -1,6 +1,4 @@
 dependencies {
-    implementation(project(":persistence-model"))
-
     implementation("org.flywaydb:flyway-core")
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
