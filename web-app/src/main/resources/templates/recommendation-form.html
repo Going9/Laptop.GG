@@ -1,184 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaptopGG</title>
-    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/styles.css}">
-    <style>
-        .preset-input-block {
-            display: grid;
-            gap: 0.72rem;
-        }
-
-        .preset-picker {
-            display: grid;
-            gap: 0;
-        }
-
-        .preset-picker summary {
-            list-style: none;
-        }
-
-        .preset-picker summary::-webkit-details-marker {
-            display: none;
-        }
-
-        .preset-picker-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            width: 100%;
-            min-height: 3.95rem;
-            padding: 0.9rem 1rem 0.9rem 1.1rem;
-            border-radius: 22px;
-            border: 1px solid rgba(20, 33, 29, 0.12);
-            background: #ffffff;
-            color: var(--text-strong);
-            box-shadow:
-                inset 0 1px 0 rgba(255, 255, 255, 0.42),
-                0 10px 24px rgba(20, 33, 29, 0.04);
-            cursor: pointer;
-        }
-
-        .preset-picker-toggle:hover,
-        .preset-picker-toggle:focus-visible {
-            border-color: rgba(202, 107, 69, 0.52);
-            box-shadow: 0 0 0 0.22rem rgba(202, 107, 69, 0.12);
-        }
-
-        .preset-picker-toggle::after {
-            content: "";
-            width: 0.72rem;
-            height: 0.72rem;
-            margin-left: auto;
-            border-right: 2px solid currentColor;
-            border-bottom: 2px solid currentColor;
-            transform: rotate(45deg) translateY(-1px);
-            transform-origin: center;
-            transition: transform 0.2s ease;
-        }
-
-        .preset-picker[open] .preset-picker-toggle::after {
-            transform: rotate(-135deg) translateY(-1px);
-        }
-
-        .preset-toggle-text {
-            display: grid;
-            gap: 0.12rem;
-            text-align: left;
-            min-width: 0;
-        }
-
-        .preset-toggle-label {
-            font-size: 0.78rem;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: rgba(20, 33, 29, 0.58);
-        }
-
-        .preset-toggle-value {
-            font-size: 1.02rem;
-            font-weight: 800;
-            line-height: 1.25;
-        }
-
-        .preset-picker-panel {
-            display: grid;
-            gap: 0.9rem;
-            margin-top: 0.55rem;
-            padding: 0.9rem;
-            border: 1px solid rgba(20, 33, 29, 0.1);
-            border-radius: 22px;
-            background: #ffffff;
-            box-shadow: 0 20px 44px rgba(9, 20, 17, 0.16);
-        }
-
-        .preset-dropdown-group {
-            display: grid;
-            gap: 0.5rem;
-        }
-
-        .preset-dropdown-label {
-            font-size: 0.75rem;
-            font-weight: 800;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: rgba(20, 33, 29, 0.56);
-        }
-
-        .preset-dropdown-input {
-            min-height: 3.3rem;
-            border-radius: 16px;
-            border: 1px solid rgba(20, 33, 29, 0.12);
-            background: #ffffff;
-            color: var(--text-strong);
-            box-shadow: none;
-        }
-
-        .preset-dropdown-input:focus {
-            border-color: rgba(202, 107, 69, 0.72);
-            box-shadow: 0 0 0 0.18rem rgba(202, 107, 69, 0.12);
-        }
-
-        .preset-dropdown-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .preset-dropdown-pill {
-            appearance: none;
-            border: 1px solid rgba(20, 33, 29, 0.1);
-            background: #ffffff;
-            color: var(--text-strong);
-            border-radius: 999px;
-            min-height: 2.7rem;
-            padding: 0.68rem 0.95rem;
-            font-size: 0.92rem;
-            font-weight: 700;
-        }
-
-        .preset-dropdown-pill:hover,
-        .preset-dropdown-pill:focus-visible {
-            border-color: rgba(202, 107, 69, 0.28);
-            outline: none;
-        }
-
-        .preset-dropdown-pill.is-active {
-            background: rgba(29, 41, 35, 0.92);
-            border-color: rgba(29, 41, 35, 0.92);
-            color: #fff8f2;
-        }
-
-        .size-chip-grid {
-            gap: 0.64rem;
-        }
-
-        .size-chip span {
-            min-width: 5rem;
-            border-color: rgba(20, 33, 29, 0.08);
-            background: #ffffff;
-        }
-
-        .size-chip.is-selected span,
-        .size-chip input:checked + span {
-            background: rgba(29, 41, 35, 0.92);
-            border-color: rgba(28, 46, 41, 0.92);
-            box-shadow: 0 10px 20px rgba(28, 46, 41, 0.16);
-        }
-
-        .size-chip span::after {
-            color: rgba(255, 248, 242, 0.92);
-        }
-    </style>
-</head>
+<head th:replace="~{fragments/layout :: head('LaptopGG')}"></head>
 <body class="app-body page-recommend-form">
 <header th:replace="~{fragments/layout :: siteHeader}"></header>
 
@@ -245,7 +67,6 @@
                                            step="100000"
                                            id="budget"
                                            th:field="*{budget}"
-                                           oninput="updateBudgetDisplay()"
                                            placeholder="예산을 입력해 주세요">
                                 </div>
                                 <div class="preset-dropdown-group">
@@ -255,8 +76,7 @@
                                                 class="preset-dropdown-pill"
                                                 th:each="budgetPreset : ${budgetPresetList}"
                                                 th:attr="data-value=${budgetPreset}"
-                                                th:text="${#numbers.formatInteger(budgetPreset / 10000, 1, 'COMMA') + '만원'}"
-                                                onclick="applyBudgetPreset(this.dataset.value)"></button>
+                                                th:text="${#numbers.formatInteger(budgetPreset / 10000, 1, 'COMMA') + '만원'}"></button>
                                     </div>
                                 </div>
                             </div>
@@ -286,7 +106,6 @@
                                            step="0.1"
                                            id="weight"
                                            th:field="*{maxWeightKg}"
-                                           oninput="updateWeightDisplay()"
                                            placeholder="무게를 입력해 주세요">
                                 </div>
                                 <div class="preset-dropdown-group">
@@ -296,8 +115,7 @@
                                                 class="preset-dropdown-pill"
                                                 th:each="weightPreset : ${weightPresetList}"
                                                 th:attr="data-value=${weightPreset}"
-                                                th:text="${#numbers.formatDecimal(weightPreset, 1, 1) + 'kg'}"
-                                                onclick="applyWeightPreset(this.dataset.value)"></button>
+                                                th:text="${#numbers.formatDecimal(weightPreset, 1, 1) + 'kg'}"></button>
                                     </div>
                                 </div>
                             </div>
@@ -357,123 +175,6 @@
     </section>
 </main>
 
-<script>
-    function updateBudgetDisplay() {
-        const budgetInput = document.getElementById('budget');
-        const budgetDisplay = document.getElementById('budgetDisplay');
-        const budgetToggleValue = document.getElementById('budgetToggleValue');
-        const value = budgetInput.value;
-        const formattedValue = !isNaN(value) && value !== ''
-            ? `${Number(value).toLocaleString()}원`
-            : '0원';
-
-        budgetDisplay.textContent = `현재 예산: ${formattedValue}`;
-        budgetToggleValue.textContent = `현재 예산: ${formattedValue}`;
-
-        syncPresetMenu('budgetPresetMenu', value);
-    }
-
-    function updateWeightDisplay() {
-        const weightInput = document.getElementById('weight');
-        const weightDisplay = document.getElementById('weightDisplay');
-        const weightToggleValue = document.getElementById('weightToggleValue');
-        const value = weightInput.value;
-        const formattedValue = !isNaN(value) && value !== ''
-            ? `${value}kg`
-            : '0kg';
-
-        weightDisplay.textContent = `현재 무게: ${formattedValue}`;
-        weightToggleValue.textContent = `현재 무게: ${formattedValue}`;
-
-        syncPresetMenu('weightPresetMenu', value);
-    }
-
-    function applyBudgetPreset(value) {
-        const budgetInput = document.getElementById('budget');
-        budgetInput.value = value;
-
-        updateBudgetDisplay();
-        closePresetPicker('budgetPicker');
-    }
-
-    function applyWeightPreset(value) {
-        const weightInput = document.getElementById('weight');
-        weightInput.value = value;
-
-        updateWeightDisplay();
-        closePresetPicker('weightPicker');
-    }
-
-    function syncPresetMenu(menuId, value) {
-        document.querySelectorAll(`#${menuId} .preset-dropdown-pill`).forEach((item) => {
-            item.classList.toggle('active', item.dataset.value === value);
-        });
-    }
-
-    function closePresetPicker(pickerId) {
-        const picker = document.getElementById(pickerId);
-        if (!picker) {
-            return;
-        }
-
-        picker.open = false;
-    }
-
-    function syncScreenSizeSelection() {
-        const selectedMode = document.querySelector('input[name="screenSizeMode"]:checked')?.value;
-        const sizeLabels = document.querySelectorAll('.size-chip');
-        const checkedLabels = [];
-
-        sizeLabels.forEach((label) => {
-            const input = label.querySelector('input[type="checkbox"]');
-            const isChecked = input.checked;
-            label.classList.toggle('is-selected', isChecked);
-            if (isChecked) {
-                checkedLabels.push(label.querySelector('span').textContent.trim());
-            }
-        });
-
-        const summary = document.getElementById('screenSizeSelectionSummary');
-        if (selectedMode === 'ANY') {
-            summary.textContent = '선택한 화면 크기: 상관없음';
-            return;
-        }
-
-        if (selectedMode === 'NOT_SURE') {
-            summary.textContent = '선택한 화면 크기: 잘 모르겠어요';
-            return;
-        }
-
-        summary.textContent = checkedLabels.length > 0
-            ? `선택한 화면 크기: ${checkedLabels.join(', ')}`
-            : '선택한 화면 크기: 아직 선택하지 않았어요';
-    }
-
-    function syncScreenSizeMode() {
-        const selectedMode = document.querySelector('input[name="screenSizeMode"]:checked')?.value;
-        const sizeGrid = document.getElementById('screenSizeGrid');
-        const sizeInputs = sizeGrid.querySelectorAll('input[type="checkbox"]');
-        const isSelectMode = selectedMode === 'SELECT';
-
-        sizeGrid.classList.toggle('is-disabled', !isSelectMode);
-        sizeInputs.forEach((input) => {
-            input.disabled = !isSelectMode;
-        });
-
-        syncScreenSizeSelection();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        updateBudgetDisplay();
-        updateWeightDisplay();
-        syncScreenSizeMode();
-        document.querySelectorAll('input[name="screenSizeMode"]').forEach((input) => {
-            input.addEventListener('change', syncScreenSizeMode);
-        });
-        document.querySelectorAll('.size-chip input[type="checkbox"]').forEach((input) => {
-            input.addEventListener('change', syncScreenSizeSelection);
-        });
-    });
-</script>
+<script defer th:src="@{/recommendation-form.js}"></script>
 </body>
 </html>

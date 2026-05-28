@@ -328,6 +328,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "thymeleaf templates must keep CSS and behavior in static resources",
+			paths = listOf("web-app/src/main/resources/templates"),
+			patterns = listOf(
+				Regex("""<style\b[^>]*>""", RegexOption.IGNORE_CASE),
+				Regex("""<script(?![^>]*(?:\bsrc=|\bth:src=))[^>]*>""", RegexOption.IGNORE_CASE),
+				Regex("""(?:\s|:)on[a-z]+\s*=""", RegexOption.IGNORE_CASE),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app must not carry crawler runtime configuration",
 			paths = listOf("web-app/src/main/resources/application.yml"),
 			patterns = listOf(
