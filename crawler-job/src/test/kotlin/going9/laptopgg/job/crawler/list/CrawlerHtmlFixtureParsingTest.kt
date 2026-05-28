@@ -3,6 +3,7 @@ package going9.laptopgg.job.crawler.list
 import going9.laptopgg.job.crawler.detail.DanawaDetailParser
 import going9.laptopgg.job.crawler.detail.DanawaSummaryFallbackParser
 import going9.laptopgg.job.crawler.client.DanawaListRequestFormData
+import going9.laptopgg.job.crawler.danawa.DanawaListRequestDefaults
 import going9.laptopgg.job.crawler.orchestration.DuplicateTailStopPolicy
 import going9.laptopgg.job.crawler.orchestration.ProductPageSignature
 import going9.laptopgg.job.crawler.source.CrawlSource
@@ -195,7 +196,7 @@ class CrawlerHtmlFixtureParsingTest {
 
     @Test
     fun `list request form data keeps repeated cpu codename filters`() {
-        val context = ListRequestContext(
+        val context = DanawaListRequestDefaults.context(
             searchAttributeValues = listOf(
                 "758|6492|1137658|OR",
                 "758|6492|1137661|OR",

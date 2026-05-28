@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.list
 
+import going9.laptopgg.job.crawler.danawa.DanawaListRequestDefaults
 import going9.laptopgg.job.crawler.source.CrawlSource
 
 internal object DanawaListRequestContextParser {
@@ -7,10 +8,9 @@ internal object DanawaListRequestContextParser {
         initialListHtml: String,
         crawlSource: CrawlSource,
     ): ListRequestContext {
-        val defaults = ListRequestContext()
+        val defaults = DanawaListRequestDefaults.context(listUrl = crawlSource.listUrl)
 
-        return ListRequestContext(
-            listUrl = crawlSource.listUrl,
+        return defaults.copy(
             listCategoryCode = extractJsScalar(initialListHtml, "nListCategoryCode") ?: defaults.listCategoryCode,
             categoryCode = extractJsScalar(initialListHtml, "nCategoryCode") ?: defaults.categoryCode,
             physicsCate1 = extractJsScalar(initialListHtml, "sPhysicsCate1") ?: defaults.physicsCate1,

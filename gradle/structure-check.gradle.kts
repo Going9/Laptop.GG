@@ -1224,6 +1224,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "list request model must not own Danawa defaults or endpoints",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/ListModels.kt"),
+			patterns = listOf(
+				Regex("""DanawaEndpoints"""),
+				Regex("""NOTEBOOK_LIST_URL"""),
+				Regex("=\\s*\"758\""),
+				Regex("=\\s*\"SAVEASC\""),
+			),
+		)
+
+		assertAbsent(
 			rule = "Danawa list html parser must not own crawl page diagnostics",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListParser.kt"),
 			patterns = listOf(
