@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.source
 
+import going9.laptopgg.job.crawler.danawa.DanawaAttributeFilterCatalog
 import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -32,14 +33,14 @@ class CrawlSourceResolver {
                 CrawlSource(
                     key = "notebook-core-codename",
                     listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
-                    attributeFilters = CrawlerFilterSets.coreCpuCodenames,
+                    attributeFilters = DanawaAttributeFilterCatalog.coreCpuCodenames,
                 )
             }
             FilterProfile.EXTENDED -> {
                 CrawlSource(
                     key = "notebook-extended-codename",
                     listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
-                    attributeFilters = CrawlerFilterSets.extendedCpuCodenames,
+                    attributeFilters = DanawaAttributeFilterCatalog.extendedCpuCodenames,
                 )
             }
         }

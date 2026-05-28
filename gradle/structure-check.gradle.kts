@@ -1566,6 +1566,20 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "Danawa attribute filter catalog must not live in the generic source package",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source/CrawlerSet.kt"),
+		)
+
+		assertAbsent(
+			rule = "generic crawl source package must not own Danawa attribute filter codes",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source"),
+			patterns = listOf(
+				Regex("""CrawlerFilterSets"""),
+				Regex("""\d+\|6492\|"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler orchestration must not own progress counters and samples",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),

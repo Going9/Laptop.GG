@@ -1,11 +1,8 @@
-package going9.laptopgg.job.crawler.source
+package going9.laptopgg.job.crawler.danawa
 
-data class CrawlerAttributeFilter(
-    val name: String,
-    val value: String,
-)
+import going9.laptopgg.job.crawler.source.CrawlerAttributeFilter
 
-object CrawlerFilterSets {
+internal object DanawaAttributeFilterCatalog {
     val coreCpuCodenames = listOf(
         CrawlerAttributeFilter("팬서레이크", "758|6492|1137658|OR"),
         CrawlerAttributeFilter("루나레이크", "758|6492|984997|OR"),
