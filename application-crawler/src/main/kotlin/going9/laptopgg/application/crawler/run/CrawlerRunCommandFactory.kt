@@ -47,7 +47,7 @@ internal class CrawlerRunCommandFactory(
         )
     }
 
-    fun fail(runId: Long, exception: Throwable): UpdateCrawlerRunCommand {
+    fun fail(runId: Long, exception: Exception): UpdateCrawlerRunCommand {
         return UpdateCrawlerRunCommand(
             runId = runId,
             status = CrawlerRunStatusResult.FAILED,

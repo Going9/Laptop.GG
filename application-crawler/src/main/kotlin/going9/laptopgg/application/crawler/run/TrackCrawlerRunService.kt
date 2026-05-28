@@ -35,7 +35,7 @@ internal class TrackCrawlerRunService(
         }
     }
 
-    override fun fail(runId: Long, exception: Throwable): CrawlerRunRecord {
+    override fun fail(runId: Long, exception: Exception): CrawlerRunRecord {
         return transactionPort.write {
             (
                 crawlerRunPort.update(commandFactory.fail(runId, exception))

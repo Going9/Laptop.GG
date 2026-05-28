@@ -16,11 +16,11 @@ internal class CrawlerJobExecutor(
     private val crawlerJobSummaryLogger: CrawlerJobSummaryLogger,
 ) {
     fun execute(request: CrawlerJobRequest): Int {
-        val lockResult = runCatching {
+        val lockResult = try {
             crawlerRunLockUseCase.runLocked {
                 runTrackedCrawler(request)
             }
-        }.getOrElse { exception ->
+        } catch (exception: Exception) {
             crawlerJobSummaryLogger.logLockFailure(exception)
             return 1
         }
@@ -46,7 +46,7 @@ internal class CrawlerJobExecutor(
         )
         val runId = crawlerRun.id
 
-        return runCatching {
+        return try {
             val summary = crawlerService.crawlAll(
                 limit = request.limit,
                 startPage = request.startPage,
@@ -70,7 +70,7 @@ internal class CrawlerJobExecutor(
             )
             crawlerJobSummaryLogger.logCompleted(runId, finishedStatus, request, summary)
             if (summary.failedCount == 0) 0 else 1
-        }.getOrElse { exception ->
+        } catch (exception: Exception) {
             trackCrawlerRunUseCase.fail(runId, exception)
             crawlerJobSummaryLogger.logRunFailure(runId, request, exception)
             1

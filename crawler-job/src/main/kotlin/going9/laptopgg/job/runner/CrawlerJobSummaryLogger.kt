@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 internal class CrawlerJobSummaryLogger {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun logLockFailure(exception: Throwable) {
+    fun logLockFailure(exception: Exception) {
         logger.error("Crawler lock acquisition failed.", exception)
     }
 
@@ -54,7 +54,7 @@ internal class CrawlerJobSummaryLogger {
         }
     }
 
-    fun logRunFailure(runId: Long, request: CrawlerJobRequest, exception: Throwable) {
+    fun logRunFailure(runId: Long, request: CrawlerJobRequest, exception: Exception) {
         logger.error("Crawler run failed. runId={}", runId, exception)
         logger.error(
             "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=1",

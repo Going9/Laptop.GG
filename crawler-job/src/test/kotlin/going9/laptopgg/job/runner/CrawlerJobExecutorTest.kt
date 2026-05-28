@@ -10,6 +10,7 @@ import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
 import going9.laptopgg.job.crawler.orchestration.CrawlSummary
 import going9.laptopgg.job.crawler.orchestration.CrawlerService
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
@@ -93,6 +94,25 @@ class CrawlerJobExecutorTest {
         assertThat(trackUseCase.failedException).isSameAs(exception)
     }
 
+    @Test
+    fun `crawler fatal error is propagated without failed run tracking`() {
+        val crawlerService = Mockito.mock(CrawlerService::class.java)
+        val error = NoClassDefFoundError("crawler linkage")
+        Mockito.`when`(crawlerService.crawlAll(null, 1, "core")).thenThrow(error)
+        val trackUseCase = RecordingTrackCrawlerRunUseCase()
+        val executor = CrawlerJobExecutor(
+            crawlerService = crawlerService,
+            crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = true),
+            trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
+        )
+
+        assertThatThrownBy {
+            executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "core"))
+        }.isSameAs(error)
+        assertThat(trackUseCase.failedException).isNull()
+    }
+
     private fun crawlSummary(
         failedCount: Int,
         failureSamples: List<String> = emptyList(),
@@ -128,7 +148,7 @@ class CrawlerJobExecutorTest {
             private set
         var finishedErrorMessage: String? = null
             private set
-        var failedException: Throwable? = null
+        var failedException: Exception? = null
             private set
 
         override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
@@ -159,7 +179,7 @@ class CrawlerJobExecutorTest {
             )
         }
 
-        override fun fail(runId: Long, exception: Throwable): CrawlerRunRecord {
+        override fun fail(runId: Long, exception: Exception): CrawlerRunRecord {
             failedException = exception
             return CrawlerRunRecord(id = runId, status = CrawlerRunStatusResult.FAILED)
         }

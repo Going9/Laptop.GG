@@ -271,6 +271,37 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler job runner must record recoverable exceptions without swallowing fatal errors",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobSummaryLogger.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunUseCase.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutorTest.kt",
+			),
+			patterns = listOf(
+				Regex("""catch \(exception: Exception\)"""),
+				Regex("""fun fail\(runId: Long, exception: Exception\)"""),
+				Regex("""fun logRunFailure\(runId: Long, request: CrawlerJobRequest, exception: Exception\)"""),
+				Regex("""crawler fatal error is propagated without failed run tracking"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler job runner must not use runCatching or Throwable for recoverable job failures",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobSummaryLogger.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactory.kt",
+			),
+			patterns = listOf(
+				Regex("""runCatching"""),
+				Regex("""Throwable"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "JPA entities must not be Kotlin data classes",
 			paths = listOf("persistence-model/src/main"),
