@@ -5,13 +5,14 @@ import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersist
 
 class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPersistencePort,
+    private val existingLookupLoader: ExistingCrawledLaptopLookupLoader,
     private val postSaveSynchronizer: CrawledLaptopPostSaveSynchronizer,
     private val transactionPort: CrawlerTransactionPort,
     private val changeDetector: CrawledLaptopChangeDetector = CrawledLaptopChangeDetector(),
 ) : SaveCrawledLaptopUseCase {
     override fun loadExistingLookup(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
         return transactionPort.read {
-            loadExistingLookupInTransaction(productCards)
+            existingLookupLoader.load(productCards)
         }
     }
 
@@ -25,23 +26,6 @@ class SaveCrawledLaptopService(
         return transactionPort.write {
             saveOrUpdateLaptopInTransaction(command, existingLaptopId)
         }
-    }
-
-    private fun loadExistingLookupInTransaction(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
-        if (productCards.isEmpty()) {
-            return ExistingCrawledLaptopLookup(emptyMap(), emptyMap())
-        }
-
-        val byProductCode = laptopPort.findAllByProductCodes(productCards.map { it.productCode }.distinct())
-            .mapNotNull { laptop -> laptop.productCode?.let { it to laptop.toExistingSnapshot() } }
-            .toMap()
-        val byDetailPage = laptopPort.findAllByDetailPages(productCards.map { it.detailPage }.distinct())
-            .associate { laptop -> laptop.detailPage to laptop.toExistingSnapshot() }
-
-        return ExistingCrawledLaptopLookup(
-            byProductCode = byProductCode,
-            byDetailPage = byDetailPage,
-        )
     }
 
     private fun saveListSnapshotInTransaction(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
@@ -93,25 +77,5 @@ class SaveCrawledLaptopService(
         laptopPort.findByDetailPage(command.detailPage)?.let { return it }
 
         return null
-    }
-
-    private fun PersistedCrawledLaptopSnapshot.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
-        return ExistingCrawledLaptopSnapshot(
-            id = id,
-            productCode = productCode,
-            detailPage = detailPage,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            ramSize = ramSize,
-            graphicsType = graphicsType,
-            storageCapacity = storageCapacity,
-            batteryCapacity = batteryCapacity,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usageCount = usages.size,
-        )
     }
 }
