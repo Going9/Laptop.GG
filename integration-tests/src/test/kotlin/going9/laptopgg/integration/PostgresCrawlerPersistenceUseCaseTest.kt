@@ -3,6 +3,7 @@ package going9.laptopgg.integration
 import going9.laptopgg.InfrastructureJpaTestApplication
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.crawler.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.CrawlerRunLockUseCase
 import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.SaveResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
@@ -44,6 +45,9 @@ class PostgresCrawlerPersistenceUseCaseTest {
 
     @Autowired
     lateinit var recommendLaptopsUseCase: RecommendLaptopsUseCase
+
+    @Autowired
+    lateinit var crawlerRunLockUseCase: CrawlerRunLockUseCase
 
     @Autowired
     lateinit var laptopRepository: LaptopRepository
@@ -95,6 +99,25 @@ class PostgresCrawlerPersistenceUseCaseTest {
         )
 
         assertThat(recommendations.content.map { it.name }).containsExactly("Postgres Verified 14")
+    }
+
+    @Test
+    fun `crawler advisory lock rejects overlapping postgres runs and releases after block`() {
+        val nestedAttempt = crawlerRunLockUseCase.runLocked {
+            crawlerRunLockUseCase.runLocked {
+                "nested"
+            }
+        }
+
+        assertThat(nestedAttempt.acquired).isTrue()
+        assertThat(nestedAttempt.value!!.acquired).isFalse()
+
+        val afterRelease = crawlerRunLockUseCase.runLocked {
+            "released"
+        }
+
+        assertThat(afterRelease.acquired).isTrue()
+        assertThat(afterRelease.value).isEqualTo("released")
     }
 
     private fun crawledLaptop(

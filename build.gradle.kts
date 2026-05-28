@@ -460,6 +460,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler job runners and crawler implementation must not call crawler out ports directly",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler",
+				"crawler-job/src/test",
+			),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.application\.crawler\.port\.out"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(

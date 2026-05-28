@@ -2,6 +2,8 @@ package going9.laptopgg
 
 import going9.laptopgg.application.crawler.CpuClassifier
 import going9.laptopgg.application.crawler.GpuClassifier
+import going9.laptopgg.application.crawler.CrawlerRunLockService
+import going9.laptopgg.application.crawler.CrawlerRunLockUseCase
 import going9.laptopgg.application.crawler.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.LaptopProfileFactory
 import going9.laptopgg.application.crawler.LaptopProfileService
@@ -11,6 +13,7 @@ import going9.laptopgg.application.crawler.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.application.port.out.LaptopProfilePort
@@ -110,5 +113,10 @@ class InfrastructureJpaTestApplication {
             laptopProfileService = laptopProfileService,
             laptopPriceHistoryService = laptopPriceHistoryService,
         )
+    }
+
+    @Bean
+    fun crawlerRunLockUseCase(crawlerRunLockPort: CrawlerRunLockPort): CrawlerRunLockUseCase {
+        return CrawlerRunLockService(crawlerRunLockPort)
     }
 }
