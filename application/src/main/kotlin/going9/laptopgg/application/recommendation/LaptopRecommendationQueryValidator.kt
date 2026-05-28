@@ -11,6 +11,9 @@ internal class LaptopRecommendationQueryValidator {
             throw InvalidCommandException("maxWeightKg must be positive.")
         }
         if (request.resolvedScreenSizeMode() == ScreenSizeMode.SELECT) {
+            if (request.screenSizes.isEmpty()) {
+                throw InvalidCommandException("screenSizes must not be empty when screenSizeMode is SELECT.")
+            }
             val unsupportedScreenSizes = request.screenSizes
                 .filterNot { it in LaptopRecommendationQuery.ALL_SELECTABLE_SCREEN_SIZES }
             if (unsupportedScreenSizes.isNotEmpty()) {

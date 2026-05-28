@@ -63,6 +63,7 @@ class RecommendLaptopsUseCaseTransactionTest {
             LaptopRecommendationQuery(budget = 0),
             LaptopRecommendationQuery(maxWeightKg = 0.0),
             LaptopRecommendationQuery(maxWeightKg = Double.NaN),
+            LaptopRecommendationQuery(screenSizeMode = ScreenSizeMode.SELECT, screenSizes = emptyList()),
             LaptopRecommendationQuery(screenSizes = listOf(12)),
         )
 

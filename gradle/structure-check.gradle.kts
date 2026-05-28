@@ -1452,6 +1452,21 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "recommendation screen size selection must not silently broaden empty explicit selections",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationQueryValidator.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCaseTransactionTest.kt",
+				"docs/architecture.md",
+			),
+			patterns = listOf(
+				Regex("""request\.screenSizes\.isEmpty\(\)"""),
+				Regex("""screenSizes must not be empty when screenSizeMode is SELECT"""),
+				Regex("""LaptopRecommendationQuery\(screenSizeMode = ScreenSizeMode\.SELECT, screenSizes = emptyList\(\)\)"""),
+				Regex("""`SELECT` requires at least one selected size"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "application recommendation candidate contract must not use raw use case strings",
 			paths = listOf(
