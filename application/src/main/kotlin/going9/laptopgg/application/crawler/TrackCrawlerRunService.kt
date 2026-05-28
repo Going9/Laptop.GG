@@ -4,11 +4,9 @@ import going9.laptopgg.application.port.out.CrawlerRunPort
 import going9.laptopgg.domain.crawler.CrawlerRun
 import going9.laptopgg.domain.crawler.CrawlerRunStatus
 import java.time.LocalDateTime
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Profile("crawler")
 @Service
 class TrackCrawlerRunService(
     private val crawlerRunPort: CrawlerRunPort,

@@ -4,11 +4,9 @@ import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Profile("crawler")
 @Service
 class LaptopProfileService(
     private val laptopPort: LaptopPort,

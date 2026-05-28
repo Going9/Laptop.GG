@@ -3,7 +3,6 @@ package going9.laptopgg.application.crawler
 import going9.laptopgg.domain.laptop.CpuClass
 import going9.laptopgg.domain.laptop.Laptop
 import kotlin.math.roundToInt
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 data class CpuInsights(
@@ -13,7 +12,6 @@ data class CpuInsights(
     val lowPowerScore: Int,
 )
 
-@Profile("crawler")
 @Component
 class CpuClassifier {
     fun classify(laptop: Laptop): CpuInsights {

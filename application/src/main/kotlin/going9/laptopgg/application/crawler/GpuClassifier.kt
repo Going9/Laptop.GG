@@ -2,7 +2,6 @@ package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.Laptop
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 data class GpuInsights(
@@ -13,7 +12,6 @@ data class GpuInsights(
     val isIntegrated: Boolean,
 )
 
-@Profile("crawler")
 @Component
 class GpuClassifier {
     fun classify(laptop: Laptop): GpuInsights {

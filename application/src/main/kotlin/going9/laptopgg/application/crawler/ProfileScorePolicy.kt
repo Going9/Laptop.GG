@@ -4,7 +4,6 @@ import going9.laptopgg.domain.laptop.BatteryTier
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.PortabilityTier
 import kotlin.math.roundToInt
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 data class ProfileScores(
@@ -22,7 +21,6 @@ data class ProfileScores(
     val tgpScore: Int,
 )
 
-@Profile("crawler")
 @Component
 class ProfileScorePolicy {
     fun calculate(laptop: Laptop, cpu: CpuInsights, gpu: GpuInsights): ProfileScores {

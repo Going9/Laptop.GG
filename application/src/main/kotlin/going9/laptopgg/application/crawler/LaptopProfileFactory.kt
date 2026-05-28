@@ -5,10 +5,8 @@ import going9.laptopgg.domain.laptop.CpuClass
 import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.PortabilityTier
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
-@Profile("crawler")
 @Component
 class LaptopProfileFactory(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),

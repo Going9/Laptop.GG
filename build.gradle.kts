@@ -77,6 +77,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application services must not encode runtime Spring profiles",
+			paths = listOf("application/src/main"),
+			patterns = listOf(
+				Regex("""org\.springframework\.context\.annotation\.Profile"""),
+				Regex("""@Profile"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app must not use Spring Data pagination types",
 			paths = listOf("web-app/src/main", "web-app/src/test", "web-app/build.gradle.kts"),
 			patterns = listOf(
@@ -165,6 +174,14 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "crawler-job must not use root package default component scan",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
+			patterns = listOf(
+				Regex("""@SpringBootApplication\s*$"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web-app must not use root package default component scan",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/LaptopGgApplication.kt"),
 			patterns = listOf(
 				Regex("""@SpringBootApplication\s*$"""),
 			),
