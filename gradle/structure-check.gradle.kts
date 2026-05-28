@@ -1661,6 +1661,30 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "Danawa detail crawler must keep product exceptions separate from fatal errors",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawler.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawlerFailureContractTest.kt",
+			),
+			patterns = listOf(
+				Regex("""catch \(exception: Exception\)"""),
+				Regex("""error = exception"""),
+				Regex("""detail fetch exception is returned as product failure outcome"""),
+				Regex("""fatal detail fetch error is not downgraded to product failure outcome"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "Danawa detail crawler must not catch fatal throwables as product failures",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawler.kt"),
+			patterns = listOf(
+				Regex("""runCatching"""),
+				Regex("""Throwable"""),
+				Regex("""IllegalStateException"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "Danawa scalar value parser must not instantiate application profile policies",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaSpecValueParser.kt"),

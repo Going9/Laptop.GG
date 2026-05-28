@@ -20,15 +20,15 @@ internal class DanawaDetailCrawler(
         detailFetchExecutor: DetailFetchExecutor,
     ): List<DetailRefreshOutcome> {
         return detailFetchExecutor.fetch(workItems) { workItem ->
-            runCatching {
+            try {
                 DetailRefreshOutcome(
                     workItem = workItem,
                     buildResult = buildLaptop(workItem.productCard),
                 )
-            }.getOrElse { throwable ->
+            } catch (exception: Exception) {
                 DetailRefreshOutcome(
                     workItem = workItem,
-                    error = throwable as? Exception ?: IllegalStateException(throwable.message, throwable),
+                    error = exception,
                 )
             }
         }
