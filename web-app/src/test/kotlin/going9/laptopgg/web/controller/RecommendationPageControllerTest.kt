@@ -5,8 +5,10 @@ import going9.laptopgg.application.recommendation.LaptopRecommendationResult
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
+import going9.laptopgg.web.view.RecommendationFormPageModel
 import going9.laptopgg.web.view.RecommendationPageModelFactory
 import going9.laptopgg.web.view.RecommendationPresetCatalog
+import going9.laptopgg.web.view.RecommendationResultPageModel
 import going9.laptopgg.web.view.RecommendationScreenSizePresentation
 import going9.laptopgg.web.view.RecommendationUseCasePresentation
 import org.assertj.core.api.Assertions.assertThat
@@ -32,10 +34,11 @@ class RecommendationPageControllerTest {
         val viewName = controller.showRecommendationForm(model)
 
         assertThat(viewName).isEqualTo("recommendation-form")
-        assertThat(model["laptopRecommendationRequest"]).isInstanceOf(LaptopRecommendationRequest::class.java)
-        assertThat(model["screenSizeList"]).isEqualTo(LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES)
-        assertThat(model["budgetPresetList"]).isNotNull
-        assertThat(model["weightPresetList"]).isNotNull
+        val recommendationPage = model["recommendationPage"] as RecommendationFormPageModel
+        assertThat(recommendationPage.laptopRecommendationRequest).isInstanceOf(LaptopRecommendationRequest::class.java)
+        assertThat(recommendationPage.screenSizeList).isEqualTo(LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES)
+        assertThat(recommendationPage.budgetPresetList).isNotEmpty()
+        assertThat(recommendationPage.weightPresetList).isNotEmpty()
     }
 
     @Test
@@ -77,8 +80,9 @@ class RecommendationPageControllerTest {
         )
 
         assertThat(viewName).isEqualTo("recommendation-list")
-        assertThat(model["recommendedLaptops"]).isEqualTo(listOf(LaptopRecommendationListResponse.from(recommendedLaptop)))
-        assertThat(model["totalCount"]).isEqualTo(1L)
-        assertThat(model["currentSort"]).isEqualTo("price,asc")
+        val recommendationPage = model["recommendationPage"] as RecommendationResultPageModel
+        assertThat(recommendationPage.recommendedLaptops).isEqualTo(listOf(LaptopRecommendationListResponse.from(recommendedLaptop)))
+        assertThat(recommendationPage.totalCount).isEqualTo(1L)
+        assertThat(recommendationPage.currentSort).isEqualTo("price,asc")
     }
 }

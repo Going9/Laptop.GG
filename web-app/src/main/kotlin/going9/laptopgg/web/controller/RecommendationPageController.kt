@@ -17,7 +17,7 @@ internal class RecommendationPageController(
 ) {
     @GetMapping("/recommends", "/")
     fun showRecommendationForm(model: Model): String {
-        model.addAllAttributes(recommendationPageModelFactory.formAttributes())
+        model.addAttribute("recommendationPage", recommendationPageModelFactory.formPage())
         return "recommendation-form"
     }
 
@@ -32,8 +32,9 @@ internal class RecommendationPageController(
         val pageQuery = pageQueryFrom(page, size, sort)
         val recommendedLaptops = recommendLaptopsUseCase
             .recommend(laptopRecommendationRequest.toQuery(), pageQuery)
-        model.addAllAttributes(
-            recommendationPageModelFactory.resultAttributes(
+        model.addAttribute(
+            "recommendationPage",
+            recommendationPageModelFactory.resultPage(
                 request = laptopRecommendationRequest,
                 recommendedLaptops = recommendedLaptops,
                 pageQuery = pageQuery,

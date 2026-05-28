@@ -19,19 +19,19 @@ class RecommendationPageModelFactoryTest {
     )
 
     @Test
-    fun `form attributes contain selectable recommendation options`() {
-        val attributes = factory.formAttributes()
+    fun `form page contains selectable recommendation options`() {
+        val page = factory.formPage()
 
-        assertThat(attributes["laptopRecommendationRequest"]).isInstanceOf(LaptopRecommendationRequest::class.java)
-        assertThat(attributes["screenSizeList"]).isEqualTo(LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES)
-        assertThat(attributes["screenSizeModeOptions"]).isNotNull
-        assertThat(attributes["useCaseOptions"]).isNotNull
-        assertThat(attributes["budgetPresetList"]).isNotNull
-        assertThat(attributes["weightPresetList"]).isNotNull
+        assertThat(page.laptopRecommendationRequest).isInstanceOf(LaptopRecommendationRequest::class.java)
+        assertThat(page.screenSizeList).isEqualTo(LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES)
+        assertThat(page.screenSizeModeOptions).isNotEmpty()
+        assertThat(page.useCaseOptions).isNotEmpty()
+        assertThat(page.budgetPresetList).isNotEmpty()
+        assertThat(page.weightPresetList).isNotEmpty()
     }
 
     @Test
-    fun `result attributes map page metadata and presentation labels`() {
+    fun `result page maps page metadata and presentation labels`() {
         val request = LaptopRecommendationRequest()
         val pageQuery = pageQueryFrom(page = 0, size = 10, sort = listOf("price,asc"))
         val recommendations = PagedResult(
@@ -41,14 +41,14 @@ class RecommendationPageModelFactoryTest {
             totalElements = 1,
         )
 
-        val attributes = factory.resultAttributes(request, recommendations, pageQuery)
+        val page = factory.resultPage(request, recommendations, pageQuery)
 
-        assertThat(attributes["totalCount"]).isEqualTo(1L)
-        assertThat(attributes["currentSort"]).isEqualTo("price,asc")
-        assertThat(attributes["currentPage"]).isEqualTo(1)
-        assertThat(attributes["resolvedUseCaseLabel"]).isEqualTo("두루 쓰기 좋은")
-        assertThat(attributes["resolvedUseCaseHeading"]).isEqualTo("두루 쓰기 좋은 후보")
-        assertThat(attributes["screenSizeSummary"]).isEqualTo("화면 크기 상관없음")
+        assertThat(page.totalCount).isEqualTo(1L)
+        assertThat(page.currentSort).isEqualTo("price,asc")
+        assertThat(page.currentPage).isEqualTo(1)
+        assertThat(page.resolvedUseCaseLabel).isEqualTo("두루 쓰기 좋은")
+        assertThat(page.resolvedUseCaseHeading).isEqualTo("두루 쓰기 좋은 후보")
+        assertThat(page.screenSizeSummary).isEqualTo("화면 크기 상관없음")
     }
 
     @Test

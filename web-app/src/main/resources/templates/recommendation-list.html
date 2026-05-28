@@ -8,57 +8,57 @@
     <section class="results-hero">
         <div class="reveal delay-005">
             <p class="eyebrow">추천 결과</p>
-            <h1 class="section-title" th:text="${resolvedUseCaseHeading}"></h1>
+            <h1 class="section-title" th:text="${recommendationPage.resolvedUseCaseHeading}"></h1>
             <p class="section-lead">
                 예산, 무게, 화면 크기, 사용 목적을 함께 보고 지금 조건에 잘 맞는 모델만 골랐습니다.
             </p>
         </div>
 
         <div class="criteria-strip reveal delay-012">
-            <span class="criteria-pill" th:text="'예산 ' + ${#numbers.formatCurrency(laptopRecommendationRequest.budget)} + '원'"></span>
-            <span class="criteria-pill" th:text="'최대 ' + ${laptopRecommendationRequest.maxWeightKg} + 'kg'"></span>
-            <span class="criteria-pill" th:text="${screenSizeSummary}"></span>
-            <span class="criteria-pill" th:text="'사용 목적 ' + ${resolvedUseCaseLabel}"></span>
+            <span class="criteria-pill" th:text="'예산 ' + ${#numbers.formatCurrency(recommendationPage.laptopRecommendationRequest.budget)} + '원'"></span>
+            <span class="criteria-pill" th:text="'최대 ' + ${recommendationPage.laptopRecommendationRequest.maxWeightKg} + 'kg'"></span>
+            <span class="criteria-pill" th:text="${recommendationPage.screenSizeSummary}"></span>
+            <span class="criteria-pill" th:text="'사용 목적 ' + ${recommendationPage.resolvedUseCaseLabel}"></span>
         </div>
     </section>
 
     <section class="results-toolbar reveal delay-018">
         <div class="toolbar-meta">
-            <strong th:text="${totalCount}"></strong>개의 후보
+            <strong th:text="${recommendationPage.totalCount}"></strong>개의 후보
         </div>
 
         <div class="sort-pills">
-            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0)}" th:object="${laptopRecommendationRequest}">
+            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0)}" th:object="${recommendationPage.laptopRecommendationRequest}">
                 <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
-                <button class="sort-button" th:classappend="${currentSort == 'recommended'} ? ' is-active'" type="submit">추천순</button>
+                <button class="sort-button" th:classappend="${recommendationPage.currentSort == 'recommended'} ? ' is-active'" type="submit">추천순</button>
             </form>
-            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='price,asc')}" th:object="${laptopRecommendationRequest}">
+            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='price,asc')}" th:object="${recommendationPage.laptopRecommendationRequest}">
                 <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
-                <button class="sort-button" th:classappend="${currentSort == 'price,asc'} ? ' is-active'" type="submit">저렴한 순</button>
+                <button class="sort-button" th:classappend="${recommendationPage.currentSort == 'price,asc'} ? ' is-active'" type="submit">저렴한 순</button>
             </form>
-            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='price,desc')}" th:object="${laptopRecommendationRequest}">
+            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='price,desc')}" th:object="${recommendationPage.laptopRecommendationRequest}">
                 <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
-                <button class="sort-button" th:classappend="${currentSort == 'price,desc'} ? ' is-active'" type="submit">비싼 순</button>
+                <button class="sort-button" th:classappend="${recommendationPage.currentSort == 'price,desc'} ? ' is-active'" type="submit">비싼 순</button>
             </form>
-            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='weight,asc')}" th:object="${laptopRecommendationRequest}">
+            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='weight,asc')}" th:object="${recommendationPage.laptopRecommendationRequest}">
                 <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
-                <button class="sort-button" th:classappend="${currentSort == 'weight,asc'} ? ' is-active'" type="submit">가벼운 순</button>
+                <button class="sort-button" th:classappend="${recommendationPage.currentSort == 'weight,asc'} ? ' is-active'" type="submit">가벼운 순</button>
             </form>
-            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='weight,desc')}" th:object="${laptopRecommendationRequest}">
+            <form class="inline-pill-form" method="post" th:action="@{/recommends(page=0, sort='weight,desc')}" th:object="${recommendationPage.laptopRecommendationRequest}">
                 <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
-                <button class="sort-button" th:classappend="${currentSort == 'weight,desc'} ? ' is-active'" type="submit">무거운 순</button>
+                <button class="sort-button" th:classappend="${recommendationPage.currentSort == 'weight,desc'} ? ' is-active'" type="submit">무거운 순</button>
             </form>
         </div>
     </section>
 
-    <section th:if="${#lists.isEmpty(recommendedLaptops)}" class="empty-state reveal delay-024">
+    <section th:if="${#lists.isEmpty(recommendationPage.recommendedLaptops)}" class="empty-state reveal delay-024">
         <h2>지금 조건으로는 뚜렷한 후보가 없습니다.</h2>
         <p>예산을 조금 늘리거나 무게와 화면 크기 조건을 완화하면 더 좋은 결과를 확인할 수 있습니다.</p>
         <a href="/recommends" class="primary-button">조건 다시 조정하기</a>
     </section>
 
-    <section th:unless="${#lists.isEmpty(recommendedLaptops)}" class="results-stream">
-        <article class="laptop-tile reveal delay-016" th:each="laptop : ${recommendedLaptops}">
+    <section th:unless="${#lists.isEmpty(recommendationPage.recommendedLaptops)}" class="results-stream">
+        <article class="laptop-tile reveal delay-016" th:each="laptop : ${recommendationPage.recommendedLaptops}">
             <a class="tile-media" th:href="@{'/laptops/' + ${laptop.id}}">
                 <img th:src="${laptop.imgLink}" th:alt="${laptop.name}" loading="lazy" decoding="async">
             </a>
@@ -112,30 +112,30 @@
         </article>
     </section>
 
-    <nav class="pagination-shell" aria-label="Page navigation" th:if="${totalPages > 0}">
+    <nav class="pagination-shell" aria-label="Page navigation" th:if="${recommendationPage.totalPages > 0}">
         <form class="page-chip-form" id="previous-page"
-              th:action="@{/recommends(page=${currentPage - 2}, sort=${currentSort})}"
-              th:object="${laptopRecommendationRequest}" method="post">
+              th:action="@{/recommends(page=${recommendationPage.currentPage - 2}, sort=${recommendationPage.currentSort})}"
+              th:object="${recommendationPage.laptopRecommendationRequest}" method="post">
             <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
         </form>
-        <button form="previous-page" class="page-chip" type="submit" aria-label="Previous" th:disabled="${currentPage <= 1}">&laquo;</button>
+        <button form="previous-page" class="page-chip" type="submit" aria-label="Previous" th:disabled="${recommendationPage.currentPage <= 1}">&laquo;</button>
 
         <form class="page-chip-form"
-              th:each="i : ${#numbers.sequence((currentPage > 3 ? currentPage - 2 : 1), (currentPage < totalPages - 2 ? currentPage + 2 : totalPages))}"
+              th:each="i : ${#numbers.sequence((recommendationPage.currentPage > 3 ? recommendationPage.currentPage - 2 : 1), (recommendationPage.currentPage < recommendationPage.totalPages - 2 ? recommendationPage.currentPage + 2 : recommendationPage.totalPages))}"
               th:id="'current-page-' + ${i}"
-              th:action="@{/recommends(page=${i - 1}, sort=${currentSort})}"
-              th:object="${laptopRecommendationRequest}"
+              th:action="@{/recommends(page=${i - 1}, sort=${recommendationPage.currentSort})}"
+              th:object="${recommendationPage.laptopRecommendationRequest}"
               method="post">
             <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
-            <button class="page-chip" th:classappend="${i == currentPage} ? ' is-active'" type="submit" th:text="${i}"></button>
+            <button class="page-chip" th:classappend="${i == recommendationPage.currentPage} ? ' is-active'" type="submit" th:text="${i}"></button>
         </form>
 
         <form class="page-chip-form" id="next-page"
-              th:action="@{/recommends(page=${currentPage}, sort=${currentSort})}"
-              th:object="${laptopRecommendationRequest}" method="post">
+              th:action="@{/recommends(page=${recommendationPage.currentPage}, sort=${recommendationPage.currentSort})}"
+              th:object="${recommendationPage.laptopRecommendationRequest}" method="post">
             <th:block th:replace="~{fragments/layout :: recommendationHiddenFields}"></th:block>
         </form>
-        <button form="next-page" class="page-chip" type="submit" aria-label="Next" th:disabled="${currentPage >= totalPages}">&raquo;</button>
+        <button form="next-page" class="page-chip" type="submit" aria-label="Next" th:disabled="${recommendationPage.currentPage >= recommendationPage.totalPages}">&raquo;</button>
     </nav>
 
     <div class="return-row reveal delay-022">

@@ -3383,6 +3383,37 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "recommendation page controller must pass typed page model instead of loose attributes",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/RecommendationPageController.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/view/RecommendationPageModelFactory.kt",
+			),
+			patterns = listOf(
+				Regex("""Map<String, Any>"""),
+				Regex("""addAllAttributes"""),
+				Regex("""formAttributes"""),
+				Regex("""resultAttributes"""),
+			),
+		)
+
+		assertPresent(
+			rule = "recommendation page templates must use typed page model root",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/view/RecommendationPageModelFactory.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/RecommendationPageController.kt",
+				"web-app/src/main/resources/templates/recommendation-form.html",
+				"web-app/src/main/resources/templates/recommendation-list.html",
+			),
+			patterns = listOf(
+				Regex("""data class RecommendationFormPageModel"""),
+				Regex("""data class RecommendationResultPageModel"""),
+				Regex(""""recommendationPage""""),
+				Regex("""recommendationPage\.laptopRecommendationRequest"""),
+				Regex("""recommendationPage\.recommendedLaptops"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime configs must delegate recommendation use case assembly",
 			paths = listOf(
 				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt",
