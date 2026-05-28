@@ -3484,6 +3484,20 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "runtime and JPA scan boundaries must use class markers instead of string package names",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/LaptopGgApplication.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/config",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/config",
+			),
+			patterns = listOf(
+				Regex("""scanBasePackages"""),
+				Regex("""basePackages\s*="""),
+			),
+		)
+
+		assertAbsent(
 			rule = "integration tests must reuse infrastructure JPA repository configuration",
 			paths = listOf("integration-tests/src/test"),
 			patterns = listOf(
