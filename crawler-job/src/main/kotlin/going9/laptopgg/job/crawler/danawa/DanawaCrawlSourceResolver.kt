@@ -1,42 +1,41 @@
-package going9.laptopgg.job.crawler.source
+package going9.laptopgg.job.crawler.danawa
 
-import going9.laptopgg.job.crawler.danawa.DanawaAttributeFilterCatalog
-import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
+import going9.laptopgg.job.crawler.source.CrawlSource
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlSourceResolver {
+class DanawaCrawlSourceResolver {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    internal fun resolveFilterProfile(rawValue: String?): FilterProfile {
+    internal fun resolveFilterProfile(rawValue: String?): DanawaFilterProfile {
         return when (rawValue?.trim()?.lowercase()) {
-            null, "", "core" -> FilterProfile.CORE
-            "none", "all" -> FilterProfile.NONE
-            "extended" -> FilterProfile.EXTENDED
+            null, "", "core" -> DanawaFilterProfile.CORE
+            "none", "all" -> DanawaFilterProfile.NONE
+            "extended" -> DanawaFilterProfile.EXTENDED
             else -> {
                 logger.warn("알 수 없는 crawler filter profile='{}'. 기본값 core를 사용합니다.", rawValue)
-                FilterProfile.CORE
+                DanawaFilterProfile.CORE
             }
         }
     }
 
-    internal fun resolveCrawlSources(filterProfile: FilterProfile): List<CrawlSource> {
+    internal fun resolveCrawlSources(filterProfile: DanawaFilterProfile): List<CrawlSource> {
         val mainSource = when (filterProfile) {
-            FilterProfile.NONE -> {
+            DanawaFilterProfile.NONE -> {
                 CrawlSource(
                     key = "notebook-all",
                     listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
                 )
             }
-            FilterProfile.CORE -> {
+            DanawaFilterProfile.CORE -> {
                 CrawlSource(
                     key = "notebook-core-codename",
                     listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
                     attributeFilters = DanawaAttributeFilterCatalog.coreCpuCodenames,
                 )
             }
-            FilterProfile.EXTENDED -> {
+            DanawaFilterProfile.EXTENDED -> {
                 CrawlSource(
                     key = "notebook-extended-codename",
                     listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
@@ -53,4 +52,10 @@ class CrawlSourceResolver {
             ),
         )
     }
+}
+
+internal enum class DanawaFilterProfile {
+    NONE,
+    CORE,
+    EXTENDED,
 }

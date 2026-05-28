@@ -1,6 +1,6 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import going9.laptopgg.job.crawler.source.CrawlSourceResolver
+import going9.laptopgg.job.crawler.danawa.DanawaCrawlSourceResolver
 import going9.laptopgg.job.config.CrawlerJobProperties
 import java.util.concurrent.Executors
 import org.slf4j.LoggerFactory
@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service
 @Service
 class CrawlerService(
     private val crawlSourceRunner: CrawlSourceRunner,
-    private val crawlSourceResolver: CrawlSourceResolver,
+    private val danawaCrawlSourceResolver: DanawaCrawlSourceResolver,
     private val crawlerJobProperties: CrawlerJobProperties,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun crawlAll(limit: Int? = null, startPage: Int = 1, filterProfileRaw: String? = null): CrawlSummary {
-        val filterProfile = crawlSourceResolver.resolveFilterProfile(filterProfileRaw)
+        val filterProfile = danawaCrawlSourceResolver.resolveFilterProfile(filterProfileRaw)
         val maxListPages = crawlerJobProperties.resolvedMaxListPages()
         val detailFetchExecutor = Executors.newFixedThreadPool(crawlerJobProperties.resolvedDetailFetchConcurrency())
         val seenDetailPages = linkedSetOf<String>()
@@ -24,7 +24,7 @@ class CrawlerService(
         var hitMaxListPages = false
 
         try {
-            val crawlSources = crawlSourceResolver.resolveCrawlSources(filterProfile)
+            val crawlSources = danawaCrawlSourceResolver.resolveCrawlSources(filterProfile)
             logger.info(
                 "크롤링을 시작합니다. filterProfile={}, sourceCount={}, startPage={}, limit={}",
                 filterProfile.name.lowercase(),

@@ -1575,8 +1575,19 @@ val verifyStructure by tasks.registering {
 			rule = "generic crawl source package must not own Danawa attribute filter codes",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source"),
 			patterns = listOf(
+				Regex("""going9\.laptopgg\.job\.crawler\.danawa"""),
+				Regex("""Danawa(Endpoints|AttributeFilterCatalog|CrawlSourceResolver|FilterProfile)"""),
 				Regex("""CrawlerFilterSets"""),
+				Regex("""FilterProfile"""),
 				Regex("""\d+\|6492\|"""),
+			),
+		)
+
+		assertPathAbsent(
+			rule = "Danawa crawl source resolver must not live in the generic source package",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source/CrawlSourceResolver.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/source/CrawlSourceResolverTest.kt",
 			),
 		)
 

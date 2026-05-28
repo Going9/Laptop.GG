@@ -10,9 +10,3 @@ internal data class CrawlSource(
     val listUrl: String,
     val attributeFilters: List<CrawlerAttributeFilter> = emptyList(),
 )
-
-internal enum class FilterProfile {
-    NONE,
-    CORE,
-    EXTENDED,
-}
