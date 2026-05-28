@@ -359,6 +359,19 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "gpu classifier must delegate model catalog data",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/GpuClassifier.kt"),
+			patterns = listOf(
+				Regex("""RTX 5090"""),
+				Regex("""RADEON 890M"""),
+				Regex("""ADRENO X2-90"""),
+				Regex("""DISCRETE_GPU_KEYWORDS"""),
+				Regex("""INTEGRATED_GPU_KEYWORDS"""),
+				Regex("""normalized\.contains"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler laptop ports must be split by use case responsibility",
 			paths = listOf(
