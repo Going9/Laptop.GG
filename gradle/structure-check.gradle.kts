@@ -2315,6 +2315,9 @@ val verifyStructure by tasks.registering {
 				Regex("""transport\.send\(request\)"""),
 				Regex("""catch \(e: DanawaHttpException\)"""),
 				Regex("""send rejects non retryable status with explicit Danawa http status error"""),
+				Regex("""send retries retryable status after cooldown and returns later success"""),
+				Regex("""send retries io failures and keeps final io cause"""),
+				Regex("""send wraps interrupted transport failures and restores interrupt flag"""),
 			),
 		)
 
