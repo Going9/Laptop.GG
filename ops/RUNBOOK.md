@@ -11,6 +11,7 @@
 7. Verify with `curl -fsS http://127.0.0.1:8080/actuator/health/readiness`.
 
 `JAVA_OPTS` includes `-XX:TieredStopAtLevel=1` because the production app runs on a 1-core server and startup latency matters more than peak JIT throughput.
+The web app uses Spring Boot graceful shutdown with a 20s shutdown phase timeout, while systemd keeps `TimeoutStopSec=30` to give the JVM enough time to drain in-flight requests before forced termination.
 
 ## Nginx Setup
 

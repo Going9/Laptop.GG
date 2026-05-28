@@ -6,6 +6,7 @@ import org.springframework.beans.factory.ListableBeanFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.core.env.Environment
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -20,6 +21,9 @@ class LaptopGgApplicationTests {
 
 	@Autowired
 	lateinit var mockMvc: MockMvc
+
+	@Autowired
+	lateinit var environment: Environment
 
 	@Test
 	fun contextLoads() {
@@ -106,5 +110,11 @@ class LaptopGgApplicationTests {
 			.andExpect(status().isOk)
 		mockMvc.perform(get("/actuator/env"))
 			.andExpect(status().isNotFound)
+	}
+
+	@Test
+	fun `web runtime uses graceful shutdown settings`() {
+		assertThat(environment.getProperty("server.shutdown")).isEqualTo("graceful")
+		assertThat(environment.getProperty("spring.lifecycle.timeout-per-shutdown-phase")).isEqualTo("20s")
 	}
 }

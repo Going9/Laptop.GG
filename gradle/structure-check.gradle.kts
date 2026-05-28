@@ -996,6 +996,26 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "web runtime must use graceful shutdown within systemd stop budget",
+			paths = listOf(
+				"web-app/src/main/resources/application.yml",
+				"web-app/src/test/kotlin/going9/laptopgg/LaptopGgApplicationTests.kt",
+				"docs/architecture.md",
+				"ops/RUNBOOK.md",
+				"ops/env/laptopgg.env.example",
+				"ops/systemd/laptopgg.service",
+			),
+			patterns = listOf(
+				Regex("""server:\s+shutdown:\s+graceful"""),
+				Regex("""timeout-per-shutdown-phase:"""),
+				Regex("""web runtime uses graceful shutdown settings"""),
+				Regex("""SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE=20s"""),
+				Regex("""TimeoutStopSec=30"""),
+				Regex("""graceful shutdown"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "runtime modules must import shared persistence config instead of owning datasource or JPA settings",
 			paths = listOf("web-app/src/main/resources/application.yml", "crawler-job/src/main/resources/application.yml"),
