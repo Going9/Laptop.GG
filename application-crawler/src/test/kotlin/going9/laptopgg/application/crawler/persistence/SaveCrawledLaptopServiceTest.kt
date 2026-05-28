@@ -79,6 +79,38 @@ class SaveCrawledLaptopServiceTest {
     }
 
     @Test
+    fun `saveOrUpdate normalizes crawler identity and text values before lookup and persistence`() {
+        service.saveOrUpdateLaptop(
+            crawledLaptop(
+                name = " Transaction Boundary 14 ",
+                imageUrl = " https://example.com/transaction-boundary.jpg ",
+                detailPage = " https://prod.danawa.com/info/?pcode=TX001&cate=112758 ",
+                productCode = " TX001 ",
+                cpu = " Core Ultra 5 225U ",
+                ramType = " ",
+            ),
+        )
+
+        assertThat(laptopPort.createdCommand?.name).isEqualTo("Transaction Boundary 14")
+        assertThat(laptopPort.createdCommand?.imageUrl).isEqualTo("https://example.com/transaction-boundary.jpg")
+        assertThat(laptopPort.createdCommand?.detailPage).isEqualTo("https://prod.danawa.com/info/?pcode=TX001&cate=112758")
+        assertThat(laptopPort.createdCommand?.productCode).isEqualTo("TX001")
+        assertThat(laptopPort.createdCommand?.cpu).isEqualTo("Core Ultra 5 225U")
+        assertThat(laptopPort.createdCommand?.ramType).isNull()
+    }
+
+    @Test
+    fun `saveOrUpdate uses normalized product code when finding existing laptop`() {
+        laptopPort.existingByProductCode["TX001"] = crawledLaptop(productCode = "TX001").toPersistedSnapshot(id = 7L)
+
+        val result = service.saveOrUpdateLaptop(crawledLaptop(productCode = " TX001 "))
+
+        assertThat(result).isEqualTo(SaveResult.UNCHANGED)
+        assertThat(laptopPort.createdCommand).isNull()
+        assertThat(profilePort.saved.first().laptopId).isEqualTo(7L)
+    }
+
+    @Test
     fun `unchanged detail snapshot still refreshes profile and recommendation scores`() {
         val command = crawledLaptop()
         laptopPort.existingByProductCode[command.productCode!!] = command.toPersistedSnapshot(id = 7L)
@@ -158,24 +190,27 @@ class SaveCrawledLaptopServiceTest {
         name: String = "Transaction Boundary 14",
         imageUrl: String = "https://example.com/transaction-boundary.jpg",
         detailPage: String = "https://prod.danawa.com/info/?pcode=TX001&cate=112758",
+        productCode: String? = "TX001",
         price: Int? = 1_490_000,
+        cpu: String? = "Core Ultra 5 225U",
+        ramType: String? = "LPDDR5X",
         usages: List<String> = listOf("사무/인강용"),
     ): CrawledLaptopCommand {
         return CrawledLaptopCommand(
             name = name,
             imageUrl = imageUrl,
             detailPage = detailPage,
-            productCode = "TX001",
+            productCode = productCode,
             price = price,
             cpuManufacturer = "인텔",
-            cpu = "Core Ultra 5 225U",
+            cpu = cpu,
             os = "윈도우11홈",
             screenSize = 14,
             resolution = "1920x1200(WUXGA)",
             brightness = 300,
             refreshRate = 60,
             ramSize = 16,
-            ramType = "LPDDR5X",
+            ramType = ramType,
             isRamReplaceable = false,
             graphicsType = "Intel Graphics",
             tgp = 0,

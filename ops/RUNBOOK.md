@@ -68,7 +68,7 @@ Production crawling is GitHub Actions only.
 - Tunable knobs: `CRAWLER_LIMIT`, `CRAWLER_START_PAGE`, `CRAWLER_MAX_LIST_PAGES`, and `CRAWLER_DETAIL_FETCH_CONCURRENCY` must be positive integers when provided. Detail fetch concurrency is capped at 12.
 - Startup validation: crawler numeric configuration is validated before advisory lock acquisition, crawling, or `crawler_run` creation.
 - Safety check: the workflow runs PostgreSQL integration tests against a local PostgreSQL service before opening the production write path.
-- DB preflight: before running the crawler jar against production, the workflow runs `ops/sql/crawler-identity-preflight.sql` through the SSH tunnel and stops if `laptop.product_code` or `laptop.detail_page` contains duplicate crawler identities.
+- DB preflight: before running the crawler jar against production, the workflow runs `ops/sql/crawler-identity-preflight.sql` through the SSH tunnel and stops if normalized `laptop.product_code` or `laptop.detail_page` contains duplicate crawler identities.
 - Env isolation: production datasource variables are scoped to DB tunnel verification and actual crawler execution, so preflight tests do not accidentally connect through the production tunnel.
 - Flyway migrations are owned by the web deploy path. The crawler runtime does not include migration resources, sets `SPRING_FLYWAY_ENABLED=false`, and should fail fast on JPA schema validation if deploy has not prepared the schema.
 

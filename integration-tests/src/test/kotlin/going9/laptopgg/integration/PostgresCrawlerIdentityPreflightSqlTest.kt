@@ -48,7 +48,7 @@ class PostgresCrawlerIdentityPreflightSqlTest {
     @Test
     fun `crawler identity preflight fails when product code is duplicated`() {
         connection().use { connection ->
-            connection.insertLaptop(id = 1L, productCode = "DUP", detailPage = "https://example.com/dup-a")
+            connection.insertLaptop(id = 1L, productCode = " DUP ", detailPage = "https://example.com/dup-a")
             connection.insertLaptop(id = 2L, productCode = "DUP", detailPage = "https://example.com/dup-b")
 
             assertThatThrownBy {
@@ -61,7 +61,7 @@ class PostgresCrawlerIdentityPreflightSqlTest {
     @Test
     fun `crawler identity preflight fails when detail page is duplicated`() {
         connection().use { connection ->
-            connection.insertLaptop(id = 1L, productCode = "P1", detailPage = "https://example.com/dup")
+            connection.insertLaptop(id = 1L, productCode = "P1", detailPage = " https://example.com/dup ")
             connection.insertLaptop(id = 2L, productCode = "P2", detailPage = "https://example.com/dup")
 
             assertThatThrownBy {

@@ -14,6 +14,13 @@ class CrawledLaptopFieldChangePolicyTest {
     }
 
     @Test
+    fun `text normalization trims required values and drops blank optional values`() {
+        assertThat(policy.normalizeRequiredText(" 테스트 ")).isEqualTo("테스트")
+        assertThat(policy.normalizeOptionalText(" 테스트 ")).isEqualTo("테스트")
+        assertThat(policy.normalizeOptionalText(" ")).isNull()
+    }
+
+    @Test
     fun `present values change only when non null and different`() {
         assertThat(policy.changedPresent(16, null)).isNull()
         assertThat(policy.changedPresent(16, 16)).isNull()

@@ -13,24 +13,26 @@ internal class SaveCrawledLaptopService(
     private val changeDetector: CrawledLaptopChangeDetector = CrawledLaptopChangeDetector(),
 ) : SaveCrawledLaptopUseCase {
     override fun loadExistingLookup(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
-        productCards.forEach(::validateProductCard)
+        val normalizedProductCards = productCards.map(changeDetector::normalizedProductCard)
+        normalizedProductCards.forEach(::validateProductCard)
         return transactionPort.read {
-            existingLookupLoader.load(productCards)
+            existingLookupLoader.load(normalizedProductCards)
         }
     }
 
     override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         validateExistingLaptopId(existingLaptopId)
-        validateProductCard(productCard)
+        val normalizedProductCard = changeDetector.normalizedProductCard(productCard)
+        validateProductCard(normalizedProductCard)
         return transactionPort.write {
-            saveListSnapshotInTransaction(existingLaptopId, productCard)
+            saveListSnapshotInTransaction(existingLaptopId, normalizedProductCard)
         }
     }
 
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
         existingLaptopId?.let(::validateExistingLaptopId)
-        validateLaptopCommand(command)
         val normalizedCommand = changeDetector.normalizedDetailCommand(command)
+        validateLaptopCommand(normalizedCommand)
         return transactionPort.write {
             saveOrUpdateLaptopInTransaction(normalizedCommand, existingLaptopId)
         }
