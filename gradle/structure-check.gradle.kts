@@ -1164,6 +1164,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawl source runner must delegate stop decision logging",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt"),
+			patterns = listOf(
+				Regex("""CrawlSourceStopReason"""),
+				Regex("""logDuplicateTailStop"""),
+				Regex("""fun\s+logStopDecision\b"""),
+				Regex("""총 상품 수 기준"""),
+				Regex("""다음 페이지가 없어"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawl product batch processor must delegate detail refresh planning",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt"),
 			patterns = listOf(
