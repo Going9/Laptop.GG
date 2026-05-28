@@ -1,4 +1,6 @@
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
 val verifyStructure by tasks.registering {
 	group = "verification"
@@ -94,6 +96,23 @@ val verifyStructure by tasks.registering {
 				.toSet()
 		}
 
+		fun resolvedProjectDependencyPaths(projectPath: String, configurationName: String): Set<String> {
+			val configuration = project(projectPath).configurations.findByName(configurationName) ?: return emptySet()
+			return configuration.incoming.resolutionResult.allComponents
+				.mapNotNull { component -> component.id as? ProjectComponentIdentifier }
+				.map { identifier -> identifier.projectPath }
+				.filterNot { dependencyPath -> dependencyPath == projectPath }
+				.toSet()
+		}
+
+		fun resolvedModuleDependencyIds(projectPath: String, configurationName: String): Set<String> {
+			val configuration = project(projectPath).configurations.findByName(configurationName) ?: return emptySet()
+			return configuration.incoming.resolutionResult.allComponents
+				.mapNotNull { component -> component.id as? ModuleComponentIdentifier }
+				.map { identifier -> "${identifier.group}:${identifier.module}" }
+				.toSet()
+		}
+
 		fun assertProjectDependencies(
 			rule: String,
 			projectPath: String,
@@ -106,6 +125,39 @@ val verifyStructure by tasks.registering {
 					appendLine("Structure rule failed: $rule")
 					appendLine("$projectPath $configurationName dependencies must be $expectedProjectPaths")
 					appendLine("Actual: $actualProjectPaths")
+				}
+			}
+		}
+
+		fun assertResolvedProjectDependencies(
+			rule: String,
+			projectPath: String,
+			configurationName: String,
+			expectedProjectPaths: Set<String>,
+		) {
+			val actualProjectPaths = resolvedProjectDependencyPaths(projectPath, configurationName)
+			check(actualProjectPaths == expectedProjectPaths) {
+				buildString {
+					appendLine("Structure rule failed: $rule")
+					appendLine("$projectPath resolved $configurationName project dependencies must be $expectedProjectPaths")
+					appendLine("Actual: $actualProjectPaths")
+				}
+			}
+		}
+
+		fun assertResolvedModulesAbsent(
+			rule: String,
+			projectPath: String,
+			configurationName: String,
+			forbiddenModuleIds: Set<String>,
+		) {
+			val actualModuleIds = resolvedModuleDependencyIds(projectPath, configurationName)
+			val violations = actualModuleIds.intersect(forbiddenModuleIds)
+			check(violations.isEmpty()) {
+				buildString {
+					appendLine("Structure rule failed: $rule")
+					appendLine("$projectPath resolved $configurationName must not contain $forbiddenModuleIds")
+					appendLine("Actual forbidden modules: $violations")
 				}
 			}
 		}
@@ -188,6 +240,64 @@ val verifyStructure by tasks.registering {
 				":infrastructure-jpa-crawler",
 				":recommendation-core",
 				":recommendation-contract",
+			),
+		)
+
+		assertResolvedProjectDependencies(
+			rule = "web runtime classpath must contain only web runtime project modules",
+			projectPath = ":web-app",
+			configurationName = "runtimeClasspath",
+			expectedProjectPaths = setOf(
+				":application",
+				":recommendation-contract",
+				":recommendation-core",
+				":infrastructure-jpa",
+				":infrastructure-jpa-core",
+				":persistence-model",
+				":laptop-taxonomy",
+				":persistence-model-web",
+				":infrastructure-security",
+				":infrastructure-flyway",
+			),
+		)
+
+		assertResolvedProjectDependencies(
+			rule = "crawler runtime classpath must contain only crawler runtime project modules",
+			projectPath = ":crawler-job",
+			configurationName = "runtimeClasspath",
+			expectedProjectPaths = setOf(
+				":application-crawler",
+				":laptop-taxonomy",
+				":recommendation-contract",
+				":recommendation-core",
+				":infrastructure-jpa-crawler",
+				":persistence-model",
+				":persistence-model-crawler",
+				":infrastructure-jpa-core",
+			),
+		)
+
+		assertResolvedModulesAbsent(
+			rule = "web runtime classpath must not carry crawler-only libraries",
+			projectPath = ":web-app",
+			configurationName = "runtimeClasspath",
+			forbiddenModuleIds = setOf(
+				"org.jsoup:jsoup",
+			),
+		)
+
+		assertResolvedModulesAbsent(
+			rule = "crawler runtime classpath must stay non-web and migration-free",
+			projectPath = ":crawler-job",
+			configurationName = "runtimeClasspath",
+			forbiddenModuleIds = setOf(
+				"org.springframework.boot:spring-boot-starter-web",
+				"org.springframework.boot:spring-boot-starter-tomcat",
+				"org.apache.tomcat.embed:tomcat-embed-core",
+				"org.springframework:spring-webmvc",
+				"org.thymeleaf:thymeleaf-spring6",
+				"org.flywaydb:flyway-core",
+				"org.flywaydb:flyway-database-postgresql",
 			),
 		)
 
