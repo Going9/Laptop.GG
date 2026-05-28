@@ -20,7 +20,7 @@ class TrackCrawlerRunServiceTest {
         val started = service.start(filterProfile = "core", startPage = 1, limit = 10)
 
         val finished = service.finish(
-            runId = started.id!!,
+            runId = started.id,
             summary = CrawlerRunSummary(
                 processedCount = 10,
                 createdCount = 4,
@@ -32,7 +32,7 @@ class TrackCrawlerRunServiceTest {
             status = CrawlerRunCompletionStatus.SUCCEEDED,
         )
 
-        val persisted = crawlerRunPort.snapshot(started.id!!)
+        val persisted = crawlerRunPort.snapshot(started.id)
         assertThat(finished.status).isEqualTo(CrawlerRunStatusResult.SUCCEEDED)
         assertThat(persisted.status).isEqualTo(CrawlerRunStatusResult.SUCCEEDED)
         assertThat(persisted.processedCount).isEqualTo(10)
@@ -46,9 +46,9 @@ class TrackCrawlerRunServiceTest {
     fun `fail explicitly saves failed crawler run through port`() {
         val started = service.start(filterProfile = "core", startPage = 1, limit = null)
 
-        val failed = service.fail(started.id!!, IllegalStateException("network timeout"))
+        val failed = service.fail(started.id, IllegalStateException("network timeout"))
 
-        val persisted = crawlerRunPort.snapshot(started.id!!)
+        val persisted = crawlerRunPort.snapshot(started.id)
         assertThat(failed.status).isEqualTo(CrawlerRunStatusResult.FAILED)
         assertThat(persisted.status).isEqualTo(CrawlerRunStatusResult.FAILED)
         assertThat(persisted.errorMessage).isEqualTo("network timeout")

@@ -10,3 +10,5 @@ class ResourceNotFoundException(
 class InvalidCommandException(message: String) : ApplicationException(message)
 
 class AuthenticationFailedException(message: String) : ApplicationException(message)
+
+class ApplicationInvalidStateException(message: String) : ApplicationException(message)

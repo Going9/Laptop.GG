@@ -1,5 +1,6 @@
 package going9.laptopgg.web.controller
 
+import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.ApplicationException
 import going9.laptopgg.application.common.AuthenticationFailedException
 import going9.laptopgg.application.common.InvalidCommandException
@@ -63,6 +64,12 @@ private data class WebErrorDescriptor(
                     code = "forbidden",
                     title = "요청을 처리할 권한이 없습니다",
                     message = "비밀번호 또는 요청 권한을 확인해 주세요.",
+                )
+                is ApplicationInvalidStateException -> WebErrorDescriptor(
+                    status = HttpStatus.INTERNAL_SERVER_ERROR,
+                    code = "internal_error",
+                    title = "일시적인 문제가 발생했습니다",
+                    message = "잠시 뒤 다시 시도해 주세요.",
                 )
             }
         }

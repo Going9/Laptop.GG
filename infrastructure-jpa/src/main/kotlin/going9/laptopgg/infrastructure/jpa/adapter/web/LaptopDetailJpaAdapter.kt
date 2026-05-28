@@ -1,5 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
+import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.laptop.port.LaptopDetailRecord
 import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.persistence.model.laptop.Laptop
@@ -16,7 +17,7 @@ internal class LaptopDetailJpaAdapter(
 
     private fun Laptop.toDetailRecord(): LaptopDetailRecord {
         return LaptopDetailRecord(
-            id = requireNotNull(id) { "Persisted laptop id must not be null." },
+            id = id ?: throw ApplicationInvalidStateException("Persisted laptop id must not be null."),
             name = name,
             imageUrl = imageUrl,
             detailPage = detailPage,

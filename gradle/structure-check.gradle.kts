@@ -326,6 +326,7 @@ val verifyStructure by tasks.registering {
 				"web-app/src/main/kotlin/going9/laptopgg/web/controller/WebExceptionHandler.kt",
 				"web-app/src/main/resources/templates/error/application-error.html",
 				"web-app/src/test/kotlin/going9/laptopgg/LaptopGgApplicationTests.kt",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/WebExceptionHandlerTest.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/comment/ManageCommentUseCaseTest.kt",
 			),
 			patterns = listOf(
@@ -333,16 +334,19 @@ val verifyStructure by tasks.registering {
 				Regex("""class ResourceNotFoundException"""),
 				Regex("""class InvalidCommandException"""),
 				Regex("""class AuthenticationFailedException"""),
+				Regex("""class ApplicationInvalidStateException"""),
 				Regex("""@ControllerAdvice"""),
 				Regex("""@ExceptionHandler\(ApplicationException::class\)"""),
 				Regex("""HttpStatus\.NOT_FOUND"""),
 				Regex("""HttpStatus\.BAD_REQUEST"""),
 				Regex("""HttpStatus\.FORBIDDEN"""),
+				Regex("""HttpStatus\.INTERNAL_SERVER_ERROR"""),
 				Regex("""request\.requestURI\.startsWith\("/api/"\)"""),
 				Regex("""ModelAndView"""),
 				Regex("""error/application-error"""),
 				Regex("""web api maps missing application resources to 404 response"""),
 				Regex("""web api maps invalid application commands to 400 response"""),
+				Regex("""web api maps invalid application state to 500 response"""),
 				Regex("""web page maps missing application resources to html error page"""),
 				Regex("""add rejects blank comment fields before persistence"""),
 			),
@@ -354,10 +358,13 @@ val verifyStructure by tasks.registering {
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/LaptopDetailJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/RecommendationCandidateJpaAdapter.kt",
 			),
 			patterns = listOf(
 				Regex("""IllegalArgumentException"""),
 				Regex("""require\("""),
+				Regex("""requireNotNull"""),
 			),
 		)
 
@@ -423,8 +430,34 @@ val verifyStructure by tasks.registering {
 				Regex("""sealed class CrawlerApplicationException"""),
 				Regex("""class CrawlerResourceNotFoundException"""),
 				Regex("""class CrawlerInvalidCommandException"""),
+				Regex("""class CrawlerInvalidStateException"""),
 				Regex("""saveListSnapshot rejects missing existing laptop with explicit crawler error"""),
 				Regex("""finish rejects missing crawler run with explicit crawler error"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler run persistence state and use case result must expose a persisted non-null id",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapterTest.kt",
+			),
+			patterns = listOf(
+				Regex("""data class CrawlerRunState\(\s+val id: Long,"""),
+				Regex("""data class CrawlerRunRecord\(\s+val id: Long,"""),
+				Regex("""CrawlerInvalidStateException"""),
+				Regex("""Persisted crawler run id must not be null"""),
+				Regex("""create rejects saved crawler run without generated id with explicit crawler error"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler job runner must rely on tracked run id contract instead of local null checks",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt"),
+			patterns = listOf(
+				Regex("""requireNotNull\(crawlerRun\.id\)"""),
+				Regex("""crawlerRun\.id!!"""),
 			),
 		)
 

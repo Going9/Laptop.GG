@@ -1,5 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
+import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateRecord
@@ -37,8 +38,9 @@ internal class RecommendationCandidateJpaAdapter(
     }
 
     private fun LaptopProfile.toRecommendationCandidateRecord(): RecommendationCandidateRecord {
-        val laptopId = requireNotNull(laptop.id) { "Persisted laptop id must not be null." }
-        val laptopPrice = requireNotNull(laptop.price) { "Recommendation candidate price must not be null." }
+        val laptopId = laptop.id ?: throw ApplicationInvalidStateException("Persisted laptop id must not be null.")
+        val laptopPrice = laptop.price
+            ?: throw ApplicationInvalidStateException("Recommendation candidate price must not be null.")
         return RecommendationCandidateRecord(
             id = laptopId,
             name = laptop.name,

@@ -8,3 +8,5 @@ class CrawlerResourceNotFoundException(
 ) : CrawlerApplicationException("$resourceName not found: $resourceId")
 
 class CrawlerInvalidCommandException(message: String) : CrawlerApplicationException(message)
+
+class CrawlerInvalidStateException(message: String) : CrawlerApplicationException(message)

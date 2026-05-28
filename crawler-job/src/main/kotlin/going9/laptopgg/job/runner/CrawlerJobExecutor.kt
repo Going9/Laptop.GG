@@ -44,7 +44,7 @@ internal class CrawlerJobExecutor(
             startPage = request.startPage,
             limit = request.limit,
         )
-        val runId = requireNotNull(crawlerRun.id)
+        val runId = crawlerRun.id
 
         return runCatching {
             val summary = crawlerService.crawlAll(

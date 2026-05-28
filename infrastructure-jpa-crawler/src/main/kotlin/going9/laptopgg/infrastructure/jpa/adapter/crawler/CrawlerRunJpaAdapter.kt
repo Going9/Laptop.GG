@@ -1,5 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.run.CreateCrawlerRunCommand
 import going9.laptopgg.application.crawler.run.CrawlerRunState
 import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
@@ -57,7 +58,7 @@ internal class CrawlerRunJpaAdapter(
 
     private fun CrawlerRun.toState(): CrawlerRunState {
         return CrawlerRunState(
-            id = id,
+            id = id ?: throw CrawlerInvalidStateException("Persisted crawler run id must not be null."),
             status = when (status) {
                 CrawlerRunStatus.RUNNING -> CrawlerRunStatusResult.RUNNING
                 CrawlerRunStatus.SUCCEEDED -> CrawlerRunStatusResult.SUCCEEDED

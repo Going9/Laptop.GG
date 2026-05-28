@@ -30,12 +30,12 @@ data class UpdateCrawlerRunCommand(
 )
 
 data class CrawlerRunState(
-    val id: Long?,
+    val id: Long,
     val status: CrawlerRunStatusResult,
 )
 
 data class CrawlerRunRecord(
-    val id: Long?,
+    val id: Long,
     val status: CrawlerRunStatusResult,
 )
 
