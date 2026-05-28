@@ -20,15 +20,7 @@ class CrawlerService(
         val filterProfile = crawlSourceResolver.resolveFilterProfile(filterProfileRaw)
         val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
         val seenDetailPages = linkedSetOf<String>()
-        var processedCount = 0
-        var createdCount = 0
-        var updatedCount = 0
-        var degradedCount = 0
-        var priceOnlyUpdatedCount = 0
-        var detailRefreshCount = 0
-        val degradedSamples = mutableListOf<String>()
-        var failedCount = 0
-        val failureSamples = mutableListOf<String>()
+        val progress = CrawlProgress()
         var reachedLimit = false
         var hitMaxListPages = false
 
@@ -91,13 +83,13 @@ class CrawlerService(
                             0
                         }
 
-                        val remainingQuota = limit?.let { (it - processedCount).coerceAtLeast(0) }
+                        val remainingQuota = progress.remainingQuota(limit)
                         if (remainingQuota == 0) {
                             break
                         }
 
                         val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
-                        processedCount += candidateProductCards.size
+                        progress.recordProcessed(candidateProductCards.size)
                         var pagePriceOnlyUpdatedCount = 0
 
                         val existingLookup = saveCrawledLaptopUseCase.loadExistingLookup(candidateProductCards.map { it.toCommand() })
@@ -107,19 +99,12 @@ class CrawlerService(
                             val existingLaptop = existingLookup.find(productCard.toCommand())
                             if (existingLaptop != null && !DetailRefreshPolicy.needsRefresh(existingLaptop)) {
                                 try {
-                                    when (saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand())) {
-                                        SaveResult.UPDATED -> {
-                                            updatedCount++
-                                            priceOnlyUpdatedCount++
-                                            pagePriceOnlyUpdatedCount++
-                                        }
-                                        SaveResult.UNCHANGED -> Unit
-                                        SaveResult.CREATED -> Unit
+                                    val saveResult = saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand())
+                                    if (progress.recordPriceOnlySaveResult(saveResult)) {
+                                        pagePriceOnlyUpdatedCount++
                                     }
                                 } catch (e: Exception) {
-                                    failedCount++
-                                    recordSample(
-                                        samples = failureSamples,
+                                    progress.recordFailure(
                                         productCard = productCard,
                                         reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
                                     )
@@ -138,7 +123,7 @@ class CrawlerService(
                             }
                         }
 
-                        detailRefreshCount += detailRefreshWorkItems.size
+                        progress.recordDetailRefresh(detailRefreshWorkItems.size)
                         val detailRefreshOutcomes = detailCrawler.fetchDetailRefreshOutcomes(detailRefreshWorkItems, detailFetchExecutor)
 
                         for (detailRefreshOutcome in detailRefreshOutcomes) {
@@ -148,9 +133,7 @@ class CrawlerService(
                                 val buildResult = detailRefreshOutcome.buildResult
                                 if (buildResult != null) {
                                     if (buildResult.isDegraded) {
-                                        degradedCount++
-                                        recordSample(
-                                            samples = degradedSamples,
+                                        progress.recordDegraded(
                                             productCard = productCard,
                                             reason = buildResult.degradationReasons.joinToString(" | "),
                                         )
@@ -162,30 +145,19 @@ class CrawlerService(
                                         )
                                     }
 
-                                    when (saveCrawledLaptopUseCase.saveOrUpdateLaptop(buildResult.command, existingLaptop?.id)) {
-                                        SaveResult.CREATED -> createdCount++
-                                        SaveResult.UPDATED -> updatedCount++
-                                        SaveResult.UNCHANGED -> Unit
-                                    }
+                                    progress.recordSaveResult(saveCrawledLaptopUseCase.saveOrUpdateLaptop(buildResult.command, existingLaptop?.id))
                                     continue
                                 }
 
                                 if (existingLaptop != null) {
-                                    when (saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand())) {
-                                        SaveResult.UPDATED -> {
-                                            updatedCount++
-                                            priceOnlyUpdatedCount++
-                                            pagePriceOnlyUpdatedCount++
-                                        }
-                                        SaveResult.UNCHANGED -> Unit
-                                        SaveResult.CREATED -> Unit
+                                    val saveResult = saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand())
+                                    if (progress.recordPriceOnlySaveResult(saveResult)) {
+                                        pagePriceOnlyUpdatedCount++
                                     }
                                 }
 
                                 val error = detailRefreshOutcome.error
-                                failedCount++
-                                recordSample(
-                                    samples = failureSamples,
+                                progress.recordFailure(
                                     productCard = productCard,
                                     reason = error?.message ?: error?.javaClass?.simpleName ?: "알 수 없는 오류",
                                 )
@@ -196,9 +168,7 @@ class CrawlerService(
                                     error,
                                 )
                             } catch (e: Exception) {
-                                failedCount++
-                                recordSample(
-                                    samples = failureSamples,
+                                progress.recordFailure(
                                     productCard = productCard,
                                     reason = e.message ?: e::class.simpleName ?: "알 수 없는 오류",
                                 )
@@ -206,7 +176,7 @@ class CrawlerService(
                             }
                         }
 
-                        if (limit != null && processedCount >= limit) {
+                        if (progress.reachedLimit(limit)) {
                             reachedLimit = true
                         }
 
@@ -235,8 +205,8 @@ class CrawlerService(
                             "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / source=${crawlSource.key} / page=${currentPage} / " +
                                 "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${candidateProductCards.size}개 / " +
                                 "상세 재수집: ${detailRefreshWorkItems.size}개 / 중복 스킵: ${duplicateSkippedCount}개 / " +
-                                "가격만 갱신(페이지): ${pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${priceOnlyUpdatedCount}개 / " +
-                                "누적 처리: ${processedCount}개 / 누적 열화: ${degradedCount}개 / 누적 실패: ${failedCount}개",
+                                "가격만 갱신(페이지): ${pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${progress.priceOnlyUpdatedCount}개 / " +
+                                "누적 처리: ${progress.processedCount}개 / 누적 열화: ${progress.degradedCount}개 / 누적 실패: ${progress.failedCount}개",
                         )
 
                         if (reachedLimit) {
@@ -296,7 +266,7 @@ class CrawlerService(
                 }
             }
 
-            if (!reachedLimit && crawlSources.isNotEmpty() && processedCount > 0) {
+            if (!reachedLimit && crawlSources.isNotEmpty() && progress.processedCount > 0) {
                 logger.info("모든 크롤 소스를 순회했습니다. filterProfile={}", filterProfile.name.lowercase())
             }
 
@@ -306,39 +276,19 @@ class CrawlerService(
 
             logger.info(
                 "크롤링 최종 요약: processedCount={}, createdCount={}, updatedCount={}, detailRefreshCount={}, priceOnlyUpdatedCount={}, degradedCount={}, failedCount={}",
-                processedCount,
-                createdCount,
-                updatedCount,
-                detailRefreshCount,
-                priceOnlyUpdatedCount,
-                degradedCount,
-                failedCount,
+                progress.processedCount,
+                progress.createdCount,
+                progress.updatedCount,
+                progress.detailRefreshCount,
+                progress.priceOnlyUpdatedCount,
+                progress.degradedCount,
+                progress.failedCount,
             )
 
-            return CrawlSummary(
-                processedCount = processedCount,
-                createdCount = createdCount,
-                updatedCount = updatedCount,
-                degradedCount = degradedCount,
-                degradedSamples = degradedSamples.toList(),
-                failedCount = failedCount,
-                failureSamples = failureSamples.toList(),
-            )
+            return progress.toSummary()
         } finally {
             detailFetchExecutor.shutdown()
         }
-    }
-
-    private fun recordSample(
-        samples: MutableList<String>,
-        productCard: ProductCard,
-        reason: String,
-    ) {
-        if (samples.size >= MAX_FAILURE_SAMPLES) {
-            return
-        }
-
-        samples += "${productCard.productCode} | ${productCard.productName} | $reason"
     }
 
     internal fun shouldStopAtDuplicateTail(
@@ -370,7 +320,6 @@ class CrawlerService(
     }
 
     companion object {
-        private const val MAX_FAILURE_SAMPLES = 10
         private const val MAX_LIST_PAGES = 5000
         private const val MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES = 5
         private const val DETAIL_FETCH_CONCURRENCY = 6

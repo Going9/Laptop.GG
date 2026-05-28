@@ -547,6 +547,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler orchestration must not own progress counters and samples",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			patterns = listOf(
+				Regex("""var\s+(processedCount|createdCount|updatedCount|degradedCount|priceOnlyUpdatedCount|detailRefreshCount|failedCount)"""),
+				Regex("""degradedSamples"""),
+				Regex("""failureSamples"""),
+				Regex("""fun\s+recordSample"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(
