@@ -85,8 +85,8 @@ jobs:
           sudo apt-get install -y postgresql-client
           pg_isready -h 127.0.0.1 -p 5433 -U "${SPRING_DATASOURCE_USERNAME}" -d "${{ secrets.CRAWLER_DB_NAME }}"
 
-      - name: Build crawler jar
-        run: ./gradlew --no-daemon :crawler-job:bootJar
+      - name: Test and build crawler jar
+        run: ./gradlew --no-daemon :crawler-job:test :crawler-job:bootJar
 
       - name: Run crawler
         run: |
