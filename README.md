@@ -70,10 +70,11 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 ```
 
 웹 앱은 사용자 화면과 추천/상세/댓글 API만 실행합니다. 크롤링은 아래 `crawler-job` 명령으로 별도 실행합니다.
+`application`은 domain/JPA entity를 노출하지 않는 application record 계약만 사용하고, 실제 entity 매핑은 JPA adapter에서 처리합니다.
 `web-app`은 web use case bean을 명시적으로 조립하며, `application-crawler`와 crawler JPA adapter는 classpath에 올리지 않습니다.
 `crawler-job`은 Danawa 수집과 application-crawler command 변환만 담당하며, domain entity 조립과 저장 트랜잭션은 application-crawler use case가 처리합니다.
 추천 use-case enum과 점수 정책은 `recommendation-core`에 두어 web 추천 계산과 crawler 점수 projection이 같은 정책을 공유합니다.
-크롤러 저장/이력/추천 점수 port는 `application-crawler`에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
+크롤러 저장/이력/추천 점수/중복 실행 lock port는 `application-crawler`에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
 shared repository와 Flyway 마이그레이션은 `infrastructure-jpa-core`에 있어 web/crawler 런타임이 서로의 adapter 모듈을 끌어오지 않습니다.
 
 주의:
