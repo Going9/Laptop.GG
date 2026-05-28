@@ -536,6 +536,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler orchestration must not own filter profile source mapping",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			patterns = listOf(
+				Regex("""fun\s+resolveFilterProfile"""),
+				Regex("""fun\s+resolveCrawlSources"""),
+				Regex("""CrawlerFilterSets"""),
+				Regex("""APPLE_MACBOOK_LIST_URL"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(

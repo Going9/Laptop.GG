@@ -18,6 +18,7 @@ class CrawlerServiceNormalizationTest {
         listPageCrawler = ListPageCrawler(danawaClient),
         detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
         laptopSnapshotMerger = laptopSnapshotMerger,
+        crawlSourceResolver = CrawlSourceResolver(),
     )
 
     @Test

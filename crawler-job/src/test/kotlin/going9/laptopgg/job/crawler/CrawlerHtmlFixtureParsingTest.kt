@@ -10,11 +10,13 @@ import org.mockito.Mockito.mock
 class CrawlerHtmlFixtureParsingTest {
     private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver(), CrawledGraphicsModelResolver())
     private val danawaClient = DanawaClient()
+    private val crawlSourceResolver = CrawlSourceResolver()
     private val crawlerService = CrawlerService(
         saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),
         listPageCrawler = ListPageCrawler(danawaClient),
         detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
         laptopSnapshotMerger = laptopSnapshotMerger,
+        crawlSourceResolver = crawlSourceResolver,
     )
 
     @Test
@@ -203,18 +205,6 @@ class CrawlerHtmlFixtureParsingTest {
     }
 
     @Test
-    fun `core filter profile resolves codename source plus apple source`() {
-        val crawlSources = crawlerService.resolveCrawlSources(FilterProfile.CORE)
-
-        assertThat(crawlSources).hasSize(2)
-        assertThat(crawlSources.first().key).isEqualTo("notebook-core-codename")
-        assertThat(crawlSources.first().attributeFilters.map { it.name })
-            .contains("팬서레이크", "고르곤 포인트", "오라이온")
-        assertThat(crawlSources.last().key).isEqualTo("apple-macbook")
-        assertThat(crawlSources.last().attributeFilters).isEmpty()
-    }
-
-    @Test
     fun `list request form data keeps repeated cpu codename filters`() {
         val context = ListRequestContext(
             searchAttributeValues = listOf(
@@ -231,14 +221,6 @@ class CrawlerHtmlFixtureParsingTest {
                 "searchAttributeValue[]" to "758|6492|1137658|OR",
                 "searchAttributeValue[]" to "758|6492|1137661|OR",
             )
-    }
-
-    @Test
-    fun `unknown filter profile falls back to core`() {
-        assertThat(crawlerService.resolveFilterProfile("weird-profile"))
-            .isEqualTo(FilterProfile.CORE)
-        assertThat(crawlerService.resolveFilterProfile("none"))
-            .isEqualTo(FilterProfile.NONE)
     }
 
     private fun readFixture(path: String): String {
