@@ -131,16 +131,16 @@ jobs:
           APP_ARGS="--spring.profiles.active=${SPRING_PROFILES_ACTIVE}"
 
           if [ -n "${CRAWLER_LIMIT}" ]; then
-            if ! printf '%s' "${CRAWLER_LIMIT}" | grep -Eq '^[0-9]+$'; then
-              echo "CRAWLER_LIMIT must be a number like 100. Do not enter limit=100." >&2
+            if ! printf '%s' "${CRAWLER_LIMIT}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_LIMIT must be a positive number like 100. Do not enter limit=100." >&2
               exit 1
             fi
             APP_ARGS="${APP_ARGS} --app.crawler.limit=${CRAWLER_LIMIT}"
           fi
 
           if [ -n "${CRAWLER_START_PAGE}" ]; then
-            if ! printf '%s' "${CRAWLER_START_PAGE}" | grep -Eq '^[0-9]+$'; then
-              echo "CRAWLER_START_PAGE must be a number like 15." >&2
+            if ! printf '%s' "${CRAWLER_START_PAGE}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_START_PAGE must be a positive number like 15." >&2
               exit 1
             fi
             APP_ARGS="${APP_ARGS} --app.crawler.start-page=${CRAWLER_START_PAGE}"
@@ -158,16 +158,16 @@ jobs:
           fi
 
           if [ -n "${CRAWLER_MAX_LIST_PAGES}" ]; then
-            if ! printf '%s' "${CRAWLER_MAX_LIST_PAGES}" | grep -Eq '^[0-9]+$'; then
-              echo "CRAWLER_MAX_LIST_PAGES must be a number like 5000." >&2
+            if ! printf '%s' "${CRAWLER_MAX_LIST_PAGES}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_MAX_LIST_PAGES must be a positive number like 5000." >&2
               exit 1
             fi
             APP_ARGS="${APP_ARGS} --app.crawler.max-list-pages=${CRAWLER_MAX_LIST_PAGES}"
           fi
 
           if [ -n "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" ]; then
-            if ! printf '%s' "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" | grep -Eq '^[0-9]+$'; then
-              echo "CRAWLER_DETAIL_FETCH_CONCURRENCY must be a number like 6." >&2
+            if ! printf '%s' "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_DETAIL_FETCH_CONCURRENCY must be a positive number like 6." >&2
               exit 1
             fi
             if [ "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" -gt 12 ]; then

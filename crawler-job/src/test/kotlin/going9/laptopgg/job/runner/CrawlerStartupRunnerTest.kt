@@ -2,7 +2,9 @@ package going9.laptopgg.job.runner
 
 import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.job.config.CrawlerJobProperties
+import going9.laptopgg.job.config.InvalidCrawlerJobConfigurationException
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class CrawlerStartupRunnerTest {
@@ -41,20 +43,35 @@ class CrawlerStartupRunnerTest {
     }
 
     @Test
-    fun `non positive limit and start page are ignored`() {
+    fun `non positive crawler request settings fail fast`() {
         val properties = CrawlerJobProperties(limit = 0, startPage = -1)
 
-        assertThat(properties.resolvedLimit()).isNull()
-        assertThat(properties.resolvedStartPage()).isEqualTo(1)
+        assertThatThrownBy {
+            properties.resolvedLimit()
+        }
+            .isInstanceOf(InvalidCrawlerJobConfigurationException::class.java)
+            .hasMessage("app.crawler.limit must be positive.")
+        assertThatThrownBy {
+            properties.resolvedStartPage()
+        }
+            .isInstanceOf(InvalidCrawlerJobConfigurationException::class.java)
+            .hasMessage("app.crawler.start-page must be positive.")
     }
 
     @Test
-    fun `non positive crawler tuning values fall back to defaults`() {
+    fun `non positive crawler tuning values fail fast`() {
         val properties = CrawlerJobProperties(maxListPages = 0, detailFetchConcurrency = -1)
 
-        assertThat(properties.resolvedMaxListPages()).isEqualTo(CrawlerJobProperties.DEFAULT_MAX_LIST_PAGES)
-        assertThat(properties.resolvedDetailFetchConcurrency())
-            .isEqualTo(CrawlerJobProperties.DEFAULT_DETAIL_FETCH_CONCURRENCY)
+        assertThatThrownBy {
+            properties.resolvedMaxListPages()
+        }
+            .isInstanceOf(InvalidCrawlerJobConfigurationException::class.java)
+            .hasMessage("app.crawler.max-list-pages must be positive.")
+        assertThatThrownBy {
+            properties.resolvedDetailFetchConcurrency()
+        }
+            .isInstanceOf(InvalidCrawlerJobConfigurationException::class.java)
+            .hasMessage("app.crawler.detail-fetch-concurrency must be positive.")
     }
 
     @Test

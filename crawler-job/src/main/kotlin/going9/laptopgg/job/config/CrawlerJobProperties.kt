@@ -14,11 +14,11 @@ internal data class CrawlerJobProperties(
     val detailFetchConcurrency: Int = DEFAULT_DETAIL_FETCH_CONCURRENCY,
 ) {
     fun resolvedLimit(): Int? {
-        return limit?.takeIf { it > 0 }
+        return limit?.let { requirePositive("app.crawler.limit", it) }
     }
 
     fun resolvedStartPage(): Int {
-        return startPage?.takeIf { it > 0 } ?: 1
+        return startPage?.let { requirePositive("app.crawler.start-page", it) } ?: 1
     }
 
     fun resolvedFilterProfile(): CrawlerFilterProfile {
@@ -30,12 +30,19 @@ internal data class CrawlerJobProperties(
     }
 
     fun resolvedMaxListPages(): Int {
-        return maxListPages.takeIf { it > 0 } ?: DEFAULT_MAX_LIST_PAGES
+        return requirePositive("app.crawler.max-list-pages", maxListPages)
     }
 
     fun resolvedDetailFetchConcurrency(): Int {
-        return (detailFetchConcurrency.takeIf { it > 0 } ?: DEFAULT_DETAIL_FETCH_CONCURRENCY)
+        return requirePositive("app.crawler.detail-fetch-concurrency", detailFetchConcurrency)
             .coerceAtMost(MAX_DETAIL_FETCH_CONCURRENCY)
+    }
+
+    private fun requirePositive(propertyName: String, value: Int): Int {
+        if (value <= 0) {
+            throw InvalidCrawlerJobConfigurationException("$propertyName must be positive.")
+        }
+        return value
     }
 
     companion object {
@@ -45,3 +52,7 @@ internal data class CrawlerJobProperties(
         internal const val MAX_DETAIL_FETCH_CONCURRENCY = 12
     }
 }
+
+internal class InvalidCrawlerJobConfigurationException(
+    message: String,
+) : IllegalStateException(message)
