@@ -13,6 +13,7 @@ internal class LaptopSnapshotMerger(
     private val crawledCpuManufacturerResolver: CrawledCpuManufacturerResolver,
     private val crawledCpuModelResolver: CrawledCpuModelResolver,
     private val crawledGraphicsModelResolver: CrawledGraphicsModelResolver,
+    private val now: () -> LocalDateTime = LocalDateTime::now,
 ) {
     internal fun createCommand(
         productCard: ProductCard,
@@ -67,7 +68,7 @@ internal class LaptopSnapshotMerger(
             storageCapacity = DanawaSpecValueParser.parseCapacityInGb(spec["용량"]) ?: summaryFallback.storageCapacity,
             storageSlotCount = DanawaSpecValueParser.parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,
             weight = DanawaSpecValueParser.parseWeightValue(spec["무게"]) ?: summaryFallback.weight,
-            lastDetailedCrawledAt = LocalDateTime.now(),
+            lastDetailedCrawledAt = now(),
             usages = usages.distinct(),
         )
     }

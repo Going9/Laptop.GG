@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
 class CrawlProductBatchProcessorTest {
+    private val fixedNow = LocalDateTime.of(2026, 5, 28, 15, 10)
     private val saveCrawledLaptopUseCase = Mockito.mock(SaveCrawledLaptopUseCase::class.java)
     private val detailCrawler = Mockito.mock(ProductDetailCrawler::class.java)
     private val snapshotSaver = CrawlProductSnapshotSaver(saveCrawledLaptopUseCase)
@@ -27,6 +28,7 @@ class CrawlProductBatchProcessorTest {
         detailCrawler,
         snapshotSaver,
         detailRefreshOutcomeHandler,
+        now = { fixedNow },
     )
 
     @Test
@@ -112,7 +114,7 @@ class CrawlProductBatchProcessorTest {
             storageCapacity = 512,
             batteryCapacity = 60.0,
             weight = 1.2,
-            lastDetailedCrawledAt = LocalDateTime.now(),
+            lastDetailedCrawledAt = fixedNow,
             usageCount = 1,
         )
     }
@@ -145,7 +147,7 @@ class CrawlProductBatchProcessorTest {
             storageCapacity = 512,
             storageSlotCount = 1,
             weight = 1.2,
-            lastDetailedCrawledAt = LocalDateTime.now(),
+            lastDetailedCrawledAt = fixedNow,
             usages = listOf("사무/인강용"),
         )
     }

@@ -9,16 +9,18 @@ import going9.laptopgg.job.crawler.danawa.list.DanawaListRequestContextParser
 import going9.laptopgg.job.crawler.detail.DetailRefreshPolicy
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.source.CrawlSource
+import java.time.LocalDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class DanawaCrawlerNormalizationTest {
+    private val fixedNow = LocalDateTime.of(2026, 5, 28, 15, 30)
     private val laptopSnapshotMerger = LaptopSnapshotMerger(
         CrawledCpuManufacturerResolver(),
         CrawledCpuModelResolver(),
         CrawledGraphicsModelResolver(),
+        now = { fixedNow },
     )
 
     @Test
@@ -72,6 +74,7 @@ class DanawaCrawlerNormalizationTest {
         )
 
         assertThat(command.tgp).isEqualTo(0)
+        assertThat(command.lastDetailedCrawledAt).isEqualTo(fixedNow)
     }
 
     @Test

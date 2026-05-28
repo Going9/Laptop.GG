@@ -8,10 +8,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class DetailRefreshPlannerTest {
+    private val fixedNow = LocalDateTime.of(2026, 5, 28, 15, 20)
+
     @Test
     fun `fresh complete existing product is planned for price only snapshot`() {
         val productCard = productCard("100")
-        val existingLaptop = existingLaptop(productCard.productCode, lastDetailedCrawledAt = LocalDateTime.now())
+        val existingLaptop = existingLaptop(productCard.productCode, lastDetailedCrawledAt = fixedNow)
 
         val plan = DetailRefreshPlanner.plan(
             productCards = listOf(productCard),
@@ -19,6 +21,7 @@ class DetailRefreshPlannerTest {
                 byProductCode = mapOf(productCard.productCode to existingLaptop),
                 byDetailPage = emptyMap(),
             ),
+            now = fixedNow,
         )
 
         assertThat(plan.priceOnlySnapshotWorkItems.map { it.productCard }).containsExactly(productCard)
@@ -32,6 +35,7 @@ class DetailRefreshPlannerTest {
         val plan = DetailRefreshPlanner.plan(
             productCards = listOf(productCard),
             existingLookup = ExistingCrawledLaptopLookup(byProductCode = emptyMap(), byDetailPage = emptyMap()),
+            now = fixedNow,
         )
 
         assertThat(plan.priceOnlySnapshotWorkItems).isEmpty()
@@ -44,7 +48,7 @@ class DetailRefreshPlannerTest {
         val productCard = productCard("300")
         val existingLaptop = existingLaptop(
             productCode = productCard.productCode,
-            lastDetailedCrawledAt = LocalDateTime.now().minusDays(45),
+            lastDetailedCrawledAt = fixedNow.minusDays(45),
         )
 
         val plan = DetailRefreshPlanner.plan(
@@ -53,6 +57,7 @@ class DetailRefreshPlannerTest {
                 byProductCode = mapOf(productCard.productCode to existingLaptop),
                 byDetailPage = emptyMap(),
             ),
+            now = fixedNow,
         )
 
         assertThat(plan.priceOnlySnapshotWorkItems).isEmpty()

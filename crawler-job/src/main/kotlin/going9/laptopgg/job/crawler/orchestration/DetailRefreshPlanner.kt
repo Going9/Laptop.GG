@@ -6,18 +6,20 @@ import going9.laptopgg.job.crawler.detail.DetailRefreshPolicy
 import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
+import java.time.LocalDateTime
 
 internal object DetailRefreshPlanner {
     fun plan(
         productCards: List<ProductCard>,
         existingLookup: ExistingCrawledLaptopLookup,
+        now: LocalDateTime,
     ): DetailRefreshWorkPlan {
         val priceOnlySnapshotWorkItems = mutableListOf<PriceOnlySnapshotWorkItem>()
         val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
 
         for (productCard in productCards) {
             val existingLaptop = existingLookup.find(productCard.toCommand())
-            if (existingLaptop != null && !DetailRefreshPolicy.needsRefresh(existingLaptop)) {
+            if (existingLaptop != null && !DetailRefreshPolicy.needsRefresh(existingLaptop, now)) {
                 priceOnlySnapshotWorkItems += PriceOnlySnapshotWorkItem(
                     productCard = productCard,
                     existingLaptop = existingLaptop,

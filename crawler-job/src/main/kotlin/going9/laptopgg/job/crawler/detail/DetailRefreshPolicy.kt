@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 internal object DetailRefreshPolicy {
     private const val DETAIL_REFRESH_INTERVAL_DAYS = 30L
 
-    fun needsRefresh(existingLaptop: ExistingCrawledLaptopSnapshot, now: LocalDateTime = LocalDateTime.now()): Boolean {
+    fun needsRefresh(existingLaptop: ExistingCrawledLaptopSnapshot, now: LocalDateTime): Boolean {
         val lastDetailedCrawledAt = existingLaptop.lastDetailedCrawledAt
         return existingLaptop.cpuManufacturer.isNullOrBlank() ||
             existingLaptop.cpu.isNullOrBlank() ||

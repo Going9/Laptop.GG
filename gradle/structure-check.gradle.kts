@@ -2227,6 +2227,35 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler detail refresh planning and snapshot timestamps must use explicit time inputs",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/LaptopSnapshotMerger.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DetailRefreshPolicy.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/DetailRefreshPlanner.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt",
+			),
+			patterns = listOf(
+				Regex("""LocalDateTime\.now\(\)"""),
+				Regex("""needsRefresh\(existingLaptop\)"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler detail timestamp tests must pin crawl time",
+			paths = listOf(
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaCrawlerNormalizationTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration/DetailRefreshPlannerTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessorTest.kt",
+			),
+			patterns = listOf(
+				Regex("""now = \{ fixedNow }"""),
+				Regex("""lastDetailedCrawledAt\)\.isEqualTo\(fixedNow\)"""),
+				Regex("""now = fixedNow"""),
+				Regex("""fixedNow\.minusDays\(45\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(

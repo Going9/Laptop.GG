@@ -5,6 +5,7 @@ import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.detail.ProductDetailCrawler
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
+import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,6 +14,7 @@ internal class CrawlProductBatchProcessor(
     private val detailCrawler: ProductDetailCrawler,
     private val snapshotSaver: CrawlProductSnapshotSaver,
     private val detailRefreshOutcomeHandler: DetailRefreshOutcomeHandler,
+    private val now: () -> LocalDateTime = LocalDateTime::now,
 ) {
     internal fun process(
         productCards: List<ProductCard>,
@@ -26,7 +28,7 @@ internal class CrawlProductBatchProcessor(
 
         var pagePriceOnlyUpdatedCount = 0
         val existingLookup = saveCrawledLaptopUseCase.loadExistingLookup(productCards.map { it.toCommand() })
-        val workPlan = DetailRefreshPlanner.plan(productCards, existingLookup)
+        val workPlan = DetailRefreshPlanner.plan(productCards, existingLookup, now())
 
         for (workItem in workPlan.priceOnlySnapshotWorkItems) {
             pagePriceOnlyUpdatedCount += snapshotSaver.saveListSnapshot(workItem.existingLaptop.id, workItem.productCard, progress)
