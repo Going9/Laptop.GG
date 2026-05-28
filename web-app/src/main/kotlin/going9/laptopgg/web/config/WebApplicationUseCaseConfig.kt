@@ -2,6 +2,7 @@ package going9.laptopgg.web.config
 
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
+import going9.laptopgg.application.port.out.ApplicationTransactionPort
 import going9.laptopgg.application.port.out.CommentPort
 import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.application.port.out.LaptopProfilePort
@@ -18,17 +19,25 @@ class WebApplicationUseCaseConfig {
         commentPort: CommentPort,
         laptopPort: LaptopPort,
         passwordHashPort: PasswordHashPort,
+        transactionPort: ApplicationTransactionPort,
     ): ManageCommentUseCase {
         return ManageCommentUseCase(
             commentPort = commentPort,
             laptopPort = laptopPort,
             passwordHashPort = passwordHashPort,
+            transactionPort = transactionPort,
         )
     }
 
     @Bean
-    fun getLaptopDetailUseCase(laptopPort: LaptopPort): GetLaptopDetailUseCase {
-        return GetLaptopDetailUseCase(laptopPort)
+    fun getLaptopDetailUseCase(
+        laptopPort: LaptopPort,
+        transactionPort: ApplicationTransactionPort,
+    ): GetLaptopDetailUseCase {
+        return GetLaptopDetailUseCase(
+            laptopPort = laptopPort,
+            transactionPort = transactionPort,
+        )
     }
 
     @Bean

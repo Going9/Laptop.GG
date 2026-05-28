@@ -2,15 +2,17 @@ package going9.laptopgg.application.laptop
 
 import going9.laptopgg.application.port.out.LaptopDetailRecord
 import going9.laptopgg.application.port.out.LaptopPort
-import org.springframework.transaction.annotation.Transactional
+import going9.laptopgg.application.port.out.ApplicationTransactionPort
 
-@Transactional(readOnly = true)
 class GetLaptopDetailUseCase(
     private val laptopPort: LaptopPort,
+    private val transactionPort: ApplicationTransactionPort,
 ) {
     fun get(laptopId: Long): LaptopDetailResult {
-        val laptop = laptopPort.findDetailById(laptopId) ?: throw IllegalArgumentException("Laptop not found: $laptopId")
-        return laptop.toResult()
+        return transactionPort.read {
+            val laptop = laptopPort.findDetailById(laptopId) ?: throw IllegalArgumentException("Laptop not found: $laptopId")
+            laptop.toResult()
+        }
     }
 
     private fun LaptopDetailRecord.toResult(): LaptopDetailResult {

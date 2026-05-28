@@ -160,6 +160,9 @@ val verifyStructure by tasks.registering {
 				Regex("""spring-boot-starter-data-jpa"""),
 				Regex("""spring-security-crypto"""),
 				Regex("""org\.springframework\.security"""),
+				Regex("""org\.springframework\.transaction"""),
+				Regex("""@Transactional"""),
+				Regex("""spring-tx"""),
 				Regex("""com\.h2database"""),
 			),
 		)
@@ -808,7 +811,7 @@ subprojects {
 		apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	}
 
-	if (name in setOf("application", "infrastructure-jpa", "infrastructure-jpa-crawler", "infrastructure-security", "integration-tests", "web-app", "crawler-job")) {
+	if (name in setOf("infrastructure-jpa", "infrastructure-jpa-crawler", "infrastructure-security", "integration-tests", "web-app", "crawler-job")) {
 		apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 	}
 
