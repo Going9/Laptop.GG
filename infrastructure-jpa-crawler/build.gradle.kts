@@ -1,6 +1,7 @@
 dependencies {
     implementation(project(":application-crawler"))
     implementation(project(":persistence-model"))
+    implementation(project(":persistence-model-crawler"))
     implementation(project(":infrastructure-jpa-core"))
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")

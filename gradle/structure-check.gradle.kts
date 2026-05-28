@@ -123,14 +123,16 @@ val verifyStructure by tasks.registering {
 		mapOf(
 			":laptop-taxonomy" to emptySet(),
 			":persistence-model" to emptySet(),
+			":persistence-model-web" to emptySet(),
+			":persistence-model-crawler" to emptySet(),
 			":recommendation-contract" to emptySet(),
 			":recommendation-core" to emptySet(),
 			":application" to setOf(":recommendation-core"),
 			":application-crawler" to setOf(":recommendation-core"),
 			":infrastructure-jpa-core" to emptySet(),
 			":infrastructure-flyway" to emptySet(),
-			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":infrastructure-jpa-core"),
-			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":infrastructure-jpa-core"),
+			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":persistence-model-web", ":infrastructure-jpa-core"),
+			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":persistence-model-crawler", ":infrastructure-jpa-core"),
 			":infrastructure-security" to setOf(":application"),
 			":web-app" to setOf(":application", ":infrastructure-jpa", ":infrastructure-security", ":recommendation-contract"),
 			":crawler-job" to setOf(":application-crawler", ":infrastructure-jpa-crawler"),
@@ -147,6 +149,8 @@ val verifyStructure by tasks.registering {
 		mapOf(
 			":laptop-taxonomy" to emptySet(),
 			":persistence-model" to setOf(":laptop-taxonomy"),
+			":persistence-model-web" to setOf(":persistence-model"),
+			":persistence-model-crawler" to setOf(":persistence-model"),
 			":recommendation-contract" to emptySet(),
 			":recommendation-core" to setOf(":recommendation-contract"),
 			":application" to setOf(":recommendation-contract"),
@@ -177,6 +181,8 @@ val verifyStructure by tasks.registering {
 				":application-crawler",
 				":laptop-taxonomy",
 				":persistence-model",
+				":persistence-model-web",
+				":persistence-model-crawler",
 				":infrastructure-jpa",
 				":infrastructure-jpa-core",
 				":infrastructure-jpa-crawler",
@@ -326,6 +332,8 @@ val verifyStructure by tasks.registering {
 			rule = "legacy domain persistence namespace must not return",
 			paths = listOf(
 				"persistence-model/src/main",
+				"persistence-model-web/src/main",
+				"persistence-model-crawler/src/main",
 				"infrastructure-jpa-core/src/main",
 				"infrastructure-jpa/src/main",
 				"infrastructure-jpa-crawler/src/main",
@@ -356,8 +364,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "persistence-model must not depend on recommendation scoring policy",
-			paths = listOf("persistence-model/src/main", "persistence-model/build.gradle.kts"),
+			rule = "persistence model modules must not depend on recommendation scoring policy",
+			paths = listOf(
+				"persistence-model/src/main",
+				"persistence-model/build.gradle.kts",
+				"persistence-model-web/src/main",
+				"persistence-model-web/build.gradle.kts",
+				"persistence-model-crawler/src/main",
+				"persistence-model-crawler/build.gradle.kts",
+			),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.recommendation"""),
 				Regex("""project\(":recommendation-core"\)"""),
@@ -367,7 +382,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "JPA entities must not own lifecycle timestamp defaults",
-			paths = listOf("persistence-model/src/main"),
+			paths = listOf("persistence-model/src/main", "persistence-model-web/src/main", "persistence-model-crawler/src/main"),
 			patterns = listOf(
 				Regex("""LocalDateTime\.now\(\)"""),
 				Regex("""LocalDateTime::now"""),
@@ -400,7 +415,7 @@ val verifyStructure by tasks.registering {
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactory.kt",
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
-				"persistence-model/src/main/kotlin/going9/laptopgg/persistence/model/crawler/CrawlerRun.kt",
+				"persistence-model-crawler/src/main/kotlin/going9/laptopgg/persistence/model/crawler/CrawlerRun.kt",
 				"infrastructure-flyway/src/main/resources/db/migration/V10__crawler_run_observability_counts.sql",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobSummaryLogger.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
@@ -595,7 +610,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "JPA entities must not be Kotlin data classes",
-			paths = listOf("persistence-model/src/main"),
+			paths = listOf("persistence-model/src/main", "persistence-model-web/src/main", "persistence-model-crawler/src/main"),
 			patterns = listOf(
 				Regex("""data\s+class\s+(CrawlerRun|Laptop|LaptopPriceHistory|LaptopProfile|LaptopUsage|RecommendationScore|Comment)\b"""),
 			),
@@ -603,7 +618,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "JPA to-one associations must explicitly avoid default eager fetching",
-			paths = listOf("persistence-model/src/main"),
+			paths = listOf("persistence-model/src/main", "persistence-model-web/src/main", "persistence-model-crawler/src/main"),
 			patterns = listOf(
 				Regex("""@ManyToOne\s*$"""),
 				Regex("""@ManyToOne\(\s*\)"""),
@@ -615,7 +630,7 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "comment persistence must enforce required application fields",
 			paths = listOf(
-				"persistence-model/src/main/kotlin/going9/laptopgg/persistence/model/web/Comment.kt",
+				"persistence-model-web/src/main/kotlin/going9/laptopgg/persistence/model/web/Comment.kt",
 				"infrastructure-flyway/src/main/resources/db/migration/V9__comment_required_fields.sql",
 			),
 			patterns = listOf(
@@ -772,6 +787,7 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.crawler"""),
 				Regex("""going9\.laptopgg\.dto"""),
 				Regex("""project\(":persistence-model"\)"""),
+				Regex("""project\(":persistence-model-(web|crawler)"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
@@ -932,6 +948,7 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.(comment|common|laptop|recommendation)\.port"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":persistence-model"\)"""),
+				Regex("""project\(":persistence-model-(web|crawler)"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""project\(":web-app"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
@@ -1392,6 +1409,7 @@ val verifyStructure by tasks.registering {
 				Regex("""EntityScan"""),
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""project\(":persistence-model"\)"""),
+				Regex("""project\(":persistence-model-(web|crawler)"\)"""),
 			),
 		)
 
@@ -1427,6 +1445,7 @@ val verifyStructure by tasks.registering {
 				Regex("""spring-context"""),
 				Regex("""project\(":laptop-taxonomy"\)"""),
 				Regex("""project\(":persistence-model"\)"""),
+				Regex("""project\(":persistence-model-(web|crawler)"\)"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
 			),
@@ -1620,6 +1639,8 @@ val verifyStructure by tasks.registering {
 				"recommendation-core/src/main",
 				"laptop-taxonomy/src/main",
 				"persistence-model/src/main",
+				"persistence-model-web/src/main",
+				"persistence-model-crawler/src/main",
 				"infrastructure-jpa/src/main",
 				"infrastructure-jpa-crawler/src/main",
 				"infrastructure-jpa-core/src/main",
@@ -1748,6 +1769,7 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.crawler"""),
 				Regex("""RecommendationScoringPolicy"""),
 				Regex("""project\(":persistence-model"\)"""),
+				Regex("""project\(":persistence-model-(web|crawler)"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
 				Regex("""project\(":recommendation-core"\)"""),
 				Regex("""project\(":infrastructure-jpa-crawler"\)"""),
@@ -2988,6 +3010,7 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.recommendation"""),
 				Regex("""going9\.laptopgg\.application\.service"""),
 				Regex("""project\(":persistence-model"\)"""),
+				Regex("""project\(":persistence-model-(web|crawler)"\)"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 			),

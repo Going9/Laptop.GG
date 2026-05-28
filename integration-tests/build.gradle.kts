@@ -2,6 +2,8 @@ dependencies {
     testImplementation(project(":application"))
     testImplementation(project(":application-crawler"))
     testImplementation(project(":persistence-model"))
+    testImplementation(project(":persistence-model-web"))
+    testImplementation(project(":persistence-model-crawler"))
     testImplementation(project(":infrastructure-jpa"))
     testImplementation(project(":infrastructure-jpa-core"))
     testImplementation(project(":infrastructure-jpa-crawler"))

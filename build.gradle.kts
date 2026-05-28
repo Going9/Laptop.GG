@@ -26,7 +26,7 @@ subprojects {
 	apply(plugin = "org.jetbrains.kotlin.jvm")
 	apply(plugin = "io.spring.dependency-management")
 
-	if (name == "persistence-model") {
+	if (name in setOf("persistence-model", "persistence-model-web", "persistence-model-crawler")) {
 		apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	}
 
