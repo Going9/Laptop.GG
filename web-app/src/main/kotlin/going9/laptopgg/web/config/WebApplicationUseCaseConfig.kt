@@ -10,6 +10,7 @@ import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.application.recommendation.LaptopRecommendationResultMapper
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.application.recommendation.RecommendationCandidateFilterFactory
+import going9.laptopgg.application.recommendation.RecommendationReasonBuilder
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import going9.laptopgg.application.recommendation.RecommendationSortModeResolver
 import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
@@ -45,8 +46,13 @@ class WebApplicationUseCaseConfig {
     }
 
     @Bean
-    fun recommendationScoreCalculator(): RecommendationScoreCalculator {
-        return RecommendationScoreCalculator()
+    fun recommendationReasonBuilder(): RecommendationReasonBuilder {
+        return RecommendationReasonBuilder()
+    }
+
+    @Bean
+    fun recommendationScoreCalculator(recommendationReasonBuilder: RecommendationReasonBuilder): RecommendationScoreCalculator {
+        return RecommendationScoreCalculator(recommendationReasonBuilder)
     }
 
     @Bean

@@ -14,6 +14,7 @@ class RecommendationBoundaryComponentsTest {
     private val filterFactory = RecommendationCandidateFilterFactory()
     private val sortModeResolver = RecommendationSortModeResolver()
     private val resultMapper = LaptopRecommendationResultMapper()
+    private val reasonBuilder = RecommendationReasonBuilder()
 
     @Test
     fun `candidate filter keeps selected screen policy and use case gate`() {
@@ -93,9 +94,29 @@ class RecommendationBoundaryComponentsTest {
         assertThat(result.reasons).containsExactly("들고 다니기 편한 편이에요", "화면이 보기 편해요")
     }
 
+    @Test
+    fun `reason builder returns strongest messages for use case`() {
+        val reasons = reasonBuilder.build(
+            useCase = RecommendationUseCase.ONLINE_GAME,
+            candidate = recommendationCandidate(
+                name = "게이밍 테스트",
+                resolution = "1920x1080",
+                gpuPerformanceScore = 93,
+                onlineGameScore = 97,
+                ramScore = 80,
+            ),
+            budgetScore = 60,
+        )
+
+        assertThat(reasons).containsExactly("온라인 게임에 잘 맞아요", "그래픽이 좋은 편이에요")
+    }
+
     private fun recommendationCandidate(
         name: String,
         resolution: String?,
+        gpuPerformanceScore: Int = 60,
+        onlineGameScore: Int = 40,
+        ramScore: Int = 80,
     ): RecommendationCandidateRecord {
         return RecommendationCandidateRecord(
             id = 1L,
@@ -109,16 +130,16 @@ class RecommendationBoundaryComponentsTest {
             resolution = resolution,
             portabilityScore = 80,
             displayScore = 90,
-            ramScore = 80,
+            ramScore = ramScore,
             tgpScore = 0,
             cpuPerformanceScore = 85,
             lowPowerCpuScore = 75,
-            gpuPerformanceScore = 60,
+            gpuPerformanceScore = gpuPerformanceScore,
             gpuCreatorBonus = 5,
             officeScore = 85,
             batteryScore = 80,
             casualGameScore = 60,
-            onlineGameScore = 40,
+            onlineGameScore = onlineGameScore,
             aaaGameScore = 20,
             creatorScore = 70,
         )

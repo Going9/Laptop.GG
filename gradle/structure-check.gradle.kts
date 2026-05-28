@@ -901,6 +901,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "recommendation score calculator must delegate display reason selection",
+			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationScoreCalculator.kt"),
+			patterns = listOf(
+				Regex("""fun\s+buildReasons\b"""),
+				Regex("""문서 작업에 잘 맞아요"""),
+				Regex("""사진·영상 작업에 잘 맞아요"""),
+				Regex("""sortedByDescending"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler startup runner must delegate job execution",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunner.kt"),
 			patterns = listOf(
