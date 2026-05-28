@@ -72,7 +72,7 @@ internal class SaveCrawledLaptopService(
     }
 
     private fun saveListSnapshotInTransaction(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
-        val existingLaptop = laptopPort.findWithUsageById(existingLaptopId)
+        val existingLaptop = laptopPort.findListSnapshotById(existingLaptopId)
             ?: throw CrawlerResourceNotFoundException("Laptop", existingLaptopId)
         val updateCommand = changeDetector.listSnapshotUpdate(existingLaptop, productCard)
 
@@ -80,8 +80,14 @@ internal class SaveCrawledLaptopService(
             return SaveResult.UNCHANGED
         }
 
-        val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
-        postSaveSynchronizer.afterListSnapshot(savedLaptop, previousPrice = existingLaptop.price)
+        if (!laptopPort.updateListSnapshot(existingLaptop.id, updateCommand)) {
+            throw CrawlerResourceNotFoundException("Laptop", existingLaptop.id)
+        }
+        postSaveSynchronizer.afterListSnapshot(
+            laptopId = existingLaptop.id,
+            currentPrice = updateCommand.price ?: existingLaptop.price,
+            previousPrice = existingLaptop.price,
+        )
         return SaveResult.UPDATED
     }
 

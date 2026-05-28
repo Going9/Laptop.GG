@@ -1593,6 +1593,43 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler list snapshot save must use narrow projection and direct update",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopCommands.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopSnapshots.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerLaptopRepository.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapterTest.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
+			),
+			patterns = listOf(
+				Regex("""data class PersistedCrawledListSnapshot"""),
+				Regex("""data class UpdateCrawledListSnapshotCommand"""),
+				Regex("""fun findListSnapshotById\(laptopId: Long\): PersistedCrawledListSnapshot\?"""),
+				Regex("""fun updateListSnapshot\(laptopId: Long, command: UpdateCrawledListSnapshotCommand\): Boolean"""),
+				Regex("""laptopPort\.findListSnapshotById\(existingLaptopId\)"""),
+				Regex("""laptopPort\.updateListSnapshot\(existingLaptop\.id, updateCommand\)"""),
+				Regex("""fun findListSnapshotById\(@Param\("id"\) id: Long\): CrawledListSnapshotProjection\?"""),
+				Regex("""fun updateListSnapshotById\("""),
+				Regex("""update Laptop l"""),
+				Regex("""findListSnapshotById maps list projection without loading full laptop graph"""),
+				Regex("""updateListSnapshot delegates to direct update query without loading full laptop graph"""),
+				Regex("""saveListSnapshot uses list snapshot path without loading full laptop usages"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler list snapshot save must not load full laptop usage graph",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt"),
+			patterns = listOf(
+				Regex("""laptopPort\.findWithUsageById\(existingLaptopId\)"""),
+				Regex("""postSaveSynchronizer\.afterListSnapshot\(savedLaptop"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler profile backfill surface must not remain without an explicit runner",
 			paths = listOf(

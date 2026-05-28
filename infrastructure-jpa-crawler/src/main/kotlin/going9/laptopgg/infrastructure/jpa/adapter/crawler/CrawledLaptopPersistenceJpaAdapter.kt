@@ -4,7 +4,9 @@ import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledListSnapshot
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.UpdateCrawledListSnapshotCommand
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
@@ -15,6 +17,10 @@ import org.springframework.stereotype.Component
 internal class CrawledLaptopPersistenceJpaAdapter(
     private val laptopRepository: CrawlerLaptopRepository,
 ) : CrawledLaptopPersistencePort {
+    override fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot? {
+        return laptopRepository.findListSnapshotById(laptopId)?.toPersistedCrawledListSnapshot()
+    }
+
     override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? {
         return laptopRepository.findWithUsageById(laptopId)?.toPersistedCrawledLaptopSnapshot()
     }
@@ -49,6 +55,17 @@ internal class CrawledLaptopPersistenceJpaAdapter(
 
     override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
         return laptopRepository.save(CrawledLaptopEntityMapper.newLaptop(command)).toPersistedCrawledLaptopSnapshot()
+    }
+
+    override fun updateListSnapshot(laptopId: Long, command: UpdateCrawledListSnapshotCommand): Boolean {
+        return laptopRepository.updateListSnapshotById(
+            id = laptopId,
+            name = command.name,
+            imageUrl = command.imageUrl,
+            detailPage = command.detailPage,
+            productCode = command.productCode,
+            price = command.price,
+        ) > 0
     }
 
     override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {

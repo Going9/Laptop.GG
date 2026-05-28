@@ -131,6 +131,40 @@ class SaveCrawledLaptopServiceTest {
     }
 
     @Test
+    fun `saveListSnapshot uses list snapshot path without loading full laptop usages`() {
+        laptopPort.listSnapshots[7L] = PersistedCrawledListSnapshot(
+            id = 7L,
+            name = "Old Name",
+            imageUrl = "https://example.com/old.jpg",
+            detailPage = "https://prod.danawa.com/info/?pcode=LIST001&cate=112758",
+            productCode = "LIST001",
+            price = 1_290_000,
+        )
+
+        val result = service.saveListSnapshot(
+            existingLaptopId = 7L,
+            productCard = crawledProductCard(
+                productCode = "LIST001",
+                productName = "New Name",
+                detailPage = "https://prod.danawa.com/info/?pcode=LIST001&cate=112758",
+                imageUrl = "https://example.com/new.jpg",
+                price = 1_190_000,
+            ),
+        )
+
+        assertThat(result).isEqualTo(SaveResult.UPDATED)
+        assertThat(laptopPort.findWithUsageCalls).isZero()
+        assertThat(laptopPort.listUpdates).hasSize(1)
+        val update = laptopPort.listUpdates.single()
+        assertThat(update.laptopId).isEqualTo(7L)
+        assertThat(update.command.name).isEqualTo("New Name")
+        assertThat(update.command.imageUrl).isEqualTo("https://example.com/new.jpg")
+        assertThat(update.command.price).isEqualTo(1_190_000)
+        assertThat(profilePort.saved).isEmpty()
+        assertThat(priceHistoryPort.saved.map { it.price }).containsExactly(1_190_000)
+    }
+
+    @Test
     fun `loadExistingLookup rejects invalid product card before persistence`() {
         assertThatThrownBy {
             service.loadExistingLookup(listOf(crawledProductCard(productCode = "")))
@@ -257,10 +291,20 @@ class SaveCrawledLaptopServiceTest {
 
     private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
         val existingByProductCode = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
+        val listSnapshots = mutableMapOf<Long, PersistedCrawledListSnapshot>()
+        val listUpdates = mutableListOf<ListSnapshotUpdate>()
         var createdCommand: CrawledLaptopCommand? = null
             private set
+        var findWithUsageCalls = 0
+            private set
 
-        override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? = null
+        override fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot? = listSnapshots[laptopId]
+
+        override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? {
+            findWithUsageCalls++
+            return null
+        }
+
         override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = existingByProductCode[productCode]
         override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
         override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> = emptyList()
@@ -271,9 +315,27 @@ class SaveCrawledLaptopServiceTest {
             return command.toPersistedSnapshot(id = 1L)
         }
 
+        override fun updateListSnapshot(laptopId: Long, command: UpdateCrawledListSnapshotCommand): Boolean {
+            val current = listSnapshots[laptopId] ?: return false
+            listUpdates += ListSnapshotUpdate(laptopId, command)
+            listSnapshots[laptopId] = current.copy(
+                name = command.name ?: current.name,
+                imageUrl = command.imageUrl ?: current.imageUrl,
+                detailPage = command.detailPage ?: current.detailPage,
+                productCode = command.productCode ?: current.productCode,
+                price = command.price ?: current.price,
+            )
+            return true
+        }
+
         override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
             error("update is not used by this test")
         }
+
+        data class ListSnapshotUpdate(
+            val laptopId: Long,
+            val command: UpdateCrawledListSnapshotCommand,
+        )
     }
 
     private class InMemoryCrawledLaptopProfilePort : CrawledLaptopProfilePort {

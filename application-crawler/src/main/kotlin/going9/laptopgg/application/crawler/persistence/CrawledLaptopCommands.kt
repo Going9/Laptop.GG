@@ -71,3 +71,11 @@ data class UpdateCrawledLaptopCommand(
     val lastDetailedCrawledAt: LocalDateTime? = null,
     val usages: List<String>? = null,
 )
+
+data class UpdateCrawledListSnapshotCommand(
+    val name: String? = null,
+    val imageUrl: String? = null,
+    val detailPage: String? = null,
+    val productCode: String? = null,
+    val price: Int? = null,
+)

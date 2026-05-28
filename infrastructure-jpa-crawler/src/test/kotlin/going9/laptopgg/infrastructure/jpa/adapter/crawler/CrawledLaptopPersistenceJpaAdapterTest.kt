@@ -1,8 +1,10 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
-import going9.laptopgg.infrastructure.jpa.repository.crawler.ExistingCrawledLaptopProjection
+import going9.laptopgg.application.crawler.persistence.UpdateCrawledListSnapshotCommand
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawledListSnapshotProjection
+import going9.laptopgg.infrastructure.jpa.repository.crawler.ExistingCrawledLaptopProjection
 import going9.laptopgg.persistence.model.laptop.Laptop
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -11,6 +13,67 @@ import org.mockito.Mockito
 import java.time.LocalDateTime
 
 class CrawledLaptopPersistenceJpaAdapterTest {
+    @Test
+    fun `findListSnapshotById maps list projection without loading full laptop graph`() {
+        val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
+        Mockito.`when`(repository.findListSnapshotById(10L))
+            .thenReturn(
+                listProjection(
+                    id = 10L,
+                    name = "List Laptop",
+                    imageUrl = "https://img.example.com/list.jpg",
+                    detailPage = "https://prod.danawa.com/info/?pcode=P10",
+                    productCode = "P10",
+                    price = 1_190_000,
+                ),
+            )
+        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+
+        val snapshot = adapter.findListSnapshotById(10L)
+
+        assertThat(snapshot?.id).isEqualTo(10L)
+        assertThat(snapshot?.name).isEqualTo("List Laptop")
+        assertThat(snapshot?.price).isEqualTo(1_190_000)
+        Mockito.verify(repository).findListSnapshotById(10L)
+        Mockito.verifyNoMoreInteractions(repository)
+    }
+
+    @Test
+    fun `updateListSnapshot delegates to direct update query without loading full laptop graph`() {
+        val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
+        Mockito.`when`(
+            repository.updateListSnapshotById(
+                id = 10L,
+                name = "New Name",
+                imageUrl = "https://img.example.com/new.jpg",
+                detailPage = null,
+                productCode = null,
+                price = 1_090_000,
+            ),
+        ).thenReturn(1)
+        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+
+        val updated = adapter.updateListSnapshot(
+            laptopId = 10L,
+            command = UpdateCrawledListSnapshotCommand(
+                name = "New Name",
+                imageUrl = "https://img.example.com/new.jpg",
+                price = 1_090_000,
+            ),
+        )
+
+        assertThat(updated).isTrue()
+        Mockito.verify(repository).updateListSnapshotById(
+            id = 10L,
+            name = "New Name",
+            imageUrl = "https://img.example.com/new.jpg",
+            detailPage = null,
+            productCode = null,
+            price = 1_090_000,
+        )
+        Mockito.verify(repository, Mockito.never()).findWithUsageById(Mockito.anyLong())
+    }
+
     @Test
     fun `findByProductCode rejects duplicate crawler identities with explicit state error`() {
         val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
@@ -151,6 +214,24 @@ class CrawledLaptopPersistenceJpaAdapterTest {
             override val weight: Double? = 1.2
             override val lastDetailedCrawledAt: LocalDateTime? = lastDetailedCrawledAt
             override val usageCount: Long? = usageCount
+        }
+    }
+
+    private fun listProjection(
+        id: Long?,
+        name: String,
+        imageUrl: String,
+        detailPage: String,
+        productCode: String?,
+        price: Int?,
+    ): CrawledListSnapshotProjection {
+        return object : CrawledListSnapshotProjection {
+            override val id: Long? = id
+            override val name: String = name
+            override val imageUrl: String = imageUrl
+            override val detailPage: String = detailPage
+            override val productCode: String? = productCode
+            override val price: Int? = price
         }
     }
 }

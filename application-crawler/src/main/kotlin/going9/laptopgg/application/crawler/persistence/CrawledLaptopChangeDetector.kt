@@ -30,10 +30,10 @@ internal class CrawledLaptopChangeDetector(
     }
 
     fun listSnapshotUpdate(
-        existingLaptop: PersistedCrawledLaptopSnapshot,
+        existingLaptop: PersistedCrawledListSnapshot,
         productCard: CrawledProductCardCommand,
-    ): UpdateCrawledLaptopCommand {
-        return UpdateCrawledLaptopCommand(
+    ): UpdateCrawledListSnapshotCommand {
+        return UpdateCrawledListSnapshotCommand(
             name = fieldChangePolicy.changedText(existingLaptop.name, productCard.productName),
             imageUrl = fieldChangePolicy.changedText(existingLaptop.imageUrl, productCard.imageUrl),
             detailPage = fieldChangePolicy.changedText(existingLaptop.detailPage, productCard.detailPage),
@@ -79,6 +79,10 @@ internal class CrawledLaptopChangeDetector(
     }
 
     fun hasChanges(updateCommand: UpdateCrawledLaptopCommand): Boolean {
+        return fieldChangePolicy.hasChanges(updateCommand)
+    }
+
+    fun hasChanges(updateCommand: UpdateCrawledListSnapshotCommand): Boolean {
         return fieldChangePolicy.hasChanges(updateCommand)
     }
 }

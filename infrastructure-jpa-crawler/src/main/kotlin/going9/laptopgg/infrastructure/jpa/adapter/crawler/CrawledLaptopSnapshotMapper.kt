@@ -2,7 +2,9 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledListSnapshot
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawledListSnapshotProjection
 import going9.laptopgg.infrastructure.jpa.repository.crawler.ExistingCrawledLaptopProjection
 import going9.laptopgg.persistence.model.laptop.Laptop
 
@@ -37,6 +39,17 @@ internal fun Laptop.toPersistedCrawledLaptopSnapshot(): PersistedCrawledLaptopSn
         weight = weight,
         lastDetailedCrawledAt = lastDetailedCrawledAt,
         usages = laptopUsage.map { usage -> usage.usage },
+    )
+}
+
+internal fun CrawledListSnapshotProjection.toPersistedCrawledListSnapshot(): PersistedCrawledListSnapshot {
+    return PersistedCrawledListSnapshot(
+        id = id ?: throw CrawlerInvalidStateException("Persisted laptop id must not be null."),
+        name = name,
+        imageUrl = imageUrl,
+        detailPage = detailPage,
+        productCode = productCode,
+        price = price,
     )
 }
 

@@ -8,10 +8,15 @@ internal class CrawledLaptopPostSaveSynchronizer(
     private val laptopPriceHistoryRecorder: LaptopPriceHistoryRecorder,
 ) {
     internal fun afterListSnapshot(
-        savedLaptop: PersistedCrawledLaptopSnapshot,
+        laptopId: Long,
+        currentPrice: Int?,
         previousPrice: Int?,
     ) {
-        recordPriceHistory(savedLaptop, previousPrice)
+        laptopPriceHistoryRecorder.recordCurrentPriceInTransaction(
+            laptopId = laptopId,
+            currentPrice = currentPrice,
+            previousPrice = previousPrice,
+        )
     }
 
     internal fun afterDetailSnapshot(

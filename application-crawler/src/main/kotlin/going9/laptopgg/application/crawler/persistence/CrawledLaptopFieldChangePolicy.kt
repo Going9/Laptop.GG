@@ -73,4 +73,14 @@ internal class CrawledLaptopFieldChangePolicy {
             updateCommand.usages,
         ).any { value -> value != null }
     }
+
+    fun hasChanges(updateCommand: UpdateCrawledListSnapshotCommand): Boolean {
+        return listOf(
+            updateCommand.name,
+            updateCommand.imageUrl,
+            updateCommand.detailPage,
+            updateCommand.productCode,
+            updateCommand.price,
+        ).any { value -> value != null }
+    }
 }

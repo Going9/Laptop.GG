@@ -34,6 +34,15 @@ data class PersistedCrawledLaptopSnapshot(
     val usages: List<String>,
 )
 
+data class PersistedCrawledListSnapshot(
+    val id: Long,
+    val name: String,
+    val imageUrl: String,
+    val detailPage: String,
+    val productCode: String?,
+    val price: Int?,
+)
+
 data class ExistingCrawledLaptopSnapshot(
     val id: Long,
     val productCode: String?,

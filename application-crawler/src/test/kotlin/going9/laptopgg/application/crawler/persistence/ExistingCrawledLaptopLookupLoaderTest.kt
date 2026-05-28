@@ -185,6 +185,7 @@ class ExistingCrawledLaptopLookupLoaderTest {
         val productCodeLookups = mutableListOf<List<String>>()
         val detailPageLookups = mutableListOf<List<String>>()
 
+        override fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot? = null
         override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? = null
         override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = null
         override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
@@ -201,6 +202,10 @@ class ExistingCrawledLaptopLookupLoaderTest {
 
         override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
             error("create is not used by this test")
+        }
+
+        override fun updateListSnapshot(laptopId: Long, command: UpdateCrawledListSnapshotCommand): Boolean {
+            error("updateListSnapshot is not used by this test")
         }
 
         override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
