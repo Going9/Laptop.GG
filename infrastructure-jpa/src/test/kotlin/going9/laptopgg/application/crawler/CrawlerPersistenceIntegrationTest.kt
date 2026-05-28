@@ -1,7 +1,5 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.application.crawler
 
-import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
-import going9.laptopgg.application.crawler.SaveResult
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.infrastructure.jpa.repository.LaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.LaptopPriceHistoryRepository
@@ -183,16 +181,12 @@ class CrawlerPersistenceIntegrationTest {
 
         val result = invokeSaveListSnapshot(
             existingLaptop = existing,
-            productCard = ProductCard(
+            productCard = CrawledProductCardCommand(
                 productCode = "777",
                 productName = "Fast Path Model",
                 detailPage = "https://prod.danawa.com/info/?pcode=777&cate=112758",
                 imageUrl = "https://example.com/updated.jpg",
                 price = 1_190_000,
-                cate1 = "112",
-                cate2 = "758",
-                cate3 = "0",
-                cate4 = "112758",
             ),
         )
 
@@ -217,9 +211,9 @@ class CrawlerPersistenceIntegrationTest {
 
     private fun invokeSaveListSnapshot(
         existingLaptop: Laptop,
-        productCard: ProductCard,
+        productCard: CrawledProductCardCommand,
     ): SaveResult {
-        return saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id!!, productCard.toCommand())
+        return saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id!!, productCard)
     }
 
     private fun laptop(
@@ -256,6 +250,39 @@ class CrawlerPersistenceIntegrationTest {
             storageSlotCount = 1,
             weight = 1.35,
             laptopUsage = mutableListOf(),
+        )
+    }
+
+    private fun Laptop.toCrawledCommand(): CrawledLaptopCommand {
+        return CrawledLaptopCommand(
+            name = name,
+            imageUrl = imageUrl,
+            detailPage = detailPage,
+            productCode = productCode,
+            price = price,
+            cpuManufacturer = cpuManufacturer,
+            cpu = cpu,
+            os = os,
+            screenSize = screenSize,
+            resolution = resolution,
+            brightness = brightness,
+            refreshRate = refreshRate,
+            ramSize = ramSize,
+            ramType = ramType,
+            isRamReplaceable = isRamReplaceable,
+            graphicsType = graphicsType,
+            tgp = tgp,
+            thunderboltCount = thunderboltCount,
+            usbCCount = usbCCount,
+            usbACount = usbACount,
+            sdCard = sdCard,
+            isSupportsPdCharging = isSupportsPdCharging,
+            batteryCapacity = batteryCapacity,
+            storageCapacity = storageCapacity,
+            storageSlotCount = storageSlotCount,
+            weight = weight,
+            lastDetailedCrawledAt = lastDetailedCrawledAt,
+            usages = laptopUsage.map { it.usage },
         )
     }
 }

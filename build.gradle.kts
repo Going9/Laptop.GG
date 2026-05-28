@@ -100,6 +100,15 @@ val verifyStructure by tasks.registering {
 				Regex("""package going9\.laptopgg\.service\.crawler"""),
 			),
 		)
+
+		assertAbsent(
+			rule = "crawler-job tests must not reach into JPA repositories directly",
+			paths = listOf("crawler-job/src/main", "crawler-job/src/test", "crawler-job/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.infrastructure\.jpa"""),
+				Regex("""spring-boot-starter-data-jpa"""),
+			),
+		)
 	}
 }
 
