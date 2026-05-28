@@ -2,6 +2,8 @@ package going9.laptopgg.job.crawler.detail
 
 import going9.laptopgg.job.crawler.list.ProductCard
 import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -49,6 +51,46 @@ class DetailFetchExecutorTest {
                 }
             }
         }.isSameAs(error)
+    }
+
+    @Test
+    fun `fatal detail task error cancels remaining detail tasks`() {
+        val error = NoClassDefFoundError("detail parser linkage")
+        val slowTaskStarted = CountDownLatch(1)
+        val slowTaskInterrupted = CountDownLatch(1)
+        val detailFetchExecutor = DetailFetchExecutor.fixed(2)
+
+        try {
+            assertThatThrownBy {
+                detailFetchExecutor.fetch(
+                    listOf(
+                        DetailRefreshWorkItem(productCard = productCard("fatal"), existingLaptop = null),
+                        DetailRefreshWorkItem(productCard = productCard("slow"), existingLaptop = null),
+                    ),
+                ) { workItem ->
+                    when (workItem.productCard.productCode) {
+                        "fatal" -> {
+                            slowTaskStarted.await(1, TimeUnit.SECONDS)
+                            throw error
+                        }
+                        else -> {
+                            slowTaskStarted.countDown()
+                            try {
+                                Thread.sleep(10_000)
+                            } catch (exception: InterruptedException) {
+                                slowTaskInterrupted.countDown()
+                                throw exception
+                            }
+                            DetailRefreshOutcome(workItem = workItem)
+                        }
+                    }
+                }
+            }.isSameAs(error)
+
+            assertThat(slowTaskInterrupted.await(1, TimeUnit.SECONDS)).isTrue()
+        } finally {
+            detailFetchExecutor.close()
+        }
     }
 
     private fun productCard(code: String): ProductCard {

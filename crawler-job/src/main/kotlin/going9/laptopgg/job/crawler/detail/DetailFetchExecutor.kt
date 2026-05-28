@@ -22,13 +22,24 @@ internal class DetailFetchExecutor private constructor(
             return emptyList()
         }
 
-        return workItems.map { workItem ->
+        val futures = workItems.map { workItem ->
             executorService.submit<DetailRefreshOutcome> {
                 task(workItem)
             }
-        }.map { future ->
-            future.getOutcome()
         }
+
+        return try {
+            futures.map { future -> future.getOutcome() }
+        } catch (failure: Throwable) {
+            cancelIncompleteFutures(futures)
+            throw failure
+        }
+    }
+
+    private fun cancelIncompleteFutures(futures: List<Future<DetailRefreshOutcome>>) {
+        futures
+            .filterNot(Future<DetailRefreshOutcome>::isDone)
+            .forEach { future -> future.cancel(true) }
     }
 
     private fun Future<DetailRefreshOutcome>.getOutcome(): DetailRefreshOutcome {

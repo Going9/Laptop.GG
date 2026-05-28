@@ -2456,8 +2456,10 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""ExecutionException"""),
 				Regex("""val cause = exception\.cause \?: exception"""),
+				Regex("""cancelIncompleteFutures\(futures\)"""),
 				Regex("""throw cause"""),
 				Regex("""fatal detail task error is rethrown without execution wrapper"""),
+				Regex("""fatal detail task error cancels remaining detail tasks"""),
 				Regex("""\.isSameAs\(error\)"""),
 			),
 		)
