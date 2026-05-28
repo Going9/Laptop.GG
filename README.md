@@ -22,6 +22,7 @@ flowchart LR
 - 크롤러는 GitHub Actions에서 수동 실행하거나 스케줄 실행합니다.
 - 목록 크롤링은 Danawa HTTP/AJAX 요청 기반이라 Chrome/Selenium 설치가 필요 없습니다.
 - 운영 PostgreSQL 스키마는 Flyway 마이그레이션으로 관리합니다.
+- 스키마 변경은 web deploy 경로가 소유하고, crawler job은 운영 DB에서 Flyway migration을 실행하지 않습니다.
 - 크롤러는 기존 상품의 가격/이미지/링크를 빠르게 갱신하고, 상세 스펙이 비었거나 오래된 상품만 다시 자세히 수집합니다.
 - 가격 변동 이력은 `laptop_price_history` 테이블에 저장합니다.
 - 크롤러 실행 이력은 `crawler_run` 테이블에 저장하고 PostgreSQL advisory lock으로 중복 실행을 차단합니다.

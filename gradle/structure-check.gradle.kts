@@ -964,6 +964,28 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler runtime must not own production schema migrations",
+			paths = listOf(
+				"crawler-job/src/main/resources/application.yml",
+				"crawler-job/src/test/kotlin/going9/laptopgg/CrawlerJobProductionProfileTests.kt",
+				".github/workflows/crawler.yml",
+				"README.md",
+				"docs/architecture.md",
+				"ops/RUNBOOK.md",
+			),
+			patterns = listOf(
+				Regex("""on-profile:\s+crawler"""),
+				Regex("""flyway:\s+enabled:\s+false"""),
+				Regex("""SPRING_FLYWAY_ENABLED:\s+"false""""),
+				Regex("""CrawlerJobProductionProfileTests"""),
+				Regex("""FlywayMigrationInitializer"""),
+				Regex("""crawler job은 운영 DB에서 Flyway migration을 실행하지 않습니다"""),
+				Regex("""crawler-job` does not run Flyway migrations against production"""),
+				Regex("""crawler workflow sets `SPRING_FLYWAY_ENABLED=false`"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "runtime modules must import shared persistence config instead of owning datasource or JPA settings",
 			paths = listOf("web-app/src/main/resources/application.yml", "crawler-job/src/main/resources/application.yml"),

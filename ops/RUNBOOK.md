@@ -52,6 +52,7 @@ Production crawling is GitHub Actions only.
 - Audit table: `crawler_run`
 - Build artifact: `:crawler-job:bootJar`
 - Tunable knobs: `CRAWLER_MAX_LIST_PAGES` and `CRAWLER_DETAIL_FETCH_CONCURRENCY` are exposed in the manual workflow inputs.
+- Flyway migrations are owned by the web deploy path. The crawler workflow sets `SPRING_FLYWAY_ENABLED=false` and should fail fast on JPA schema validation if deploy has not prepared the schema.
 
 Useful query:
 

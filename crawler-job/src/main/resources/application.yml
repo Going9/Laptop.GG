@@ -26,6 +26,9 @@ spring:
     activate:
       on-profile: crawler
 
+  flyway:
+    enabled: false
+
   main:
     web-application-type: none
 
