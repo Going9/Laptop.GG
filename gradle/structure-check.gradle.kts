@@ -2102,6 +2102,22 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "web and crawler transaction adapters must share JPA transaction execution",
+			paths = listOf(
+				"infrastructure-jpa-core/src/main/kotlin/going9/laptopgg/infrastructure/jpa/transaction/JpaTransactionExecutor.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/ApplicationTransactionJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerTransactionJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""class JpaTransactionExecutor"""),
+				Regex("""TransactionTemplate\(transactionManager\)"""),
+				Regex("""private val transactionExecutor = JpaTransactionExecutor\(transactionManager\)"""),
+				Regex("""transactionExecutor\.read\(block\)"""),
+				Regex("""transactionExecutor\.write\(block\)"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "Danawa endpoint client must not own low-level HTTP retry or pacing",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaClient.kt"),
