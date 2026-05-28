@@ -660,6 +660,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationCandidateFilterFactory.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/LaptopDetailJpaAdapter.kt",

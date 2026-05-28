@@ -1,5 +1,6 @@
 package going9.laptopgg.application.recommendation
 
+import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateFilter
 import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.ceil
@@ -54,7 +55,9 @@ internal class RecommendationCandidateFilterFactory {
     }
 
     private fun minimumRoundedAverageTotal(threshold: Int, componentCount: Int): Int {
-        require(componentCount > 0) { "componentCount must be greater than zero." }
+        if (componentCount <= 0) {
+            throw ApplicationInvalidStateException("componentCount must be greater than zero.")
+        }
         return ceil((threshold - 0.5) * componentCount).toInt()
     }
 }
