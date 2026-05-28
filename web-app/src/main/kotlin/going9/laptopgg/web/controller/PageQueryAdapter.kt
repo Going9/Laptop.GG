@@ -5,9 +5,6 @@ import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
 
-private const val DEFAULT_PAGE_SIZE = 10
-private const val MAX_PAGE_SIZE = 100
-
 internal fun pageQueryFrom(
     page: Int?,
     size: Int?,
@@ -15,7 +12,7 @@ internal fun pageQueryFrom(
 ): PageQuery {
     return PageQuery(
         page = page?.coerceAtLeast(0) ?: 0,
-        size = (size ?: DEFAULT_PAGE_SIZE).coerceIn(1, MAX_PAGE_SIZE),
+        size = (size ?: PageQuery.DEFAULT_SIZE).coerceIn(1, PageQuery.MAX_SIZE),
         sort = sort.orEmpty()
             .filter { it.isNotBlank() }
             .map(::parseSortOrder),

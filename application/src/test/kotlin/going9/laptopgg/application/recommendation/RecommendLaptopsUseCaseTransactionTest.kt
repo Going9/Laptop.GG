@@ -43,6 +43,9 @@ class RecommendLaptopsUseCaseTransactionTest {
         assertThatThrownBy {
             useCase.recommend(LaptopRecommendationQuery(), PageQuery(page = 0, size = 0))
         }.isInstanceOf(InvalidCommandException::class.java)
+        assertThatThrownBy {
+            useCase.recommend(LaptopRecommendationQuery(), PageQuery(page = 0, size = PageQuery.MAX_SIZE + 1))
+        }.isInstanceOf(InvalidCommandException::class.java)
 
         assertThat(transactionPort.readCount).isZero()
         assertThat(candidatePort.callCount).isZero()

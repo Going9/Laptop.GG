@@ -1,6 +1,7 @@
 package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
@@ -77,7 +78,7 @@ class RecommendationControllerTest {
         val pageQuery = pageQueryFrom(page = -1, size = 5_000, sort = null)
 
         assertThat(pageQuery.page).isEqualTo(0)
-        assertThat(pageQuery.size).isEqualTo(100)
+        assertThat(pageQuery.size).isEqualTo(PageQuery.MAX_SIZE)
     }
 
     @Test

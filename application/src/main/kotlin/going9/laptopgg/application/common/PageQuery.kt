@@ -4,7 +4,12 @@ data class PageQuery(
     val page: Int,
     val size: Int,
     val sort: List<SortOrder> = emptyList(),
-)
+) {
+    companion object {
+        const val DEFAULT_SIZE = 10
+        const val MAX_SIZE = 100
+    }
+}
 
 data class SortOrder(
     val property: SortProperty,

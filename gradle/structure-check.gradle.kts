@@ -1531,12 +1531,20 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "recommendation API pagination must stay bounded for low-resource runtime",
 			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/common/PageQuery.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCaseTransactionTest.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/controller/PageQueryAdapter.kt",
 				"web-app/src/test/kotlin/going9/laptopgg/web/controller/RecommendationControllerTest.kt",
+				"docs/architecture.md",
 			),
 			patterns = listOf(
-				Regex("""MAX_PAGE_SIZE = 100"""),
+				Regex("""MAX_SIZE = 100"""),
+				Regex("""PageQuery\.MAX_SIZE"""),
+				Regex("""size must be \$\{PageQuery\.MAX_SIZE\} or less"""),
+				Regex("""PageQuery\(page = 0, size = PageQuery\.MAX_SIZE \+ 1\)"""),
 				Regex("""recommend api keeps pagination within operational bounds"""),
+				Regex("""application `PageQuery` contract as the single source"""),
 			),
 		)
 

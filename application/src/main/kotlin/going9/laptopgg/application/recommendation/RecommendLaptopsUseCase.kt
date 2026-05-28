@@ -80,5 +80,8 @@ internal class DefaultRecommendLaptopsUseCase(
         if (pageQuery.size <= 0) {
             throw InvalidCommandException("size must be positive.")
         }
+        if (pageQuery.size > PageQuery.MAX_SIZE) {
+            throw InvalidCommandException("size must be ${PageQuery.MAX_SIZE} or less.")
+        }
     }
 }
