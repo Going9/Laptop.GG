@@ -10,8 +10,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class RecommendationPageModelFactoryTest {
-    private val presentation = RecommendationPagePresentation()
-    private val factory = RecommendationPageModelFactory(presentation)
+    private val useCasePresentation = RecommendationUseCasePresentation()
+    private val screenSizePresentation = RecommendationScreenSizePresentation()
+    private val factory = RecommendationPageModelFactory(
+        useCasePresentation = useCasePresentation,
+        screenSizePresentation = screenSizePresentation,
+        presetCatalog = RecommendationPresetCatalog(),
+    )
 
     @Test
     fun `form attributes contain selectable recommendation options`() {
@@ -53,11 +58,11 @@ class RecommendationPageModelFactoryTest {
             screenSizes = listOf(16, 14),
         )
 
-        assertThat(presentation.useCaseLabel(RecommendationUseCase.CREATOR))
+        assertThat(useCasePresentation.label(RecommendationUseCase.CREATOR))
             .isEqualTo("사진·영상 작업")
-        assertThat(presentation.useCaseHeading(RecommendationUseCase.CREATOR))
+        assertThat(useCasePresentation.heading(RecommendationUseCase.CREATOR))
             .isEqualTo("사진·영상 작업에 맞는 후보")
-        assertThat(presentation.screenSizeSummary(request)).isEqualTo("화면 14형 · 16형")
+        assertThat(screenSizePresentation.summary(request)).isEqualTo("화면 14형 · 16형")
     }
 
     private fun recommendationResult(): LaptopRecommendationResult {

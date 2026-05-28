@@ -1173,6 +1173,33 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "recommendation page presentation must be split by use case screen size and preset responsibility",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/view/RecommendationPagePresentation.kt"),
+		)
+
+		assertAbsent(
+			rule = "recommendation use case presentation must not own screen size or preset catalogs",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/view/RecommendationUseCasePresentation.kt"),
+			patterns = listOf(
+				Regex("""ScreenSizeMode"""),
+				Regex("""LaptopRecommendationRequest"""),
+				Regex("""budgetPresets"""),
+				Regex("""weightPresets"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "recommendation screen size presentation must not own use case or preset catalogs",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/view/RecommendationScreenSizePresentation.kt"),
+			patterns = listOf(
+				Regex("""RecommendationUseCase"""),
+				Regex("""UseCaseOption"""),
+				Regex("""budgetPresets"""),
+				Regex("""weightPresets"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler startup runner must delegate job execution",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunner.kt"),

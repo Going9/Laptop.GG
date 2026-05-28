@@ -9,16 +9,18 @@ import org.springframework.stereotype.Component
 
 @Component
 class RecommendationPageModelFactory(
-    private val presentation: RecommendationPagePresentation,
+    private val useCasePresentation: RecommendationUseCasePresentation,
+    private val screenSizePresentation: RecommendationScreenSizePresentation,
+    private val presetCatalog: RecommendationPresetCatalog,
 ) {
     fun formAttributes(): Map<String, Any> {
         return mapOf(
             "laptopRecommendationRequest" to LaptopRecommendationRequest.fixture(),
             "screenSizeList" to LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES,
-            "screenSizeModeOptions" to presentation.screenSizeModeOptions(),
-            "useCaseOptions" to presentation.useCaseOptions(),
-            "budgetPresetList" to presentation.budgetPresetList(),
-            "weightPresetList" to presentation.weightPresetList(),
+            "screenSizeModeOptions" to screenSizePresentation.options(),
+            "useCaseOptions" to useCasePresentation.options(),
+            "budgetPresetList" to presetCatalog.budgetPresets(),
+            "weightPresetList" to presetCatalog.weightPresets(),
         )
     }
 
@@ -38,9 +40,9 @@ class RecommendationPageModelFactory(
             "currentPage" to mappedRecommendations.page + 1,
             "totalPage" to mappedRecommendations.totalPages,
             "resolvedUseCase" to resolvedUseCase,
-            "resolvedUseCaseLabel" to presentation.useCaseLabel(resolvedUseCase),
-            "resolvedUseCaseHeading" to presentation.useCaseHeading(resolvedUseCase),
-            "screenSizeSummary" to presentation.screenSizeSummary(request),
+            "resolvedUseCaseLabel" to useCasePresentation.label(resolvedUseCase),
+            "resolvedUseCaseHeading" to useCasePresentation.heading(resolvedUseCase),
+            "screenSizeSummary" to screenSizePresentation.summary(request),
         )
     }
 }

@@ -6,7 +6,9 @@ import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
 import going9.laptopgg.web.view.RecommendationPageModelFactory
-import going9.laptopgg.web.view.RecommendationPagePresentation
+import going9.laptopgg.web.view.RecommendationPresetCatalog
+import going9.laptopgg.web.view.RecommendationScreenSizePresentation
+import going9.laptopgg.web.view.RecommendationUseCasePresentation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -16,7 +18,11 @@ class RecommendationPageControllerTest {
     private val recommendLaptopsUseCase = Mockito.mock(RecommendLaptopsUseCase::class.java)
     private val controller = RecommendationPageController(
         recommendLaptopsUseCase = recommendLaptopsUseCase,
-        recommendationPageModelFactory = RecommendationPageModelFactory(RecommendationPagePresentation()),
+        recommendationPageModelFactory = RecommendationPageModelFactory(
+            useCasePresentation = RecommendationUseCasePresentation(),
+            screenSizePresentation = RecommendationScreenSizePresentation(),
+            presetCatalog = RecommendationPresetCatalog(),
+        ),
     )
 
     @Test
