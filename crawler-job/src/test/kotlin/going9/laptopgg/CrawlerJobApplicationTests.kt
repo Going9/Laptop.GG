@@ -41,7 +41,7 @@ class CrawlerJobApplicationTests {
             "getLaptopDetailUseCase",
             "manageCommentUseCase",
             "recommendLaptopsUseCase",
-            "scoreCalculatorService",
+            "recommendationScoreCalculator",
         )
     }
 

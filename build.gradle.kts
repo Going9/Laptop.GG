@@ -187,6 +187,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application user-flow code must live in feature packages, not a generic service package",
+			paths = listOf("application/src/main"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.application\.service"""),
+				Regex("""package going9\.laptopgg\.application\.service"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application services must not encode runtime Spring profiles",
 			paths = listOf("application/src/main", "application-crawler/src/main"),
 			patterns = listOf(

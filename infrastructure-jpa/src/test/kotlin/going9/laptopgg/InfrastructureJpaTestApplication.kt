@@ -15,7 +15,7 @@ import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.application.service.ScoreCalculatorService
+import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
@@ -36,18 +36,18 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 )
 class InfrastructureJpaTestApplication {
     @Bean
-    fun scoreCalculatorService(): ScoreCalculatorService {
-        return ScoreCalculatorService()
+    fun recommendationScoreCalculator(): RecommendationScoreCalculator {
+        return RecommendationScoreCalculator()
     }
 
     @Bean
     fun recommendLaptopsUseCase(
         laptopProfilePort: LaptopProfilePort,
-        scoreCalculatorService: ScoreCalculatorService,
+        recommendationScoreCalculator: RecommendationScoreCalculator,
     ): RecommendLaptopsUseCase {
         return RecommendLaptopsUseCase(
             laptopProfilePort = laptopProfilePort,
-            scoreCalculatorService = scoreCalculatorService,
+            recommendationScoreCalculator = recommendationScoreCalculator,
         )
     }
 

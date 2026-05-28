@@ -5,7 +5,7 @@ import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.crawler.LaptopProfileService
 import going9.laptopgg.application.crawler.RecommendationScoreService
-import going9.laptopgg.application.service.ScoreCalculatorService
+import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
 import going9.laptopgg.domain.laptop.BatteryTier
@@ -43,7 +43,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
     lateinit var laptopProfileService: LaptopProfileService
 
     @Autowired
-    lateinit var scoreCalculatorService: ScoreCalculatorService
+    lateinit var recommendationScoreCalculator: RecommendationScoreCalculator
 
     @Autowired
     lateinit var recommendationScoreService: RecommendationScoreService
@@ -632,7 +632,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
                     val profile = laptopProfileRepository.findByLaptopId(response.id)!!
                     CalculatorSortProbe(
                         name = response.name,
-                        score = scoreCalculatorService.calculateScore(profile.laptop, profile, request).score,
+                        score = recommendationScoreCalculator.calculateScore(profile.laptop, profile, request).score,
                         price = profile.laptop.price,
                         id = profile.laptop.id!!,
                     )

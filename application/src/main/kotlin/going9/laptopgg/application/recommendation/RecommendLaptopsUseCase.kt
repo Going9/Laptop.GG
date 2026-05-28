@@ -5,7 +5,6 @@ import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.port.out.RecommendationCandidateFilter
 import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
-import going9.laptopgg.application.service.ScoreCalculatorService
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.recommendation.RecommendationUseCase
@@ -13,7 +12,7 @@ import kotlin.math.ceil
 
 class RecommendLaptopsUseCase(
     private val laptopProfilePort: LaptopProfilePort,
-    private val scoreCalculatorService: ScoreCalculatorService,
+    private val recommendationScoreCalculator: RecommendationScoreCalculator,
 ) {
     fun recommend(request: LaptopRecommendationQuery, pageQuery: PageQuery): PagedResult<LaptopRecommendationResult> {
         val useCase = request.resolvedUseCase()
@@ -56,10 +55,10 @@ class RecommendLaptopsUseCase(
         request: LaptopRecommendationQuery,
         useCase: RecommendationUseCase,
     ): ScoredLaptop {
-        val scoreResult = scoreCalculatorService.calculateScore(laptop, profile, request)
+        val scoreResult = recommendationScoreCalculator.calculateScore(laptop, profile, request)
         return ScoredLaptop(
             laptop = laptop,
-            gateScore = scoreCalculatorService.gateScore(profile, useCase),
+            gateScore = recommendationScoreCalculator.gateScore(profile, useCase),
             score = scoreResult.score,
             reasons = scoreResult.reasons,
         )
@@ -95,7 +94,7 @@ class RecommendLaptopsUseCase(
     ) = laptopProfilePort.findRecommendationCandidatePage(
         RecommendationCandidatePageQuery(
             filter = candidateFilter,
-            gateThreshold = scoreCalculatorService.gateThreshold(useCase),
+            gateThreshold = recommendationScoreCalculator.gateThreshold(useCase),
             budget = request.budget,
             useCase = useCase.name,
             sortMode = sortMode,
@@ -107,7 +106,7 @@ class RecommendLaptopsUseCase(
         request: LaptopRecommendationQuery,
         useCase: RecommendationUseCase,
     ): RecommendationCandidateFilter {
-        val gateThreshold = scoreCalculatorService.gateThreshold(useCase)
+        val gateThreshold = recommendationScoreCalculator.gateThreshold(useCase)
         val screenMode = request.resolvedScreenSizeMode()
 
         val baseFilter = when (screenMode) {

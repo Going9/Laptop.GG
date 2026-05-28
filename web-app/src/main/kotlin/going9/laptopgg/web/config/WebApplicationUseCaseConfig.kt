@@ -7,7 +7,7 @@ import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.port.out.PasswordHashPort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.application.service.ScoreCalculatorService
+import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -32,18 +32,18 @@ class WebApplicationUseCaseConfig {
     }
 
     @Bean
-    fun scoreCalculatorService(): ScoreCalculatorService {
-        return ScoreCalculatorService()
+    fun recommendationScoreCalculator(): RecommendationScoreCalculator {
+        return RecommendationScoreCalculator()
     }
 
     @Bean
     fun recommendLaptopsUseCase(
         laptopProfilePort: LaptopProfilePort,
-        scoreCalculatorService: ScoreCalculatorService,
+        recommendationScoreCalculator: RecommendationScoreCalculator,
     ): RecommendLaptopsUseCase {
         return RecommendLaptopsUseCase(
             laptopProfilePort = laptopProfilePort,
-            scoreCalculatorService = scoreCalculatorService,
+            recommendationScoreCalculator = recommendationScoreCalculator,
         )
     }
 }

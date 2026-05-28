@@ -1,6 +1,5 @@
-package going9.laptopgg.application.service
+package going9.laptopgg.application.recommendation
 
-import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.recommendation.RecommendationScoreInputs
@@ -9,7 +8,7 @@ import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-class ScoreCalculatorService(
+class RecommendationScoreCalculator(
     private val recommendationScoringPolicy: RecommendationScoringPolicy = RecommendationScoringPolicy(),
 ) {
     data class ScoreResult(
