@@ -33,7 +33,7 @@ flowchart LR
 - `domain`: JPA entity, enum 등 도메인 모델
 - `application`: 추천/상세/댓글/크롤러 저장 use case와 port
 - `infrastructure-jpa`: Spring Data repository, Flyway migration, JPA adapter
-- `web-app`: 사용자 화면, REST API, Thymeleaf/static 리소스
+- `web-app`: `web.controller`, `web.dto`, 사용자 화면, REST API, Thymeleaf/static 리소스
 - `crawler-job`: GitHub Actions에서 실행하는 Danawa 수집 job
 - `.github/workflows/ci.yml`: 테스트
 - `.github/workflows/deploy-web.yml`: 웹 배포

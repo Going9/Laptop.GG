@@ -1,4 +1,4 @@
-package going9.laptopgg.controller
+package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection

@@ -1,4 +1,4 @@
-package going9.laptopgg.dto.request
+package going9.laptopgg.web.dto.request
 
 import going9.laptopgg.application.comment.AddCommentCommand
 

@@ -1,9 +1,9 @@
-package going9.laptopgg.controller
+package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.dto.response.LaptopRecommendationListResponse
-import going9.laptopgg.dto.response.PagedResponse
+import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
+import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
+import going9.laptopgg.web.dto.response.PagedResponse
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping

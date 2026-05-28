@@ -1,10 +1,10 @@
-package going9.laptopgg.controller
+package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.comment.ManageCommentUseCase
-import going9.laptopgg.dto.request.CommentDeleteRequest
-import going9.laptopgg.dto.request.CommentRequest
-import going9.laptopgg.dto.request.CommentUpdateRequest
-import going9.laptopgg.dto.response.CommentResponse
+import going9.laptopgg.web.dto.request.CommentDeleteRequest
+import going9.laptopgg.web.dto.request.CommentRequest
+import going9.laptopgg.web.dto.request.CommentUpdateRequest
+import going9.laptopgg.web.dto.response.CommentResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController

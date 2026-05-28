@@ -96,6 +96,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "web-app public packages must live under web",
+			paths = listOf("web-app/src/main", "web-app/src/test"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.controller"""),
+				Regex("""going9\.laptopgg\.dto"""),
+				Regex("""package going9\.laptopgg\.controller"""),
+				Regex("""package going9\.laptopgg\.dto"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app must not carry crawler runtime configuration",
 			paths = listOf("web-app/src/main/resources/application.yml"),
 			patterns = listOf(

@@ -1,10 +1,10 @@
-package going9.laptopgg.controller
+package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationResult
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.dto.response.LaptopRecommendationListResponse
+import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
+import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito

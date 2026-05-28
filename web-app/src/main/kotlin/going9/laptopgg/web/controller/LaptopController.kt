@@ -1,7 +1,7 @@
-package going9.laptopgg.controller
+package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
-import going9.laptopgg.dto.response.LaptopDetailResponse
+import going9.laptopgg.web.dto.response.LaptopDetailResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam

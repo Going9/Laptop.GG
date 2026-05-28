@@ -1,16 +1,16 @@
-package going9.laptopgg.controller
+package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.dto.request.CommentRequest
-import going9.laptopgg.dto.request.CommentUpdateRequest
-import going9.laptopgg.dto.request.LaptopRecommendationRequest
+import going9.laptopgg.web.dto.request.CommentRequest
+import going9.laptopgg.web.dto.request.CommentUpdateRequest
+import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.application.recommendation.ScreenSizeMode
-import going9.laptopgg.dto.response.CommentResponse
-import going9.laptopgg.dto.response.LaptopDetailResponse
-import going9.laptopgg.dto.response.LaptopRecommendationListResponse
+import going9.laptopgg.web.dto.response.CommentResponse
+import going9.laptopgg.web.dto.response.LaptopDetailResponse
+import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping

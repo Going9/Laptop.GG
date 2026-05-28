@@ -1,4 +1,4 @@
-package going9.laptopgg.dto.response
+package going9.laptopgg.web.dto.response
 
 import going9.laptopgg.application.laptop.LaptopDetailResult
 

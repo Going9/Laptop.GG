@@ -1,4 +1,4 @@
-package going9.laptopgg.controller
+package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.comment.AddCommentCommand
@@ -9,11 +9,11 @@ import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
 import going9.laptopgg.application.laptop.LaptopDetailResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationResult
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.dto.request.CommentRequest
-import going9.laptopgg.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.dto.response.CommentResponse
-import going9.laptopgg.dto.response.LaptopDetailResponse
-import going9.laptopgg.dto.response.LaptopRecommendationListResponse
+import going9.laptopgg.web.dto.request.CommentRequest
+import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
+import going9.laptopgg.web.dto.response.CommentResponse
+import going9.laptopgg.web.dto.response.LaptopDetailResponse
+import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
