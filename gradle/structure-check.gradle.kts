@@ -34,6 +34,21 @@ val verifyStructure by tasks.registering {
 			}
 		}
 
+		fun assertPresent(rule: String, paths: List<String>, patterns: List<Regex>) {
+			val text = textFiles(*paths.toTypedArray())
+				.joinToString(separator = "\n") { file -> file.readText() }
+			val missingPatterns = patterns
+				.filterNot { pattern -> pattern.containsMatchIn(text) }
+				.map { pattern -> pattern.pattern }
+
+			check(missingPatterns.isEmpty()) {
+				buildString {
+					appendLine("Structure rule failed: $rule")
+					missingPatterns.forEach { appendLine("missing: $it") }
+				}
+			}
+		}
+
 		fun assertPathAbsent(rule: String, paths: List<String>) {
 			val violations = paths
 				.map(project::file)
@@ -148,6 +163,16 @@ val verifyStructure by tasks.registering {
 		assertPathAbsent(
 			rule = "ops must be the only tracked operations config surface",
 			paths = listOf("nginx"),
+		)
+
+		assertPresent(
+			rule = "deploy workflow must run PostgreSQL integration tests before bootJar",
+			paths = listOf(".github/workflows/deploy-web.yml"),
+			patterns = listOf(
+				Regex("""services:\s+postgres:"""),
+				Regex("""POSTGRES_INTEGRATION_TESTS:\s+"true""""),
+				Regex("""POSTGRES_INTEGRATION_JDBC_URL:\s+jdbc:postgresql://127\.0\.0\.1:5432/laptopgg_test"""),
+			),
 		)
 
 		assertPathAbsent(
