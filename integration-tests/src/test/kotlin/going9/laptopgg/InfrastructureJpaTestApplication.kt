@@ -14,6 +14,7 @@ import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
+import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.application.port.out.LaptopProfilePort
@@ -78,8 +79,14 @@ class InfrastructureJpaTestApplication {
     }
 
     @Bean
-    fun recommendationScoreService(recommendationScorePort: RecommendationScorePort): RecommendationScoreService {
-        return RecommendationScoreService(recommendationScorePort)
+    fun recommendationScoreService(
+        recommendationScorePort: RecommendationScorePort,
+        transactionPort: CrawlerTransactionPort,
+    ): RecommendationScoreService {
+        return RecommendationScoreService(
+            recommendationScorePort = recommendationScorePort,
+            transactionPort = transactionPort,
+        )
     }
 
     @Bean
@@ -88,18 +95,26 @@ class InfrastructureJpaTestApplication {
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopProfileFactory: LaptopProfileFactory,
         recommendationScoreService: RecommendationScoreService,
+        transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
         return LaptopProfileService(
             laptopPort = laptopPort,
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreService = recommendationScoreService,
+            transactionPort = transactionPort,
         )
     }
 
     @Bean
-    fun laptopPriceHistoryService(laptopPriceHistoryPort: LaptopPriceHistoryPort): LaptopPriceHistoryService {
-        return LaptopPriceHistoryService(laptopPriceHistoryPort)
+    fun laptopPriceHistoryService(
+        laptopPriceHistoryPort: LaptopPriceHistoryPort,
+        transactionPort: CrawlerTransactionPort,
+    ): LaptopPriceHistoryService {
+        return LaptopPriceHistoryService(
+            laptopPriceHistoryPort = laptopPriceHistoryPort,
+            transactionPort = transactionPort,
+        )
     }
 
     @Bean
@@ -107,11 +122,13 @@ class InfrastructureJpaTestApplication {
         laptopPort: CrawledLaptopPort,
         laptopProfileService: LaptopProfileService,
         laptopPriceHistoryService: LaptopPriceHistoryService,
+        transactionPort: CrawlerTransactionPort,
     ): SaveCrawledLaptopUseCase {
         return SaveCrawledLaptopService(
             laptopPort = laptopPort,
             laptopProfileService = laptopProfileService,
             laptopPriceHistoryService = laptopPriceHistoryService,
+            transactionPort = transactionPort,
         )
     }
 

@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Test
 
 class LaptopPriceHistoryServiceTest {
     private val laptopPriceHistoryPort = InMemoryLaptopPriceHistoryPort()
-    private val service = LaptopPriceHistoryService(laptopPriceHistoryPort)
+    private val service = LaptopPriceHistoryService(
+        laptopPriceHistoryPort = laptopPriceHistoryPort,
+        transactionPort = InMemoryCrawlerTransactionPort(),
+    )
 
     @Test
     fun `records current price through command boundary`() {

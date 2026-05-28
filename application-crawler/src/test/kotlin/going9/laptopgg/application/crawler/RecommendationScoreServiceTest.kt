@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test
 
 class RecommendationScoreServiceTest {
     private val recommendationScorePort = InMemoryRecommendationScorePort()
-    private val service = RecommendationScoreService(recommendationScorePort)
+    private val service = RecommendationScoreService(
+        recommendationScorePort = recommendationScorePort,
+        transactionPort = InMemoryCrawlerTransactionPort(),
+    )
 
     @Test
     fun `refresh saves one score command per use case`() {

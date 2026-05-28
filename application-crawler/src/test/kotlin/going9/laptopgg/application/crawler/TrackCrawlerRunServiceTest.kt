@@ -7,7 +7,10 @@ import org.junit.jupiter.api.Test
 
 class TrackCrawlerRunServiceTest {
     private val crawlerRunPort = InMemoryCrawlerRunPort()
-    private val service = TrackCrawlerRunService(crawlerRunPort)
+    private val service = TrackCrawlerRunService(
+        crawlerRunPort = crawlerRunPort,
+        transactionPort = InMemoryCrawlerTransactionPort(),
+    )
 
     @Test
     fun `finish explicitly saves completed crawler run through port`() {

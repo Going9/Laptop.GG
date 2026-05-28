@@ -19,6 +19,7 @@ import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
+import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import org.springframework.context.annotation.Bean
@@ -65,8 +66,14 @@ class CrawlerApplicationUseCaseConfig {
     }
 
     @Bean
-    fun recommendationScoreService(recommendationScorePort: RecommendationScorePort): RecommendationScoreService {
-        return RecommendationScoreService(recommendationScorePort)
+    fun recommendationScoreService(
+        recommendationScorePort: RecommendationScorePort,
+        transactionPort: CrawlerTransactionPort,
+    ): RecommendationScoreService {
+        return RecommendationScoreService(
+            recommendationScorePort = recommendationScorePort,
+            transactionPort = transactionPort,
+        )
     }
 
     @Bean
@@ -75,18 +82,26 @@ class CrawlerApplicationUseCaseConfig {
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopProfileFactory: LaptopProfileFactory,
         recommendationScoreService: RecommendationScoreService,
+        transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
         return LaptopProfileService(
             laptopPort = laptopPort,
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreService = recommendationScoreService,
+            transactionPort = transactionPort,
         )
     }
 
     @Bean
-    fun laptopPriceHistoryService(laptopPriceHistoryPort: LaptopPriceHistoryPort): LaptopPriceHistoryService {
-        return LaptopPriceHistoryService(laptopPriceHistoryPort)
+    fun laptopPriceHistoryService(
+        laptopPriceHistoryPort: LaptopPriceHistoryPort,
+        transactionPort: CrawlerTransactionPort,
+    ): LaptopPriceHistoryService {
+        return LaptopPriceHistoryService(
+            laptopPriceHistoryPort = laptopPriceHistoryPort,
+            transactionPort = transactionPort,
+        )
     }
 
     @Bean
@@ -94,17 +109,25 @@ class CrawlerApplicationUseCaseConfig {
         laptopPort: CrawledLaptopPort,
         laptopProfileService: LaptopProfileService,
         laptopPriceHistoryService: LaptopPriceHistoryService,
+        transactionPort: CrawlerTransactionPort,
     ): SaveCrawledLaptopUseCase {
         return SaveCrawledLaptopService(
             laptopPort = laptopPort,
             laptopProfileService = laptopProfileService,
             laptopPriceHistoryService = laptopPriceHistoryService,
+            transactionPort = transactionPort,
         )
     }
 
     @Bean
-    fun trackCrawlerRunService(crawlerRunPort: CrawlerRunPort): TrackCrawlerRunUseCase {
-        return TrackCrawlerRunService(crawlerRunPort)
+    fun trackCrawlerRunService(
+        crawlerRunPort: CrawlerRunPort,
+        transactionPort: CrawlerTransactionPort,
+    ): TrackCrawlerRunUseCase {
+        return TrackCrawlerRunService(
+            crawlerRunPort = crawlerRunPort,
+            transactionPort = transactionPort,
+        )
     }
 
     @Bean

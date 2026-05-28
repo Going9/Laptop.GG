@@ -1,20 +1,26 @@
 package going9.laptopgg.application.crawler
 
+import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy
 import going9.laptopgg.recommendation.RecommendationUseCase
 import java.time.LocalDateTime
-import org.springframework.transaction.annotation.Transactional
 
-@Transactional
 class RecommendationScoreService(
     private val recommendationScorePort: RecommendationScorePort,
+    private val transactionPort: CrawlerTransactionPort,
 ) {
     private val recommendationScoringPolicy = RecommendationScoringPolicy()
 
     fun refreshScores(profileState: CrawledLaptopProfileState) {
+        transactionPort.write {
+            refreshScoresInTransaction(profileState)
+        }
+    }
+
+    private fun refreshScoresInTransaction(profileState: CrawledLaptopProfileState) {
         val profile = profileState.profile
         val inputs = scoreInputs(profile)
         val gateInputs = gateInputs(profile)

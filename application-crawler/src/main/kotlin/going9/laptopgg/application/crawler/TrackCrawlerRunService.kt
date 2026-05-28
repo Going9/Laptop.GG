@@ -1,34 +1,38 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
+import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import java.time.LocalDateTime
-import org.springframework.transaction.annotation.Transactional
 
-@Transactional
 class TrackCrawlerRunService(
     private val crawlerRunPort: CrawlerRunPort,
+    private val transactionPort: CrawlerTransactionPort,
 ) : TrackCrawlerRunUseCase {
     override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
-        return crawlerRunPort.create(
-            CreateCrawlerRunCommand(
-                filterProfile = filterProfile,
-                startPage = startPage,
-                limitCount = limit,
-            ),
-        ).toRecord()
+        return transactionPort.write {
+            crawlerRunPort.create(
+                CreateCrawlerRunCommand(
+                    filterProfile = filterProfile,
+                    startPage = startPage,
+                    limitCount = limit,
+                ),
+            ).toRecord()
+        }
     }
 
     override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
-        return crawlerRunPort.create(
-            CreateCrawlerRunCommand(
-                filterProfile = filterProfile,
-                startPage = startPage,
-                limitCount = limit,
-                status = CrawlerRunStatusResult.SKIPPED_LOCKED,
-                endedAt = LocalDateTime.now(),
-                errorMessage = "Another crawler run already holds the PostgreSQL advisory lock.",
-            ),
-        ).toRecord()
+        return transactionPort.write {
+            crawlerRunPort.create(
+                CreateCrawlerRunCommand(
+                    filterProfile = filterProfile,
+                    startPage = startPage,
+                    limitCount = limit,
+                    status = CrawlerRunStatusResult.SKIPPED_LOCKED,
+                    endedAt = LocalDateTime.now(),
+                    errorMessage = "Another crawler run already holds the PostgreSQL advisory lock.",
+                ),
+            ).toRecord()
+        }
     }
 
     override fun finish(
@@ -37,36 +41,40 @@ class TrackCrawlerRunService(
         status: CrawlerRunCompletionStatus,
         errorMessage: String?,
     ): CrawlerRunRecord {
-        return (
-            crawlerRunPort.update(
-                UpdateCrawlerRunCommand(
-                    runId = runId,
-                    status = status.toStatusResult(),
-                    processedCount = summary.processedCount,
-                    createdCount = summary.createdCount,
-                    updatedCount = summary.updatedCount,
-                    degradedCount = summary.degradedCount,
-                    failedCount = summary.failedCount,
-                    failureSamples = summary.failureSamples.toStorageText(),
-                    errorMessage = errorMessage?.truncateForStorage(),
-                    endedAt = LocalDateTime.now(),
-                ),
-            ) ?: throw IllegalArgumentException("Crawler run not found: $runId")
-        ).toRecord()
+        return transactionPort.write {
+            (
+                crawlerRunPort.update(
+                    UpdateCrawlerRunCommand(
+                        runId = runId,
+                        status = status.toStatusResult(),
+                        processedCount = summary.processedCount,
+                        createdCount = summary.createdCount,
+                        updatedCount = summary.updatedCount,
+                        degradedCount = summary.degradedCount,
+                        failedCount = summary.failedCount,
+                        failureSamples = summary.failureSamples.toStorageText(),
+                        errorMessage = errorMessage?.truncateForStorage(),
+                        endedAt = LocalDateTime.now(),
+                    ),
+                ) ?: throw IllegalArgumentException("Crawler run not found: $runId")
+            ).toRecord()
+        }
     }
 
     override fun fail(runId: Long, exception: Throwable): CrawlerRunRecord {
-        return (
-            crawlerRunPort.update(
-                UpdateCrawlerRunCommand(
-                    runId = runId,
-                    status = CrawlerRunStatusResult.FAILED,
-                    errorMessage = (exception.message ?: exception::class.simpleName ?: "Unknown crawler failure")
-                        .truncateForStorage(),
-                    endedAt = LocalDateTime.now(),
-                ),
-            ) ?: throw IllegalArgumentException("Crawler run not found: $runId")
-        ).toRecord()
+        return transactionPort.write {
+            (
+                crawlerRunPort.update(
+                    UpdateCrawlerRunCommand(
+                        runId = runId,
+                        status = CrawlerRunStatusResult.FAILED,
+                        errorMessage = (exception.message ?: exception::class.simpleName ?: "Unknown crawler failure")
+                            .truncateForStorage(),
+                        endedAt = LocalDateTime.now(),
+                    ),
+                ) ?: throw IllegalArgumentException("Crawler run not found: $runId")
+            ).toRecord()
+        }
     }
 
     private fun CrawlerRunCompletionStatus.toStatusResult(): CrawlerRunStatusResult {

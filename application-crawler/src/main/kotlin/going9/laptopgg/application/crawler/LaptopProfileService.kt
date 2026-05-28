@@ -2,14 +2,14 @@ package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
-import org.springframework.transaction.annotation.Transactional
+import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 
-@Transactional
 class LaptopProfileService(
     private val laptopPort: CrawledLaptopPort,
     private val laptopProfilePort: CrawledLaptopProfilePort,
     private val laptopProfileFactory: LaptopProfileFactory,
     private val recommendationScoreService: RecommendationScoreService,
+    private val transactionPort: CrawlerTransactionPort,
 ) {
     companion object {
         private const val PROFILE_BACKFILL_BATCH_SIZE = 100
@@ -21,7 +21,9 @@ class LaptopProfileService(
     private var incompleteProfilesBackfilled = false
 
     fun syncMissingProfiles() {
-        syncMissingProfilesBatch()
+        transactionPort.write {
+            syncMissingProfilesBatchInTransaction()
+        }
     }
 
     fun syncMissingProfilesIfNeeded() {
@@ -29,21 +31,25 @@ class LaptopProfileService(
             return
         }
 
-        synchronized(this) {
-            if (missingProfilesBackfilled) {
-                return
-            }
+        transactionPort.write {
+            synchronized(this) {
+                if (missingProfilesBackfilled) {
+                    return@write
+                }
 
-            if (hasMissingProfiles()) {
-                syncMissingProfilesBatch()
-            }
+                if (hasMissingProfiles()) {
+                    syncMissingProfilesBatchInTransaction()
+                }
 
-            missingProfilesBackfilled = !hasMissingProfiles()
+                missingProfilesBackfilled = !hasMissingProfiles()
+            }
         }
     }
 
     fun syncIncompleteProfiles() {
-        syncIncompleteProfilesBatch()
+        transactionPort.write {
+            syncIncompleteProfilesBatchInTransaction()
+        }
     }
 
     fun syncIncompleteProfilesIfNeeded() {
@@ -51,20 +57,40 @@ class LaptopProfileService(
             return
         }
 
-        synchronized(this) {
-            if (incompleteProfilesBackfilled) {
-                return
-            }
+        transactionPort.write {
+            synchronized(this) {
+                if (incompleteProfilesBackfilled) {
+                    return@write
+                }
 
-            if (hasIncompleteProfiles()) {
-                syncIncompleteProfilesBatch()
-            }
+                if (hasIncompleteProfiles()) {
+                    syncIncompleteProfilesBatchInTransaction()
+                }
 
-            incompleteProfilesBackfilled = !hasIncompleteProfiles()
+                incompleteProfilesBackfilled = !hasIncompleteProfiles()
+            }
         }
     }
 
     fun syncMissingProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
+        return transactionPort.write {
+            syncMissingProfilesBatchInTransaction(limit)
+        }
+    }
+
+    fun syncIncompleteProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
+        return transactionPort.write {
+            syncIncompleteProfilesBatchInTransaction(limit)
+        }
+    }
+
+    fun syncProfile(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
+        return transactionPort.write {
+            syncProfileInTransaction(laptop)
+        }
+    }
+
+    private fun syncMissingProfilesBatchInTransaction(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
         val ids = laptopPort.findIdsWithoutProfile(limit)
         if (ids.isEmpty()) {
             missingProfilesBackfilled = true
@@ -72,12 +98,12 @@ class LaptopProfileService(
         }
 
         laptopPort.findAllWithUsageByIds(ids)
-            .forEach { laptop -> syncProfile(laptop) }
+            .forEach { laptop -> syncProfileInTransaction(laptop) }
 
         return ids.size
     }
 
-    fun syncIncompleteProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
+    private fun syncIncompleteProfilesBatchInTransaction(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
         val ids = laptopProfilePort.findLaptopIdsWithIncompleteStaticScores(limit)
         if (ids.isEmpty()) {
             incompleteProfilesBackfilled = true
@@ -85,12 +111,12 @@ class LaptopProfileService(
         }
 
         laptopPort.findAllWithUsageByIds(ids)
-            .forEach { laptop -> syncProfile(laptop) }
+            .forEach { laptop -> syncProfileInTransaction(laptop) }
 
         return ids.size
     }
 
-    fun syncProfile(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
+    private fun syncProfileInTransaction(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
         val laptopId = laptop.id
         val snapshot = laptopProfileFactory.build(laptop)
         val profile = laptopProfilePort.upsert(

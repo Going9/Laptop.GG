@@ -206,6 +206,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application-crawler must keep Spring transaction infrastructure behind ports",
+			paths = listOf("application-crawler/src/main", "application-crawler/src/test", "application-crawler/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""org\.springframework\.transaction"""),
+				Regex("""@Transactional"""),
+				Regex("""spring-tx"""),
+				Regex("""kotlin\.plugin\.spring"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler persistence must not use detail_page substring fallback",
 			paths = listOf("application-crawler/src/main", "infrastructure-jpa-core/src/main", "infrastructure-jpa-crawler/src/main"),
 			patterns = listOf(
@@ -797,7 +808,7 @@ subprojects {
 		apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	}
 
-	if (name in setOf("application", "application-crawler", "infrastructure-jpa", "infrastructure-jpa-crawler", "infrastructure-security", "integration-tests", "web-app", "crawler-job")) {
+	if (name in setOf("application", "infrastructure-jpa", "infrastructure-jpa-crawler", "infrastructure-security", "integration-tests", "web-app", "crawler-job")) {
 		apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 	}
 

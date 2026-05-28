@@ -1,16 +1,33 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
-import org.springframework.transaction.annotation.Transactional
+import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 
-@Transactional
 class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPort,
     private val laptopProfileService: LaptopProfileService,
     private val laptopPriceHistoryService: LaptopPriceHistoryService,
+    private val transactionPort: CrawlerTransactionPort,
 ) : SaveCrawledLaptopUseCase {
-    @Transactional(readOnly = true)
     override fun loadExistingLookup(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
+        return transactionPort.read {
+            loadExistingLookupInTransaction(productCards)
+        }
+    }
+
+    override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
+        return transactionPort.write {
+            saveListSnapshotInTransaction(existingLaptopId, productCard)
+        }
+    }
+
+    override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
+        return transactionPort.write {
+            saveOrUpdateLaptopInTransaction(command, existingLaptopId)
+        }
+    }
+
+    private fun loadExistingLookupInTransaction(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
         if (productCards.isEmpty()) {
             return ExistingCrawledLaptopLookup(emptyMap(), emptyMap())
         }
@@ -27,7 +44,7 @@ class SaveCrawledLaptopService(
         )
     }
 
-    override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
+    private fun saveListSnapshotInTransaction(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         val existingLaptop = laptopPort.findWithUsageById(existingLaptopId)
             ?: throw IllegalArgumentException("Laptop not found: $existingLaptopId")
         val updateCommand = UpdateCrawledLaptopCommand(
@@ -51,7 +68,7 @@ class SaveCrawledLaptopService(
         return SaveResult.UPDATED
     }
 
-    override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
+    private fun saveOrUpdateLaptopInTransaction(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
         val existingLaptop = existingLaptopId?.let(laptopPort::findWithUsageById)
             ?: findExistingLaptop(command)
 
