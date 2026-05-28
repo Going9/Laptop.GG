@@ -159,6 +159,53 @@ class CrawlerJobExecutorTest {
     }
 
     @Test
+    fun `crawler interrupted exception is recorded and propagated`() {
+        val crawlerService = Mockito.mock(CrawlerService::class.java)
+        val exception = IllegalStateException("stop", InterruptedException("interrupted"))
+        Mockito.`when`(crawlerService.crawlAll(null, 1, CrawlerFilterProfile.CORE)).thenThrow(exception)
+        val trackUseCase = RecordingTrackCrawlerRunUseCase()
+        val executor = CrawlerJobExecutor(
+            crawlerService = crawlerService,
+            crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = true),
+            trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
+        )
+
+        try {
+            assertThatThrownBy {
+                executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = CrawlerFilterProfile.CORE))
+            }.isSameAs(exception)
+            assertThat(trackUseCase.failedFailure).isSameAs(exception)
+            assertThat(Thread.currentThread().isInterrupted).isTrue()
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
+    fun `lock interrupted exception is propagated without creating skipped run`() {
+        val crawlerService = Mockito.mock(CrawlerService::class.java)
+        val exception = IllegalStateException("lock interrupted", InterruptedException("interrupted"))
+        val trackUseCase = RecordingTrackCrawlerRunUseCase()
+        val executor = CrawlerJobExecutor(
+            crawlerService = crawlerService,
+            crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = true, lockFailure = exception),
+            trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
+        )
+
+        try {
+            assertThatThrownBy {
+                executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = CrawlerFilterProfile.CORE))
+            }.isSameAs(exception)
+            assertThat(trackUseCase.skippedRequests).isEmpty()
+            assertThat(Thread.currentThread().isInterrupted).isTrue()
+        } finally {
+            Thread.interrupted()
+        }
+    }
+
+    @Test
     fun `crawler fatal error is recorded and propagated`() {
         val crawlerService = Mockito.mock(CrawlerService::class.java)
         val error = NoClassDefFoundError("crawler linkage")
@@ -217,8 +264,10 @@ class CrawlerJobExecutorTest {
 
     private class RecordingCrawlerRunLockUseCase(
         private val acquired: Boolean,
+        private val lockFailure: Exception? = null,
     ) : CrawlerRunLockUseCase {
         override fun <T> runLocked(block: () -> T): CrawlerLockResult<T> {
+            lockFailure?.let { throw it }
             if (!acquired) {
                 return CrawlerLockResult(acquired = false, value = null)
             }

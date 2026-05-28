@@ -24,7 +24,9 @@ internal class CrawlerJobExecutor(
                 runTrackedCrawler(request)
             }
         } catch (exception: Exception) {
-            exception.isCrawlerInterruptedFailure()
+            if (exception.isCrawlerInterruptedFailure()) {
+                throw exception
+            }
             crawlerJobSummaryLogger.logLockFailure(exception)
             return 1
         }
@@ -75,13 +77,16 @@ internal class CrawlerJobExecutor(
             crawlerJobSummaryLogger.logCompleted(runId, finishedStatus, request, summary)
             if (summary.failedCount == 0) 0 else 1
         } catch (failure: Throwable) {
-            failure.isCrawlerInterruptedFailure()
+            val interrupted = failure.isCrawlerInterruptedFailure()
             recordRunFailure(
                 runId = runId,
                 request = request,
                 failure = failure,
                 partialSummary = (failure as? CrawlFailedWithPartialSummary)?.partialSummary,
             )
+            if (interrupted) {
+                throw failure
+            }
             if (failure is Exception) {
                 1
             } else {
