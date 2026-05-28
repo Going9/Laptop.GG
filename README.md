@@ -48,6 +48,7 @@ flowchart LR
 - `.github/workflows/deploy-web.yml`: 웹 배포
 - `.github/workflows/crawler.yml`: 크롤러 실행
 - `ops/`: systemd, nginx, env 예시와 운영 runbook
+- `ops/postgres/laptopgg-postgresql.conf`: 1GB PostgreSQL 서버용 관측성/커넥션 baseline
 
 저장소 루트가 곧 Gradle 프로젝트 루트입니다. 별도 하위 프로젝트로 들어갈 필요가 없습니다.
 

@@ -64,18 +64,32 @@ limit 20;
 
 ## DB Observability
 
-Recommended 1GB PostgreSQL baseline:
+Recommended 1GB PostgreSQL baseline is versioned at `ops/postgres/laptopgg-postgresql.conf`:
 
 ```conf
+max_connections = 30
+shared_buffers = 256MB
+effective_cache_size = 768MB
+work_mem = 4MB
+maintenance_work_mem = 64MB
 shared_preload_libraries = 'pg_stat_statements'
 pg_stat_statements.track = all
 track_io_timing = on
 log_min_duration_statement = 1000
-max_connections = 30
-effective_cache_size = 768MB
 ```
 
 Apply PostgreSQL setting changes separately from app deploys and only after a fresh backup.
+
+Example apply flow on the DB server:
+
+```bash
+sudo install -d -m 0750 -o postgres -g postgres /var/backups/laptopgg
+sudo install -m 0644 ops/postgres/laptopgg-postgresql.conf /etc/postgresql/16/main/conf.d/laptopgg.conf
+sudo -u postgres pg_dump -Fc -d laptopgg -f /var/backups/laptopgg/laptopgg-$(date +%Y%m%d-%H%M%S).dump
+sudo systemctl restart postgresql
+sudo -u postgres psql -d laptopgg -c 'create extension if not exists pg_stat_statements;'
+sudo -u postgres psql -d laptopgg -c "select name, setting from pg_settings where name in ('max_connections', 'effective_cache_size', 'track_io_timing', 'shared_preload_libraries');"
+```
 
 ## DB Backup
 
