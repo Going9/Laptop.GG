@@ -3,15 +3,15 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 import going9.laptopgg.application.port.out.CommentPort
 import going9.laptopgg.application.port.out.CommentRecord
 import going9.laptopgg.domain.laptop.Comment
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
+import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
 class CommentJpaAdapter(
     private val commentRepository: CommentRepository,
-    private val laptopRepository: LaptopRepository,
+    private val laptopRepository: WebLaptopRepository,
 ) : CommentPort {
     override fun findById(commentId: Long): CommentRecord? {
         return commentRepository.findByIdOrNull(commentId)?.toRecord()

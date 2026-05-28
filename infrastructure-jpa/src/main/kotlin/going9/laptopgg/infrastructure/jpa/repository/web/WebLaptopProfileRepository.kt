@@ -1,4 +1,4 @@
-package going9.laptopgg.infrastructure.jpa.repository.shared
+package going9.laptopgg.infrastructure.jpa.repository.web
 
 import going9.laptopgg.domain.laptop.LaptopProfile
 import org.springframework.data.domain.Page
@@ -8,9 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
-interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
-    fun findByLaptopId(laptopId: Long): LaptopProfile?
-
+interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
     @Query(
         """
         select distinct p
@@ -142,20 +140,4 @@ interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         @Param("sortMode") sortMode: String,
         pageable: Pageable,
     ): Page<LaptopProfile>
-
-    @Query(
-        """
-        select p.laptop.id
-        from LaptopProfile p
-        where p.cpuPerformanceScore = 0
-          and p.lowPowerCpuScore = 0
-          and p.gpuPerformanceScore = 0
-          and p.portabilityScore = 0
-          and p.displayScore = 0
-          and p.ramScore = 0
-          and p.tgpScore = 0
-        order by p.laptop.id asc
-        """,
-    )
-    fun findLaptopIdsWithIncompleteStaticScores(pageable: Pageable): List<Long>
 }

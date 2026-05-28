@@ -2,13 +2,13 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
 import going9.laptopgg.domain.laptop.LaptopProfile
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 
 @Component
 class CrawledLaptopProfileJpaAdapter(
-    private val laptopProfileRepository: LaptopProfileRepository,
+    private val laptopProfileRepository: CrawlerLaptopProfileRepository,
 ) : CrawledLaptopProfilePort {
     override fun findByLaptopId(laptopId: Long): LaptopProfile? {
         return laptopProfileRepository.findByLaptopId(laptopId)

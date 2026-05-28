@@ -134,9 +134,12 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "shared JPA repositories must not keep broad legacy full-table lookup methods",
+			rule = "infrastructure-jpa-core must not define runtime repositories",
 			paths = listOf("infrastructure-jpa-core/src/main"),
 			patterns = listOf(
+				Regex("""JpaRepository"""),
+				Regex("""EnableJpaRepositories"""),
+				Regex("""repository\.shared"""),
 				Regex("""findByName"""),
 				Regex("""findAllWithoutProfile"""),
 				Regex("""findAllIncompleteStaticScores"""),
@@ -179,6 +182,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "web JPA repositories must not expose crawler lookup or backfill methods",
+			paths = listOf("infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web"),
+			patterns = listOf(
+				Regex("""findByProductCode"""),
+				Regex("""findAllByProductCode"""),
+				Regex("""findAllByDetailPage"""),
+				Regex("""findIdsWithoutProfile"""),
+				Regex("""findLaptopIdsWithIncompleteStaticScores"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "infrastructure-jpa-core must stay free of application ports and runtime adapters",
 			paths = listOf("infrastructure-jpa-core/src/main", "infrastructure-jpa-core/build.gradle.kts"),
 			patterns = listOf(
@@ -201,6 +216,15 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler JPA repositories must not expose web recommendation query methods",
+			paths = listOf("infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler"),
+			patterns = listOf(
+				Regex("""findRecommendationCandidates"""),
+				Regex("""findRecommendationCandidatePage"""),
 			),
 		)
 

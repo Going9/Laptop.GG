@@ -12,9 +12,8 @@ import going9.laptopgg.domain.laptop.BatteryTier
 import going9.laptopgg.domain.laptop.CpuClass
 import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.PortabilityTier
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopUsageRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import going9.laptopgg.recommendation.RecommendationUseCase
 import org.assertj.core.api.Assertions.assertThat
@@ -31,13 +30,10 @@ class RecommendLaptopsUseCaseIntegrationTest {
     lateinit var recommendLaptopsUseCase: RecommendLaptopsUseCase
 
     @Autowired
-    lateinit var laptopRepository: LaptopRepository
+    lateinit var laptopRepository: CrawlerLaptopRepository
 
     @Autowired
-    lateinit var laptopUsageRepository: LaptopUsageRepository
-
-    @Autowired
-    lateinit var laptopProfileRepository: LaptopProfileRepository
+    lateinit var laptopProfileRepository: CrawlerLaptopProfileRepository
 
     @Autowired
     lateinit var laptopProfileService: LaptopProfileService
@@ -55,7 +51,6 @@ class RecommendLaptopsUseCaseIntegrationTest {
     fun setUp() {
         recommendationScoreRepository.deleteAll()
         laptopProfileRepository.deleteAll()
-        laptopUsageRepository.deleteAll()
         laptopRepository.deleteAll()
     }
 

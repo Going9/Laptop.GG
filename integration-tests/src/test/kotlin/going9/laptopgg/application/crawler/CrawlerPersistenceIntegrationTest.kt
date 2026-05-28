@@ -1,10 +1,9 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopUsageRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -20,13 +19,10 @@ class CrawlerPersistenceIntegrationTest {
     lateinit var saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase
 
     @Autowired
-    lateinit var laptopRepository: LaptopRepository
+    lateinit var laptopRepository: CrawlerLaptopRepository
 
     @Autowired
-    lateinit var laptopUsageRepository: LaptopUsageRepository
-
-    @Autowired
-    lateinit var laptopProfileRepository: LaptopProfileRepository
+    lateinit var laptopProfileRepository: CrawlerLaptopProfileRepository
 
     @Autowired
     lateinit var laptopPriceHistoryRepository: LaptopPriceHistoryRepository
@@ -39,7 +35,6 @@ class CrawlerPersistenceIntegrationTest {
         recommendationScoreRepository.deleteAll()
         laptopPriceHistoryRepository.deleteAll()
         laptopProfileRepository.deleteAll()
-        laptopUsageRepository.deleteAll()
         laptopRepository.deleteAll()
     }
 

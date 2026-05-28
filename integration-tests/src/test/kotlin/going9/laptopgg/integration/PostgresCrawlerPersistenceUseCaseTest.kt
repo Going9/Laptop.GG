@@ -8,9 +8,9 @@ import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.SaveResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import going9.laptopgg.recommendation.RecommendationUseCase
 import org.assertj.core.api.Assertions.assertThat
@@ -50,10 +50,10 @@ class PostgresCrawlerPersistenceUseCaseTest {
     lateinit var crawlerRunLockUseCase: CrawlerRunLockUseCase
 
     @Autowired
-    lateinit var laptopRepository: LaptopRepository
+    lateinit var laptopRepository: CrawlerLaptopRepository
 
     @Autowired
-    lateinit var laptopProfileRepository: LaptopProfileRepository
+    lateinit var laptopProfileRepository: CrawlerLaptopProfileRepository
 
     @Autowired
     lateinit var laptopPriceHistoryRepository: LaptopPriceHistoryRepository

@@ -6,13 +6,13 @@ import going9.laptopgg.application.port.out.RecommendationCandidateRecord
 import going9.laptopgg.application.port.out.RecommendationCandidateFilter
 import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
 import going9.laptopgg.domain.laptop.LaptopProfile
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopProfileRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 
 @Component
 class LaptopProfileJpaAdapter(
-    private val laptopProfileRepository: LaptopProfileRepository,
+    private val laptopProfileRepository: WebLaptopProfileRepository,
 ) : LaptopProfilePort {
     override fun findRecommendationCandidates(filter: RecommendationCandidateFilter): List<RecommendationCandidateRecord> {
         return laptopProfileRepository.findRecommendationCandidates(

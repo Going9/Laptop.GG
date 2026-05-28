@@ -1,4 +1,4 @@
-package going9.laptopgg.infrastructure.jpa.repository.shared
+package going9.laptopgg.infrastructure.jpa.repository.crawler
 
 import going9.laptopgg.domain.laptop.Laptop
 import org.springframework.data.domain.Pageable
@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
-interface LaptopRepository : JpaRepository<Laptop, Long> {
+interface CrawlerLaptopRepository : JpaRepository<Laptop, Long> {
     @EntityGraph(attributePaths = ["laptopUsage"])
     fun findAllByProductCodeIn(productCodes: Collection<String>): List<Laptop>
 
@@ -54,5 +54,4 @@ interface LaptopRepository : JpaRepository<Laptop, Long> {
         """,
     )
     fun findIdsWithoutProfile(pageable: Pageable): List<Long>
-
 }

@@ -3,12 +3,12 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 import going9.laptopgg.application.port.out.LaptopDetailRecord
 import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import org.springframework.stereotype.Component
 
 @Component
 class LaptopJpaAdapter(
-    private val laptopRepository: LaptopRepository,
+    private val laptopRepository: WebLaptopRepository,
 ) : LaptopPort {
     override fun existsById(laptopId: Long): Boolean {
         return laptopRepository.existsById(laptopId)
