@@ -49,7 +49,7 @@ class CrawlerStartupRunner(
             ?.firstOrNull()
             ?.trim()
             ?.takeIf { it.isNotBlank() }
-            ?: defaultFilterProfileRaw
+            ?: normalizedFilterProfile(defaultFilterProfileRaw)
 
         val lockResult = runCatching {
             crawlerAdvisoryLockService.withCrawlerLock {
@@ -163,5 +163,16 @@ class CrawlerStartupRunner(
             failedCount = failedCount,
             failureSamples = failureSamples,
         )
+    }
+
+    companion object {
+        internal const val DEFAULT_FILTER_PROFILE = "core"
+
+        internal fun normalizedFilterProfile(rawValue: String?): String {
+            return rawValue
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?: DEFAULT_FILTER_PROFILE
+        }
     }
 }

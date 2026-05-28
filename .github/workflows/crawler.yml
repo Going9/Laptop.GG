@@ -44,9 +44,9 @@ jobs:
       SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
       SPRING_DATASOURCE_PASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
       SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
-      CRAWLER_LIMIT: ${{ inputs.limit }}
-      CRAWLER_START_PAGE: ${{ inputs.start_page }}
-      CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile }}
+      CRAWLER_LIMIT: ${{ inputs.limit || '' }}
+      CRAWLER_START_PAGE: ${{ inputs.start_page || '' }}
+      CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile || 'core' }}
       CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
       CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
 
