@@ -96,8 +96,10 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 export PATH="$JAVA_HOME/bin:$PATH"
 ./gradlew --no-daemon test
-./gradlew --no-daemon test :web-app:bootJar :crawler-job:bootJar
+./gradlew --no-daemon verifyStructure test :web-app:bootJar :crawler-job:bootJar
 ```
+
+`verifyStructure`는 모듈 경계 회귀를 막는 Gradle 검증 태스크이며, `test` 실행 시에도 함께 실행됩니다.
 
 회귀 테스트에는 실제 Danawa 구조를 닮은 HTML fixture가 포함됩니다.
 - `crawler-job/src/test/resources/fixtures/danawa/list-page.html`

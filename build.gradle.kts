@@ -11,6 +11,98 @@ plugins {
 	kotlin("plugin.jpa") version "1.9.25" apply false
 }
 
+val verifyStructure by tasks.registering {
+	group = "verification"
+	description = "Verifies module boundary rules."
+
+	doLast {
+		fun textFiles(vararg paths: String) = paths.flatMap { path ->
+			val file = project.file(path)
+			when {
+				!file.exists() -> emptyList()
+				file.isFile -> listOf(file)
+				else -> file.walkTopDown()
+					.filter { it.isFile && it.extension in setOf("kt", "kts", "yml", "yaml") }
+					.toList()
+			}
+		}
+
+		fun assertAbsent(rule: String, paths: List<String>, patterns: List<Regex>) {
+			val violations = textFiles(*paths.toTypedArray()).flatMap { file ->
+				val relativePath = file.relativeTo(projectDir).path
+				file.readLines().flatMapIndexed { index, line ->
+					patterns
+						.filter { pattern -> pattern.containsMatchIn(line) }
+						.map { pattern -> "$relativePath:${index + 1}: ${pattern.pattern}" }
+				}
+			}
+
+			check(violations.isEmpty()) {
+				buildString {
+					appendLine("Structure rule failed: $rule")
+					violations.forEach { appendLine(it) }
+				}
+			}
+		}
+
+		assertAbsent(
+			rule = "application must not depend on infrastructure or public web DTOs",
+			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.infrastructure"""),
+				Regex("""going9\.laptopgg\.dto"""),
+				Regex("""project\(":infrastructure-jpa"\)"""),
+				Regex("""spring-boot-starter-data-jpa"""),
+				Regex("""com\.h2database"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web-app must not use Spring Data pagination types",
+			paths = listOf("web-app/src/main", "web-app/src/test", "web-app/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""org\.springframework\.data\.domain"""),
+				Regex("""Pageable"""),
+				Regex("""PageRequest"""),
+				Regex("""PageableDefault"""),
+				Regex("""spring-data-commons"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web-app must not carry crawler runtime configuration",
+			paths = listOf("web-app/src/main/resources/application.yml"),
+			patterns = listOf(
+				Regex("""app\.crawler"""),
+				Regex("""CRAWLER_"""),
+				Regex("""run-on-startup"""),
+				Regex("""on-profile: crawler"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler-job must not carry web runtime configuration",
+			paths = listOf("crawler-job/src/main/resources/application.yml"),
+			patterns = listOf(
+				Regex("""app\.api"""),
+				Regex("""APP_BASE_URL"""),
+				Regex("""management:"""),
+				Regex("""server:"""),
+				Regex("""on-profile: deploy"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler-job crawler implementation must live under job.crawler",
+			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.service\.crawler"""),
+				Regex("""package going9\.laptopgg\.service\.crawler"""),
+			),
+		)
+	}
+}
+
 allprojects {
 	group = "Going9"
 	version = "0.0.1-SNAPSHOT"
@@ -51,5 +143,6 @@ subprojects {
 
 	tasks.withType<Test> {
 		useJUnitPlatform()
+		dependsOn(rootProject.tasks.named("verifyStructure"))
 	}
 }
