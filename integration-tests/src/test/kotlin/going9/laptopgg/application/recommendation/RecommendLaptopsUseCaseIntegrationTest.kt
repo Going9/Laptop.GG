@@ -12,10 +12,10 @@ import going9.laptopgg.application.crawler.RecommendationScoreService
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
-import going9.laptopgg.domain.laptop.BatteryTier
-import going9.laptopgg.domain.laptop.CpuClass
-import going9.laptopgg.domain.laptop.GpuClass
-import going9.laptopgg.domain.laptop.PortabilityTier
+import going9.laptopgg.recommendation.BatteryTier
+import going9.laptopgg.recommendation.CpuClass
+import going9.laptopgg.recommendation.GpuClass
+import going9.laptopgg.recommendation.PortabilityTier
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository

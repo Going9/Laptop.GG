@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.domain.laptop.CpuClass
+import going9.laptopgg.recommendation.CpuClass
 import kotlin.math.roundToInt
 
 data class CpuInsights(

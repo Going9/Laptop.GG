@@ -1,7 +1,7 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.domain.laptop.BatteryTier
-import going9.laptopgg.domain.laptop.PortabilityTier
+import going9.laptopgg.recommendation.BatteryTier
+import going9.laptopgg.recommendation.PortabilityTier
 import kotlin.math.roundToInt
 
 data class ProfileScores(

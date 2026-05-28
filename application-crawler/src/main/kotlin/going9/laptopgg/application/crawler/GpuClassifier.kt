@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.domain.laptop.GpuClass
+import going9.laptopgg.recommendation.GpuClass
 
 data class GpuInsights(
     val normalizedGpu: String?,

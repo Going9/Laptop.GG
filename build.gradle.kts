@@ -88,7 +88,7 @@ val verifyStructure by tasks.registering {
 			":domain" to emptySet(),
 			":recommendation-core" to emptySet(),
 			":application" to setOf(":recommendation-core"),
-			":application-crawler" to setOf(":domain", ":recommendation-core"),
+			":application-crawler" to setOf(":recommendation-core"),
 			":infrastructure-jpa-core" to setOf(":domain"),
 			":infrastructure-jpa" to setOf(":application", ":domain", ":infrastructure-jpa-core"),
 			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":domain", ":infrastructure-jpa-core"),
@@ -101,6 +101,27 @@ val verifyStructure by tasks.registering {
 				rule = "runtime module dependency graph must stay top-down",
 				projectPath = projectPath,
 				configurationName = "implementation",
+				expectedProjectPaths = expectedProjectPaths,
+			)
+		}
+
+		mapOf(
+			":domain" to setOf(":recommendation-core"),
+			":recommendation-core" to emptySet(),
+			":application" to emptySet(),
+			":application-crawler" to emptySet(),
+			":infrastructure-jpa-core" to emptySet(),
+			":infrastructure-jpa" to emptySet(),
+			":infrastructure-jpa-crawler" to emptySet(),
+			":infrastructure-security" to emptySet(),
+			":web-app" to emptySet(),
+			":crawler-job" to emptySet(),
+			":integration-tests" to emptySet(),
+		).forEach { (projectPath, expectedProjectPaths) ->
+			assertProjectDependencies(
+				rule = "public module dependency graph must expose only shared taxonomy",
+				projectPath = projectPath,
+				configurationName = "api",
 				expectedProjectPaths = expectedProjectPaths,
 			)
 		}
