@@ -1,4 +1,5 @@
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
@@ -58,6 +59,66 @@ val verifyStructure by tasks.registering {
 				}
 			}
 		}
+
+		fun projectDependencyPaths(projectPath: String, configurationName: String): Set<String> {
+			val configuration = project(projectPath).configurations.findByName(configurationName) ?: return emptySet()
+			return configuration.dependencies
+				.withType(ProjectDependency::class.java)
+				.map { dependency -> dependency.dependencyProject.path }
+				.toSet()
+		}
+
+		fun assertProjectDependencies(
+			rule: String,
+			projectPath: String,
+			configurationName: String,
+			expectedProjectPaths: Set<String>,
+		) {
+			val actualProjectPaths = projectDependencyPaths(projectPath, configurationName)
+			check(actualProjectPaths == expectedProjectPaths) {
+				buildString {
+					appendLine("Structure rule failed: $rule")
+					appendLine("$projectPath $configurationName dependencies must be $expectedProjectPaths")
+					appendLine("Actual: $actualProjectPaths")
+				}
+			}
+		}
+
+		mapOf(
+			":domain" to emptySet(),
+			":recommendation-core" to emptySet(),
+			":application" to setOf(":recommendation-core"),
+			":application-crawler" to setOf(":domain", ":recommendation-core"),
+			":infrastructure-jpa-core" to setOf(":domain"),
+			":infrastructure-jpa" to setOf(":application", ":domain", ":infrastructure-jpa-core"),
+			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":domain", ":infrastructure-jpa-core"),
+			":infrastructure-security" to setOf(":application"),
+			":web-app" to setOf(":application", ":infrastructure-jpa", ":infrastructure-security", ":recommendation-core"),
+			":crawler-job" to setOf(":application-crawler", ":infrastructure-jpa-core", ":infrastructure-jpa-crawler"),
+			":integration-tests" to emptySet(),
+		).forEach { (projectPath, expectedProjectPaths) ->
+			assertProjectDependencies(
+				rule = "runtime module dependency graph must stay top-down",
+				projectPath = projectPath,
+				configurationName = "implementation",
+				expectedProjectPaths = expectedProjectPaths,
+			)
+		}
+
+		assertProjectDependencies(
+			rule = "integration tests may compose all persistence and application modules",
+			projectPath = ":integration-tests",
+			configurationName = "testImplementation",
+			expectedProjectPaths = setOf(
+				":application",
+				":application-crawler",
+				":domain",
+				":infrastructure-jpa",
+				":infrastructure-jpa-core",
+				":infrastructure-jpa-crawler",
+				":recommendation-core",
+			),
+		)
 
 		assertPathAbsent(
 			rule = "ops must be the only tracked operations config surface",
