@@ -1,11 +1,12 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.persistence.model.laptop.Laptop
 
 internal fun Laptop.toPersistedCrawledLaptopSnapshot(): PersistedCrawledLaptopSnapshot {
     return PersistedCrawledLaptopSnapshot(
-        id = requireNotNull(id) { "Persisted laptop id must not be null." },
+        id = id ?: throw CrawlerInvalidStateException("Persisted laptop id must not be null."),
         name = name,
         imageUrl = imageUrl,
         detailPage = detailPage,

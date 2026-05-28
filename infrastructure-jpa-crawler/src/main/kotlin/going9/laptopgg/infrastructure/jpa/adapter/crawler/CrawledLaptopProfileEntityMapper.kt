@@ -1,5 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
 import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
 import going9.laptopgg.persistence.model.laptop.Laptop
@@ -55,7 +56,8 @@ internal object CrawledLaptopProfileEntityMapper {
 
     fun toState(profile: LaptopProfile): CrawledLaptopProfileState {
         return CrawledLaptopProfileState(
-            laptopId = requireNotNull(profile.laptop.id) { "Laptop profile must reference a persisted laptop." },
+            laptopId = profile.laptop.id
+                ?: throw CrawlerInvalidStateException("Laptop profile must reference a persisted laptop."),
             profile = LaptopProfileSnapshot(
                 cpuClass = profile.cpuClass,
                 gpuClass = profile.gpuClass,

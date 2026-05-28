@@ -939,6 +939,31 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler JPA mappers must reject missing persisted ids with explicit crawler state errors",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopSnapshotMapper.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileEntityMapper.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopMapperStateTest.kt",
+			),
+			patterns = listOf(
+				Regex("""CrawlerInvalidStateException"""),
+				Regex("""laptop snapshot mapper rejects entity without persisted id with explicit crawler error"""),
+				Regex("""profile mapper rejects laptop reference without persisted id with explicit crawler error"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler JPA mappers must not use generic null assertions for persisted ids",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopSnapshotMapper.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileEntityMapper.kt",
+			),
+			patterns = listOf(
+				Regex("""requireNotNull"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "application command and result contracts must not expose persistence models",
 			paths = listOf(
