@@ -14,12 +14,12 @@ internal class ExistingCrawledLaptopLookupLoader(
         validateBatchIdentity(productCards)
 
         val byProductCode = uniqueLookupMap(
-            snapshots = laptopPort.findAllByProductCodes(productCards.map { it.productCode.trim() }.distinct()),
+            snapshots = laptopPort.findExistingByProductCodes(productCards.map { it.productCode.trim() }.distinct()),
             identityName = "productCode",
             identityValue = { laptop -> laptop.productCode },
         )
         val byDetailPage = uniqueLookupMap(
-            snapshots = laptopPort.findAllByDetailPages(productCards.map { it.detailPage.trim() }.distinct()),
+            snapshots = laptopPort.findExistingByDetailPages(productCards.map { it.detailPage.trim() }.distinct()),
             identityName = "detailPage",
             identityValue = { laptop -> laptop.detailPage },
         )
@@ -53,9 +53,9 @@ internal class ExistingCrawledLaptopLookupLoader(
     }
 
     private fun uniqueLookupMap(
-        snapshots: List<PersistedCrawledLaptopSnapshot>,
+        snapshots: List<ExistingCrawledLaptopSnapshot>,
         identityName: String,
-        identityValue: (PersistedCrawledLaptopSnapshot) -> String?,
+        identityValue: (ExistingCrawledLaptopSnapshot) -> String?,
     ): Map<String, ExistingCrawledLaptopSnapshot> {
         val grouped = snapshots
             .mapNotNull { laptop ->
@@ -74,7 +74,7 @@ internal class ExistingCrawledLaptopLookupLoader(
             )
         }
 
-        return grouped.mapValues { (_, laptops) -> laptops.first().toExistingSnapshot() }
+        return grouped.mapValues { (_, laptops) -> laptops.first() }
     }
 
     private fun <T> Map<String, List<T>>.toConflictSamples(values: (List<T>) -> List<String>): String {
@@ -85,25 +85,5 @@ internal class ExistingCrawledLaptopLookupLoader(
                 val sampleValues = values(groupedValues).distinct().sorted().take(5).joinToString(prefix = "[", postfix = "]")
                 "$key -> $sampleValues"
             }
-    }
-
-    private fun PersistedCrawledLaptopSnapshot.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
-        return ExistingCrawledLaptopSnapshot(
-            id = id,
-            productCode = productCode,
-            detailPage = detailPage,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            ramSize = ramSize,
-            graphicsType = graphicsType,
-            storageCapacity = storageCapacity,
-            batteryCapacity = batteryCapacity,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usageCount = usages.size,
-        )
     }
 }

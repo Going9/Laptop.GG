@@ -25,18 +25,18 @@ class ExistingCrawledLaptopLookupLoaderTest {
     @Test
     fun `loads existing laptops by product code and detail page`() {
         val detailedAt = LocalDateTime.of(2026, 5, 28, 10, 30)
-        val productMatch = persistedLaptop(
+        val productMatch = existingLaptop(
             id = 10L,
             detailPage = "https://prod.danawa.com/info/?pcode=P10",
             productCode = "P10",
             lastDetailedCrawledAt = detailedAt,
-            usages = listOf("business", "student"),
+            usageCount = 2,
         )
-        val detailPageMatch = persistedLaptop(
+        val detailPageMatch = existingLaptop(
             id = 20L,
             detailPage = "https://prod.danawa.com/info/?pcode=P20",
             productCode = null,
-            usages = listOf("gaming"),
+            usageCount = 1,
         )
         laptopPort.laptops += productMatch
         laptopPort.laptops += detailPageMatch
@@ -104,12 +104,12 @@ class ExistingCrawledLaptopLookupLoaderTest {
 
     @Test
     fun `rejects duplicate persisted product code identities instead of choosing one row`() {
-        laptopPort.laptops += persistedLaptop(
+        laptopPort.laptops += existingLaptop(
             id = 10L,
             detailPage = "https://prod.danawa.com/info/?pcode=P10",
             productCode = "P10",
         )
-        laptopPort.laptops += persistedLaptop(
+        laptopPort.laptops += existingLaptop(
             id = 11L,
             detailPage = "https://prod.danawa.com/info/?pcode=P10-duplicate",
             productCode = "P10",
@@ -125,12 +125,12 @@ class ExistingCrawledLaptopLookupLoaderTest {
 
     @Test
     fun `rejects duplicate persisted detail page identities instead of choosing one row`() {
-        laptopPort.laptops += persistedLaptop(
+        laptopPort.laptops += existingLaptop(
             id = 20L,
             detailPage = "https://prod.danawa.com/info/?pcode=P20",
             productCode = "P20",
         )
-        laptopPort.laptops += persistedLaptop(
+        laptopPort.laptops += existingLaptop(
             id = 21L,
             detailPage = "https://prod.danawa.com/info/?pcode=P20",
             productCode = "P20-duplicate",
@@ -154,48 +154,34 @@ class ExistingCrawledLaptopLookupLoaderTest {
         )
     }
 
-    private fun persistedLaptop(
+    private fun existingLaptop(
         id: Long,
         detailPage: String,
         productCode: String?,
         lastDetailedCrawledAt: LocalDateTime? = null,
-        usages: List<String> = emptyList(),
-    ): PersistedCrawledLaptopSnapshot {
-        return PersistedCrawledLaptopSnapshot(
+        usageCount: Int = 0,
+    ): ExistingCrawledLaptopSnapshot {
+        return ExistingCrawledLaptopSnapshot(
             id = id,
-            name = "Laptop $id",
-            imageUrl = "https://img.example.com/$id.jpg",
             detailPage = detailPage,
             productCode = productCode,
-            price = 1_200_000,
             cpuManufacturer = "인텔",
             cpu = "Core Ultra 7 255H",
             os = "윈도우11홈",
             screenSize = 14,
             resolution = "2880x1800",
-            brightness = 500,
-            refreshRate = 120,
             ramSize = 32,
-            ramType = "LPDDR5X",
-            isRamReplaceable = false,
             graphicsType = "Intel Arc",
-            tgp = 0,
-            thunderboltCount = 2,
-            usbCCount = 2,
-            usbACount = 1,
-            sdCard = null,
-            isSupportsPdCharging = true,
             batteryCapacity = 72.0,
             storageCapacity = 1024,
-            storageSlotCount = 1,
             weight = 1.23,
             lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usages = usages,
+            usageCount = usageCount,
         )
     }
 
     private class RecordingCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
-        val laptops = mutableListOf<PersistedCrawledLaptopSnapshot>()
+        val laptops = mutableListOf<ExistingCrawledLaptopSnapshot>()
         val productCodeLookups = mutableListOf<List<String>>()
         val detailPageLookups = mutableListOf<List<String>>()
 
@@ -203,12 +189,12 @@ class ExistingCrawledLaptopLookupLoaderTest {
         override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = null
         override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
 
-        override fun findAllByProductCodes(productCodes: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
+        override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
             productCodeLookups += productCodes.toList()
             return laptops.filter { laptop -> laptop.productCode in productCodes }
         }
 
-        override fun findAllByDetailPages(detailPages: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
+        override fun findExistingByDetailPages(detailPages: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
             detailPageLookups += detailPages.toList()
             return laptops.filter { laptop -> laptop.detailPage in detailPages }
         }

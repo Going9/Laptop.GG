@@ -1518,6 +1518,47 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler batch existing laptop lookup must use narrow lookup snapshots",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/ExistingCrawledLaptopLookupLoader.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerLaptopRepository.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopSnapshotMapper.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapterTest.kt",
+			),
+			patterns = listOf(
+				Regex("""fun findExistingByProductCodes\(productCodes: Collection<String>\): List<ExistingCrawledLaptopSnapshot>"""),
+				Regex("""fun findExistingByDetailPages\(detailPages: Collection<String>\): List<ExistingCrawledLaptopSnapshot>"""),
+				Regex("""laptopPort\.findExistingByProductCodes"""),
+				Regex("""laptopPort\.findExistingByDetailPages"""),
+				Regex("""fun findExistingByProductCodeIn\("""),
+				Regex("""fun findExistingByDetailPageIn\("""),
+				Regex("""interface ExistingCrawledLaptopProjection"""),
+				Regex("""count\(lu\.id\).*usageCount"""),
+				Regex("""toExistingCrawledLaptopSnapshot"""),
+				Regex("""without loading full laptop graph"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler batch lookup must not expose full persisted snapshots",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/ExistingCrawledLaptopLookupLoader.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerLaptopRepository.kt",
+			),
+			patterns = listOf(
+				Regex("""findAllByProductCodes"""),
+				Regex("""findAllByDetailPages"""),
+				Regex("""fun findAllByProductCodeIn"""),
+				Regex("""fun findAllByDetailPageIn"""),
+				Regex("""fun\s+PersistedCrawledLaptopSnapshot\.toExistingSnapshot"""),
+				Regex("""snapshots: List<PersistedCrawledLaptopSnapshot>"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler profile backfill surface must not remain without an explicit runner",
 			paths = listOf(
@@ -1554,7 +1595,7 @@ val verifyStructure by tasks.registering {
 				Regex("""saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase"""),
 				Regex("""saveCrawledLaptopUseCase\.saveOrUpdateLaptop\("""),
 				Regex("""CrawledLaptopCommand\("""),
-				Regex("""findAllByProductCodeIn\(listOf\(productCode\)\)"""),
+				Regex("""findAllWithUsageByProductCodeIn\(listOf\(productCode\)\)"""),
 			),
 		)
 

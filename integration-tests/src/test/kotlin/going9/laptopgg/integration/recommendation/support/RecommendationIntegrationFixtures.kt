@@ -250,7 +250,7 @@ class RecommendationIntegrationFixtures(
             "Fixture laptop must be created or updated, but was $result."
         }
 
-        return laptopRepository.findAllByProductCodeIn(listOf(productCode)).singleOrNull()
+        return laptopRepository.findAllWithUsageByProductCodeIn(listOf(productCode)).singleOrNull()
             ?: error("Fixture laptop was saved but could not be loaded for productCode=$productCode.")
     }
 

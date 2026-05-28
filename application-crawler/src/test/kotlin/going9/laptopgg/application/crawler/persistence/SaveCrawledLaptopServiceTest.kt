@@ -263,8 +263,8 @@ class SaveCrawledLaptopServiceTest {
         override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? = null
         override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = existingByProductCode[productCode]
         override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
-        override fun findAllByProductCodes(productCodes: Collection<String>): List<PersistedCrawledLaptopSnapshot> = emptyList()
-        override fun findAllByDetailPages(detailPages: Collection<String>): List<PersistedCrawledLaptopSnapshot> = emptyList()
+        override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> = emptyList()
+        override fun findExistingByDetailPages(detailPages: Collection<String>): List<ExistingCrawledLaptopSnapshot> = emptyList()
 
         override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
             createdCommand = command

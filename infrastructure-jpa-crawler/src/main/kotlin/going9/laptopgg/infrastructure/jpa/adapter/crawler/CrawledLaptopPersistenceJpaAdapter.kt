@@ -3,6 +3,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
@@ -19,29 +20,31 @@ internal class CrawledLaptopPersistenceJpaAdapter(
     }
 
     override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? {
-        return laptopRepository.findAllByProductCodeIn(listOf(productCode))
+        return laptopRepository.findAllWithUsageByProductCodeIn(listOf(productCode))
             .singleByCrawlerIdentity(identityName = "productCode", identityValue = productCode)
             ?.toPersistedCrawledLaptopSnapshot()
     }
 
     override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? {
-        return laptopRepository.findAllByDetailPageIn(listOf(detailPage))
+        return laptopRepository.findAllWithUsageByDetailPageIn(listOf(detailPage))
             .singleByCrawlerIdentity(identityName = "detailPage", identityValue = detailPage)
             ?.toPersistedCrawledLaptopSnapshot()
     }
 
-    override fun findAllByProductCodes(productCodes: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
+    override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
         if (productCodes.isEmpty()) {
             return emptyList()
         }
-        return laptopRepository.findAllByProductCodeIn(productCodes).map { laptop -> laptop.toPersistedCrawledLaptopSnapshot() }
+        return laptopRepository.findExistingByProductCodeIn(productCodes)
+            .map { projection -> projection.toExistingCrawledLaptopSnapshot() }
     }
 
-    override fun findAllByDetailPages(detailPages: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
+    override fun findExistingByDetailPages(detailPages: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
         if (detailPages.isEmpty()) {
             return emptyList()
         }
-        return laptopRepository.findAllByDetailPageIn(detailPages).map { laptop -> laptop.toPersistedCrawledLaptopSnapshot() }
+        return laptopRepository.findExistingByDetailPageIn(detailPages)
+            .map { projection -> projection.toExistingCrawledLaptopSnapshot() }
     }
 
     override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {

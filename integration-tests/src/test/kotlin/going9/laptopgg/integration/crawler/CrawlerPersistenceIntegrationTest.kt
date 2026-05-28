@@ -9,6 +9,7 @@ import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopReposi
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.LaptopUsage
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -64,8 +65,8 @@ class CrawlerPersistenceIntegrationTest {
 
         assertThat(result).isEqualTo(SaveResult.CREATED)
         assertThat(laptopRepository.count()).isEqualTo(2)
-        assertThat(laptopRepository.findAllByProductCodeIn(listOf("A001"))).hasSize(1)
-        assertThat(laptopRepository.findAllByProductCodeIn(listOf("B002"))).hasSize(1)
+        assertThat(laptopRepository.findAllWithUsageByProductCodeIn(listOf("A001"))).hasSize(1)
+        assertThat(laptopRepository.findAllWithUsageByProductCodeIn(listOf("B002"))).hasSize(1)
     }
 
     @Test
@@ -82,6 +83,35 @@ class CrawlerPersistenceIntegrationTest {
         assertThat(result).isEqualTo(SaveResult.CREATED)
         assertThat(laptopPriceHistoryRepository.count()).isEqualTo(1)
         assertThat(laptopPriceHistoryRepository.findAll().single().price).isEqualTo(1_490_000)
+    }
+
+    @Test
+    fun `loadExistingLookup reads existing product cards through lookup projection`() {
+        val existing = laptop(
+            name = "Lookup Target",
+            detailPage = "https://prod.danawa.com/info/?pcode=LOOKUP",
+            productCode = "LOOKUP",
+            price = 1_390_000,
+        )
+        existing.laptopUsage += LaptopUsage(usage = "business", laptop = existing)
+        existing.laptopUsage += LaptopUsage(usage = "student", laptop = existing)
+        laptopRepository.save(existing)
+
+        val lookup = saveCrawledLaptopUseCase.loadExistingLookup(
+            listOf(
+                CrawledProductCardCommand(
+                    productCode = "LOOKUP",
+                    productName = "Lookup Target",
+                    detailPage = "https://prod.danawa.com/info/?pcode=LOOKUP",
+                    imageUrl = "https://example.com/lookup.jpg",
+                    price = 1_390_000,
+                ),
+            ),
+        )
+
+        assertThat(lookup.byProductCode["LOOKUP"]?.id).isEqualTo(existing.id)
+        assertThat(lookup.byProductCode["LOOKUP"]?.usageCount).isEqualTo(2)
+        assertThat(lookup.byDetailPage["https://prod.danawa.com/info/?pcode=LOOKUP"]?.id).isEqualTo(existing.id)
     }
 
     @Test
