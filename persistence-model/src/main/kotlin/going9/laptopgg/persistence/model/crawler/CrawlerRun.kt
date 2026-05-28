@@ -48,7 +48,7 @@ class CrawlerRun(
     var errorMessage: String? = null,
 
     @Column(name = "started_at", nullable = false)
-    var startedAt: LocalDateTime = LocalDateTime.now(),
+    var startedAt: LocalDateTime,
 
     @Column(name = "ended_at")
     var endedAt: LocalDateTime? = null,

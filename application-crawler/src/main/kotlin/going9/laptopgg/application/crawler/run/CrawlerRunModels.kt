@@ -11,6 +11,7 @@ data class CreateCrawlerRunCommand(
     val filterProfile: String,
     val startPage: Int,
     val limitCount: Int?,
+    val startedAt: LocalDateTime,
     val status: CrawlerRunStatusResult = CrawlerRunStatusResult.RUNNING,
     val endedAt: LocalDateTime? = null,
     val errorMessage: String? = null,

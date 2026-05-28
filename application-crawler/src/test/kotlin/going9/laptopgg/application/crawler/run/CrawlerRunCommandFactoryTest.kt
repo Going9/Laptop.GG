@@ -9,10 +9,19 @@ class CrawlerRunCommandFactoryTest {
     private val factory = CrawlerRunCommandFactory { endedAt }
 
     @Test
+    fun `start command owns the run start time`() {
+        val command = factory.start(filterProfile = "core", startPage = 1, limit = null)
+
+        assertThat(command.startedAt).isEqualTo(endedAt)
+        assertThat(command.endedAt).isNull()
+    }
+
+    @Test
     fun `skip locked command is completed immediately`() {
         val command = factory.skipLocked(filterProfile = "core", startPage = 2, limit = 10)
 
         assertThat(command.status).isEqualTo(CrawlerRunStatusResult.SKIPPED_LOCKED)
+        assertThat(command.startedAt).isEqualTo(endedAt)
         assertThat(command.endedAt).isEqualTo(endedAt)
         assertThat(command.errorMessage).contains("PostgreSQL advisory lock")
     }

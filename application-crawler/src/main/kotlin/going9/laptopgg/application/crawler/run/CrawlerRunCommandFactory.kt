@@ -10,16 +10,19 @@ internal class CrawlerRunCommandFactory(
             filterProfile = filterProfile,
             startPage = startPage,
             limitCount = limit,
+            startedAt = now(),
         )
     }
 
     fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CreateCrawlerRunCommand {
+        val timestamp = now()
         return CreateCrawlerRunCommand(
             filterProfile = filterProfile,
             startPage = startPage,
             limitCount = limit,
+            startedAt = timestamp,
             status = CrawlerRunStatusResult.SKIPPED_LOCKED,
-            endedAt = now(),
+            endedAt = timestamp,
             errorMessage = "Another crawler run already holds the PostgreSQL advisory lock.",
         )
     }

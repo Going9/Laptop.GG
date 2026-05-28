@@ -23,6 +23,7 @@ internal class CrawlerRunJpaAdapter(
                 startPage = command.startPage,
                 limitCount = command.limitCount,
                 status = command.status.toEntityStatus(),
+                startedAt = command.startedAt,
                 endedAt = command.endedAt,
                 errorMessage = command.errorMessage,
             ),

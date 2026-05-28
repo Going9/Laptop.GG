@@ -41,7 +41,7 @@ class RecommendationScore(
     var budgetWeight: Double,
 
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    var updatedAt: LocalDateTime,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

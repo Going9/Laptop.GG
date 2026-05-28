@@ -244,6 +244,34 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "JPA entities must not own lifecycle timestamp defaults",
+			paths = listOf("persistence-model/src/main"),
+			patterns = listOf(
+				Regex("""LocalDateTime\.now\(\)"""),
+				Regex("""LocalDateTime::now"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler run start time must be application owned and persisted explicitly",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactory.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactoryTest.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapterTest.kt",
+			),
+			patterns = listOf(
+				Regex("""val startedAt: LocalDateTime"""),
+				Regex("""startedAt = now\(\)"""),
+				Regex("""val timestamp = now\(\)"""),
+				Regex("""startedAt = command\.startedAt"""),
+				Regex("""start command owns the run start time"""),
+				Regex("""create stores application owned started time"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "JPA entities must not be Kotlin data classes",
 			paths = listOf("persistence-model/src/main"),
 			patterns = listOf(
