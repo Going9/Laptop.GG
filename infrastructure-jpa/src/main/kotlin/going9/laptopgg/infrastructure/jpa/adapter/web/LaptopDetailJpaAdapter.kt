@@ -7,7 +7,7 @@ import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import org.springframework.stereotype.Component
 
 @Component
-class LaptopDetailJpaAdapter(
+internal class LaptopDetailJpaAdapter(
     private val laptopRepository: WebLaptopRepository,
 ) : LaptopPort {
     override fun findDetailById(laptopId: Long): LaptopDetailRecord? {

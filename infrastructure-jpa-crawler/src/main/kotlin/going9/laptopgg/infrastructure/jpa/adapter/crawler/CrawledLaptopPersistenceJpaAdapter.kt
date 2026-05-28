@@ -8,7 +8,7 @@ import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopReposi
 import org.springframework.stereotype.Component
 
 @Component
-class CrawledLaptopPersistenceJpaAdapter(
+internal class CrawledLaptopPersistenceJpaAdapter(
     private val laptopRepository: CrawlerLaptopRepository,
 ) : CrawledLaptopPersistencePort {
     override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? {

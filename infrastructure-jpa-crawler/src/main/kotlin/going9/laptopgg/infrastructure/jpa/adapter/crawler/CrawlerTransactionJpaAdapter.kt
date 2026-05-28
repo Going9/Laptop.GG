@@ -6,7 +6,7 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
 
 @Component
-class CrawlerTransactionJpaAdapter(
+internal class CrawlerTransactionJpaAdapter(
     private val transactionManager: PlatformTransactionManager,
 ) : CrawlerTransactionPort {
     override fun <T> read(block: () -> T): T {

@@ -12,7 +12,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlerRunJpaAdapter(
+internal class CrawlerRunJpaAdapter(
     private val crawlerRunRepository: CrawlerRunRepository,
 ) : CrawlerRunPort {
     override fun create(command: CreateCrawlerRunCommand): CrawlerRunState {

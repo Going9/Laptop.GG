@@ -9,7 +9,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class CommentJpaAdapter(
+internal class CommentJpaAdapter(
     private val commentRepository: CommentRepository,
     private val laptopRepository: WebLaptopRepository,
 ) : CommentPort {

@@ -1063,6 +1063,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "runtime applications must import infrastructure adapter config facades instead of scanning adapter packages",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/LaptopGgApplication.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/InfrastructureJpaTestApplication.kt",
+			),
+			patterns = listOf(
+				Regex(""""going9\.laptopgg\.infrastructure\.jpa\.adapter"""),
+				Regex(""""going9\.laptopgg\.infrastructure\.security""""),
+				Regex("""EnableConfigurationProperties\(PasswordHashProperties::class\)"""),
+				Regex("""import going9\.laptopgg\.infrastructure\.jpa\.config\.(Web|Crawler)JpaRepositoryConfig"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not scan all JPA adapters",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
 			patterns = listOf(
@@ -1078,6 +1093,21 @@ val verifyStructure by tasks.registering {
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
 			patterns = listOf(
 				Regex(""""going9\.laptopgg\.infrastructure\.jpa\.repository\.web","""),
+			),
+		)
+
+		assertAbsent(
+			rule = "infrastructure adapter implementation packages must not expose public Kotlin declarations",
+			paths = listOf(
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter",
+				"infrastructure-security/src/main/kotlin/going9/laptopgg/infrastructure/security/BcryptPasswordHashAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""^(data\s+)?class\s+"""),
+				Regex("""^object\s+"""),
+				Regex("""^interface\s+"""),
+				Regex("""^enum\s+class\s+"""),
 			),
 		)
 

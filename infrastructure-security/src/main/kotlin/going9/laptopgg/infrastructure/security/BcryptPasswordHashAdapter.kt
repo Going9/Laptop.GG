@@ -2,10 +2,8 @@ package going9.laptopgg.infrastructure.security
 
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.stereotype.Component
 
-@Component
-class BcryptPasswordHashAdapter(
+internal class BcryptPasswordHashAdapter(
     properties: PasswordHashProperties,
 ) : PasswordHashPort {
     private val encoder = BCryptPasswordEncoder(properties.normalizedBcryptStrength())

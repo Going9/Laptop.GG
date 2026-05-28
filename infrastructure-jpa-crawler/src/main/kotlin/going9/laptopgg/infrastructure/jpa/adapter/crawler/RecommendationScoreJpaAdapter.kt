@@ -8,7 +8,7 @@ import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScore
 import org.springframework.stereotype.Component
 
 @Component
-class RecommendationScoreJpaAdapter(
+internal class RecommendationScoreJpaAdapter(
     private val crawlerLaptopRepository: CrawlerLaptopRepository,
     private val recommendationScoreRepository: RecommendationScoreRepository,
 ) : RecommendationScorePort {

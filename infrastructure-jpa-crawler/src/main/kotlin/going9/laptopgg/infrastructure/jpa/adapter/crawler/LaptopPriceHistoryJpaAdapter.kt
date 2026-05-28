@@ -8,7 +8,7 @@ import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryR
 import org.springframework.stereotype.Component
 
 @Component
-class LaptopPriceHistoryJpaAdapter(
+internal class LaptopPriceHistoryJpaAdapter(
     private val crawlerLaptopRepository: CrawlerLaptopRepository,
     private val laptopPriceHistoryRepository: LaptopPriceHistoryRepository,
 ) : LaptopPriceHistoryPort {

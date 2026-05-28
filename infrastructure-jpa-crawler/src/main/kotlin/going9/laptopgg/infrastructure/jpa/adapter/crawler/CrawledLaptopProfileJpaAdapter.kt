@@ -8,7 +8,7 @@ import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfil
 import org.springframework.stereotype.Component
 
 @Component
-class CrawledLaptopProfileJpaAdapter(
+internal class CrawledLaptopProfileJpaAdapter(
     private val laptopProfileRepository: CrawlerLaptopProfileRepository,
     private val laptopRepository: CrawlerLaptopRepository,
 ) : CrawledLaptopProfilePort {

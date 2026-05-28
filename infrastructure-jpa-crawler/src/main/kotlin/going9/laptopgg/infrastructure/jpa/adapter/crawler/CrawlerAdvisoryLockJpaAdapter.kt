@@ -6,7 +6,7 @@ import javax.sql.DataSource
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlerAdvisoryLockJpaAdapter(
+internal class CrawlerAdvisoryLockJpaAdapter(
     private val dataSource: DataSource,
 ) : CrawlerRunLockPort {
     override fun <T> withCrawlerLock(block: () -> T): CrawlerLockResult<T> {

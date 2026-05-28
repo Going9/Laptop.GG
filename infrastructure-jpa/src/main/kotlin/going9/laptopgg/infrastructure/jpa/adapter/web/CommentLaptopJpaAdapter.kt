@@ -5,7 +5,7 @@ import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import org.springframework.stereotype.Component
 
 @Component
-class CommentLaptopJpaAdapter(
+internal class CommentLaptopJpaAdapter(
     private val laptopRepository: WebLaptopRepository,
 ) : CommentLaptopPort {
     override fun existsById(laptopId: Long): Boolean {
