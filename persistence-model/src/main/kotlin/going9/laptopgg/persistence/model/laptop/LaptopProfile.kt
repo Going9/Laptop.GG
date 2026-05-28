@@ -7,6 +7,7 @@ import going9.laptopgg.taxonomy.PortabilityTier
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -17,7 +18,7 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "laptop_profile")
 class LaptopProfile(
-    @OneToOne(optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "laptop_id", nullable = false, unique = true)
     var laptop: Laptop,
 

@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
-data class Laptop(
+class Laptop(
     var name: String,
     var imageUrl: String,
     var detailPage: String,

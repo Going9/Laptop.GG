@@ -234,6 +234,25 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "JPA entities must not be Kotlin data classes",
+			paths = listOf("persistence-model/src/main"),
+			patterns = listOf(
+				Regex("""data\s+class\s+(CrawlerRun|Laptop|LaptopPriceHistory|LaptopProfile|LaptopUsage|RecommendationScore|Comment)\b"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "JPA to-one associations must explicitly avoid default eager fetching",
+			paths = listOf("persistence-model/src/main"),
+			patterns = listOf(
+				Regex("""@ManyToOne\s*$"""),
+				Regex("""@ManyToOne\(\s*\)"""),
+				Regex("""@OneToOne\s*$"""),
+				Regex("""@OneToOne\(optional\s*="""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application must not depend on persistence models, infrastructure, or public web DTOs",
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
 			patterns = listOf(

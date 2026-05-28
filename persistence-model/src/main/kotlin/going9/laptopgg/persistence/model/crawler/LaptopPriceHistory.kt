@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "laptop_price_history")
-data class LaptopPriceHistory(
+class LaptopPriceHistory(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "laptop_id", nullable = false)
     val laptop: Laptop,

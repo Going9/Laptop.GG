@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "crawler_run")
-data class CrawlerRun(
+class CrawlerRun(
     @Column(name = "filter_profile", nullable = false)
     var filterProfile: String,
 
