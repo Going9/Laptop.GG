@@ -23,69 +23,21 @@ data class UsageBoosts(
 )
 
 class ProfileMetricPolicy(
+    private val batteryMetricPolicy: BatteryMetricPolicy = BatteryMetricPolicy(),
+    private val mobilityMetricPolicy: MobilityMetricPolicy = MobilityMetricPolicy(),
     private val displayMetricPolicy: DisplayMetricPolicy = DisplayMetricPolicy(),
 ) {
     fun calculate(laptop: PersistedCrawledLaptopSnapshot, gpu: GpuInsights): ProfileMetrics {
         return ProfileMetrics(
-            batteryTier = batteryTier(laptop.batteryCapacity),
-            portabilityTier = portabilityTier(laptop.weight),
-            batteryCapacityScore = batteryCapacityScore(laptop.batteryCapacity),
-            portabilityScore = portabilityScore(laptop.weight),
+            batteryTier = batteryMetricPolicy.batteryTier(laptop.batteryCapacity),
+            portabilityTier = mobilityMetricPolicy.portabilityTier(laptop.weight),
+            batteryCapacityScore = batteryMetricPolicy.batteryCapacityScore(laptop.batteryCapacity),
+            portabilityScore = mobilityMetricPolicy.portabilityScore(laptop.weight),
             displayScore = displayMetricPolicy.displayScore(laptop),
             ramScore = ramScore(laptop.ramSize),
             tgpScore = tgpScore(laptop.tgp, gpu.isIntegrated),
             usageBoosts = usageBoosts(laptop),
         )
-    }
-
-    fun portabilityScore(weight: Double?): Int {
-        val value = weight ?: return 40
-        return when {
-            value <= 0.9 -> 100
-            value <= 1.1 -> 95
-            value <= 1.3 -> 90
-            value <= 1.5 -> 82
-            value <= 1.7 -> 74
-            value <= 2.0 -> 60
-            value <= 2.3 -> 45
-            value <= 2.6 -> 30
-            else -> 15
-        }
-    }
-
-    fun portabilityTier(weight: Double?): PortabilityTier {
-        val value = weight ?: return PortabilityTier.UNKNOWN
-        return when {
-            value <= 1.0 -> PortabilityTier.TABLET_LIGHT
-            value <= 1.3 -> PortabilityTier.ULTRALIGHT
-            value <= 1.6 -> PortabilityTier.LIGHT
-            value <= 2.2 -> PortabilityTier.BALANCED
-            else -> PortabilityTier.HEAVY
-        }
-    }
-
-    fun batteryCapacityScore(batteryCapacity: Double?): Int {
-        val value = batteryCapacity ?: return 35
-        return when {
-            value >= 90 -> 100
-            value >= 80 -> 92
-            value >= 70 -> 82
-            value >= 60 -> 70
-            value >= 50 -> 58
-            value >= 40 -> 45
-            else -> 30
-        }
-    }
-
-    fun batteryTier(batteryCapacity: Double?): BatteryTier {
-        val value = batteryCapacity ?: return BatteryTier.UNKNOWN
-        return when {
-            value >= 85 -> BatteryTier.VERY_HIGH
-            value >= 70 -> BatteryTier.HIGH
-            value >= 55 -> BatteryTier.MEDIUM
-            value >= 40 -> BatteryTier.LOW
-            else -> BatteryTier.VERY_LOW
-        }
     }
 
     fun ramScore(ramSize: Int?): Int {

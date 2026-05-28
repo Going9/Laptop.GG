@@ -354,6 +354,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "profile metric policy must delegate mobility and battery scoring",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileMetricPolicy.kt"),
+			patterns = listOf(
+				Regex("""fun\s+(portabilityScore|portabilityTier|batteryCapacityScore|batteryTier)\b"""),
+				Regex("""PortabilityTier\.(TABLET_LIGHT|ULTRALIGHT|LIGHT|BALANCED|HEAVY|UNKNOWN)"""),
+				Regex("""BatteryTier\.(VERY_HIGH|HIGH|MEDIUM|LOW|VERY_LOW|UNKNOWN)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler laptop persistence boundary must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
