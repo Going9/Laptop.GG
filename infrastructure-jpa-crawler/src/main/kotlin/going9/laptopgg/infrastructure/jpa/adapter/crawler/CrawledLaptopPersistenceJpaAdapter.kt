@@ -2,7 +2,6 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
-import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledListSnapshot
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledListSnapshotCommand
@@ -38,22 +37,6 @@ internal class CrawledLaptopPersistenceJpaAdapter(
         return laptopRepository.findAllWithUsageByDetailPageIn(listOf(detailPage))
             .singleByCrawlerIdentity(identityName = "detailPage", identityValue = detailPage)
             ?.toPersistedCrawledLaptopSnapshot()
-    }
-
-    override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
-        if (productCodes.isEmpty()) {
-            return emptyList()
-        }
-        return laptopRepository.findExistingByProductCodeIn(productCodes)
-            .map { projection -> projection.toExistingCrawledLaptopSnapshot() }
-    }
-
-    override fun findExistingByDetailPages(detailPages: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
-        if (detailPages.isEmpty()) {
-            return emptyList()
-        }
-        return laptopRepository.findExistingByDetailPageIn(detailPages)
-            .map { projection -> projection.toExistingCrawledLaptopSnapshot() }
     }
 
     override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {

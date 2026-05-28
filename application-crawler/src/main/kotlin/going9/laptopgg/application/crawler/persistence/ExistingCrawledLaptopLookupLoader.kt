@@ -2,10 +2,10 @@ package going9.laptopgg.application.crawler.persistence
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
-import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
+import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
 
 internal class ExistingCrawledLaptopLookupLoader(
-    private val laptopPort: CrawledLaptopPersistencePort,
+    private val lookupPort: ExistingCrawledLaptopLookupPort,
 ) {
     fun load(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
         if (productCards.isEmpty()) {
@@ -14,12 +14,12 @@ internal class ExistingCrawledLaptopLookupLoader(
         validateBatchIdentity(productCards)
 
         val byProductCode = uniqueLookupMap(
-            snapshots = laptopPort.findExistingByProductCodes(productCards.map { it.productCode.trim() }.distinct()),
+            snapshots = lookupPort.findExistingByProductCodes(productCards.map { it.productCode.trim() }.distinct()),
             identityName = "productCode",
             identityValue = { laptop -> laptop.productCode },
         )
         val byDetailPage = uniqueLookupMap(
-            snapshots = laptopPort.findExistingByDetailPages(productCards.map { it.detailPage.trim() }.distinct()),
+            snapshots = lookupPort.findExistingByDetailPages(productCards.map { it.detailPage.trim() }.distinct()),
             identityName = "detailPage",
             identityValue = { laptop -> laptop.detailPage },
         )

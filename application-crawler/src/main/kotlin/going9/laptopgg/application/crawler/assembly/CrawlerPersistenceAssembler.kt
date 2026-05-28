@@ -6,6 +6,7 @@ import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLook
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
+import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
@@ -17,6 +18,7 @@ import going9.laptopgg.application.crawler.recommendation.port.RecommendationSco
 object CrawlerPersistenceAssembler {
     fun createSaveCrawledLaptopUseCase(
         laptopPort: CrawledLaptopPersistencePort,
+        existingLaptopLookupPort: ExistingCrawledLaptopLookupPort,
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopPriceHistoryPort: LaptopPriceHistoryPort,
         recommendationScorePort: RecommendationScorePort,
@@ -38,7 +40,7 @@ object CrawlerPersistenceAssembler {
 
         return SaveCrawledLaptopService(
             laptopPort = laptopPort,
-            existingLookupLoader = ExistingCrawledLaptopLookupLoader(laptopPort),
+            existingLookupLoader = ExistingCrawledLaptopLookupLoader(existingLaptopLookupPort),
             postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
                 laptopProfileSynchronizer = laptopProfileService,
                 laptopPriceHistoryRecorder = laptopPriceHistoryService,

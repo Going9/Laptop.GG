@@ -2,14 +2,14 @@ package going9.laptopgg.application.crawler.persistence
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
-import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
+import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class ExistingCrawledLaptopLookupLoaderTest {
-    private val laptopPort = RecordingCrawledLaptopPersistencePort()
+    private val laptopPort = RecordingExistingCrawledLaptopLookupPort()
     private val loader = ExistingCrawledLaptopLookupLoader(laptopPort)
 
     @Test
@@ -180,15 +180,10 @@ class ExistingCrawledLaptopLookupLoaderTest {
         )
     }
 
-    private class RecordingCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
+    private class RecordingExistingCrawledLaptopLookupPort : ExistingCrawledLaptopLookupPort {
         val laptops = mutableListOf<ExistingCrawledLaptopSnapshot>()
         val productCodeLookups = mutableListOf<List<String>>()
         val detailPageLookups = mutableListOf<List<String>>()
-
-        override fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot? = null
-        override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? = null
-        override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = null
-        override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
 
         override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
             productCodeLookups += productCodes.toList()
@@ -198,18 +193,6 @@ class ExistingCrawledLaptopLookupLoaderTest {
         override fun findExistingByDetailPages(detailPages: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
             detailPageLookups += detailPages.toList()
             return laptops.filter { laptop -> laptop.detailPage in detailPages }
-        }
-
-        override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
-            error("create is not used by this test")
-        }
-
-        override fun updateListSnapshot(laptopId: Long, command: UpdateCrawledListSnapshotCommand): Boolean {
-            error("updateListSnapshot is not used by this test")
-        }
-
-        override fun updateDetailSnapshot(laptopId: Long, command: UpdateCrawledLaptopCommand): Boolean {
-            error("updateDetailSnapshot is not used by this test")
         }
     }
 }

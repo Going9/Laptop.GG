@@ -4,6 +4,7 @@ import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
+import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.RecordPriceHistoryCommand
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
@@ -311,7 +312,7 @@ class SaveCrawledLaptopServiceTest {
         }
     }
 
-    private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
+    private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort, ExistingCrawledLaptopLookupPort {
         val existingByProductCode = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
         val listSnapshots = mutableMapOf<Long, PersistedCrawledListSnapshot>()
         val listUpdates = mutableListOf<ListSnapshotUpdate>()

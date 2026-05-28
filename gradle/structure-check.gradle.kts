@@ -1272,6 +1272,23 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "crawler snapshot persistence port must not own batch existing lookup methods",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt"),
+			patterns = listOf(
+				Regex("""findExistingByProductCodes"""),
+				Regex("""findExistingByDetailPages"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler existing lookup loader must depend on lookup port only",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/ExistingCrawledLaptopLookupLoader.kt"),
+			patterns = listOf(
+				Regex("""CrawledLaptopPersistencePort"""),
+			),
+		)
+
 		assertPresent(
 			rule = "crawler recommendation score command must keep use case typed until adapter storage",
 			paths = listOf(
@@ -1567,18 +1584,18 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "crawler batch existing laptop lookup must use narrow lookup snapshots",
 			paths = listOf(
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/ExistingCrawledLaptopLookupPort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/ExistingCrawledLaptopLookupLoader.kt",
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerLaptopRepository.kt",
-				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/ExistingCrawledLaptopLookupJpaAdapter.kt",
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopSnapshotMapper.kt",
-				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapterTest.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/ExistingCrawledLaptopLookupJpaAdapterTest.kt",
 			),
 			patterns = listOf(
 				Regex("""fun findExistingByProductCodes\(productCodes: Collection<String>\): List<ExistingCrawledLaptopSnapshot>"""),
 				Regex("""fun findExistingByDetailPages\(detailPages: Collection<String>\): List<ExistingCrawledLaptopSnapshot>"""),
-				Regex("""laptopPort\.findExistingByProductCodes"""),
-				Regex("""laptopPort\.findExistingByDetailPages"""),
+				Regex("""lookupPort\.findExistingByProductCodes"""),
+				Regex("""lookupPort\.findExistingByDetailPages"""),
 				Regex("""fun findExistingByProductCodeIn\("""),
 				Regex("""fun findExistingByDetailPageIn\("""),
 				Regex("""interface ExistingCrawledLaptopProjection"""),
