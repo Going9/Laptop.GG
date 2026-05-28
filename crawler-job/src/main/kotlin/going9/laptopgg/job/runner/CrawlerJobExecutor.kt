@@ -2,12 +2,10 @@ package going9.laptopgg.job.runner
 
 import going9.laptopgg.application.crawler.run.CrawlerRunCompletionStatus
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
-import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
 import going9.laptopgg.application.crawler.run.CrawlerRunSummary
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
 import going9.laptopgg.job.crawler.orchestration.CrawlSummary
 import going9.laptopgg.job.crawler.orchestration.CrawlerService
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -15,16 +13,15 @@ class CrawlerJobExecutor(
     private val crawlerService: CrawlerService,
     private val crawlerRunLockUseCase: CrawlerRunLockUseCase,
     private val trackCrawlerRunUseCase: TrackCrawlerRunUseCase,
+    private val crawlerJobSummaryLogger: CrawlerJobSummaryLogger,
 ) {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
     fun execute(request: CrawlerJobRequest): Int {
         val lockResult = runCatching {
             crawlerRunLockUseCase.runLocked {
                 runTrackedCrawler(request)
             }
         }.getOrElse { exception ->
-            logger.error("Crawler lock acquisition failed.", exception)
+            crawlerJobSummaryLogger.logLockFailure(exception)
             return 1
         }
 
@@ -37,14 +34,7 @@ class CrawlerJobExecutor(
             startPage = request.startPage,
             limit = request.limit,
         )
-        logger.warn(
-            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=0",
-            skippedRun.id,
-            skippedRun.status,
-            request.filterProfile,
-            request.startPage,
-            request.limit ?: "ALL",
-        )
+        crawlerJobSummaryLogger.logSkipped(skippedRun, request)
         return 0
     }
 
@@ -78,48 +68,13 @@ class CrawlerJobExecutor(
                 status = finishedStatus,
                 errorMessage = errorMessage,
             )
-            logCrawlerSummary(runId, finishedStatus, request, summary)
-            if (summary.degradedSamples.isNotEmpty()) {
-                logger.warn("Crawler degraded samples: {}", summary.degradedSamples)
-            }
-            if (summary.failureSamples.isNotEmpty()) {
-                logger.warn("Crawler failure samples: {}", summary.failureSamples)
-            }
+            crawlerJobSummaryLogger.logCompleted(runId, finishedStatus, request, summary)
             if (summary.failedCount == 0) 0 else 1
         }.getOrElse { exception ->
             trackCrawlerRunUseCase.fail(runId, exception)
-            logger.error("Crawler run failed. runId={}", runId, exception)
-            logger.error(
-                "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=1",
-                runId,
-                CrawlerRunStatusResult.FAILED,
-                request.filterProfile,
-                request.startPage,
-                request.limit ?: "ALL",
-            )
+            crawlerJobSummaryLogger.logRunFailure(runId, request, exception)
             1
         }
-    }
-
-    private fun logCrawlerSummary(
-        runId: Long,
-        status: CrawlerRunCompletionStatus,
-        request: CrawlerJobRequest,
-        summary: CrawlSummary,
-    ) {
-        logger.info(
-            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount={} createdCount={} updatedCount={} degradedCount={} failedCount={}",
-            runId,
-            status,
-            request.filterProfile,
-            request.startPage,
-            request.limit ?: "ALL",
-            summary.processedCount,
-            summary.createdCount,
-            summary.updatedCount,
-            summary.degradedCount,
-            summary.failedCount,
-        )
     }
 
     private fun CrawlSummary.toRunSummary(): CrawlerRunSummary {

@@ -24,6 +24,7 @@ class CrawlerJobExecutorTest {
             crawlerService = crawlerService,
             crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = true),
             trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
         val exitCode = executor.execute(CrawlerJobRequest(limit = 5, startPage = 2, filterProfile = "core"))
@@ -44,6 +45,7 @@ class CrawlerJobExecutorTest {
             crawlerService = crawlerService,
             crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = true),
             trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
         val exitCode = executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "extended"))
@@ -62,6 +64,7 @@ class CrawlerJobExecutorTest {
             crawlerService = crawlerService,
             crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = false),
             trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
         val exitCode = executor.execute(CrawlerJobRequest(limit = 3, startPage = 4, filterProfile = "core"))
@@ -81,6 +84,7 @@ class CrawlerJobExecutorTest {
             crawlerService = crawlerService,
             crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = true),
             trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
         val exitCode = executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "core"))

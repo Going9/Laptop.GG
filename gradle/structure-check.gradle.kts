@@ -1067,6 +1067,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler job executor must delegate operational summary logging",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt"),
+			patterns = listOf(
+				Regex("""LoggerFactory"""),
+				Regex("""logger\."""),
+				Regex("""CRAWLER_SUMMARY"""),
+				Regex("""Crawler degraded samples"""),
+				Regex("""Crawler failure samples"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime applications must not own JPA repository scanning",
 			paths = listOf(
 				"web-app/src/main",
