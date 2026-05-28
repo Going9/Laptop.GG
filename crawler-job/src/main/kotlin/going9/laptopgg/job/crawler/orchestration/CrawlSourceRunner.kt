@@ -1,14 +1,14 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import going9.laptopgg.job.crawler.danawa.list.DanawaListPageCrawler
+import going9.laptopgg.job.crawler.list.ProductListPageCrawler
 import going9.laptopgg.job.crawler.source.CrawlSource
 import java.util.concurrent.ExecutorService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlSourceRunner(
-    private val listPageCrawler: DanawaListPageCrawler,
+internal class CrawlSourceRunner(
+    private val listPageCrawler: ProductListPageCrawler,
     private val crawlProductBatchProcessor: CrawlProductBatchProcessor,
     private val crawlPageDiagnosticsLogger: CrawlPageDiagnosticsLogger,
     private val stopDecisionLogger: CrawlSourceStopDecisionLogger,

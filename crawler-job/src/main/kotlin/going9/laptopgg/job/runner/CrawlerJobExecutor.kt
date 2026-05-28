@@ -9,7 +9,7 @@ import going9.laptopgg.job.crawler.orchestration.CrawlerService
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlerJobExecutor(
+internal class CrawlerJobExecutor(
     private val crawlerService: CrawlerService,
     private val crawlerRunLockUseCase: CrawlerRunLockUseCase,
     private val trackCrawlerRunUseCase: TrackCrawlerRunUseCase,

@@ -1,21 +1,21 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import going9.laptopgg.job.crawler.danawa.DanawaCrawlSourceResolver
+import going9.laptopgg.job.crawler.source.CrawlSourceResolver
 import going9.laptopgg.job.config.CrawlerJobProperties
 import java.util.concurrent.Executors
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class CrawlerService(
+internal class CrawlerService(
     private val crawlSourceRunner: CrawlSourceRunner,
-    private val danawaCrawlSourceResolver: DanawaCrawlSourceResolver,
+    private val crawlSourceResolver: CrawlSourceResolver,
     private val crawlerJobProperties: CrawlerJobProperties,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun crawlAll(limit: Int? = null, startPage: Int = 1, filterProfileRaw: String? = null): CrawlSummary {
-        val filterProfile = danawaCrawlSourceResolver.resolveFilterProfile(filterProfileRaw)
+        val resolvedCrawlSources = crawlSourceResolver.resolve(filterProfileRaw)
         val maxListPages = crawlerJobProperties.resolvedMaxListPages()
         val detailFetchExecutor = Executors.newFixedThreadPool(crawlerJobProperties.resolvedDetailFetchConcurrency())
         val seenDetailPages = linkedSetOf<String>()
@@ -24,10 +24,10 @@ class CrawlerService(
         var hitMaxListPages = false
 
         try {
-            val crawlSources = danawaCrawlSourceResolver.resolveCrawlSources(filterProfile)
+            val crawlSources = resolvedCrawlSources.sources
             logger.info(
                 "크롤링을 시작합니다. filterProfile={}, sourceCount={}, startPage={}, limit={}",
-                filterProfile.name.lowercase(),
+                resolvedCrawlSources.profileName,
                 crawlSources.size,
                 startPage.coerceAtLeast(1),
                 limit ?: "ALL",
@@ -56,7 +56,7 @@ class CrawlerService(
             }
 
             if (!reachedLimit && crawlSources.isNotEmpty() && progress.processedCount > 0) {
-                logger.info("모든 크롤 소스를 순회했습니다. filterProfile={}", filterProfile.name.lowercase())
+                logger.info("모든 크롤 소스를 순회했습니다. filterProfile={}", resolvedCrawlSources.profileName)
             }
 
             if (hitMaxListPages) {

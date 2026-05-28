@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(name = ["app.crawler.run-on-startup"], havingValue = "true")
-class CrawlerStartupRunner(
+internal class CrawlerStartupRunner(
     private val applicationContext: ConfigurableApplicationContext,
     private val crawlerJobExecutor: CrawlerJobExecutor,
     private val crawlerJobProperties: CrawlerJobProperties,

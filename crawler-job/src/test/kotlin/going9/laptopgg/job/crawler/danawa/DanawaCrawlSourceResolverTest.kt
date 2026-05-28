@@ -8,8 +8,10 @@ class DanawaCrawlSourceResolverTest {
 
     @Test
     fun `core filter profile resolves codename source plus apple source`() {
-        val crawlSources = resolver.resolveCrawlSources(DanawaFilterProfile.CORE)
+        val resolved = resolver.resolve("core")
+        val crawlSources = resolved.sources
 
+        assertThat(resolved.profileName).isEqualTo("core")
         assertThat(crawlSources).hasSize(2)
         assertThat(crawlSources.first().key).isEqualTo("notebook-core-codename")
         assertThat(crawlSources.first().attributeFilters.map { it.name })
@@ -20,9 +22,9 @@ class DanawaCrawlSourceResolverTest {
 
     @Test
     fun `unknown filter profile falls back to core`() {
-        assertThat(resolver.resolveFilterProfile("weird-profile"))
-            .isEqualTo(DanawaFilterProfile.CORE)
-        assertThat(resolver.resolveFilterProfile("none"))
-            .isEqualTo(DanawaFilterProfile.NONE)
+        assertThat(resolver.resolve("weird-profile").profileName)
+            .isEqualTo("core")
+        assertThat(resolver.resolve("none").profileName)
+            .isEqualTo("none")
     }
 }

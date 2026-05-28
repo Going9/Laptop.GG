@@ -1,14 +1,24 @@
 package going9.laptopgg.job.crawler.danawa
 
 import going9.laptopgg.job.crawler.source.CrawlSource
+import going9.laptopgg.job.crawler.source.CrawlSourceResolver
+import going9.laptopgg.job.crawler.source.ResolvedCrawlSources
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class DanawaCrawlSourceResolver {
+internal class DanawaCrawlSourceResolver : CrawlSourceResolver {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    internal fun resolveFilterProfile(rawValue: String?): DanawaFilterProfile {
+    override fun resolve(rawProfile: String?): ResolvedCrawlSources {
+        val filterProfile = resolveFilterProfile(rawProfile)
+        return ResolvedCrawlSources(
+            profileName = filterProfile.name.lowercase(),
+            sources = resolveCrawlSources(filterProfile),
+        )
+    }
+
+    private fun resolveFilterProfile(rawValue: String?): DanawaFilterProfile {
         return when (rawValue?.trim()?.lowercase()) {
             null, "", "core" -> DanawaFilterProfile.CORE
             "none", "all" -> DanawaFilterProfile.NONE
@@ -20,7 +30,7 @@ class DanawaCrawlSourceResolver {
         }
     }
 
-    internal fun resolveCrawlSources(filterProfile: DanawaFilterProfile): List<CrawlSource> {
+    private fun resolveCrawlSources(filterProfile: DanawaFilterProfile): List<CrawlSource> {
         val mainSource = when (filterProfile) {
             DanawaFilterProfile.NONE -> {
                 CrawlSource(

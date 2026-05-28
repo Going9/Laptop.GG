@@ -1,16 +1,16 @@
 package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
-import going9.laptopgg.job.crawler.danawa.detail.DanawaDetailCrawler
+import going9.laptopgg.job.crawler.detail.ProductDetailCrawler
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
 import java.util.concurrent.ExecutorService
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlProductBatchProcessor(
+internal class CrawlProductBatchProcessor(
     private val saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase,
-    private val detailCrawler: DanawaDetailCrawler,
+    private val detailCrawler: ProductDetailCrawler,
     private val snapshotSaver: CrawlProductSnapshotSaver,
     private val detailRefreshOutcomeHandler: DetailRefreshOutcomeHandler,
 ) {

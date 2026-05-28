@@ -1594,6 +1594,7 @@ val verifyStructure by tasks.registering {
 			rule = "crawler orchestration must not own filter profile source mapping",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
+				Regex("""DanawaCrawlSourceResolver"""),
 				Regex("""fun\s+resolveFilterProfile"""),
 				Regex("""fun\s+resolveCrawlSources"""),
 				Regex("""CrawlerFilterSets"""),
@@ -1615,14 +1616,6 @@ val verifyStructure by tasks.registering {
 				Regex("""CrawlerFilterSets"""),
 				Regex("""FilterProfile"""),
 				Regex("""\d+\|6492\|"""),
-			),
-		)
-
-		assertPathAbsent(
-			rule = "Danawa crawl source resolver must not live in the generic source package",
-			paths = listOf(
-				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source/CrawlSourceResolver.kt",
-				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/source/CrawlSourceResolverTest.kt",
 			),
 		)
 
@@ -1668,6 +1661,18 @@ val verifyStructure by tasks.registering {
 				Regex("""loadExistingLookup"""),
 				Regex("""saveListSnapshot"""),
 				Regex("""saveOrUpdateLaptop"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler orchestration must depend on provider-neutral crawler ports",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration",
+			),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.job\.crawler\.danawa"""),
+				Regex("""Danawa(ListPageCrawler|DetailCrawler|CrawlSourceResolver)"""),
 			),
 		)
 
