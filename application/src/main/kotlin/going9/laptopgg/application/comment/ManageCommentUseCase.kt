@@ -1,29 +1,25 @@
 package going9.laptopgg.application.comment
 
-import going9.laptopgg.dto.request.CommentDeleteRequest
-import going9.laptopgg.dto.request.CommentRequest
-import going9.laptopgg.dto.request.CommentUpdateRequest
-import going9.laptopgg.dto.response.CommentResponse
-import going9.laptopgg.service.CommentService
+import going9.laptopgg.application.service.CommentService
 import org.springframework.stereotype.Service
 
 @Service
 class ManageCommentUseCase(
     private val commentService: CommentService,
 ) {
-    fun add(request: CommentRequest) {
-        commentService.saveComment(request)
+    fun add(command: AddCommentCommand) {
+        commentService.saveComment(command)
     }
 
-    fun listByLaptop(laptopId: Long): List<CommentResponse> {
+    fun listByLaptop(laptopId: Long): List<CommentResult> {
         return commentService.getAllComments(laptopId)
     }
 
-    fun update(commentId: Long, request: CommentUpdateRequest) {
-        commentService.updateComment(commentId, request)
+    fun update(commentId: Long, command: UpdateCommentCommand) {
+        commentService.updateComment(commentId, command)
     }
 
-    fun delete(commentId: Long, request: CommentDeleteRequest) {
-        commentService.deleteComment(commentId, request)
+    fun delete(commentId: Long, command: DeleteCommentCommand) {
+        commentService.deleteComment(commentId, command)
     }
 }

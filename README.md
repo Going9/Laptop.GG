@@ -62,7 +62,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 ./gradlew :web-app:bootRun --args='--spring.profiles.active=postgres'
 ```
 
-로컬에서 크롤링 HTTP 엔드포인트까지 열어야 할 때만 `postgres,local-dev`로 실행합니다.
+웹 앱은 사용자 화면과 추천/상세/댓글 API만 실행합니다. 크롤링은 아래 `crawler-job` 명령으로 별도 실행합니다.
 
 주의:
 - `postgres` 프로필에서는 Flyway가 먼저 스키마를 맞춘 뒤 앱이 기동합니다.
@@ -85,11 +85,10 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 - 웹: `http://localhost:8080`
 - 추천 화면: `http://localhost:8080/recommends`
 - 상세 화면: `http://localhost:8080/laptops/{id}`
-- 로컬 크롤링 API: `GET /api/crawl/laptops?limit=3&startPage=1&filterProfile=core`
 
 주의:
-- `/api/crawl/laptops` 엔드포인트는 `local-dev` 프로필에서만 열립니다.
-- 배포 프로필에서는 GitHub Actions 크롤러만 사용합니다.
+- 웹 앱은 크롤러 HTTP API를 열지 않습니다.
+- 배포 프로필에서는 GitHub Actions 크롤러 job만 사용합니다.
 
 ## 테스트
 

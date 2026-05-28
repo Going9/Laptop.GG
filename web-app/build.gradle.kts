@@ -10,7 +10,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.data:spring-data-commons")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     runtimeOnly("org.postgresql:postgresql:42.7.5")

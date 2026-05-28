@@ -6,10 +6,11 @@ import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.dto.request.CommentRequest
 import going9.laptopgg.dto.request.CommentUpdateRequest
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.dto.request.RecommendationUseCase
-import going9.laptopgg.dto.request.ScreenSizeMode
-import org.springframework.data.domain.Pageable
-import org.springframework.data.web.PageableDefault
+import going9.laptopgg.application.recommendation.RecommendationUseCase
+import going9.laptopgg.application.recommendation.ScreenSizeMode
+import going9.laptopgg.dto.response.CommentResponse
+import going9.laptopgg.dto.response.LaptopDetailResponse
+import going9.laptopgg.dto.response.LaptopRecommendationListResponse
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
@@ -39,17 +40,21 @@ class PageController(
     @PostMapping("/recommends")
     fun recommendLaptops(
         @ModelAttribute laptopRecommendationRequest: LaptopRecommendationRequest,
-        @RequestParam(required = false) sort: String?,
-        @PageableDefault(size = 10) pageable: Pageable,
+        @RequestParam(defaultValue = "0") page: Int?,
+        @RequestParam(defaultValue = "10") size: Int?,
+        @RequestParam(required = false) sort: List<String>?,
         model: Model
     ): String {
-        val recommendedLaptops = recommendLaptopsUseCase.recommend(laptopRecommendationRequest, pageable.toPageQuery())
+        val pageQuery = pageQueryFrom(page, size, sort)
+        val recommendedLaptops = recommendLaptopsUseCase
+            .recommend(laptopRecommendationRequest.toQuery(), pageQuery)
+            .map(LaptopRecommendationListResponse::from)
         val resolvedUseCase = laptopRecommendationRequest.resolvedUseCase()
         model.addAttribute("laptopRecommendationRequest", laptopRecommendationRequest)
         model.addAttribute("recommendedLaptops", recommendedLaptops.content)
         model.addAttribute("totalCount", recommendedLaptops.totalElements)
         model.addAttribute("totalPages", recommendedLaptops.totalPages)
-        model.addAttribute("currentSort", sort ?: "recommended")
+        model.addAttribute("currentSort", sort?.firstOrNull()?.takeIf { it.isNotBlank() } ?: "recommended")
         model.addAttribute("currentPage", recommendedLaptops.page + 1)
         model.addAttribute("totalPage", recommendedLaptops.totalPages)
         model.addAttribute("resolvedUseCase", resolvedUseCase)
@@ -62,8 +67,8 @@ class PageController(
 
     @GetMapping("/laptops/{laptopId}")
     fun showLaptopDetail(@PathVariable laptopId: Long, model: Model): String {
-        val laptopDetail = getLaptopDetailUseCase.get(laptopId)
-        val commentsOfLaptop = manageCommentUseCase.listByLaptop(laptopId)
+        val laptopDetail = LaptopDetailResponse.from(getLaptopDetailUseCase.get(laptopId))
+        val commentsOfLaptop = manageCommentUseCase.listByLaptop(laptopId).map(CommentResponse::from)
         model.addAttribute("laptopDetail", laptopDetail)
         model.addAttribute("commentsOfLaptop", commentsOfLaptop)
         model.addAttribute("commentRequest", CommentRequest())
@@ -72,7 +77,7 @@ class PageController(
 
     @PostMapping("/comments")
     fun addComment(@ModelAttribute commentRequest: CommentRequest): String {
-        manageCommentUseCase.add(commentRequest)
+        manageCommentUseCase.add(commentRequest.toCommand())
         return "redirect:/laptops/${commentRequest.laptopId}"
     }
 
@@ -86,7 +91,7 @@ class PageController(
             CommentUpdateRequest(
                 passWord = commentRequest.passWord,
                 content = commentRequest.content,
-            ),
+            ).toCommand(),
         )
         return "redirect:/laptops/${commentRequest.laptopId}"
     }

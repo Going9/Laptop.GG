@@ -3,9 +3,9 @@ package going9.laptopgg.runner
 import going9.laptopgg.application.crawler.CrawlerRunSummary
 import going9.laptopgg.application.crawler.TrackCrawlerRunUseCase
 import going9.laptopgg.domain.crawler.CrawlerRunStatus
-import going9.laptopgg.service.crawler.CrawlerAdvisoryLockService
-import going9.laptopgg.service.crawler.CrawlerService
-import going9.laptopgg.service.crawler.CrawlSummary
+import going9.laptopgg.job.crawler.CrawlerAdvisoryLockService
+import going9.laptopgg.job.crawler.CrawlerService
+import going9.laptopgg.job.crawler.CrawlSummary
 import kotlin.system.exitProcess
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value

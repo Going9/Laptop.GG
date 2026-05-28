@@ -3,8 +3,8 @@ package going9.laptopgg.application.crawler
 import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
-import going9.laptopgg.service.LaptopPriceHistoryService
-import going9.laptopgg.service.LaptopProfileService
+import going9.laptopgg.application.service.LaptopPriceHistoryService
+import going9.laptopgg.application.service.LaptopProfileService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

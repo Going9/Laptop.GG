@@ -1,11 +1,15 @@
 package going9.laptopgg.controller
 
 import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.application.comment.AddCommentCommand
+import going9.laptopgg.application.comment.CommentResult
+import going9.laptopgg.application.comment.UpdateCommentCommand
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
+import going9.laptopgg.application.laptop.LaptopDetailResult
+import going9.laptopgg.application.recommendation.LaptopRecommendationResult
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.dto.request.CommentRequest
-import going9.laptopgg.dto.request.CommentUpdateRequest
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.response.CommentResponse
 import going9.laptopgg.dto.response.LaptopDetailResponse
@@ -13,7 +17,6 @@ import going9.laptopgg.dto.response.LaptopRecommendationListResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.springframework.data.domain.PageRequest
 import org.springframework.ui.ExtendedModelMap
 
 class PageControllerTest {
@@ -42,8 +45,9 @@ class PageControllerTest {
     @Test
     fun `recommendation result delegates to service and keeps list model attributes`() {
         val request = LaptopRecommendationRequest.fixture()
-        val pageable = PageRequest.of(0, 10)
-        val recommendedLaptop = LaptopRecommendationListResponse(
+        val query = request.toQuery()
+        val pageQuery = pageQueryFrom(page = 0, size = 10, sort = listOf("price,asc"))
+        val recommendedLaptop = LaptopRecommendationResult(
             id = 1L,
             score = 91.2,
             imgLink = "https://example.com/laptop.jpg",
@@ -57,7 +61,7 @@ class PageControllerTest {
             resolutionLabel = "FHD",
             reasons = listOf("문서 작업에 잘 맞아요"),
         )
-        Mockito.`when`(recommendLaptopsUseCase.recommend(request, pageable.toPageQuery()))
+        Mockito.`when`(recommendLaptopsUseCase.recommend(query, pageQuery))
             .thenReturn(
                 PagedResult(
                     content = listOf(recommendedLaptop),
@@ -65,21 +69,27 @@ class PageControllerTest {
                     size = 10,
                     totalElements = 1,
                 ),
-            )
+        )
         val model = ExtendedModelMap()
 
-        val viewName = controller.recommendLaptops(request, "price_asc", pageable, model)
+        val viewName = controller.recommendLaptops(
+            laptopRecommendationRequest = request,
+            page = 0,
+            size = 10,
+            sort = listOf("price,asc"),
+            model = model,
+        )
 
         assertThat(viewName).isEqualTo("recommendation-list")
-        assertThat(model["recommendedLaptops"]).isEqualTo(listOf(recommendedLaptop))
+        assertThat(model["recommendedLaptops"]).isEqualTo(listOf(LaptopRecommendationListResponse.from(recommendedLaptop)))
         assertThat(model["totalCount"]).isEqualTo(1L)
-        assertThat(model["currentSort"]).isEqualTo("price_asc")
+        assertThat(model["currentSort"]).isEqualTo("price,asc")
     }
 
     @Test
     fun `laptop detail delegates to services and keeps model attributes`() {
         val laptopDetail = laptopDetailResponse(id = 10L)
-        val comments = listOf(CommentResponse(id = 1L, author = "iggy", content = "좋아요"))
+        val comments = listOf(CommentResult(id = 1L, author = "iggy", content = "좋아요"))
         Mockito.`when`(getLaptopDetailUseCase.get(10L)).thenReturn(laptopDetail)
         Mockito.`when`(manageCommentUseCase.listByLaptop(10L)).thenReturn(comments)
         val model = ExtendedModelMap()
@@ -87,8 +97,8 @@ class PageControllerTest {
         val viewName = controller.showLaptopDetail(10L, model)
 
         assertThat(viewName).isEqualTo("laptop-detail")
-        assertThat(model["laptopDetail"]).isEqualTo(laptopDetail)
-        assertThat(model["commentsOfLaptop"]).isEqualTo(comments)
+        assertThat(model["laptopDetail"]).isEqualTo(LaptopDetailResponse.from(laptopDetail))
+        assertThat(model["commentsOfLaptop"]).isEqualTo(comments.map(CommentResponse::from))
         assertThat(model["commentRequest"]).isEqualTo(CommentRequest())
     }
 
@@ -99,7 +109,14 @@ class PageControllerTest {
         val viewName = controller.addComment(request)
 
         assertThat(viewName).isEqualTo("redirect:/laptops/3")
-        Mockito.verify(manageCommentUseCase).add(request)
+        Mockito.verify(manageCommentUseCase).add(
+            AddCommentCommand(
+                laptopId = 3L,
+                author = "iggy",
+                content = "좋아요",
+                password = "pw",
+            ),
+        )
     }
 
     @Test
@@ -111,12 +128,12 @@ class PageControllerTest {
         assertThat(viewName).isEqualTo("redirect:/laptops/3")
         Mockito.verify(manageCommentUseCase).update(
             7L,
-            CommentUpdateRequest(passWord = "pw", content = "수정"),
+            UpdateCommentCommand(password = "pw", content = "수정"),
         )
     }
 
-    private fun laptopDetailResponse(id: Long): LaptopDetailResponse {
-        return LaptopDetailResponse(
+    private fun laptopDetailResponse(id: Long): LaptopDetailResult {
+        return LaptopDetailResult(
             id = id,
             name = "테스트 노트북",
             imageUrl = "https://example.com/laptop.jpg",

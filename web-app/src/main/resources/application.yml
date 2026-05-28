@@ -6,11 +6,6 @@ logging:
 app:
   api:
     base-url: "http://localhost:8080"
-  crawler:
-    run-on-startup: false
-    limit: ${CRAWLER_LIMIT:}
-    start-page: ${CRAWLER_START_PAGE:}
-    filter-profile: ${CRAWLER_FILTER_PROFILE:core}
 
 spring:
   sql:
@@ -101,16 +96,3 @@ spring:
 app:
   api:
     base-url: "https://laptopgg.com"
-
----
-spring:
-  config:
-    activate:
-      on-profile: crawler
-
-  main:
-    web-application-type: none
-
-app:
-  crawler:
-    run-on-startup: true

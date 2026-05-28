@@ -17,4 +17,14 @@ data class PagedResult<T>(
 
     val hasPrevious: Boolean
         get() = page > 0 && totalPages > 0
+
+    fun <R> map(transform: (T) -> R): PagedResult<R> {
+        return PagedResult(
+            content = content.map(transform),
+            page = page,
+            size = size,
+            totalElements = totalElements,
+            sort = sort,
+        )
+    }
 }

@@ -4,11 +4,10 @@ import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.response.LaptopRecommendationListResponse
 import going9.laptopgg.dto.response.PagedResponse
-import org.springframework.data.domain.Pageable
-import org.springframework.data.web.PageableDefault
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -20,8 +19,13 @@ class RecommendationController(
     @PostMapping()
     fun recommendLaptops(
         @RequestBody request: LaptopRecommendationRequest,
-        @PageableDefault(size = 10) pageable: Pageable
+        @RequestParam(defaultValue = "0") page: Int?,
+        @RequestParam(defaultValue = "10") size: Int?,
+        @RequestParam(required = false) sort: List<String>?,
     ): PagedResponse<LaptopRecommendationListResponse> {
-        return PagedResponse.from(recommendLaptopsUseCase.recommend(request, pageable.toPageQuery()))
+        val result = recommendLaptopsUseCase
+            .recommend(request.toQuery(), pageQueryFrom(page, size, sort))
+            .map(LaptopRecommendationListResponse::from)
+        return PagedResponse.from(result)
     }
 }

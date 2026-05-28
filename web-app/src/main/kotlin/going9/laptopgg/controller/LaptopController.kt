@@ -15,7 +15,7 @@ class LaptopController(
 
     @GetMapping
     fun getLaptopDetail(@RequestParam id: Long): LaptopDetailResponse {
-        return getLaptopDetailUseCase.get(id)
+        return LaptopDetailResponse.from(getLaptopDetailUseCase.get(id))
     }
 
 }

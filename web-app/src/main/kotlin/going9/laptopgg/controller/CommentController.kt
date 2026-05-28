@@ -15,12 +15,12 @@ class CommentController(
 
     @PostMapping
     fun saveComment(@RequestBody commentRequest: CommentRequest) {
-        manageCommentUseCase.add(commentRequest)
+        manageCommentUseCase.add(commentRequest.toCommand())
     }
 
     @GetMapping
     fun getAllComments(@RequestParam laptopId: Long): List<CommentResponse> {
-        return manageCommentUseCase.listByLaptop(laptopId)
+        return manageCommentUseCase.listByLaptop(laptopId).map(CommentResponse::from)
     }
 
     @PutMapping("/{commentId}/edit")
@@ -28,7 +28,7 @@ class CommentController(
         @PathVariable commentId: Long,
         @RequestBody request: CommentUpdateRequest,
     ) {
-        manageCommentUseCase.update(commentId, request)
+        manageCommentUseCase.update(commentId, request.toCommand())
     }
 
     @DeleteMapping("/{commentId}")
@@ -36,6 +36,6 @@ class CommentController(
         @PathVariable commentId: Long,
         @RequestBody request: CommentDeleteRequest,
     ) {
-        manageCommentUseCase.delete(commentId, request)
+        manageCommentUseCase.delete(commentId, request.toCommand())
     }
 }
