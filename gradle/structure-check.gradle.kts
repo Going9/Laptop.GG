@@ -401,6 +401,8 @@ val verifyStructure by tasks.registering {
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunner.kt",
 				"crawler-job/src/test/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunnerTest.kt",
 				".github/workflows/crawler.yml",
+				"docs/architecture.md",
+				"ops/RUNBOOK.md",
 			),
 			patterns = listOf(
 				Regex("""InvalidCrawlerJobConfigurationException"""),
@@ -414,6 +416,8 @@ val verifyStructure by tasks.registering {
 				Regex("""CRAWLER_START_PAGE must be a positive number like 15"""),
 				Regex("""CRAWLER_MAX_LIST_PAGES must be a positive number like 5000"""),
 				Regex("""CRAWLER_DETAIL_FETCH_CONCURRENCY must be a positive number like 6"""),
+				Regex("""Crawler numeric inputs must be positive integers when provided"""),
+				Regex("""crawler numeric configuration is validated before advisory lock acquisition"""),
 			),
 		)
 

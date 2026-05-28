@@ -54,7 +54,8 @@ Production crawling is GitHub Actions only.
 - Duplicate prevention: GitHub Actions `concurrency` plus PostgreSQL advisory lock
 - Audit table: `crawler_run`
 - Build artifact: `:crawler-job:bootJar`
-- Tunable knobs: `CRAWLER_MAX_LIST_PAGES` and `CRAWLER_DETAIL_FETCH_CONCURRENCY` are exposed in the manual workflow inputs. Detail fetch concurrency is capped at 12.
+- Tunable knobs: `CRAWLER_LIMIT`, `CRAWLER_START_PAGE`, `CRAWLER_MAX_LIST_PAGES`, and `CRAWLER_DETAIL_FETCH_CONCURRENCY` must be positive integers when provided. Detail fetch concurrency is capped at 12.
+- Startup validation: crawler numeric configuration is validated before advisory lock acquisition, crawling, or `crawler_run` creation.
 - Safety check: the workflow runs PostgreSQL integration tests against a local PostgreSQL service before opening the production write path.
 - Flyway migrations are owned by the web deploy path. The crawler workflow sets `SPRING_FLYWAY_ENABLED=false` and should fail fast on JPA schema validation if deploy has not prepared the schema.
 
