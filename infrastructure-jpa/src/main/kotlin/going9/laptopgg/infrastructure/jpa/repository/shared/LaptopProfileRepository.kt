@@ -1,4 +1,4 @@
-package going9.laptopgg.infrastructure.jpa.repository
+package going9.laptopgg.infrastructure.jpa.repository.shared
 
 import going9.laptopgg.domain.laptop.LaptopProfile
 import org.springframework.data.domain.Page

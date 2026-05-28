@@ -1,4 +1,4 @@
-package going9.laptopgg.infrastructure.jpa.repository
+package going9.laptopgg.infrastructure.jpa.repository.web
 
 import going9.laptopgg.domain.laptop.Comment
 import org.springframework.data.jpa.repository.JpaRepository

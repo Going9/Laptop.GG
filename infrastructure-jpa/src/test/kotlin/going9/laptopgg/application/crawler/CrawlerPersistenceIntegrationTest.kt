@@ -1,11 +1,11 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.infrastructure.jpa.repository.LaptopProfileRepository
-import going9.laptopgg.infrastructure.jpa.repository.LaptopPriceHistoryRepository
-import going9.laptopgg.infrastructure.jpa.repository.LaptopRepository
-import going9.laptopgg.infrastructure.jpa.repository.LaptopUsageRepository
-import going9.laptopgg.infrastructure.jpa.repository.RecommendationScoreRepository
+import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
+import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopUsageRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

@@ -2,7 +2,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.port.out.RecommendationScorePort
 import going9.laptopgg.domain.recommendation.RecommendationScore
-import going9.laptopgg.infrastructure.jpa.repository.RecommendationScoreRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import org.springframework.stereotype.Component
 
 @Component

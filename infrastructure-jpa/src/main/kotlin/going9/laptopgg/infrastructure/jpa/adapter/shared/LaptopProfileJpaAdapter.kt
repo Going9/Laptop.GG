@@ -5,7 +5,7 @@ import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.port.out.RecommendationCandidateFilter
 import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
 import going9.laptopgg.domain.laptop.LaptopProfile
-import going9.laptopgg.infrastructure.jpa.repository.LaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 

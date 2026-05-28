@@ -12,10 +12,10 @@ import going9.laptopgg.domain.laptop.BatteryTier
 import going9.laptopgg.domain.laptop.CpuClass
 import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.PortabilityTier
-import going9.laptopgg.infrastructure.jpa.repository.LaptopProfileRepository
-import going9.laptopgg.infrastructure.jpa.repository.LaptopRepository
-import going9.laptopgg.infrastructure.jpa.repository.LaptopUsageRepository
-import going9.laptopgg.infrastructure.jpa.repository.RecommendationScoreRepository
+import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopUsageRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

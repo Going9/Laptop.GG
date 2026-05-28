@@ -2,7 +2,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.port.out.CommentPort
 import going9.laptopgg.domain.laptop.Comment
-import going9.laptopgg.infrastructure.jpa.repository.CommentRepository
+import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 

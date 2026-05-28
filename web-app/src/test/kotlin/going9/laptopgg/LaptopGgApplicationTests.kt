@@ -42,6 +42,9 @@ class LaptopGgApplicationTests {
 			"crawlerRunJpaAdapter",
 			"laptopPriceHistoryJpaAdapter",
 			"recommendationScoreJpaAdapter",
+			"crawlerRunRepository",
+			"laptopPriceHistoryRepository",
+			"recommendationScoreRepository",
 		)
 	}
 

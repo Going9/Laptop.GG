@@ -35,6 +35,7 @@ flowchart LR
 - `application-crawler`: crawler 저장/동기화 use case와 profile/score 정책
 - `infrastructure-jpa`: Spring Data repository, Flyway migration, JPA adapter
 - `infrastructure-jpa.adapter.shared/web/crawler`: 런타임 역할별 JPA adapter
+- `infrastructure-jpa.repository.shared/web/crawler`: 런타임 역할별 Spring Data repository
 - `infrastructure-jpa/src/main/resources/laptopgg-persistence.yml`: web/crawler 공통 PostgreSQL/Flyway/JPA profile 설정
 - `infrastructure-security`: 비밀번호 해시 등 보안 adapter
 - `web-app`: `web.controller`, `web.dto`, 사용자 화면, REST API, Thymeleaf/static 리소스
