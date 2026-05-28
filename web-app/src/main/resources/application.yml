@@ -3,10 +3,6 @@ logging:
     org.hibernate.SQL: OFF
     org.hibernate.type.descriptor.sql.BasicBinder: OFF
 
-app:
-  api:
-    base-url: "http://localhost:8080"
-
 spring:
   sql:
     init:
@@ -71,10 +67,6 @@ spring:
         order_updates: true
     show-sql: false
 
-app:
-  api:
-    base-url: ${APP_BASE_URL:http://localhost:8080}
-
 ---
 spring:
   config:
@@ -92,7 +84,3 @@ spring:
 
   flyway:
     baseline-on-migrate: false
-
-app:
-  api:
-    base-url: "https://laptopgg.com"
