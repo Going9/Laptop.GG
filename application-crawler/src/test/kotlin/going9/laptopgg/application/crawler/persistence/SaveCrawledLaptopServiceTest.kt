@@ -43,10 +43,12 @@ class SaveCrawledLaptopServiceTest {
     )
     private val service = SaveCrawledLaptopService(
         laptopPort = laptopPort,
-        laptopProfileService = laptopProfileService,
-        laptopPriceHistoryService = LaptopPriceHistoryService(
-            laptopPriceHistoryPort = priceHistoryPort,
-            transactionPort = transactionPort,
+        postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
+            laptopProfileService = laptopProfileService,
+            laptopPriceHistoryService = LaptopPriceHistoryService(
+                laptopPriceHistoryPort = priceHistoryPort,
+                transactionPort = transactionPort,
+            ),
         ),
         transactionPort = transactionPort,
     )

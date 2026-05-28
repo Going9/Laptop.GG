@@ -1,14 +1,11 @@
 package going9.laptopgg.application.crawler.persistence
 
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
-import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
-import going9.laptopgg.application.crawler.profile.LaptopProfileService
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 
 class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPersistencePort,
-    private val laptopProfileService: LaptopProfileService,
-    private val laptopPriceHistoryService: LaptopPriceHistoryService,
+    private val postSaveSynchronizer: CrawledLaptopPostSaveSynchronizer,
     private val transactionPort: CrawlerTransactionPort,
     private val changeDetector: CrawledLaptopChangeDetector = CrawledLaptopChangeDetector(),
 ) : SaveCrawledLaptopUseCase {
@@ -57,11 +54,7 @@ class SaveCrawledLaptopService(
         }
 
         val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
-        laptopPriceHistoryService.recordCurrentPriceInTransaction(
-            laptopId = savedLaptop.id,
-            currentPrice = savedLaptop.price,
-            previousPrice = existingLaptop.price,
-        )
+        postSaveSynchronizer.afterListSnapshot(savedLaptop, previousPrice = existingLaptop.price)
         return SaveResult.UPDATED
     }
 
@@ -78,12 +71,7 @@ class SaveCrawledLaptopService(
     ): SaveResult {
         if (existingLaptop == null) {
             val savedLaptop = laptopPort.create(command)
-            laptopProfileService.syncProfileInTransaction(savedLaptop)
-            laptopPriceHistoryService.recordCurrentPriceInTransaction(
-                laptopId = savedLaptop.id,
-                currentPrice = savedLaptop.price,
-                previousPrice = null,
-            )
+            postSaveSynchronizer.afterDetailSnapshot(savedLaptop, previousPrice = null)
             return SaveResult.CREATED
         }
 
@@ -93,12 +81,7 @@ class SaveCrawledLaptopService(
         }
 
         val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
-        laptopProfileService.syncProfileInTransaction(savedLaptop)
-        laptopPriceHistoryService.recordCurrentPriceInTransaction(
-            laptopId = savedLaptop.id,
-            currentPrice = savedLaptop.price,
-            previousPrice = existingLaptop.price,
-        )
+        postSaveSynchronizer.afterDetailSnapshot(savedLaptop, previousPrice = existingLaptop.price)
         return SaveResult.UPDATED
     }
 

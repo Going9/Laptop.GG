@@ -1,6 +1,7 @@
 package going9.laptopgg.job.config
 
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopPostSaveSynchronizer
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
@@ -62,8 +63,10 @@ class CrawlerPersistenceUseCaseConfig {
     ): SaveCrawledLaptopUseCase {
         return SaveCrawledLaptopService(
             laptopPort = laptopPort,
-            laptopProfileService = laptopProfileService,
-            laptopPriceHistoryService = laptopPriceHistoryService,
+            postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
+                laptopProfileService = laptopProfileService,
+                laptopPriceHistoryService = laptopPriceHistoryService,
+            ),
             transactionPort = transactionPort,
         )
     }

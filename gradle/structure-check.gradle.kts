@@ -436,6 +436,17 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "crawler save use case must delegate post-save synchronization",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt"),
+			patterns = listOf(
+				Regex("""LaptopProfileService"""),
+				Regex("""LaptopPriceHistoryService"""),
+				Regex("""syncProfileInTransaction"""),
+				Regex("""recordCurrentPriceInTransaction"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler profile backfill surface must not remain without an explicit runner",
 			paths = listOf(
