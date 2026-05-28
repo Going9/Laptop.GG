@@ -805,6 +805,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "CrawlerService must delegate source page traversal",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
+			patterns = listOf(
+				Regex("""ListPageCrawler"""),
+				Regex("""CrawlProductBatchProcessor"""),
+				Regex("""DanawaListParser"""),
+				Regex("""ProductCard"""),
+				Regex("""DuplicateTailStopPolicy"""),
+				Regex("""fetchProductPageBatch"""),
+				Regex("""while\s*\(currentPage"""),
+				Regex("""currentPage\+\+"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime applications must not own JPA repository scanning",
 			paths = listOf(
 				"web-app/src/main",
