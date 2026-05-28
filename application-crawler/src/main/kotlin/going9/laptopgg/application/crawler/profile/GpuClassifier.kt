@@ -1,6 +1,5 @@
 package going9.laptopgg.application.crawler.profile
 
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.GpuClass
 
 internal data class GpuInsights(
@@ -12,7 +11,7 @@ internal data class GpuInsights(
 )
 
 internal class GpuClassifier {
-    fun classify(laptop: PersistedCrawledLaptopSnapshot): GpuInsights {
+    fun classify(laptop: LaptopProfileSource): GpuInsights {
         return classifyGraphics(laptop.graphicsType)
     }
 

@@ -1,6 +1,5 @@
 package going9.laptopgg.application.crawler.profile
 
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.GpuClass
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -60,36 +59,19 @@ class LaptopProfileFactoryTest {
         tgp: Int,
         weight: Double,
         usages: List<String>,
-    ): PersistedCrawledLaptopSnapshot {
-        return PersistedCrawledLaptopSnapshot(
-            id = name.hashCode().toLong(),
+    ): LaptopProfileSource {
+        return LaptopProfileSource(
             name = name,
-            imageUrl = "https://example.com/${name.hashCode()}.jpg",
-            detailPage = "https://example.com/${name.hashCode()}",
-            productCode = name.hashCode().toString(),
-            price = 1_800_000,
             cpuManufacturer = cpuManufacturer,
             cpu = cpu,
-            os = "윈도우11홈",
-            screenSize = 14,
             resolution = "2560x1600(WQXGA)",
             brightness = 400,
             refreshRate = 120,
             ramSize = ramSize,
-            ramType = "LPDDR5X",
-            isRamReplaceable = false,
             graphicsType = graphicsType,
             tgp = tgp,
-            thunderboltCount = 1,
-            usbCCount = 2,
-            usbACount = 1,
-            sdCard = null,
-            isSupportsPdCharging = true,
             batteryCapacity = batteryCapacity,
-            storageCapacity = 1024,
-            storageSlotCount = 1,
             weight = weight,
-            lastDetailedCrawledAt = null,
             usages = usages,
         )
     }

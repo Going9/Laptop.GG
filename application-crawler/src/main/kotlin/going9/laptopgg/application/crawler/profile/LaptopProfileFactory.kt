@@ -1,13 +1,11 @@
 package going9.laptopgg.application.crawler.profile
 
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
-
 internal class LaptopProfileFactory(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),
     private val gpuClassifier: GpuClassifier = GpuClassifier(),
     private val profileScorePolicy: ProfileScorePolicy = ProfileScorePolicy(),
 ) {
-    fun build(laptop: PersistedCrawledLaptopSnapshot): LaptopProfileSnapshot {
+    fun build(laptop: LaptopProfileSource): LaptopProfileSnapshot {
         val cpu = cpuClassifier.classify(laptop)
         val gpu = gpuClassifier.classify(laptop)
         val scores = profileScorePolicy.calculate(laptop, cpu, gpu)
@@ -34,11 +32,11 @@ internal class LaptopProfileFactory(
         )
     }
 
-    fun resolveCpuInsights(laptop: PersistedCrawledLaptopSnapshot): CpuInsights {
+    fun resolveCpuInsights(laptop: LaptopProfileSource): CpuInsights {
         return cpuClassifier.classify(laptop)
     }
 
-    fun resolveGpuInsights(laptop: PersistedCrawledLaptopSnapshot): GpuInsights {
+    fun resolveGpuInsights(laptop: LaptopProfileSource): GpuInsights {
         return gpuClassifier.classify(laptop)
     }
 }

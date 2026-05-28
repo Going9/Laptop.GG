@@ -1377,6 +1377,49 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "profile scoring policies must depend on an explicit source model",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileSource.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileFactory.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/CpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/GpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/DisplayMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileScorePolicy.kt",
+			),
+			patterns = listOf(
+				Regex("""data class LaptopProfileSource\("""),
+				Regex("""private fun PersistedCrawledLaptopSnapshot\.toProfileSource\(\): LaptopProfileSource"""),
+				Regex("""laptopProfileFactory\.build\(laptop\.toProfileSource\(\)\)"""),
+				Regex("""fun build\(laptop: LaptopProfileSource\): LaptopProfileSnapshot"""),
+				Regex("""fun classify\(laptop: LaptopProfileSource\): CpuInsights"""),
+				Regex("""fun classify\(laptop: LaptopProfileSource\): GpuInsights"""),
+				Regex("""fun displayScore\(laptop: LaptopProfileSource\): Int"""),
+				Regex("""fun calculate\(laptop: LaptopProfileSource, gpu: GpuInsights\): ProfileMetrics"""),
+				Regex("""fun calculate\(laptop: LaptopProfileSource, cpu: CpuInsights, gpu: GpuInsights\): ProfileScores"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "profile scoring policies must not depend on persistence snapshots",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileFactory.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/CpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/GpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/DisplayMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileScorePolicy.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileFactoryTest.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/profile/DisplayMetricPolicyTest.kt",
+			),
+			patterns = listOf(
+				Regex("""PersistedCrawledLaptopSnapshot"""),
+				Regex("""application\.crawler\.persistence"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler laptop ports must be split by use case responsibility",
 			paths = listOf(

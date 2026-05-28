@@ -27,7 +27,7 @@ internal class LaptopProfileService(
 
     override fun syncProfileInTransaction(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
         val laptopId = laptop.id
-        val snapshot = laptopProfileFactory.build(laptop)
+        val snapshot = laptopProfileFactory.build(laptop.toProfileSource())
         val profile = laptopProfilePort.upsert(
             UpsertCrawledLaptopProfileCommand(
                 laptopId = laptopId,
@@ -37,5 +37,22 @@ internal class LaptopProfileService(
 
         recommendationScoreRefresher.refreshScoresInTransaction(profile)
         return profile
+    }
+
+    private fun PersistedCrawledLaptopSnapshot.toProfileSource(): LaptopProfileSource {
+        return LaptopProfileSource(
+            name = name,
+            cpuManufacturer = cpuManufacturer,
+            cpu = cpu,
+            resolution = resolution,
+            brightness = brightness,
+            refreshRate = refreshRate,
+            ramSize = ramSize,
+            graphicsType = graphicsType,
+            tgp = tgp,
+            batteryCapacity = batteryCapacity,
+            weight = weight,
+            usages = usages,
+        )
     }
 }

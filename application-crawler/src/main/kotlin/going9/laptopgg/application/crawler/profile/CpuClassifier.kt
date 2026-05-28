@@ -1,6 +1,5 @@
 package going9.laptopgg.application.crawler.profile
 
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.CpuClass
 import kotlin.math.roundToInt
 
@@ -14,7 +13,7 @@ internal data class CpuInsights(
 internal class CpuClassifier(
     private val cpuTokenResolver: CpuTokenResolver = CpuTokenResolver(),
 ) {
-    fun classify(laptop: PersistedCrawledLaptopSnapshot): CpuInsights {
+    fun classify(laptop: LaptopProfileSource): CpuInsights {
         val resolvedCpu = cpuTokenResolver.resolve(laptop.cpu, laptop.cpuManufacturer, laptop.name)
         val normalized = cpuTokenResolver.normalize(resolvedCpu)
 

@@ -1,6 +1,5 @@
 package going9.laptopgg.application.crawler.profile
 
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.PortabilityTier
 
@@ -23,7 +22,7 @@ internal class ProfileScorePolicy(
     private val profileMetricPolicy: ProfileMetricPolicy = ProfileMetricPolicy(),
     private val profileUseCaseScorePolicy: ProfileUseCaseScorePolicy = ProfileUseCaseScorePolicy(),
 ) {
-    fun calculate(laptop: PersistedCrawledLaptopSnapshot, cpu: CpuInsights, gpu: GpuInsights): ProfileScores {
+    fun calculate(laptop: LaptopProfileSource, cpu: CpuInsights, gpu: GpuInsights): ProfileScores {
         val metrics = profileMetricPolicy.calculate(laptop, gpu)
         val useCaseScores = profileUseCaseScorePolicy.calculate(cpu, gpu, metrics)
 

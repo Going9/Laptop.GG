@@ -1,6 +1,5 @@
 package going9.laptopgg.application.crawler.profile
 
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.PortabilityTier
 
@@ -27,7 +26,7 @@ internal class ProfileMetricPolicy(
     private val mobilityMetricPolicy: MobilityMetricPolicy = MobilityMetricPolicy(),
     private val displayMetricPolicy: DisplayMetricPolicy = DisplayMetricPolicy(),
 ) {
-    fun calculate(laptop: PersistedCrawledLaptopSnapshot, gpu: GpuInsights): ProfileMetrics {
+    fun calculate(laptop: LaptopProfileSource, gpu: GpuInsights): ProfileMetrics {
         return ProfileMetrics(
             batteryTier = batteryMetricPolicy.batteryTier(laptop.batteryCapacity),
             portabilityTier = mobilityMetricPolicy.portabilityTier(laptop.weight),
@@ -71,7 +70,7 @@ internal class ProfileMetricPolicy(
         }
     }
 
-    private fun usageBoosts(laptop: PersistedCrawledLaptopSnapshot): UsageBoosts {
+    private fun usageBoosts(laptop: LaptopProfileSource): UsageBoosts {
         val usages = laptop.usages.map { it.trim() }.toSet()
         return UsageBoosts(
             officeBoost = if ("사무/인강용" in usages) 8 else 0,
