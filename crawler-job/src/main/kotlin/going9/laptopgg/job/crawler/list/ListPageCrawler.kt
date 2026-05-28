@@ -16,12 +16,13 @@ class ListPageCrawler(
 
     internal fun fetchProductPageBatch(page: Int, listRequestContext: ListRequestContext): ProductPageBatch {
         val html = danawaClient.fetchListPage(page, listRequestContext)
+        val metadata = DanawaListPageMetadataParser.parse(html, currentPage = page)
         return ProductPageBatch(
-            productCards = DanawaListParser.parseListPage(html),
-            hasNextPage = DanawaListParser.hasNextPage(html, page),
-            priceCompareCount = DanawaListParser.extractPriceCompareCount(html),
-            visiblePageNumbers = DanawaListParser.extractVisiblePageNumbers(html),
-            nextPageHint = DanawaListParser.extractNextPageHint(html),
+            productCards = DanawaProductCardParser.parse(html),
+            hasNextPage = metadata.hasNextPage,
+            priceCompareCount = metadata.priceCompareCount,
+            visiblePageNumbers = metadata.visiblePageNumbers,
+            nextPageHint = metadata.nextPageHint,
         )
     }
 

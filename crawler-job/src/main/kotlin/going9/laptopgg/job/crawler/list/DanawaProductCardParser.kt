@@ -2,8 +2,8 @@ package going9.laptopgg.job.crawler.list
 
 import org.jsoup.Jsoup
 
-internal object DanawaListParser {
-    fun parseListPage(html: String): List<ProductCard> {
+internal object DanawaProductCardParser {
+    fun parse(html: String): List<ProductCard> {
         val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
 
         return document.select("li.prod_item")
@@ -43,55 +43,6 @@ internal object DanawaListParser {
             .distinctBy { it.detailPage }
     }
 
-    fun hasNextPage(html: String, currentPage: Int): Boolean {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        val navigation = document.selectFirst(".num_nav_wrap") ?: return false
-
-        val hasHigherNumberedPage = navigation.select(".number_wrap a.num")
-            .mapNotNull { anchor -> anchor.text().trim().toIntOrNull() }
-            .any { page -> page > currentPage }
-
-        if (hasHigherNumberedPage) {
-            return true
-        }
-
-        return navigation.selectFirst(".edge_nav.nav_next") != null
-    }
-
-    fun extractPriceCompareCount(html: String): Int? {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        val hiddenCount = document.selectFirst("#totalProductCount")
-            ?.attr("value")
-            ?.takeIf { it.isNotBlank() }
-            ?.replace(",", "")
-            ?.toIntOrNull()
-        if (hiddenCount != null) {
-            return hiddenCount
-        }
-
-        return document.select(".tab_list_nav a")
-            .map { it.text().trim() }
-            .firstOrNull { it.contains("가격비교") }
-            ?.let { PRICE_COMPARE_COUNT_REGEX.find(it)?.groupValues?.get(1) }
-            ?.replace(",", "")
-            ?.toIntOrNull()
-    }
-
-    fun extractVisiblePageNumbers(html: String): List<Int> {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        return document.select(".num_nav_wrap .number_wrap a.num")
-            .mapNotNull { it.text().trim().toIntOrNull() }
-    }
-
-    fun extractNextPageHint(html: String): Int? {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
-        val onclick = document.selectFirst(".num_nav_wrap .edge_nav.nav_next")
-            ?.attr("onclick")
-            ?.takeIf { it.isNotBlank() }
-            ?: return null
-        return MOVE_PAGE_REGEX.find(onclick)?.groupValues?.get(1)?.toIntOrNull()
-    }
-
     private fun normalizeImageUrl(url: String): String {
         if (url.isBlank()) {
             return ""
@@ -123,6 +74,4 @@ internal object DanawaListParser {
 
     private const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
     private const val DANAWA_ORIGIN = "https://prod.danawa.com"
-    private val PRICE_COMPARE_COUNT_REGEX = Regex("""\(([\d,]+)\)""")
-    private val MOVE_PAGE_REGEX = Regex("""movePage\((\d+)\)""")
 }

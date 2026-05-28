@@ -1038,6 +1038,35 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "Danawa list html parser must be split by product cards and page metadata",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListParser.kt"),
+		)
+
+		assertAbsent(
+			rule = "Danawa product card parser must not own page metadata parsing",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaProductCardParser.kt"),
+			patterns = listOf(
+				Regex("""num_nav_wrap"""),
+				Regex("""totalProductCount"""),
+				Regex("""가격비교"""),
+				Regex("""movePage"""),
+				Regex("""ListPageMetadata"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "Danawa list page metadata parser must not own product card parsing",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListPageMetadataParser.kt"),
+			patterns = listOf(
+				Regex("""ProductCard\("""),
+				Regex("""prod_item"""),
+				Regex("""prod_pricelist"""),
+				Regex("""thumb_image"""),
+				Regex("""normalizeDetailPage"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "Danawa list html parser must not own crawl page diagnostics",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListParser.kt"),

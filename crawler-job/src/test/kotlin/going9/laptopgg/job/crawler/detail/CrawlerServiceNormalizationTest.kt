@@ -3,8 +3,8 @@ package going9.laptopgg.job.crawler.detail
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
-import going9.laptopgg.job.crawler.list.DanawaListParser
 import going9.laptopgg.job.crawler.list.DanawaListRequestContextParser
+import going9.laptopgg.job.crawler.list.DanawaProductCardParser
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.source.CrawlSource
 import org.assertj.core.api.Assertions.assertThat
@@ -101,7 +101,7 @@ class CrawlerServiceNormalizationTest {
             </ul>
         """.trimIndent()
 
-        val result = DanawaListParser.parseListPage(html)
+        val result = DanawaProductCardParser.parse(html)
 
         assertThat(result).hasSize(1)
         assertThat(result.first().detailPage).isEqualTo("https://prod.danawa.com/info/?pcode=123456&cate=112758")

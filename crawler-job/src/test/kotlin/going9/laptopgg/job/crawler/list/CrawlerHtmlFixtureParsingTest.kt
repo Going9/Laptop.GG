@@ -20,7 +20,7 @@ class CrawlerHtmlFixtureParsingTest {
                 listUrl = "https://prod.danawa.com/list/?cate=112758",
             ),
         )
-        val productCards = DanawaListParser.parseListPage(html)
+        val productCards = DanawaProductCardParser.parse(html)
 
         assertThat(requestContext.categoryCode).isEqualTo("758")
         assertThat(requestContext.listCount).isEqualTo("30")
@@ -73,7 +73,7 @@ class CrawlerHtmlFixtureParsingTest {
             </html>
         """.trimIndent()
 
-        val productCards = DanawaListParser.parseListPage(html)
+        val productCards = DanawaProductCardParser.parse(html)
 
         assertThat(productCards).hasSize(2)
         assertThat(productCards.map { it.detailPage }).containsExactly(
@@ -98,8 +98,8 @@ class CrawlerHtmlFixtureParsingTest {
             </html>
         """.trimIndent()
 
-        assertThat(DanawaListParser.hasNextPage(html, currentPage = 1)).isTrue()
-        assertThat(DanawaListParser.hasNextPage(html, currentPage = 2)).isTrue()
+        assertThat(DanawaListPageMetadataParser.parse(html, currentPage = 1).hasNextPage).isTrue()
+        assertThat(DanawaListPageMetadataParser.parse(html, currentPage = 2).hasNextPage).isTrue()
     }
 
     @Test
@@ -128,9 +128,11 @@ class CrawlerHtmlFixtureParsingTest {
             </html>
         """.trimIndent()
 
-        assertThat(DanawaListParser.extractPriceCompareCount(html)).isEqualTo(20_551)
-        assertThat(DanawaListParser.extractVisiblePageNumbers(html)).containsExactly(61, 62, 63, 64, 65, 66, 67, 68, 69)
-        assertThat(DanawaListParser.extractNextPageHint(html)).isEqualTo(70)
+        val metadata = DanawaListPageMetadataParser.parse(html, currentPage = 61)
+
+        assertThat(metadata.priceCompareCount).isEqualTo(20_551)
+        assertThat(metadata.visiblePageNumbers).containsExactly(61, 62, 63, 64, 65, 66, 67, 68, 69)
+        assertThat(metadata.nextPageHint).isEqualTo(70)
     }
 
     @Test

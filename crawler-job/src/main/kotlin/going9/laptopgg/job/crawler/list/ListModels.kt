@@ -104,6 +104,13 @@ internal data class ProductPageBatch(
     val nextPageHint: Int?,
 )
 
+internal data class ListPageMetadata(
+    val hasNextPage: Boolean,
+    val priceCompareCount: Int?,
+    val visiblePageNumbers: List<Int>,
+    val nextPageHint: Int?,
+)
+
 internal fun ProductCard.toCommand(): CrawledProductCardCommand {
     return CrawledProductCardCommand(
         productCode = productCode,
