@@ -2576,6 +2576,7 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "laptop detail page must expose the comment use case surface it loads",
 			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/view/LaptopDetailPageModelFactory.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/controller/LaptopPageController.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/controller/CommentPageController.kt",
 				"web-app/src/main/resources/templates/laptop-detail.html",
@@ -2585,7 +2586,7 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""CommentRequest\(laptopId = laptopId\)"""),
 				Regex("""@PostMapping\("/comments/\{commentId}/delete"\)"""),
-				Regex("""commentsOfLaptop"""),
+				Regex("""laptopPage\.comments"""),
 				Regex("""th:action="@\{/comments}""""),
 				Regex("""comment\.id"""),
 				Regex("""'/edit'"""),
@@ -3410,6 +3411,34 @@ val verifyStructure by tasks.registering {
 				Regex(""""recommendationPage""""),
 				Regex("""recommendationPage\.laptopRecommendationRequest"""),
 				Regex("""recommendationPage\.recommendedLaptops"""),
+			),
+		)
+
+		assertPresent(
+			rule = "laptop detail page templates must use typed page model root",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/view/LaptopDetailPageModelFactory.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/LaptopPageController.kt",
+				"web-app/src/main/resources/templates/laptop-detail.html",
+			),
+			patterns = listOf(
+				Regex("""data class LaptopDetailPageModel"""),
+				Regex(""""laptopPage""""),
+				Regex("""laptopPage\.laptopDetail"""),
+				Regex("""laptopPage\.comments"""),
+				Regex("""laptopPage\.commentRequest"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "laptop detail page controller must not pass loose model attributes",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/controller/LaptopPageController.kt"),
+			patterns = listOf(
+				Regex(""""laptopDetail""""),
+				Regex(""""commentsOfLaptop""""),
+				Regex(""""commentRequest""""),
+				Regex("""CommentResponse::from"""),
+				Regex("""LaptopDetailResponse\.from"""),
 			),
 		)
 

@@ -7,6 +7,8 @@ import going9.laptopgg.application.laptop.LaptopDetailResult
 import going9.laptopgg.web.dto.request.CommentRequest
 import going9.laptopgg.web.dto.response.CommentResponse
 import going9.laptopgg.web.dto.response.LaptopDetailResponse
+import going9.laptopgg.web.view.LaptopDetailPageModel
+import going9.laptopgg.web.view.LaptopDetailPageModelFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -16,6 +18,7 @@ class LaptopPageControllerTest {
     private val getLaptopDetailPageUseCase = Mockito.mock(GetLaptopDetailPageUseCase::class.java)
     private val controller = LaptopPageController(
         getLaptopDetailPageUseCase = getLaptopDetailPageUseCase,
+        laptopDetailPageModelFactory = LaptopDetailPageModelFactory(),
     )
 
     @Test
@@ -29,9 +32,10 @@ class LaptopPageControllerTest {
         val viewName = controller.showLaptopDetail(10L, model)
 
         assertThat(viewName).isEqualTo("laptop-detail")
-        assertThat(model["laptopDetail"]).isEqualTo(LaptopDetailResponse.from(laptopDetail))
-        assertThat(model["commentsOfLaptop"]).isEqualTo(comments.map(CommentResponse::from))
-        assertThat(model["commentRequest"]).isEqualTo(CommentRequest(laptopId = 10L))
+        val laptopPage = model["laptopPage"] as LaptopDetailPageModel
+        assertThat(laptopPage.laptopDetail).isEqualTo(LaptopDetailResponse.from(laptopDetail))
+        assertThat(laptopPage.comments).isEqualTo(comments.map(CommentResponse::from))
+        assertThat(laptopPage.commentRequest).isEqualTo(CommentRequest(laptopId = 10L))
     }
 
     private fun laptopDetailResponse(id: Long): LaptopDetailResult {
