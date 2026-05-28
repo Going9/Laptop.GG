@@ -3,7 +3,7 @@ package going9.laptopgg.controller
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.response.LaptopRecommendationListResponse
-import org.springframework.data.domain.Page
+import going9.laptopgg.dto.response.PagedResponse
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.web.bind.annotation.PostMapping
@@ -21,7 +21,7 @@ class RecommendationController(
     fun recommendLaptops(
         @RequestBody request: LaptopRecommendationRequest,
         @PageableDefault(size = 10) pageable: Pageable
-    ): Page<LaptopRecommendationListResponse> {
-        return recommendLaptopsUseCase.recommend(request, pageable)
+    ): PagedResponse<LaptopRecommendationListResponse> {
+        return PagedResponse.from(recommendLaptopsUseCase.recommend(request, pageable.toPageQuery()))
     }
 }

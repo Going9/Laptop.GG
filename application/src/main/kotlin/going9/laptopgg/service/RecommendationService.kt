@@ -1,41 +1,43 @@
 package going9.laptopgg.service
 
+import going9.laptopgg.application.common.PageQuery
+import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.application.port.out.LaptopProfilePort
+import going9.laptopgg.application.port.out.RecommendationCandidateFilter
+import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
-import going9.laptopgg.domain.repository.LaptopProfileRepository
 import going9.laptopgg.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.dto.request.RecommendationUseCase
 import going9.laptopgg.dto.request.ScreenSizeMode
 import going9.laptopgg.dto.response.LaptopRecommendationListResponse
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import kotlin.math.ceil
 
 @Service
 class RecommendationService(
-    private val laptopProfileRepository: LaptopProfileRepository,
+    private val laptopProfilePort: LaptopProfilePort,
     private val scoreCalculatorService: ScoreCalculatorService,
 ) {
-    fun recommendLaptops(request: LaptopRecommendationRequest, pageable: Pageable): Page<LaptopRecommendationListResponse> {
+    fun recommendLaptops(request: LaptopRecommendationRequest, pageQuery: PageQuery): PagedResult<LaptopRecommendationListResponse> {
         val useCase = request.resolvedUseCase()
         val candidateFilter = buildCandidateFilter(request, useCase)
-        val sortMode = resolveSortMode(pageable)
+        val sortMode = resolveSortMode(pageQuery)
 
         val candidatePage = if (sortMode != null) {
-            findCandidatePage(request, candidateFilter, useCase, sortMode, pageable)
+            findCandidatePage(request, candidateFilter, useCase, sortMode, pageQuery)
         } else {
-            val candidates = findCandidates(request, candidateFilter)
+            val candidates = findCandidates(candidateFilter)
                 .map { profile -> scoreCandidate(profile.laptop, profile, request, useCase) }
 
-            val sortedCandidates = sortCandidates(candidates, pageable)
-            val pageContent = paginate(sortedCandidates, pageable)
-            return PageImpl(
-                pageContent.map(::toResponse),
-                pageable,
-                candidates.size.toLong(),
+            val sortedCandidates = sortCandidates(candidates, pageQuery)
+            val pageContent = paginate(sortedCandidates, pageQuery)
+            return PagedResult(
+                content = pageContent.map(::toResponse),
+                page = pageQuery.page,
+                size = pageQuery.size,
+                totalElements = candidates.size.toLong(),
+                sort = pageQuery.sort,
             )
         }
 
@@ -43,10 +45,12 @@ class RecommendationService(
             scoreCandidate(profile.laptop, profile, request, useCase)
         }
 
-        return PageImpl(
-            pageContent.map(::toResponse),
-            pageable,
-            candidatePage.totalElements,
+        return PagedResult(
+            content = pageContent.map(::toResponse),
+            page = pageQuery.page,
+            size = pageQuery.size,
+            totalElements = candidatePage.totalElements,
+            sort = pageQuery.sort,
         )
     }
 
@@ -83,61 +87,51 @@ class RecommendationService(
     }
 
     private fun findCandidates(
-        request: LaptopRecommendationRequest,
-        candidateFilter: CandidateFilter,
-    ) = laptopProfileRepository.findRecommendationCandidates(
-        maxPrice = request.budget,
-        maxWeight = request.maxWeightKg,
-        screenSizes = candidateFilter.screenSizes,
-        screenFilterEnabled = candidateFilter.screenFilterEnabled,
-        includeUnknownScreen = candidateFilter.includeUnknownScreen,
-        minOfficeScore = candidateFilter.minOfficeScore,
-        minBatteryScore = candidateFilter.minBatteryScore,
-        minCasualGameScore = candidateFilter.minCasualGameScore,
-        minOnlineGameScore = candidateFilter.minOnlineGameScore,
-        minAaaGameScore = candidateFilter.minAaaGameScore,
-        minCreatorScore = candidateFilter.minCreatorScore,
-        minNotSureGateTotal = candidateFilter.minNotSureGateTotal,
-    )
+        candidateFilter: RecommendationCandidateFilter,
+    ) = laptopProfilePort.findRecommendationCandidates(candidateFilter)
 
     private fun findCandidatePage(
         request: LaptopRecommendationRequest,
-        candidateFilter: CandidateFilter,
+        candidateFilter: RecommendationCandidateFilter,
         useCase: RecommendationUseCase,
         sortMode: String,
-        pageable: Pageable,
-    ) = laptopProfileRepository.findRecommendationCandidatePage(
-        maxPrice = request.budget,
-        maxWeight = request.maxWeightKg,
-        screenSizes = candidateFilter.screenSizes,
-        screenFilterEnabled = candidateFilter.screenFilterEnabled,
-        includeUnknownScreen = candidateFilter.includeUnknownScreen,
-        gateThreshold = scoreCalculatorService.gateThreshold(useCase),
-        budget = request.budget,
-        useCase = useCase.name,
-        sortMode = sortMode,
-        pageable = PageRequest.of(pageable.pageNumber, pageable.pageSize),
+        pageQuery: PageQuery,
+    ) = laptopProfilePort.findRecommendationCandidatePage(
+        RecommendationCandidatePageQuery(
+            filter = candidateFilter,
+            gateThreshold = scoreCalculatorService.gateThreshold(useCase),
+            budget = request.budget,
+            useCase = useCase.name,
+            sortMode = sortMode,
+            pageQuery = pageQuery,
+        ),
     )
 
     private fun buildCandidateFilter(
         request: LaptopRecommendationRequest,
         useCase: RecommendationUseCase,
-    ): CandidateFilter {
+    ): RecommendationCandidateFilter {
         val gateThreshold = scoreCalculatorService.gateThreshold(useCase)
         val screenMode = request.resolvedScreenSizeMode()
 
         val baseFilter = when (screenMode) {
-            ScreenSizeMode.SELECT -> CandidateFilter(
+            ScreenSizeMode.SELECT -> RecommendationCandidateFilter(
+                maxPrice = request.budget,
+                maxWeight = request.maxWeightKg,
                 screenFilterEnabled = true,
                 includeUnknownScreen = false,
                 screenSizes = request.normalizedScreenSizes(),
             )
-            ScreenSizeMode.ANY -> CandidateFilter(
+            ScreenSizeMode.ANY -> RecommendationCandidateFilter(
+                maxPrice = request.budget,
+                maxWeight = request.maxWeightKg,
                 screenFilterEnabled = false,
                 includeUnknownScreen = true,
                 screenSizes = LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES,
             )
-            ScreenSizeMode.NOT_SURE -> CandidateFilter(
+            ScreenSizeMode.NOT_SURE -> RecommendationCandidateFilter(
+                maxPrice = request.budget,
+                maxWeight = request.maxWeightKg,
                 screenFilterEnabled = true,
                 includeUnknownScreen = true,
                 screenSizes = LaptopRecommendationRequest.COMMON_SCREEN_SIZES,
@@ -161,9 +155,9 @@ class RecommendationService(
 
     private fun sortCandidates(
         candidates: List<ScoredLaptop>,
-        pageable: Pageable,
+        pageQuery: PageQuery,
     ): List<ScoredLaptop> {
-        if (!pageable.sort.isSorted) {
+        if (pageQuery.sort.isEmpty()) {
             return candidates.sortedWith(
                 compareByDescending<ScoredLaptop> { it.score }
                     .thenBy { it.laptop.price ?: Int.MAX_VALUE }
@@ -171,7 +165,7 @@ class RecommendationService(
             )
         }
 
-        val orders = pageable.sort.toList()
+        val orders = pageQuery.sort
         return candidates.sortedWith(Comparator { left, right ->
             for (order in orders) {
                 val comparison = when (order.property) {
@@ -203,9 +197,9 @@ class RecommendationService(
         })
     }
 
-    private fun paginate(candidates: List<ScoredLaptop>, pageable: Pageable): List<ScoredLaptop> {
-        val startIndex = pageable.offset.toInt().coerceAtMost(candidates.size)
-        val endIndex = (startIndex + pageable.pageSize).coerceAtMost(candidates.size)
+    private fun paginate(candidates: List<ScoredLaptop>, pageQuery: PageQuery): List<ScoredLaptop> {
+        val startIndex = pageQuery.offset.coerceAtMost(candidates.size)
+        val endIndex = (startIndex + pageQuery.size).coerceAtMost(candidates.size)
         if (startIndex >= endIndex) {
             return emptyList()
         }
@@ -264,19 +258,6 @@ class RecommendationService(
         val reasons: List<String>,
     )
 
-    private data class CandidateFilter(
-        val screenFilterEnabled: Boolean,
-        val includeUnknownScreen: Boolean,
-        val screenSizes: Collection<Int>,
-        val minOfficeScore: Int? = null,
-        val minBatteryScore: Int? = null,
-        val minCasualGameScore: Int? = null,
-        val minOnlineGameScore: Int? = null,
-        val minAaaGameScore: Int? = null,
-        val minCreatorScore: Int? = null,
-        val minNotSureGateTotal: Int? = null,
-    )
-
     companion object {
         private val RESOLUTION_REGEX = Regex("""(\d{3,4})\s*[xX]\s*(\d{3,4})""")
 
@@ -285,12 +266,12 @@ class RecommendationService(
             return ceil((threshold - 0.5) * componentCount).toInt()
         }
 
-        private fun resolveSortMode(pageable: Pageable): String? {
-            if (!pageable.sort.isSorted) {
+        private fun resolveSortMode(pageQuery: PageQuery): String? {
+            if (pageQuery.sort.isEmpty()) {
                 return "recommended"
             }
 
-            val firstOrder = pageable.sort.firstOrNull() ?: return "recommended"
+            val firstOrder = pageQuery.sort.firstOrNull() ?: return "recommended"
             return when (firstOrder.property) {
                 "recommended" -> "recommended"
                 "price" -> if (firstOrder.isAscending) "price_asc" else "price_desc"

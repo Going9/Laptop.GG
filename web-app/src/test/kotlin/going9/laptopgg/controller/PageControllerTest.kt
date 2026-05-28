@@ -1,5 +1,6 @@
 package going9.laptopgg.controller
 
+import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
@@ -12,7 +13,6 @@ import going9.laptopgg.dto.response.LaptopRecommendationListResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.ui.ExtendedModelMap
 
@@ -57,8 +57,15 @@ class PageControllerTest {
             resolutionLabel = "FHD",
             reasons = listOf("문서 작업에 잘 맞아요"),
         )
-        Mockito.`when`(recommendLaptopsUseCase.recommend(request, pageable))
-            .thenReturn(PageImpl(listOf(recommendedLaptop), pageable, 1))
+        Mockito.`when`(recommendLaptopsUseCase.recommend(request, pageable.toPageQuery()))
+            .thenReturn(
+                PagedResult(
+                    content = listOf(recommendedLaptop),
+                    page = 0,
+                    size = 10,
+                    totalElements = 1,
+                ),
+            )
         val model = ExtendedModelMap()
 
         val viewName = controller.recommendLaptops(request, "price_asc", pageable, model)

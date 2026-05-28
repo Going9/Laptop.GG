@@ -43,14 +43,14 @@ class PageController(
         @PageableDefault(size = 10) pageable: Pageable,
         model: Model
     ): String {
-        val recommendedLaptops = recommendLaptopsUseCase.recommend(laptopRecommendationRequest, pageable)
+        val recommendedLaptops = recommendLaptopsUseCase.recommend(laptopRecommendationRequest, pageable.toPageQuery())
         val resolvedUseCase = laptopRecommendationRequest.resolvedUseCase()
         model.addAttribute("laptopRecommendationRequest", laptopRecommendationRequest)
         model.addAttribute("recommendedLaptops", recommendedLaptops.content)
         model.addAttribute("totalCount", recommendedLaptops.totalElements)
         model.addAttribute("totalPages", recommendedLaptops.totalPages)
         model.addAttribute("currentSort", sort ?: "recommended")
-        model.addAttribute("currentPage", recommendedLaptops.number + 1)
+        model.addAttribute("currentPage", recommendedLaptops.page + 1)
         model.addAttribute("totalPage", recommendedLaptops.totalPages)
         model.addAttribute("resolvedUseCase", resolvedUseCase)
         model.addAttribute("resolvedUseCaseLabel", useCaseLabel(resolvedUseCase))
