@@ -1,12 +1,12 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import going9.laptopgg.job.crawler.list.ProductCard
-import going9.laptopgg.job.crawler.list.ProductPageBatch
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlPageDiagnosticsLogger {
+class CrawlPageDiagnosticsLogger(
+    private val formatter: CrawlPageDiagnosticFormatter,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     internal fun shouldLogPageDiagnostics(
@@ -18,19 +18,20 @@ class CrawlPageDiagnosticsLogger {
     }
 
     internal fun logPageDiagnostics(context: CrawlPageDiagnosticContext) {
+        val diagnostics = formatter.format(context)
         logger.info(
             "페이지 진단: source={}, page={}, hasNextPage={}, priceCompareCount={}, expectedLastPage={}, visiblePages={}, nextPageHint={}, repeatedPageSignature={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
             context.sourceKey,
             context.page,
             context.pageBatch.hasNextPage,
-            context.pageBatch.priceCompareCount ?: "알 수 없음",
-            context.expectedLastPage ?: "알 수 없음",
-            context.visiblePagesLog(),
-            context.pageBatch.nextPageHint ?: "없음",
+            diagnostics.priceCompareCount,
+            diagnostics.expectedLastPage,
+            diagnostics.visiblePages,
+            diagnostics.nextPageHint,
             context.repeatedPageSignature,
-            ProductPageSignature.stableHash(context.pageSignature),
-            describeCard(context.productCards.firstOrNull()),
-            describeCard(context.productCards.lastOrNull()),
+            diagnostics.pageSignatureHash,
+            diagnostics.firstCard,
+            diagnostics.lastCard,
             context.page,
             context.requestSortMethod,
             context.requestFilterCount,
@@ -59,6 +60,7 @@ class CrawlPageDiagnosticsLogger {
         context: CrawlPageDiagnosticContext,
         consecutiveDuplicateOnlyPages: Int,
     ) {
+        val diagnostics = formatter.format(context)
         logger.info(
             "AJAX 페이지네이션에서도 새 detail 페이지가 없는 반복 목록이 이어져 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}, hasNextPage={}, visiblePages={}, nextPageHint={}, priceCompareCount={}, expectedLastPage={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
             context.sourceKey,
@@ -66,50 +68,17 @@ class CrawlPageDiagnosticsLogger {
             context.repeatedPageSignature,
             consecutiveDuplicateOnlyPages,
             context.pageBatch.hasNextPage,
-            context.visiblePagesLog(),
-            context.pageBatch.nextPageHint ?: "없음",
-            context.pageBatch.priceCompareCount ?: "알 수 없음",
-            context.expectedLastPage ?: "알 수 없음",
-            ProductPageSignature.stableHash(context.pageSignature),
-            describeCard(context.productCards.firstOrNull()),
-            describeCard(context.productCards.lastOrNull()),
+            diagnostics.visiblePages,
+            diagnostics.nextPageHint,
+            diagnostics.priceCompareCount,
+            diagnostics.expectedLastPage,
+            diagnostics.pageSignatureHash,
+            diagnostics.firstCard,
+            diagnostics.lastCard,
             context.page,
             context.requestSortMethod,
             context.requestFilterCount,
             context.requestDistinctFilterCount,
         )
     }
-
-    private fun CrawlPageDiagnosticContext.visiblePagesLog(): String {
-        return pageBatch.visiblePageNumbers
-            .takeIf { it.isNotEmpty() }
-            ?.joinToString(",")
-            ?: "없음"
-    }
-
-    private fun describeCard(productCard: ProductCard?): String {
-        if (productCard == null) {
-            return "없음"
-        }
-
-        val cate = extractQueryParam(productCard.detailPage, "cate") ?: productCard.cate4
-        return "${productCard.productCode}@${cate}"
-    }
-
-    private fun extractQueryParam(url: String, key: String): String? {
-        return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
-    }
 }
-
-internal data class CrawlPageDiagnosticContext(
-    val sourceKey: String,
-    val page: Int,
-    val pageBatch: ProductPageBatch,
-    val productCards: List<ProductCard>,
-    val expectedLastPage: Int?,
-    val repeatedPageSignature: Boolean,
-    val pageSignature: String,
-    val requestSortMethod: String,
-    val requestFilterCount: Int,
-    val requestDistinctFilterCount: Int,
-)

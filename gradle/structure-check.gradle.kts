@@ -1128,6 +1128,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawl page diagnostics logger must delegate diagnostic field formatting",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlPageDiagnosticsLogger.kt"),
+			patterns = listOf(
+				Regex("""ProductPageSignature\.stableHash"""),
+				Regex("""fun\s+(visiblePages|describeCard|extractQueryParam)\b"""),
+				Regex("""nextPageHint\s*\?:"""),
+				Regex("""priceCompareCount\s*\?:"""),
+				Regex("""data class CrawlPageDiagnosticContext"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawl source runner must delegate traversal state and page freshness analysis",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt"),
 			patterns = listOf(
