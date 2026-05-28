@@ -1,9 +1,9 @@
 package going9.laptopgg.application.crawler.port.out
 
-import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.application.crawler.CrawledLaptopProfileState
+import going9.laptopgg.application.crawler.UpsertCrawledLaptopProfileCommand
 
 interface CrawledLaptopProfilePort {
-    fun findByLaptopId(laptopId: Long): LaptopProfile?
-    fun save(laptopProfile: LaptopProfile): LaptopProfile
+    fun upsert(command: UpsertCrawledLaptopProfileCommand): CrawledLaptopProfileState
     fun findLaptopIdsWithIncompleteStaticScores(limit: Int): List<Long>
 }

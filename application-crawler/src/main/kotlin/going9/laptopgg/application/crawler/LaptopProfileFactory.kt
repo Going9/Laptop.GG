@@ -1,43 +1,18 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.domain.laptop.BatteryTier
-import going9.laptopgg.domain.laptop.CpuClass
-import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.PortabilityTier
 
 class LaptopProfileFactory(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),
     private val gpuClassifier: GpuClassifier = GpuClassifier(),
     private val profileScorePolicy: ProfileScorePolicy = ProfileScorePolicy(),
 ) {
-    data class Snapshot(
-        val cpuClass: CpuClass,
-        val gpuClass: GpuClass,
-        val batteryTier: BatteryTier,
-        val portabilityTier: PortabilityTier,
-        val officeScore: Int,
-        val batteryScore: Int,
-        val casualGameScore: Int,
-        val onlineGameScore: Int,
-        val aaaGameScore: Int,
-        val creatorScore: Int,
-        val cpuPerformanceScore: Int,
-        val lowPowerCpuScore: Int,
-        val gpuPerformanceScore: Int,
-        val gpuCreatorBonus: Int,
-        val portabilityScore: Int,
-        val displayScore: Int,
-        val ramScore: Int,
-        val tgpScore: Int,
-    )
-
-    fun build(laptop: Laptop): Snapshot {
+    fun build(laptop: Laptop): LaptopProfileSnapshot {
         val cpu = cpuClassifier.classify(laptop)
         val gpu = gpuClassifier.classify(laptop)
         val scores = profileScorePolicy.calculate(laptop, cpu, gpu)
 
-        return Snapshot(
+        return LaptopProfileSnapshot(
             cpuClass = cpu.cpuClass,
             gpuClass = gpu.gpuClass,
             batteryTier = scores.batteryTier,

@@ -214,6 +214,19 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler profile port must not expose JPA entities",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopProfilePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/LaptopProfileService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/RecommendationScoreService.kt",
+			),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain\.laptop\.LaptopProfile"""),
+				Regex("""LaptopProfile\("""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler run port must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawlerRunPort.kt",

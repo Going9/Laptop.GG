@@ -1,7 +1,6 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
-import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy
@@ -15,17 +14,15 @@ class RecommendationScoreService(
 ) {
     private val recommendationScoringPolicy = RecommendationScoringPolicy()
 
-    fun refreshScores(profile: LaptopProfile) {
-        val laptopId = requireNotNull(profile.laptop.id) {
-            "Laptop must be persisted before refreshing recommendation scores."
-        }
+    fun refreshScores(profileState: CrawledLaptopProfileState) {
+        val profile = profileState.profile
         val inputs = scoreInputs(profile)
         val gateInputs = gateInputs(profile)
         val now = LocalDateTime.now()
 
         val scores = RecommendationUseCase.entries.map { useCase ->
             UpsertRecommendationScoreCommand(
-                laptopId = laptopId,
+                laptopId = profileState.laptopId,
                 useCase = useCase.name,
                 gateScore = recommendationScoringPolicy.gateScore(gateInputs, useCase),
                 staticScore = recommendationScoringPolicy.staticScore(useCase, inputs),
@@ -37,7 +34,7 @@ class RecommendationScoreService(
         recommendationScorePort.saveAll(scores)
     }
 
-    private fun scoreInputs(profile: LaptopProfile): RecommendationScoreInputs {
+    private fun scoreInputs(profile: LaptopProfileSnapshot): RecommendationScoreInputs {
         return RecommendationScoreInputs(
             budgetScore = 0,
             portabilityScore = profile.portabilityScore,
@@ -53,7 +50,7 @@ class RecommendationScoreService(
         )
     }
 
-    private fun gateInputs(profile: LaptopProfile): RecommendationGateInputs {
+    private fun gateInputs(profile: LaptopProfileSnapshot): RecommendationGateInputs {
         return RecommendationGateInputs(
             officeScore = profile.officeScore,
             batteryScore = profile.batteryScore,

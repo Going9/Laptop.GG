@@ -4,6 +4,8 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
+import going9.laptopgg.application.crawler.CrawledLaptopProfileState
+import going9.laptopgg.application.crawler.LaptopProfileSnapshot
 import going9.laptopgg.application.crawler.LaptopProfileService
 import going9.laptopgg.application.crawler.RecommendationScoreService
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
@@ -767,7 +769,31 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     private fun saveProfileAndScores(profile: going9.laptopgg.domain.laptop.LaptopProfile) {
         val savedProfile = laptopProfileRepository.save(profile)
-        recommendationScoreService.refreshScores(savedProfile)
+        recommendationScoreService.refreshScores(
+            CrawledLaptopProfileState(
+                laptopId = requireNotNull(savedProfile.laptop.id),
+                profile = LaptopProfileSnapshot(
+                    cpuClass = savedProfile.cpuClass,
+                    gpuClass = savedProfile.gpuClass,
+                    batteryTier = savedProfile.batteryTier,
+                    portabilityTier = savedProfile.portabilityTier,
+                    officeScore = savedProfile.officeScore,
+                    batteryScore = savedProfile.batteryScore,
+                    casualGameScore = savedProfile.casualGameScore,
+                    onlineGameScore = savedProfile.onlineGameScore,
+                    aaaGameScore = savedProfile.aaaGameScore,
+                    creatorScore = savedProfile.creatorScore,
+                    cpuPerformanceScore = savedProfile.cpuPerformanceScore,
+                    lowPowerCpuScore = savedProfile.lowPowerCpuScore,
+                    gpuPerformanceScore = savedProfile.gpuPerformanceScore,
+                    gpuCreatorBonus = savedProfile.gpuCreatorBonus,
+                    portabilityScore = savedProfile.portabilityScore,
+                    displayScore = savedProfile.displayScore,
+                    ramScore = savedProfile.ramScore,
+                    tgpScore = savedProfile.tgpScore,
+                ),
+            ),
+        )
     }
 
     private fun pagedNames(
