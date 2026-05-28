@@ -50,7 +50,9 @@ val verifyStructure by tasks.registering {
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.infrastructure"""),
+				Regex("""going9\.laptopgg\.application\.crawler"""),
 				Regex("""going9\.laptopgg\.dto"""),
+				Regex("""project\(":application-crawler"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
 				Regex("""spring-security-crypto"""),
@@ -60,13 +62,25 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application-crawler must not depend on infrastructure or web",
+			paths = listOf("application-crawler/src/main", "application-crawler/src/test", "application-crawler/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.infrastructure"""),
+				Regex("""going9\.laptopgg\.web"""),
+				Regex("""project\(":infrastructure-jpa"\)"""),
+				Regex("""project\(":web-app"\)"""),
+				Regex("""spring-boot-starter-data-jpa"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application command and result contracts must not expose domain models",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/crawler/CrawlerPersistenceModels.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/crawler/SaveCrawledLaptopUseCase.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/crawler/TrackCrawlerRunUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/CrawlerPersistenceModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/SaveCrawledLaptopUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/TrackCrawlerRunUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopDetailResult.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationQuery.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResult.kt",
@@ -78,7 +92,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "application services must not encode runtime Spring profiles",
-			paths = listOf("application/src/main"),
+			paths = listOf("application/src/main", "application-crawler/src/main"),
 			patterns = listOf(
 				Regex("""org\.springframework\.context\.annotation\.Profile"""),
 				Regex("""@Profile"""),
@@ -102,7 +116,9 @@ val verifyStructure by tasks.registering {
 			paths = listOf("web-app/src/main", "web-app/src/test", "web-app/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.application\.crawler"""),
 				Regex("""project\(":domain"\)"""),
+				Regex("""project\(":application-crawler"\)"""),
 			),
 		)
 
@@ -239,7 +255,7 @@ subprojects {
 		apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	}
 
-	if (name in setOf("application", "infrastructure-jpa", "infrastructure-security", "web-app", "crawler-job")) {
+	if (name in setOf("application", "application-crawler", "infrastructure-jpa", "infrastructure-security", "web-app", "crawler-job")) {
 		apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 	}
 

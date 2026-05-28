@@ -9,6 +9,7 @@ dependencies {
 
     runtimeOnly("org.postgresql:postgresql:42.7.5")
 
+    testImplementation(project(":application-crawler"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")

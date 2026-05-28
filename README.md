@@ -31,7 +31,8 @@ flowchart LR
 ## 저장소 구조
 
 - `domain`: JPA entity, enum 등 도메인 모델
-- `application`: 추천/상세/댓글 use case, `application.crawler` 저장/동기화 use case와 port
+- `application`: 추천/상세/댓글 use case와 port
+- `application-crawler`: crawler 저장/동기화 use case와 profile/score 정책
 - `infrastructure-jpa`: Spring Data repository, Flyway migration, JPA adapter
 - `infrastructure-jpa.adapter.shared/web/crawler`: 런타임 역할별 JPA adapter
 - `infrastructure-jpa/src/main/resources/laptopgg-persistence.yml`: web/crawler 공통 PostgreSQL/Flyway/JPA profile 설정
@@ -66,7 +67,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 ```
 
 웹 앱은 사용자 화면과 추천/상세/댓글 API만 실행합니다. 크롤링은 아래 `crawler-job` 명령으로 별도 실행합니다.
-`crawler-job`은 Danawa 수집과 application command 변환만 담당하며, domain entity 조립과 저장 트랜잭션은 application use case가 처리합니다.
+`crawler-job`은 Danawa 수집과 application-crawler command 변환만 담당하며, domain entity 조립과 저장 트랜잭션은 application-crawler use case가 처리합니다.
 
 주의:
 - `postgres` 프로필에서는 Flyway가 먼저 스키마를 맞춘 뒤 앱이 기동합니다.

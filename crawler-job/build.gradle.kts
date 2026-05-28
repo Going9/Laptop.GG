@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":application"))
+    implementation(project(":application-crawler"))
     implementation(project(":infrastructure-jpa"))
 
     implementation("org.jsoup:jsoup:1.18.3")
