@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(project(":application"))
     implementation(project(":infrastructure-jpa"))
+    implementation(project(":infrastructure-security"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")

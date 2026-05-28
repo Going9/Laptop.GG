@@ -98,6 +98,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "infrastructure-security must stay free of JPA and domain persistence concerns",
+			paths = listOf("infrastructure-security/src/main", "infrastructure-security/src/test", "infrastructure-security/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.infrastructure\.jpa"""),
+				Regex("""spring-boot-starter-data-jpa"""),
+				Regex("""JpaRepository"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app public packages must live under web",
 			paths = listOf("web-app/src/main", "web-app/src/test"),
 			patterns = listOf(
@@ -191,7 +202,7 @@ subprojects {
 		apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	}
 
-	if (name in setOf("application", "infrastructure-jpa", "web-app", "crawler-job")) {
+	if (name in setOf("application", "infrastructure-jpa", "infrastructure-security", "web-app", "crawler-job")) {
 		apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 	}
 
