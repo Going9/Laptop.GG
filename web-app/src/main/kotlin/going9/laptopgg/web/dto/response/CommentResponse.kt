@@ -3,7 +3,7 @@ package going9.laptopgg.web.dto.response
 import going9.laptopgg.application.comment.CommentResult
 
 data class CommentResponse(
-    val id: Long?,
+    val id: Long,
     val author: String,
     val content: String,
 ) {

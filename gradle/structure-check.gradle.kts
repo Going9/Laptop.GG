@@ -511,6 +511,36 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "comment read contracts must expose persisted non-null ids",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/dto/response/CommentResponse.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
+			),
+			patterns = listOf(
+				Regex("""data class CommentResult\(\s+val id: Long,"""),
+				Regex("""data class CommentRecord\(\s+val id: Long,"""),
+				Regex("""data class CommentResponse\(\s+val id: Long,"""),
+				Regex("""Persisted comment id must not be null"""),
+				Regex("""findById rejects persisted comment without generated id with explicit application error"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "comment read contracts must not expose nullable ids",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/dto/response/CommentResponse.kt",
+			),
+			patterns = listOf(
+				Regex("""val id: Long\?"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "application must not depend on persistence models, infrastructure, or public web DTOs",
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),

@@ -2,6 +2,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.CommentRecord
+import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.persistence.model.web.Comment
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
@@ -49,7 +50,7 @@ internal class CommentJpaAdapter(
 
     private fun Comment.toRecord(): CommentRecord {
         return CommentRecord(
-            id = id,
+            id = id ?: throw ApplicationInvalidStateException("Persisted comment id must not be null."),
             author = author,
             content = content,
             passwordHash = passWord,

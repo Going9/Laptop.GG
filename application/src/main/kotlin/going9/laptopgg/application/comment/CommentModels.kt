@@ -17,7 +17,7 @@ data class DeleteCommentCommand(
 )
 
 data class CommentResult(
-    val id: Long?,
+    val id: Long,
     val author: String,
     val content: String,
 )
