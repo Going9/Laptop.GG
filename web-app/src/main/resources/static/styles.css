@@ -205,6 +205,70 @@ img {
     animation-delay: var(--delay, 0s);
 }
 
+.delay-005 {
+    --delay: 0.05s;
+}
+
+.delay-006 {
+    --delay: 0.06s;
+}
+
+.delay-010 {
+    --delay: 0.1s;
+}
+
+.delay-012 {
+    --delay: 0.12s;
+}
+
+.delay-016 {
+    --delay: 0.16s;
+}
+
+.delay-018 {
+    --delay: 0.18s;
+}
+
+.delay-020 {
+    --delay: 0.2s;
+}
+
+.delay-022 {
+    --delay: 0.22s;
+}
+
+.delay-024 {
+    --delay: 0.24s;
+}
+
+.delay-028 {
+    --delay: 0.28s;
+}
+
+.delay-030 {
+    --delay: 0.3s;
+}
+
+.delay-034 {
+    --delay: 0.34s;
+}
+
+.delay-036 {
+    --delay: 0.36s;
+}
+
+.delay-040 {
+    --delay: 0.4s;
+}
+
+.delay-046 {
+    --delay: 0.46s;
+}
+
+.delay-052 {
+    --delay: 0.52s;
+}
+
 .recommend-shell {
     min-height: calc(100svh - 82px);
     display: grid;

@@ -357,6 +357,7 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""<style\b[^>]*>""", RegexOption.IGNORE_CASE),
 				Regex("""<script(?![^>]*(?:\bsrc=|\bth:src=))[^>]*>""", RegexOption.IGNORE_CASE),
+				Regex("""\sstyle\s*=""", RegexOption.IGNORE_CASE),
 				Regex("""(?:\s|:)on[a-z]+\s*=""", RegexOption.IGNORE_CASE),
 			),
 		)

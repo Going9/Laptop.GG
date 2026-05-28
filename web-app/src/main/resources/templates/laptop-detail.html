@@ -6,21 +6,21 @@
 
 <main class="page-shell detail-shell">
     <section class="detail-hero">
-        <div class="detail-media-stage reveal" style="--delay: 0.06s;">
+        <div class="detail-media-stage reveal delay-006">
             <img th:src="${laptopDetail.imageUrl}" th:alt="${laptopDetail.name}">
         </div>
 
         <div class="detail-copy">
-            <p class="eyebrow reveal" style="--delay: 0.1s;" th:text="${laptopDetail.manufacturer}"></p>
-            <h1 class="detail-title reveal" style="--delay: 0.16s;" th:text="${laptopDetail.name}"></h1>
+            <p class="eyebrow reveal delay-010" th:text="${laptopDetail.manufacturer}"></p>
+            <h1 class="detail-title reveal delay-016" th:text="${laptopDetail.name}"></h1>
 
-            <div class="usage-strip reveal" style="--delay: 0.22s;">
+            <div class="usage-strip reveal delay-022">
                 <span class="usage-chip" th:each="usage : ${laptopDetail.usage}" th:text="${usage}"></span>
             </div>
 
-            <div class="detail-price reveal" style="--delay: 0.28s;" th:text="${#numbers.formatCurrency(laptopDetail.price)} + '원'"></div>
+            <div class="detail-price reveal delay-028" th:text="${#numbers.formatCurrency(laptopDetail.price)} + '원'"></div>
 
-            <div class="detail-actions reveal" style="--delay: 0.4s;">
+            <div class="detail-actions reveal delay-040">
                 <a th:href="${laptopDetail.detailPage}" class="primary-button">다나와에서 보기</a>
                 <a href="/recommends" class="secondary-button">추천 다시 보기</a>
             </div>
@@ -28,26 +28,26 @@
     </section>
 
     <section class="metric-band">
-        <div class="metric-card reveal" style="--delay: 0.12s;">
+        <div class="metric-card reveal delay-012">
             <span class="metric-label">프로세서</span>
             <span class="metric-value" th:text="${laptopDetail.cpu ?: '확인 불가'}"></span>
         </div>
-        <div class="metric-card reveal" style="--delay: 0.18s;">
+        <div class="metric-card reveal delay-018">
             <span class="metric-label">그래픽</span>
             <span class="metric-value" th:text="${laptopDetail.graphicsType ?: '확인 불가'}"></span>
         </div>
-        <div class="metric-card reveal" style="--delay: 0.24s;">
+        <div class="metric-card reveal delay-024">
             <span class="metric-label">무게</span>
             <span class="metric-value" th:text="${laptopDetail.weight != null ? laptopDetail.weight + 'kg' : '확인 불가'}"></span>
         </div>
-        <div class="metric-card reveal" style="--delay: 0.3s;">
+        <div class="metric-card reveal delay-030">
             <span class="metric-label">배터리</span>
             <span class="metric-value" th:text="${laptopDetail.batteryCapacity != null ? laptopDetail.batteryCapacity + 'Wh' : '확인 불가'}"></span>
         </div>
     </section>
 
     <section class="detail-spec-grid">
-        <section class="spec-panel reveal" style="--delay: 0.16s;">
+        <section class="spec-panel reveal delay-016">
             <h2 class="spec-panel-title">핵심 사양</h2>
             <div class="spec-list">
                 <div class="spec-row">
@@ -85,7 +85,7 @@
             </div>
         </section>
 
-        <section class="spec-panel reveal" style="--delay: 0.22s;">
+        <section class="spec-panel reveal delay-022">
             <h2 class="spec-panel-title">추가 정보</h2>
             <div class="spec-list">
                 <div class="spec-row">

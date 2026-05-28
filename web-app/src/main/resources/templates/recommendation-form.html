@@ -7,23 +7,23 @@
 <main class="page-shell recommend-shell">
     <section class="hero-layout">
         <section class="hero-copy">
-            <p class="eyebrow reveal" style="--delay: 0.05s;">나에게 맞는 노트북 찾기</p>
-            <h1 class="hero-title reveal" style="--delay: 0.12s;">
+            <p class="eyebrow reveal delay-005">나에게 맞는 노트북 찾기</p>
+            <h1 class="hero-title reveal delay-012">
                 원하는 조건으로<br>
                 노트북을 골라보세요.
             </h1>
-            <p class="hero-lead reveal" style="--delay: 0.2s;">
+            <p class="hero-lead reveal delay-020">
                 복잡한 사양은 몰라도 괜찮아요.
                 필요한 조건만 먼저 골라주세요.
             </p>
 
-            <div class="hero-marquee reveal" style="--delay: 0.28s;">
+            <div class="hero-marquee reveal delay-028">
                 <span>2,000개 이상 제품 비교</span>
                 <span>상세 사양 기준 추천</span>
                 <span>최신 성능 정보 반영</span>
             </div>
 
-            <div class="hero-rail reveal" style="--delay: 0.36s;">
+            <div class="hero-rail reveal delay-036">
                 <article>
                     <span class="rail-label">1단계</span>
                     <strong>예산</strong>
@@ -42,11 +42,11 @@
             </div>
         </section>
 
-        <section class="curation-panel reveal" style="--delay: 0.16s;">
+        <section class="curation-panel reveal delay-016">
             <p class="panel-kicker">추천 조건 입력</p>
 
             <form th:action="@{/recommends}" th:object="${laptopRecommendationRequest}" method="post" class="curation-form">
-                <div class="field-block reveal" style="--delay: 0.22s;">
+                <div class="field-block reveal delay-022">
                     <label for="budget" class="field-label">예산</label>
                     <p class="field-hint">빠르게 고르거나 직접 입력할 수 있어요. 예산에 잘 맞는 제품이 더 위로 올라옵니다.</p>
                     <div class="preset-input-block">
@@ -85,7 +85,7 @@
                     </div>
                 </div>
 
-                <div class="field-block reveal" style="--delay: 0.28s;">
+                <div class="field-block reveal delay-028">
                     <label for="weight" class="field-label">최대 무게</label>
                     <p class="field-hint">0.5kg 단위로 바로 고르거나 직접 입력할 수 있어요.</p>
                     <div class="preset-input-block">
@@ -124,7 +124,7 @@
                     </div>
                 </div>
 
-                <div class="field-block reveal" style="--delay: 0.34s;">
+                <div class="field-block reveal delay-034">
                     <p class="field-label">원하는 화면 크기</p>
                     <p class="field-hint">모르는 항목은 건너뛰어도 괜찮아요. 여러 크기를 함께 선택할 수 있습니다.</p>
 
@@ -148,7 +148,7 @@
                     <p class="field-note">직접 고를게요를 선택하면 여러 화면 크기를 함께 고를 수 있습니다.</p>
                 </div>
 
-                <div class="field-block reveal" style="--delay: 0.4s;">
+                <div class="field-block reveal delay-040">
                     <p class="field-label">주로 어떤 용도로 쓰시나요?</p>
                     <p class="field-hint">잘 모르겠다면 기본 추천을 선택하셔도 괜찮아요.</p>
                     <div class="usecase-card-grid">
@@ -162,12 +162,12 @@
                     </div>
                 </div>
 
-                <div class="action-row reveal" style="--delay: 0.46s;">
+                <div class="action-row reveal delay-046">
                     <button type="submit" class="primary-button">추천받기</button>
                     <a href="/recommends" class="secondary-button">조건 초기화</a>
                 </div>
 
-                <p class="panel-note reveal" style="--delay: 0.52s;">
+                <p class="panel-note reveal delay-052">
                     어려운 용어는 몰라도 괜찮아요. 예산, 무게, 사용 목적만 골라도 충분히 추천받을 수 있습니다.
                 </p>
             </form>
