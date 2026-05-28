@@ -1,6 +1,7 @@
 package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.job.crawler.list.ListPageCrawler
+import going9.laptopgg.job.crawler.list.ProductPageBatch
 import going9.laptopgg.job.crawler.source.CrawlSource
 import java.util.concurrent.ExecutorService
 import org.slf4j.LoggerFactory
@@ -93,33 +94,14 @@ class CrawlSourceRunner(
                 progress = progress,
             )
 
-            if (traversalState.reachedLimit) {
-                break
-            }
-
-            if (pageAnalysis.expectedLastPage != null && traversalState.currentPage >= pageAnalysis.expectedLastPage) {
-                logger.info(
-                    "총 상품 수 기준 마지막 페이지에 도달해 크롤링을 종료합니다. source={}, page={}, priceCompareCount={}, expectedLastPage={}, hasNextPage={}",
-                    crawlSource.key,
-                    traversalState.currentPage,
-                    pageBatch.priceCompareCount,
-                    pageAnalysis.expectedLastPage,
-                    pageBatch.hasNextPage,
-                )
-                break
-            }
-
-            if (DuplicateTailStopPolicy.shouldStop(
-                    freshProductCount = pageAnalysis.freshProductCards.size,
-                    consecutiveDuplicateOnlyPages = pageAnalysis.consecutiveDuplicateOnlyPages,
-                )
-            ) {
-                crawlPageDiagnosticsLogger.logDuplicateTailStop(diagnosticContext, pageAnalysis.consecutiveDuplicateOnlyPages)
-                break
-            }
-
-            if (!pageBatch.hasNextPage) {
-                logger.info("다음 페이지가 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, traversalState.currentPage)
+            val stopDecision = CrawlSourceStopPolicy.decideAfterProcessedPage(
+                pageBatch = pageBatch,
+                pageAnalysis = pageAnalysis,
+                currentPage = traversalState.currentPage,
+                reachedLimit = traversalState.reachedLimit,
+            )
+            if (stopDecision.shouldStop) {
+                logStopDecision(stopDecision, crawlSource, traversalState, pageBatch, pageAnalysis, diagnosticContext)
                 break
             }
 
@@ -127,6 +109,36 @@ class CrawlSourceRunner(
         }
 
         return traversalState.toRunResult(maxListPages)
+    }
+
+    private fun logStopDecision(
+        stopDecision: CrawlSourceStopDecision,
+        crawlSource: CrawlSource,
+        traversalState: CrawlSourceTraversalState,
+        pageBatch: ProductPageBatch,
+        pageAnalysis: CrawlPageAnalysis,
+        diagnosticContext: CrawlPageDiagnosticContext,
+    ) {
+        when (stopDecision.reason) {
+            CrawlSourceStopReason.REACHED_LIMIT, null -> Unit
+            CrawlSourceStopReason.EXPECTED_LAST_PAGE -> logger.info(
+                "총 상품 수 기준 마지막 페이지에 도달해 크롤링을 종료합니다. source={}, page={}, priceCompareCount={}, expectedLastPage={}, hasNextPage={}",
+                crawlSource.key,
+                traversalState.currentPage,
+                pageBatch.priceCompareCount,
+                pageAnalysis.expectedLastPage,
+                pageBatch.hasNextPage,
+            )
+            CrawlSourceStopReason.DUPLICATE_TAIL -> crawlPageDiagnosticsLogger.logDuplicateTailStop(
+                diagnosticContext,
+                pageAnalysis.consecutiveDuplicateOnlyPages,
+            )
+            CrawlSourceStopReason.NO_NEXT_PAGE -> logger.info(
+                "다음 페이지가 없어 크롤링을 종료합니다. source={}, page={}",
+                crawlSource.key,
+                traversalState.currentPage,
+            )
+        }
     }
 }
 
