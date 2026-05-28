@@ -11,8 +11,9 @@ import going9.laptopgg.application.crawler.profile.ProfileScorePolicy
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfileSourcePort
 import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
@@ -91,7 +92,7 @@ class InfrastructureJpaTestApplication {
 
     @Bean
     fun laptopProfileService(
-        laptopPort: CrawledLaptopPort,
+        laptopPort: CrawledLaptopProfileSourcePort,
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopProfileFactory: LaptopProfileFactory,
         recommendationScoreService: RecommendationScoreService,
@@ -119,7 +120,7 @@ class InfrastructureJpaTestApplication {
 
     @Bean
     fun saveCrawledLaptopService(
-        laptopPort: CrawledLaptopPort,
+        laptopPort: CrawledLaptopPersistencePort,
         laptopProfileService: LaptopProfileService,
         laptopPriceHistoryService: LaptopPriceHistoryService,
         transactionPort: CrawlerTransactionPort,

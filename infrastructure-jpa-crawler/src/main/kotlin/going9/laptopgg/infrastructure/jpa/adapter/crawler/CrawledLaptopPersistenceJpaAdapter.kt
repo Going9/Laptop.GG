@@ -3,66 +3,51 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopPersistencePort
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.laptop.LaptopUsage
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
-import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 
 @Component
-class CrawledLaptopJpaAdapter(
+class CrawledLaptopPersistenceJpaAdapter(
     private val laptopRepository: CrawlerLaptopRepository,
-) : CrawledLaptopPort {
+) : CrawledLaptopPersistencePort {
     override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? {
-        return laptopRepository.findWithUsageById(laptopId)?.toSnapshot()
-    }
-
-    override fun findAllWithUsageByIds(laptopIds: Collection<Long>): List<PersistedCrawledLaptopSnapshot> {
-        if (laptopIds.isEmpty()) {
-            return emptyList()
-        }
-        return laptopRepository.findAllWithUsageByIdIn(laptopIds).map { laptop -> laptop.toSnapshot() }
-    }
-
-    override fun findIdsWithoutProfile(limit: Int): List<Long> {
-        if (limit <= 0) {
-            return emptyList()
-        }
-        return laptopRepository.findIdsWithoutProfile(PageRequest.of(0, limit))
+        return laptopRepository.findWithUsageById(laptopId)?.toPersistedCrawledLaptopSnapshot()
     }
 
     override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? {
-        return laptopRepository.findByProductCode(productCode)?.toSnapshot()
+        return laptopRepository.findByProductCode(productCode)?.toPersistedCrawledLaptopSnapshot()
     }
 
     override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? {
-        return laptopRepository.findByDetailPage(detailPage)?.toSnapshot()
+        return laptopRepository.findByDetailPage(detailPage)?.toPersistedCrawledLaptopSnapshot()
     }
 
     override fun findAllByProductCodes(productCodes: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
         if (productCodes.isEmpty()) {
             return emptyList()
         }
-        return laptopRepository.findAllByProductCodeIn(productCodes).map { laptop -> laptop.toSnapshot() }
+        return laptopRepository.findAllByProductCodeIn(productCodes).map { laptop -> laptop.toPersistedCrawledLaptopSnapshot() }
     }
 
     override fun findAllByDetailPages(detailPages: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
         if (detailPages.isEmpty()) {
             return emptyList()
         }
-        return laptopRepository.findAllByDetailPageIn(detailPages).map { laptop -> laptop.toSnapshot() }
+        return laptopRepository.findAllByDetailPageIn(detailPages).map { laptop -> laptop.toPersistedCrawledLaptopSnapshot() }
     }
 
     override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
-        return laptopRepository.save(command.toLaptop()).toSnapshot()
+        return laptopRepository.save(command.toLaptop()).toPersistedCrawledLaptopSnapshot()
     }
 
     override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
         val laptop = laptopRepository.findWithUsageById(laptopId)
             ?: throw IllegalArgumentException("Laptop not found: $laptopId")
         laptop.applyUpdate(command)
-        return laptopRepository.save(laptop).toSnapshot()
+        return laptopRepository.save(laptop).toPersistedCrawledLaptopSnapshot()
     }
 
     private fun CrawledLaptopCommand.toLaptop(): Laptop {
@@ -137,39 +122,5 @@ class CrawledLaptopJpaAdapter(
                 laptopUsage.add(LaptopUsage(usage = usage, laptop = this))
             }
         }
-    }
-
-    private fun Laptop.toSnapshot(): PersistedCrawledLaptopSnapshot {
-        return PersistedCrawledLaptopSnapshot(
-            id = requireNotNull(id) { "Persisted laptop id must not be null." },
-            name = name,
-            imageUrl = imageUrl,
-            detailPage = detailPage,
-            productCode = productCode,
-            price = price,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            brightness = brightness,
-            refreshRate = refreshRate,
-            ramSize = ramSize,
-            ramType = ramType,
-            isRamReplaceable = isRamReplaceable,
-            graphicsType = graphicsType,
-            tgp = tgp,
-            thunderboltCount = thunderboltCount,
-            usbCCount = usbCCount,
-            usbACount = usbACount,
-            sdCard = sdCard,
-            isSupportsPdCharging = isSupportsPdCharging,
-            batteryCapacity = batteryCapacity,
-            storageCapacity = storageCapacity,
-            storageSlotCount = storageSlotCount,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usages = laptopUsage.map { usage -> usage.usage },
-        )
     }
 }

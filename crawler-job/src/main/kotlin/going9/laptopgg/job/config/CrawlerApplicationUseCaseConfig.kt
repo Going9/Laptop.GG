@@ -15,8 +15,9 @@ import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunService
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfileSourcePort
 import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
 import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
@@ -78,7 +79,7 @@ class CrawlerApplicationUseCaseConfig {
 
     @Bean
     fun laptopProfileService(
-        laptopPort: CrawledLaptopPort,
+        laptopPort: CrawledLaptopProfileSourcePort,
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopProfileFactory: LaptopProfileFactory,
         recommendationScoreService: RecommendationScoreService,
@@ -106,7 +107,7 @@ class CrawlerApplicationUseCaseConfig {
 
     @Bean
     fun saveCrawledLaptopService(
-        laptopPort: CrawledLaptopPort,
+        laptopPort: CrawledLaptopPersistencePort,
         laptopProfileService: LaptopProfileService,
         laptopPriceHistoryService: LaptopPriceHistoryService,
         transactionPort: CrawlerTransactionPort,

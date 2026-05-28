@@ -331,7 +331,8 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "crawler laptop persistence boundary must not expose JPA entities",
 			paths = listOf(
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopPort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopPersistencePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopProfileSourcePort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
@@ -344,6 +345,11 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.persistence\.model\.laptop\.Laptop\b"""),
 				Regex("""going9\.laptopgg\.persistence\.model\.laptop\.LaptopUsage\b"""),
 			),
+		)
+
+		assertPathAbsent(
+			rule = "crawler laptop ports must be split by use case responsibility",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopPort.kt"),
 		)
 
 		assertAbsent(
@@ -496,6 +502,19 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""findRecommendationCandidates"""),
 				Regex("""findRecommendationCandidatePage"""),
+			),
+		)
+
+		assertPathAbsent(
+			rule = "crawler JPA adapters must be named after their application port responsibility",
+			paths = listOf("infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopJpaAdapter.kt"),
+		)
+
+		assertAbsent(
+			rule = "crawler JPA adapters must implement a single application port responsibility",
+			paths = listOf("infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler"),
+			patterns = listOf(
+				Regex("""\)\s*:\s*.*Port,\s*.*Port"""),
 			),
 		)
 
