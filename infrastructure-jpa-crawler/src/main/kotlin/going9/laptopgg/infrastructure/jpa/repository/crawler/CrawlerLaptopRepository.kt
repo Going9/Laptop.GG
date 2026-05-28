@@ -1,7 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.repository.crawler
 
 import going9.laptopgg.persistence.model.laptop.Laptop
-import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -20,17 +19,6 @@ interface CrawlerLaptopRepository : JpaRepository<Laptop, Long> {
     @EntityGraph(attributePaths = ["laptopUsage"])
     fun findByProductCode(productCode: String): Laptop?
 
-    @EntityGraph(attributePaths = ["laptopUsage"])
-    @Query(
-        """
-        select distinct l
-        from Laptop l
-        left join fetch l.laptopUsage
-        where l.id in :ids
-        """,
-    )
-    fun findAllWithUsageByIdIn(@Param("ids") ids: Collection<Long>): List<Laptop>
-
     @Query(
         """
         select distinct l
@@ -40,18 +28,4 @@ interface CrawlerLaptopRepository : JpaRepository<Laptop, Long> {
         """,
     )
     fun findWithUsageById(@Param("id") id: Long): Laptop?
-
-    @Query(
-        """
-        select l.id
-        from Laptop l
-        where not exists (
-            select 1
-            from LaptopProfile p
-            where p.laptop = l
-        )
-        order by l.id asc
-        """,
-    )
-    fun findIdsWithoutProfile(pageable: Pageable): List<Long>
 }

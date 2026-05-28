@@ -13,7 +13,6 @@ import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
 import going9.laptopgg.application.crawler.profile.ProfileScorePolicy
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
-import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfileSourcePort
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import going9.laptopgg.application.crawler.run.CrawlerRunLockService
@@ -70,14 +69,12 @@ class IntegrationCrawlerUseCaseConfig {
 
     @Bean
     fun laptopProfileService(
-        laptopPort: CrawledLaptopProfileSourcePort,
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopProfileFactory: LaptopProfileFactory,
         recommendationScoreService: RecommendationScoreService,
         transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
         return LaptopProfileService(
-            laptopPort = laptopPort,
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreService = recommendationScoreService,

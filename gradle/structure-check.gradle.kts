@@ -320,7 +320,6 @@ val verifyStructure by tasks.registering {
 			rule = "crawler profile port must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfilePort.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfileSourcePort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
 			),
@@ -370,7 +369,6 @@ val verifyStructure by tasks.registering {
 			rule = "crawler laptop persistence boundary must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfileSourcePort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
@@ -435,6 +433,31 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""laptopProfileService\.syncProfile\("""),
 				Regex("""laptopPriceHistoryService\.recordCurrentPrice\("""),
+			),
+		)
+
+		assertPathAbsent(
+			rule = "crawler profile backfill surface must not remain without an explicit runner",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfileSourcePort.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileSourceJpaAdapter.kt",
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler profile service must only own single-laptop synchronization",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfilePort.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler",
+			),
+			patterns = listOf(
+				Regex("""syncMissingProfiles"""),
+				Regex("""syncIncompleteProfiles"""),
+				Regex("""PROFILE_BACKFILL_BATCH_SIZE"""),
+				Regex("""findIdsWithoutProfile"""),
+				Regex("""findAllWithUsageByIdIn"""),
+				Regex("""findLaptopIdsWithIncompleteStaticScores"""),
 			),
 		)
 

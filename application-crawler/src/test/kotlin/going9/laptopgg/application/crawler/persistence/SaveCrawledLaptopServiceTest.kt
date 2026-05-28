@@ -14,7 +14,6 @@ import going9.laptopgg.application.crawler.profile.LaptopProfileService
 import going9.laptopgg.application.crawler.profile.ProfileScorePolicy
 import going9.laptopgg.application.crawler.profile.UpsertCrawledLaptopProfileCommand
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
-import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfileSourcePort
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.recommendation.UpsertRecommendationScoreCommand
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
@@ -33,7 +32,6 @@ class SaveCrawledLaptopServiceTest {
         transactionPort = transactionPort,
     )
     private val laptopProfileService = LaptopProfileService(
-        laptopPort = InMemoryCrawledLaptopProfileSourcePort(),
         laptopProfilePort = profilePort,
         laptopProfileFactory = LaptopProfileFactory(
             cpuClassifier = CpuClassifier(CpuTokenResolver()),
@@ -138,11 +136,6 @@ class SaveCrawledLaptopServiceTest {
         }
     }
 
-    private class InMemoryCrawledLaptopProfileSourcePort : CrawledLaptopProfileSourcePort {
-        override fun findAllWithUsageByIds(laptopIds: Collection<Long>): List<PersistedCrawledLaptopSnapshot> = emptyList()
-        override fun findIdsWithoutProfile(limit: Int): List<Long> = emptyList()
-    }
-
     private class InMemoryCrawledLaptopProfilePort : CrawledLaptopProfilePort {
         val saved = mutableListOf<UpsertCrawledLaptopProfileCommand>()
 
@@ -154,7 +147,6 @@ class SaveCrawledLaptopServiceTest {
             )
         }
 
-        override fun findLaptopIdsWithIncompleteStaticScores(limit: Int): List<Long> = emptyList()
     }
 
     private class InMemoryLaptopPriceHistoryPort : LaptopPriceHistoryPort {
