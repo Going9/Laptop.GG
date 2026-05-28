@@ -607,6 +607,7 @@ val verifyStructure by tasks.registering {
 				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/dto/response/CommentResponse.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
 			),
 			patterns = listOf(
@@ -616,6 +617,8 @@ val verifyStructure by tasks.registering {
 				Regex("""data class CommentResponse\(\s+val id: Long,"""),
 				Regex("""Persisted comment id must not be null"""),
 				Regex("""Persisted comment laptop id must not be null"""),
+				Regex("""findAllByLaptop_IdOrderByIdAsc"""),
+				Regex("""findAllByLaptopId reads comments in persisted id order"""),
 				Regex("""findById rejects persisted comment without generated id with explicit application error"""),
 				Regex("""findById rejects persisted comment without owning laptop id with explicit application error"""),
 			),

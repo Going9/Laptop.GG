@@ -20,7 +20,7 @@ internal class CommentJpaAdapter(
     }
 
     override fun findAllByLaptopId(laptopId: Long): List<CommentRecord> {
-        return commentRepository.findAllByLaptop_Id(laptopId).map { it.toRecord() }
+        return commentRepository.findAllByLaptop_IdOrderByIdAsc(laptopId).map { it.toRecord() }
     }
 
     override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {

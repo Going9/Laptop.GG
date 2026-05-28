@@ -5,12 +5,33 @@ import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.web.Comment
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import java.util.Optional
 
 class CommentJpaAdapterStateTest {
+    @Test
+    fun `findAllByLaptopId reads comments in persisted id order`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+        )
+        Mockito.`when`(commentRepository.findAllByLaptop_IdOrderByIdAsc(3L)).thenReturn(
+            listOf(
+                commentFixture(id = 1L, laptopId = 3L),
+                commentFixture(id = 2L, laptopId = 3L),
+            ),
+        )
+
+        val records = adapter.findAllByLaptopId(3L)
+
+        assertThat(records.map { it.id }).containsExactly(1L, 2L)
+        Mockito.verify(commentRepository).findAllByLaptop_IdOrderByIdAsc(3L)
+    }
+
     @Test
     fun `findById rejects persisted comment without generated id with explicit application error`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
@@ -56,6 +77,16 @@ class CommentJpaAdapterStateTest {
         assertThatThrownBy {
             adapter.findById(1L)
         }.isInstanceOf(ApplicationInvalidStateException::class.java)
+    }
+
+    private fun commentFixture(id: Long, laptopId: Long): Comment {
+        return Comment(
+            laptop = laptopFixture(id = laptopId),
+            author = "iggy",
+            content = "좋아요",
+            passWord = "hashed:pw",
+            id = id,
+        )
     }
 
     private fun laptopFixture(id: Long? = null): Laptop {
