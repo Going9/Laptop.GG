@@ -1,5 +1,6 @@
 package going9.laptopgg.application.crawler.run
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 import going9.laptopgg.application.crawler.support.InMemoryCrawlerTransactionPort
@@ -10,9 +11,10 @@ import org.junit.jupiter.api.Test
 
 class TrackCrawlerRunServiceTest {
     private val crawlerRunPort = InMemoryCrawlerRunPort()
+    private val transactionPort = InMemoryCrawlerTransactionPort()
     private val service = TrackCrawlerRunService(
         crawlerRunPort = crawlerRunPort,
-        transactionPort = InMemoryCrawlerTransactionPort(),
+        transactionPort = transactionPort,
     )
 
     @Test
@@ -79,11 +81,66 @@ class TrackCrawlerRunServiceTest {
         }.isInstanceOf(CrawlerResourceNotFoundException::class.java)
     }
 
+    @Test
+    fun `start rejects invalid run request before persistence`() {
+        assertThatThrownBy {
+            service.start(filterProfile = CrawlerFilterProfile.CORE, startPage = 0, limit = null)
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+        assertThatThrownBy {
+            service.skipLocked(filterProfile = CrawlerFilterProfile.CORE, startPage = 1, limit = 0)
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+
+        assertThat(transactionPort.writeCount).isZero()
+        assertThat(crawlerRunPort.createCount).isZero()
+    }
+
+    @Test
+    fun `finish rejects invalid run update before persistence`() {
+        assertThatThrownBy {
+            service.finish(
+                runId = 0L,
+                summary = successfulSummary(),
+                status = CrawlerRunCompletionStatus.SUCCEEDED,
+            )
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+        assertThatThrownBy {
+            service.finish(
+                runId = 1L,
+                summary = successfulSummary(processedCount = -1),
+                status = CrawlerRunCompletionStatus.SUCCEEDED,
+            )
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+        assertThatThrownBy {
+            service.fail(0L, IllegalStateException("network timeout"))
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+
+        assertThat(transactionPort.writeCount).isZero()
+        assertThat(crawlerRunPort.updateCount).isZero()
+    }
+
+    private fun successfulSummary(processedCount: Int = 0): CrawlerRunSummary {
+        return CrawlerRunSummary(
+            processedCount = processedCount,
+            createdCount = 0,
+            updatedCount = 0,
+            detailRefreshCount = 0,
+            priceOnlyUpdatedCount = 0,
+            degradedCount = 0,
+            failedCount = 0,
+            failureSamples = emptyList(),
+        )
+    }
+
     private class InMemoryCrawlerRunPort : CrawlerRunPort {
         private val stored = linkedMapOf<Long, StoredCrawlerRun>()
         private var nextId = 1L
+        var createCount = 0
+            private set
+        var updateCount = 0
+            private set
 
         override fun create(command: CreateCrawlerRunCommand): CrawlerRunState {
+            createCount++
             val id = nextId++
             stored[id] = StoredCrawlerRun(
                 id = id,
@@ -98,6 +155,7 @@ class TrackCrawlerRunServiceTest {
         }
 
         override fun update(command: UpdateCrawlerRunCommand): CrawlerRunState? {
+            updateCount++
             val storedRun = stored[command.runId] ?: return null
             stored[command.runId] = storedRun.copy(
                 status = command.status,

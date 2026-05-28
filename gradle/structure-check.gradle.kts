@@ -741,6 +741,8 @@ val verifyStructure by tasks.registering {
 				Regex("""saveListSnapshot rejects invalid command before persistence"""),
 				Regex("""saveOrUpdate rejects invalid laptop command before persistence"""),
 				Regex("""finish rejects missing crawler run with explicit crawler error"""),
+				Regex("""start rejects invalid run request before persistence"""),
+				Regex("""finish rejects invalid run update before persistence"""),
 			),
 		)
 
