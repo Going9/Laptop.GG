@@ -128,6 +128,7 @@ val verifyStructure by tasks.registering {
 			":application" to setOf(":recommendation-core"),
 			":application-crawler" to setOf(":recommendation-core"),
 			":infrastructure-jpa-core" to emptySet(),
+			":infrastructure-flyway" to emptySet(),
 			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-security" to setOf(":application"),
@@ -151,6 +152,7 @@ val verifyStructure by tasks.registering {
 			":application" to setOf(":recommendation-contract"),
 			":application-crawler" to setOf(":laptop-taxonomy", ":recommendation-contract"),
 			":infrastructure-jpa-core" to emptySet(),
+			":infrastructure-flyway" to emptySet(),
 			":infrastructure-jpa" to emptySet(),
 			":infrastructure-jpa-crawler" to emptySet(),
 			":infrastructure-security" to emptySet(),
@@ -182,6 +184,19 @@ val verifyStructure by tasks.registering {
 				":recommendation-contract",
 			),
 		)
+
+		mapOf(
+			":web-app" to setOf(":infrastructure-flyway"),
+			":crawler-job" to emptySet(),
+			":integration-tests" to setOf(":infrastructure-flyway"),
+		).forEach { (projectPath, expectedProjectPaths) ->
+			assertProjectDependencies(
+				rule = "Flyway migration resources must stay web-owned at runtime",
+				projectPath = projectPath,
+				configurationName = if (projectPath == ":integration-tests") "testRuntimeOnly" else "runtimeOnly",
+				expectedProjectPaths = expectedProjectPaths,
+			)
+		}
 
 		assertPathAbsent(
 			rule = "ops must be the only tracked operations config surface",
@@ -327,7 +342,7 @@ val verifyStructure by tasks.registering {
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactory.kt",
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
 				"persistence-model/src/main/kotlin/going9/laptopgg/persistence/model/crawler/CrawlerRun.kt",
-				"infrastructure-jpa-core/src/main/resources/db/migration/V10__crawler_run_observability_counts.sql",
+				"infrastructure-flyway/src/main/resources/db/migration/V10__crawler_run_observability_counts.sql",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobSummaryLogger.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
 				"ops/RUNBOOK.md",
@@ -523,7 +538,7 @@ val verifyStructure by tasks.registering {
 			rule = "comment persistence must enforce required application fields",
 			paths = listOf(
 				"persistence-model/src/main/kotlin/going9/laptopgg/persistence/model/web/Comment.kt",
-				"infrastructure-jpa-core/src/main/resources/db/migration/V9__comment_required_fields.sql",
+				"infrastructure-flyway/src/main/resources/db/migration/V9__comment_required_fields.sql",
 			),
 			patterns = listOf(
 				Regex("""@JoinColumn\(name = "laptop_id", nullable = false\)"""),
@@ -541,7 +556,7 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "laptop persistence must enforce required display identity fields for new writes",
 			paths = listOf(
-				"infrastructure-jpa-core/src/main/resources/db/migration/V11__laptop_required_identity_fields.sql",
+				"infrastructure-flyway/src/main/resources/db/migration/V11__laptop_required_identity_fields.sql",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
 				"docs/architecture.md",
 			),
@@ -568,7 +583,7 @@ val verifyStructure by tasks.registering {
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopFieldChangePolicyTest.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
-				"infrastructure-jpa-core/src/main/resources/db/migration/V12__laptop_usage_required_value.sql",
+				"infrastructure-flyway/src/main/resources/db/migration/V12__laptop_usage_required_value.sql",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
 				"docs/architecture.md",
 			),
@@ -1174,6 +1189,45 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "infrastructure-jpa-core must not own Flyway migration resources",
+			paths = listOf("infrastructure-jpa-core/src/main/resources/db"),
+		)
+
+		assertAbsent(
+			rule = "crawler runtime and shared JPA core must stay free of Flyway runtime dependencies",
+			paths = listOf(
+				"infrastructure-jpa-core/build.gradle.kts",
+				"infrastructure-jpa-crawler/build.gradle.kts",
+				"crawler-job/build.gradle.kts",
+			),
+			patterns = listOf(
+				Regex("""org\.flywaydb"""),
+				Regex("""project\(":infrastructure-flyway"\)"""),
+			),
+		)
+
+		assertPresent(
+			rule = "web deploy owns Flyway migration resources through a dedicated module",
+			paths = listOf(
+				"settings.gradle.kts",
+				"infrastructure-flyway/build.gradle.kts",
+				"web-app/build.gradle.kts",
+				"integration-tests/build.gradle.kts",
+				"docs/architecture.md",
+				"README.md",
+				"ops/RUNBOOK.md",
+			),
+			patterns = listOf(
+				Regex(""""infrastructure-flyway""""),
+				Regex("""org\.flywaydb:flyway-core"""),
+				Regex("""runtimeOnly\(project\(":infrastructure-flyway"\)\)"""),
+				Regex("""testRuntimeOnly\(project\(":infrastructure-flyway"\)\)"""),
+				Regex("""does not include migration resources"""),
+				Regex("""Flyway migration 리소스"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "infrastructure-jpa-core must not own runtime entity scanning",
 			paths = listOf("infrastructure-jpa-core/src/main", "infrastructure-jpa-core/build.gradle.kts"),
@@ -1620,9 +1674,9 @@ val verifyStructure by tasks.registering {
 				Regex("""SPRING_FLYWAY_ENABLED:\s+"false""""),
 				Regex("""CrawlerJobProductionProfileTests"""),
 				Regex("""FlywayMigrationInitializer"""),
-				Regex("""crawler job은 운영 DB에서 Flyway migration을 실행하지 않습니다"""),
-				Regex("""crawler-job` does not run Flyway migrations against production"""),
-				Regex("""crawler workflow sets `SPRING_FLYWAY_ENABLED=false`"""),
+				Regex("""crawler job은 Flyway migration 리소스를 싣거나 운영 DB에서 migration을 실행하지 않습니다"""),
+				Regex("""crawler-job` does not carry Flyway migration resources or run Flyway migrations against production"""),
+				Regex("""crawler runtime does not include migration resources, sets `SPRING_FLYWAY_ENABLED=false`"""),
 			),
 		)
 

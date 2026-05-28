@@ -14,6 +14,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
+    testRuntimeOnly(project(":infrastructure-flyway"))
     testRuntimeOnly("com.h2database:h2")
+    testRuntimeOnly("org.flywaydb:flyway-database-postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

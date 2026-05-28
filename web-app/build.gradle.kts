@@ -8,6 +8,8 @@ dependencies {
     implementation(project(":infrastructure-jpa"))
     implementation(project(":infrastructure-security"))
 
+    runtimeOnly(project(":infrastructure-flyway"))
+
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")

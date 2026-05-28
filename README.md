@@ -22,7 +22,7 @@ flowchart LR
 - 크롤러는 GitHub Actions에서 수동 실행하거나 스케줄 실행합니다.
 - 목록 크롤링은 Danawa HTTP/AJAX 요청 기반이라 Chrome/Selenium 설치가 필요 없습니다.
 - 운영 PostgreSQL 스키마는 Flyway 마이그레이션으로 관리합니다.
-- 스키마 변경은 web deploy 경로가 소유하고, crawler job은 운영 DB에서 Flyway migration을 실행하지 않습니다.
+- 스키마 변경은 web deploy 경로가 소유하고, crawler job은 Flyway migration 리소스를 싣거나 운영 DB에서 migration을 실행하지 않습니다.
 - 크롤러 워크플로는 운영 DB 쓰기 전에 로컬 PostgreSQL 16 service DB로 PostgreSQL 통합 테스트를 먼저 실행합니다.
 - 크롤러는 기존 상품의 가격/이미지/링크를 빠르게 갱신하고, 상세 스펙이 비었거나 오래된 상품만 다시 자세히 수집합니다.
 - 가격 변동 이력은 `laptop_price_history` 테이블에 저장합니다.
@@ -41,13 +41,14 @@ flowchart LR
 - `application`: 추천/상세/댓글 use case와 port
 - `application-crawler`: crawler 저장/동기화 use case, feature별 crawler 전용 port, profile/score 정책
 - `application-crawler`의 공개 표면은 command/result, use case interface, out port, Danawa 정규화 resolver로 제한하고, CPU/GPU 분류기와 profile score policy 구현은 내부 조립으로 숨깁니다.
-- `infrastructure-jpa-core`: Flyway migration, 공통 persistence 설정
+- `infrastructure-jpa-core`: 공통 persistence 설정
+- `infrastructure-flyway`: web deploy와 migration 통합 테스트에서 사용하는 Flyway migration 리소스
 - `infrastructure-jpa`: web-facing JPA adapter
 - `infrastructure-jpa-crawler`: crawler 저장/프로필/가격 이력/추천 점수 JPA adapter와 crawler repository
 - `infrastructure-jpa.adapter.web`, `infrastructure-jpa-crawler.adapter.crawler`: 런타임 역할별 JPA adapter
 - `infrastructure-jpa.config.WebJpaAdapterConfig`, `infrastructure-jpa-crawler.config.CrawlerJpaAdapterConfig`: 런타임이 import하는 JPA adapter 설정 facade
 - `infrastructure-jpa.repository.web`, `infrastructure-jpa-crawler.repository.crawler`: web/crawler 런타임 역할별 Spring Data repository
-- `infrastructure-jpa-core/src/main/resources/laptopgg-persistence.yml`: web/crawler 공통 PostgreSQL/Flyway/JPA profile 설정
+- `infrastructure-jpa-core/src/main/resources/laptopgg-persistence.yml`: web/crawler 공통 PostgreSQL/Flyway property/JPA profile 설정
 - `infrastructure-security`: 비밀번호 해시 등 보안 adapter와 `PasswordHashAdapterConfig`
 - `integration-tests`: web/crawler persistence를 함께 띄우는 cross-module 통합 테스트
 - `web-app`: `web.controller`, `web.dto`, 사용자 화면, REST API, Thymeleaf/static 리소스
@@ -87,7 +88,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 `crawler-job`은 프로필 점수 계산 정책을 직접 bean으로 등록하지 않고, Danawa 파싱 정규화 resolver와 저장 use case 계약만 사용합니다.
 추천 use-case enum은 `recommendation-contract`, 점수 정책은 `recommendation-core`에 두어 web은 공개 선택지 계약만 알고 crawler 점수 projection과 web 추천 계산은 같은 정책을 공유합니다.
 크롤러 저장/이력/추천 점수/중복 실행 lock port는 `application-crawler`의 feature별 `*.port` 패키지에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
-Flyway 마이그레이션과 공통 persistence 설정은 `infrastructure-jpa-core`에 있고, entity scan과 Spring Data repository는 `infrastructure-jpa`와 `infrastructure-jpa-crawler`가 역할별로 소유합니다.
+공통 persistence 설정은 `infrastructure-jpa-core`, Flyway migration 리소스는 `infrastructure-flyway`에 있고, entity scan과 Spring Data repository는 `infrastructure-jpa`와 `infrastructure-jpa-crawler`가 역할별로 소유합니다.
 런타임 앱은 인프라 adapter package를 직접 scan하지 않고, 역할별 adapter config facade만 import합니다.
 
 주의:

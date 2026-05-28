@@ -8,6 +8,7 @@ include(
     "application",
     "application-crawler",
     "infrastructure-jpa-core",
+    "infrastructure-flyway",
     "infrastructure-jpa",
     "infrastructure-jpa-crawler",
     "infrastructure-security",
