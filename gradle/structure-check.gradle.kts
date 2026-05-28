@@ -790,6 +790,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa endpoint client must not own low-level HTTP retry or pacing",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client/DanawaClient.kt"),
+			patterns = listOf(
+				Regex("""java\.net\.http\.HttpClient"""),
+				Regex("""java\.net\.http\.HttpResponse"""),
+				Regex("""java\.io\.IOException"""),
+				Regex("""ThreadLocalRandom"""),
+				Regex("""requestPacingLock"""),
+				Regex("""MAX_HTTP_RETRIES"""),
+				Regex("""RETRYABLE_STATUS_CODES"""),
+				Regex("""fun\s+(awaitRequestSlot|extendGlobalCooldown|retryDelayMillis|randomJitterMillis)\b"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime applications must not own JPA repository scanning",
 			paths = listOf(
 				"web-app/src/main",
