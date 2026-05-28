@@ -684,7 +684,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawlerPersistenceModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopUseCase.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryModels.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreModels.kt",
@@ -698,6 +698,11 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 			),
+		)
+
+		assertPathAbsent(
+			rule = "crawler persistence contracts must be split by command snapshot lookup and result",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawlerPersistenceModels.kt"),
 		)
 
 		assertAbsent(
