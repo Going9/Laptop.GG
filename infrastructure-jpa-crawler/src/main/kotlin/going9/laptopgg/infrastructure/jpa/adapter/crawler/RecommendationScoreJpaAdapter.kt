@@ -1,5 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.recommendation.UpsertRecommendationScoreCommand
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import going9.laptopgg.persistence.model.recommendation.RecommendationScore
@@ -19,7 +20,9 @@ internal class RecommendationScoreJpaAdapter(
         }
 
         val laptopIds = commands.map { it.laptopId }.distinct()
-        require(laptopIds.size == 1) { "Recommendation scores must target a single laptop." }
+        if (laptopIds.size != 1) {
+            throw CrawlerInvalidCommandException("Recommendation scores must target a single laptop.")
+        }
 
         val laptopId = laptopIds.single()
         val laptopReference = crawlerLaptopRepository.getReferenceById(laptopId)

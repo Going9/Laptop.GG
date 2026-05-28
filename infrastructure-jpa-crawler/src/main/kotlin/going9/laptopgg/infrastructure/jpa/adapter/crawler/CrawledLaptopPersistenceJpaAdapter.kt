@@ -1,5 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
+import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
@@ -43,7 +44,7 @@ internal class CrawledLaptopPersistenceJpaAdapter(
 
     override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
         val laptop = laptopRepository.findWithUsageById(laptopId)
-            ?: throw IllegalArgumentException("Laptop not found: $laptopId")
+            ?: throw CrawlerResourceNotFoundException("Laptop", laptopId)
         CrawledLaptopEntityMapper.applyUpdate(laptop, command)
         return laptopRepository.save(laptop).toPersistedCrawledLaptopSnapshot()
     }

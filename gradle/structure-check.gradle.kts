@@ -412,6 +412,36 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler application errors must be explicit instead of generic argument failures",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/common/CrawlerApplicationException.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunServiceTest.kt",
+			),
+			patterns = listOf(
+				Regex("""sealed class CrawlerApplicationException"""),
+				Regex("""class CrawlerResourceNotFoundException"""),
+				Regex("""class CrawlerInvalidCommandException"""),
+				Regex("""saveListSnapshot rejects missing existing laptop with explicit crawler error"""),
+				Regex("""finish rejects missing crawler run with explicit crawler error"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler save run and score flows must not throw generic argument exceptions",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/RecommendationScoreJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""IllegalArgumentException"""),
+				Regex("""require\("""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler persistence must not use detail_page substring fallback",
 			paths = listOf("application-crawler/src/main", "infrastructure-jpa-core/src/main", "infrastructure-jpa-crawler/src/main"),

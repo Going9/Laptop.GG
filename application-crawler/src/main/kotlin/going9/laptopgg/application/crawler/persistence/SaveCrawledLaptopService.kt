@@ -1,5 +1,6 @@
 package going9.laptopgg.application.crawler.persistence
 
+import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 
@@ -30,7 +31,7 @@ internal class SaveCrawledLaptopService(
 
     private fun saveListSnapshotInTransaction(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         val existingLaptop = laptopPort.findWithUsageById(existingLaptopId)
-            ?: throw IllegalArgumentException("Laptop not found: $existingLaptopId")
+            ?: throw CrawlerResourceNotFoundException("Laptop", existingLaptopId)
         val updateCommand = changeDetector.listSnapshotUpdate(existingLaptop, productCard)
 
         if (!changeDetector.hasChanges(updateCommand)) {

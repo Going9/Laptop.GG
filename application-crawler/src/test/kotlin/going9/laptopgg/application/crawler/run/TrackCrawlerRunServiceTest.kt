@@ -1,9 +1,11 @@
 package going9.laptopgg.application.crawler.run
 
+import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 import going9.laptopgg.application.crawler.support.InMemoryCrawlerTransactionPort
 import java.time.LocalDateTime
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class TrackCrawlerRunServiceTest {
@@ -51,6 +53,24 @@ class TrackCrawlerRunServiceTest {
         assertThat(persisted.status).isEqualTo(CrawlerRunStatusResult.FAILED)
         assertThat(persisted.errorMessage).isEqualTo("network timeout")
         assertThat(persisted.endedAt).isNotNull()
+    }
+
+    @Test
+    fun `finish rejects missing crawler run with explicit crawler error`() {
+        assertThatThrownBy {
+            service.finish(
+                runId = 404L,
+                summary = CrawlerRunSummary(
+                    processedCount = 0,
+                    createdCount = 0,
+                    updatedCount = 0,
+                    degradedCount = 0,
+                    failedCount = 0,
+                    failureSamples = emptyList(),
+                ),
+                status = CrawlerRunCompletionStatus.SUCCEEDED,
+            )
+        }.isInstanceOf(CrawlerResourceNotFoundException::class.java)
     }
 
     private class InMemoryCrawlerRunPort : CrawlerRunPort {

@@ -1,5 +1,6 @@
 package going9.laptopgg.application.crawler.persistence
 
+import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
@@ -19,6 +20,7 @@ import going9.laptopgg.application.crawler.recommendation.UpsertRecommendationSc
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import going9.laptopgg.recommendation.RecommendationUseCase
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class SaveCrawledLaptopServiceTest {
@@ -63,6 +65,23 @@ class SaveCrawledLaptopServiceTest {
         assertThat(profilePort.saved).hasSize(1)
         assertThat(recommendationScorePort.saved).hasSize(RecommendationUseCase.entries.size)
         assertThat(priceHistoryPort.saved.map { it.price }).containsExactly(1_490_000)
+    }
+
+    @Test
+    fun `saveListSnapshot rejects missing existing laptop with explicit crawler error`() {
+        assertThatThrownBy {
+            service.saveListSnapshot(existingLaptopId = 404L, productCard = crawledProductCard())
+        }.isInstanceOf(CrawlerResourceNotFoundException::class.java)
+    }
+
+    private fun crawledProductCard(): CrawledProductCardCommand {
+        return CrawledProductCardCommand(
+            productName = "Missing Existing Laptop 14",
+            imageUrl = "https://example.com/missing-existing.jpg",
+            detailPage = "https://prod.danawa.com/info/?pcode=MISS001&cate=112758",
+            productCode = "MISS001",
+            price = 1_290_000,
+        )
     }
 
     private fun crawledLaptop(): CrawledLaptopCommand {

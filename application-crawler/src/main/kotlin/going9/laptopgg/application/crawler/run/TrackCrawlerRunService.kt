@@ -1,5 +1,6 @@
 package going9.laptopgg.application.crawler.run
 
+import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 
@@ -29,7 +30,7 @@ internal class TrackCrawlerRunService(
         return transactionPort.write {
             (
                 crawlerRunPort.update(commandFactory.finish(runId, summary, status, errorMessage))
-                    ?: throw IllegalArgumentException("Crawler run not found: $runId")
+                    ?: throw CrawlerResourceNotFoundException("CrawlerRun", runId)
             ).toRecord()
         }
     }
@@ -38,7 +39,7 @@ internal class TrackCrawlerRunService(
         return transactionPort.write {
             (
                 crawlerRunPort.update(commandFactory.fail(runId, exception))
-                    ?: throw IllegalArgumentException("Crawler run not found: $runId")
+                    ?: throw CrawlerResourceNotFoundException("CrawlerRun", runId)
             ).toRecord()
         }
     }
