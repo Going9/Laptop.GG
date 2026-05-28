@@ -20,6 +20,14 @@ on:
           - core
           - extended
           - none
+      max_list_pages:
+        description: "크롤 소스별 목록 페이지 안전 제한. 비워두면 기본값 5000을 사용합니다."
+        required: false
+        type: number
+      detail_fetch_concurrency:
+        description: "상세 페이지 동시 수집 수. 비워두면 기본값 6을 사용합니다."
+        required: false
+        type: number
       log_sql:
         description: "SQL 로그를 잠깐 켤지 여부"
         required: false
@@ -47,6 +55,8 @@ jobs:
       CRAWLER_LIMIT: ${{ inputs.limit || '' }}
       CRAWLER_START_PAGE: ${{ inputs.start_page || '' }}
       CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile || 'core' }}
+      CRAWLER_MAX_LIST_PAGES: ${{ inputs.max_list_pages || '' }}
+      CRAWLER_DETAIL_FETCH_CONCURRENCY: ${{ inputs.detail_fetch_concurrency || '' }}
       CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
       CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
 
@@ -122,6 +132,22 @@ jobs:
                 ;;
             esac
             APP_ARGS="${APP_ARGS} --app.crawler.filter-profile=${CRAWLER_FILTER_PROFILE}"
+          fi
+
+          if [ -n "${CRAWLER_MAX_LIST_PAGES}" ]; then
+            if ! printf '%s' "${CRAWLER_MAX_LIST_PAGES}" | grep -Eq '^[0-9]+$'; then
+              echo "CRAWLER_MAX_LIST_PAGES must be a number like 5000." >&2
+              exit 1
+            fi
+            APP_ARGS="${APP_ARGS} --app.crawler.max-list-pages=${CRAWLER_MAX_LIST_PAGES}"
+          fi
+
+          if [ -n "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" ]; then
+            if ! printf '%s' "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" | grep -Eq '^[0-9]+$'; then
+              echo "CRAWLER_DETAIL_FETCH_CONCURRENCY must be a number like 6." >&2
+              exit 1
+            fi
+            APP_ARGS="${APP_ARGS} --app.crawler.detail-fetch-concurrency=${CRAWLER_DETAIL_FETCH_CONCURRENCY}"
           fi
 
           if [ "${{ inputs.log_sql }}" = "true" ]; then

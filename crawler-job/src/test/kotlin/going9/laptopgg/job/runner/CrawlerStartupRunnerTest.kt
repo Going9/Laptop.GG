@@ -24,4 +24,13 @@ class CrawlerStartupRunnerTest {
         assertThat(properties.resolvedLimit()).isNull()
         assertThat(properties.resolvedStartPage()).isEqualTo(1)
     }
+
+    @Test
+    fun `non positive crawler tuning values fall back to defaults`() {
+        val properties = CrawlerJobProperties(maxListPages = 0, detailFetchConcurrency = -1)
+
+        assertThat(properties.resolvedMaxListPages()).isEqualTo(CrawlerJobProperties.DEFAULT_MAX_LIST_PAGES)
+        assertThat(properties.resolvedDetailFetchConcurrency())
+            .isEqualTo(CrawlerJobProperties.DEFAULT_DETAIL_FETCH_CONCURRENCY)
+    }
 }

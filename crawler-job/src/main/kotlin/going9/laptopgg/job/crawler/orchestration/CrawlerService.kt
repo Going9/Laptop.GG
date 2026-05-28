@@ -4,6 +4,7 @@ import going9.laptopgg.job.crawler.list.DanawaListParser
 import going9.laptopgg.job.crawler.list.ListPageCrawler
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.source.CrawlSourceResolver
+import going9.laptopgg.job.config.CrawlerJobProperties
 import java.util.concurrent.Executors
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -13,12 +14,14 @@ class CrawlerService(
     private val listPageCrawler: ListPageCrawler,
     private val crawlProductBatchProcessor: CrawlProductBatchProcessor,
     private val crawlSourceResolver: CrawlSourceResolver,
+    private val crawlerJobProperties: CrawlerJobProperties,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun crawlAll(limit: Int? = null, startPage: Int = 1, filterProfileRaw: String? = null): CrawlSummary {
         val filterProfile = crawlSourceResolver.resolveFilterProfile(filterProfileRaw)
-        val detailFetchExecutor = Executors.newFixedThreadPool(DETAIL_FETCH_CONCURRENCY)
+        val maxListPages = crawlerJobProperties.resolvedMaxListPages()
+        val detailFetchExecutor = Executors.newFixedThreadPool(crawlerJobProperties.resolvedDetailFetchConcurrency())
         val seenDetailPages = linkedSetOf<String>()
         val progress = CrawlProgress()
         var reachedLimit = false
@@ -56,7 +59,7 @@ class CrawlerService(
                         crawlSource.attributeFilters.joinToString { it.name }.ifBlank { "없음" },
                     )
 
-                    while (currentPage <= MAX_LIST_PAGES) {
+                    while (currentPage <= maxListPages) {
                         val pageStartTime = System.currentTimeMillis()
                         val pageBatch = listPageCrawler.fetchProductPageBatch(currentPage, listRequestContext)
                         val productCards = pageBatch.productCards
@@ -179,7 +182,7 @@ class CrawlerService(
                         currentPage++
                     }
 
-                    if (currentPage > MAX_LIST_PAGES) {
+                    if (currentPage > maxListPages) {
                         hitMaxListPages = true
                     }
                 }
@@ -190,7 +193,7 @@ class CrawlerService(
             }
 
             if (hitMaxListPages) {
-                logger.warn("목록 페이지 안전 제한({})에 도달해 크롤링을 종료합니다.", MAX_LIST_PAGES)
+                logger.warn("목록 페이지 안전 제한({})에 도달해 크롤링을 종료합니다.", maxListPages)
             }
 
             logger.info(
@@ -221,10 +224,5 @@ class CrawlerService(
 
     private fun String.stableHash(): String {
         return hashCode().toUInt().toString(16)
-    }
-
-    companion object {
-        private const val MAX_LIST_PAGES = 5000
-        private const val DETAIL_FETCH_CONCURRENCY = 6
     }
 }

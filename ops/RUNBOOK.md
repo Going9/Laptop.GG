@@ -51,6 +51,7 @@ Production crawling is GitHub Actions only.
 - Duplicate prevention: GitHub Actions `concurrency` plus PostgreSQL advisory lock
 - Audit table: `crawler_run`
 - Build artifact: `:crawler-job:bootJar`
+- Tunable knobs: `CRAWLER_MAX_LIST_PAGES` and `CRAWLER_DETAIL_FETCH_CONCURRENCY` are exposed in the manual workflow inputs.
 
 Useful query:
 

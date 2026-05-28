@@ -928,6 +928,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler orchestration must get operational tuning from typed configuration",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
+			patterns = listOf(
+				Regex("""MAX_LIST_PAGES"""),
+				Regex("""DETAIL_FETCH_CONCURRENCY"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(

@@ -8,6 +8,8 @@ data class CrawlerJobProperties(
     val limit: Int? = null,
     val startPage: Int? = null,
     val filterProfile: String = DEFAULT_FILTER_PROFILE,
+    val maxListPages: Int = DEFAULT_MAX_LIST_PAGES,
+    val detailFetchConcurrency: Int = DEFAULT_DETAIL_FETCH_CONCURRENCY,
 ) {
     fun resolvedLimit(): Int? {
         return limit?.takeIf { it > 0 }
@@ -21,8 +23,18 @@ data class CrawlerJobProperties(
         return normalizedFilterProfile(filterProfile)
     }
 
+    fun resolvedMaxListPages(): Int {
+        return maxListPages.takeIf { it > 0 } ?: DEFAULT_MAX_LIST_PAGES
+    }
+
+    fun resolvedDetailFetchConcurrency(): Int {
+        return detailFetchConcurrency.takeIf { it > 0 } ?: DEFAULT_DETAIL_FETCH_CONCURRENCY
+    }
+
     companion object {
         internal const val DEFAULT_FILTER_PROFILE = "core"
+        internal const val DEFAULT_MAX_LIST_PAGES = 5000
+        internal const val DEFAULT_DETAIL_FETCH_CONCURRENCY = 6
 
         internal fun normalizedFilterProfile(rawValue: String?): String {
             return rawValue

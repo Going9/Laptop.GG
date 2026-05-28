@@ -9,6 +9,8 @@ app:
     limit: ${CRAWLER_LIMIT:}
     start-page: ${CRAWLER_START_PAGE:}
     filter-profile: ${CRAWLER_FILTER_PROFILE:core}
+    max-list-pages: ${CRAWLER_MAX_LIST_PAGES:5000}
+    detail-fetch-concurrency: ${CRAWLER_DETAIL_FETCH_CONCURRENCY:6}
 
 spring:
   config:
