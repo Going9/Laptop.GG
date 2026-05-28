@@ -49,52 +49,7 @@ internal data class ListRequestContext(
     val dpgZoneUiCategory: String = "N",
     val assemblyGalleryCategory: String = "N",
     val searchAttributeValues: List<String> = emptyList(),
-) {
-    fun toFormData(page: Int): List<Pair<String, String?>> {
-        return buildList {
-            add("page" to page.toString())
-            add("listCategoryCode" to listCategoryCode)
-            add("categoryCode" to categoryCode)
-            add("physicsCate1" to physicsCate1)
-            add("physicsCate2" to physicsCate2)
-            add("physicsCate3" to physicsCate3)
-            add("physicsCate4" to physicsCate4)
-            add("viewMethod" to viewMethod)
-            add("sortMethod" to sortMethod)
-            add("listCount" to listCount)
-            add("group" to group)
-            add("depth" to depth)
-            add("brandName" to "")
-            add("makerName" to "")
-            add("searchOptionName" to "")
-            searchAttributeValues.forEach { add("searchAttributeValue[]" to it) }
-            add("sDiscountProductRate" to discountProductRate)
-            add("sInitialPriceDisplay" to initialPriceDisplay)
-            add("sPowerLinkKeyword" to "")
-            add("oCurrentCategoryCode" to "")
-            add("sMallMinPriceDisplayYN" to mallMinPriceDisplayYn)
-            add("quickDeliveryCategoryYN" to quickDeliveryCategoryYn)
-            add("quickDeliveryDisplay" to quickDeliveryDisplay)
-            add("priceUnitSort" to priceUnitSort)
-            add("priceUnitSortOrder" to priceUnitSortOrder)
-            add("simpleDescriptionDisplayYN" to simpleDescriptionDisplayYn)
-            add("simpleDescriptionOpen" to simpleDescriptionOpen)
-            add("listPackageType" to listPackageType)
-            add("categoryMappingCode" to "")
-            add("priceUnit" to priceUnit)
-            add("priceUnitValue" to priceUnitValue)
-            add("priceUnitClass" to priceUnitClass)
-            add("cmRecommendSort" to cmRecommendSort)
-            add("cmRecommendSortDefault" to cmRecommendSortDefault)
-            add("bundleImagePreview" to bundleImagePreview)
-            add("nPackageLimit" to packageLimit)
-            add("bMakerDisplayYN" to makerDisplayYn)
-            add("dnwSwitchOn" to "")
-            add("isDpgZoneUICategory" to dpgZoneUiCategory)
-            add("isAssemblyGalleryCategory" to assemblyGalleryCategory)
-        }
-    }
-}
+)
 
 internal data class ProductPageBatch(
     val productCards: List<ProductCard>,

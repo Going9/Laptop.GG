@@ -1084,6 +1084,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "list request context must not own Danawa HTTP form serialization",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/ListModels.kt"),
+			patterns = listOf(
+				Regex("""fun\s+toFormData"""),
+				Regex("""searchAttributeValue\[\]"""),
+				Regex("""sDiscountProductRate"""),
+				Regex("""BodyPublishers"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "Danawa list html parser must not own crawl page diagnostics",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListParser.kt"),
 			patterns = listOf(

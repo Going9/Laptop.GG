@@ -28,7 +28,7 @@ class DanawaRequestFactory {
             .header("Origin", DANAWA_ORIGIN)
             .header("Referer", listRequestContext.listUrl)
             .header("X-Requested-With", "XMLHttpRequest")
-            .POST(HttpRequest.BodyPublishers.ofString(buildFormData(listRequestContext.toFormData(page))))
+            .POST(HttpRequest.BodyPublishers.ofString(buildFormData(DanawaListRequestFormData.from(listRequestContext, page))))
             .build()
     }
 

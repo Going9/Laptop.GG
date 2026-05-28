@@ -2,6 +2,7 @@ package going9.laptopgg.job.crawler.list
 
 import going9.laptopgg.job.crawler.detail.DanawaDetailParser
 import going9.laptopgg.job.crawler.detail.DanawaSummaryFallbackParser
+import going9.laptopgg.job.crawler.client.DanawaListRequestFormData
 import going9.laptopgg.job.crawler.orchestration.DuplicateTailStopPolicy
 import going9.laptopgg.job.crawler.orchestration.ProductPageSignature
 import going9.laptopgg.job.crawler.source.CrawlSource
@@ -201,7 +202,7 @@ class CrawlerHtmlFixtureParsingTest {
             ),
         )
 
-        val formData = context.toFormData(page = 1)
+        val formData = DanawaListRequestFormData.from(context, page = 1)
 
         assertThat(formData).contains("page" to "1")
         assertThat(formData.filter { it.first == "searchAttributeValue[]" })
