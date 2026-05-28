@@ -1,7 +1,7 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfileSourcePort
+import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfileSourcePort
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component

@@ -1,9 +1,9 @@
 package going9.laptopgg.application.crawler.profile
 
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfileSourcePort
-import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfileSourcePort
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 
 class LaptopProfileService(

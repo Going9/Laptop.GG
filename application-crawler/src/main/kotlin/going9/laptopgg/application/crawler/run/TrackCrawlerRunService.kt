@@ -1,7 +1,7 @@
 package going9.laptopgg.application.crawler.run
 
-import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
-import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import java.time.LocalDateTime
 
 class TrackCrawlerRunService(

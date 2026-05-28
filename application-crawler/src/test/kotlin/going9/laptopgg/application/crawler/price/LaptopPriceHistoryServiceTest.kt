@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler.price
 
-import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
+import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.support.InMemoryCrawlerTransactionPort
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

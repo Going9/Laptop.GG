@@ -2,8 +2,8 @@ package going9.laptopgg.application.crawler.persistence
 
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopPersistencePort
-import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 
 class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPersistencePort,

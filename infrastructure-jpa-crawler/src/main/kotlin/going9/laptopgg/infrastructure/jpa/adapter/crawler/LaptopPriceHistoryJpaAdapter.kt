@@ -1,7 +1,7 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.price.RecordPriceHistoryCommand
-import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
+import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.persistence.model.crawler.LaptopPriceHistory
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository

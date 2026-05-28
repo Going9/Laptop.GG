@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
-import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate

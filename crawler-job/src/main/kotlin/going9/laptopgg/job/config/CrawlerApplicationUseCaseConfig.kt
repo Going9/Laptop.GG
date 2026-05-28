@@ -15,14 +15,14 @@ import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunService
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopPersistencePort
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfileSourcePort
-import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
-import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
-import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
-import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
-import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
+import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
+import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfileSourcePort
+import going9.laptopgg.application.crawler.run.port.CrawlerRunLockPort
+import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
+import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

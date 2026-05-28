@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler.run
 
-import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
+import going9.laptopgg.application.crawler.run.port.CrawlerRunLockPort
 
 interface CrawlerRunLockUseCase {
     fun <T> runLocked(block: () -> T): CrawlerLockResult<T>

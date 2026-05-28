@@ -1,7 +1,7 @@
 package going9.laptopgg.application.crawler.price
 
-import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
-import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import java.time.LocalDateTime
 
 class LaptopPriceHistoryService(

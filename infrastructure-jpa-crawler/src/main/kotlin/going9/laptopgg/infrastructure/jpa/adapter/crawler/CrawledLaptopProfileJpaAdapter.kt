@@ -3,7 +3,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
 import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
 import going9.laptopgg.application.crawler.profile.UpsertCrawledLaptopProfileCommand
-import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.persistence.model.laptop.LaptopProfile
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository

@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler.port.out
+package going9.laptopgg.application.crawler.common.port
 
 interface CrawlerTransactionPort {
     fun <T> read(block: () -> T): T

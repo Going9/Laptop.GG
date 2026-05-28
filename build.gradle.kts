@@ -298,7 +298,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "crawler price history port must not expose JPA entities",
-			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/LaptopPriceHistoryPort.kt"),
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/port/LaptopPriceHistoryPort.kt"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""fun\s+save\(.*LaptopPriceHistory"""),
@@ -307,7 +307,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "crawler recommendation score port must not expose JPA entities",
-			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/RecommendationScorePort.kt"),
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/port/RecommendationScorePort.kt"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""List<RecommendationScore>"""),
@@ -318,7 +318,8 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "crawler profile port must not expose JPA entities",
 			paths = listOf(
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopProfilePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfilePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfileSourcePort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
 			),
@@ -331,8 +332,8 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "crawler laptop persistence boundary must not expose JPA entities",
 			paths = listOf(
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopPersistencePort.kt",
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopProfileSourcePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/port/CrawledLaptopProfileSourcePort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryService.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
@@ -349,13 +350,16 @@ val verifyStructure by tasks.registering {
 
 		assertPathAbsent(
 			rule = "crawler laptop ports must be split by use case responsibility",
-			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopPort.kt"),
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawledLaptopPort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out",
+			),
 		)
 
 		assertAbsent(
 			rule = "crawler run port must not expose JPA entities",
 			paths = listOf(
-				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/CrawlerRunPort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/port/CrawlerRunPort.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt",
 			),
 			patterns = listOf(

@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler.run
 
-import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
+import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 import going9.laptopgg.application.crawler.support.InMemoryCrawlerTransactionPort
 import java.time.LocalDateTime
 import org.assertj.core.api.Assertions.assertThat

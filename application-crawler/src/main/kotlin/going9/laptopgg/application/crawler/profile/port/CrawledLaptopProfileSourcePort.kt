@@ -1,4 +1,4 @@
-package going9.laptopgg.application.crawler.port.out
+package going9.laptopgg.application.crawler.profile.port
 
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 
