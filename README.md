@@ -144,7 +144,7 @@ SPRING_PROFILES_ACTIVE=postgres,deploy
 SPRING_DATASOURCE_URL=jdbc:postgresql://<db-private-ip>:5432/laptopgg
 SPRING_DATASOURCE_USERNAME=<db-user>
 SPRING_DATASOURCE_PASSWORD=<db-password>
-JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
+JAVA_OPTS=-Xms128m -Xmx384m -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul
 ```
 
 `systemd`와 nginx 기준 설정은 `ops/` 아래 예시를 사용합니다.
