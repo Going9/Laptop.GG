@@ -866,6 +866,19 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "recommend laptop use case must delegate filtering, sorting, and result mapping",
+			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt"),
+			patterns = listOf(
+				Regex("""ScreenSizeMode\."""),
+				Regex("""RecommendationCandidateFilter\("""),
+				Regex("""SortProperty\."""),
+				Regex("""fun\s+(manufacturerName|resolutionLabel|minimumRoundedAverageTotal|resolveSortMode)\b"""),
+				Regex("""RESOLUTION_REGEX"""),
+				Regex("""ceil\("""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime applications must not own JPA repository scanning",
 			paths = listOf(
 				"web-app/src/main",
