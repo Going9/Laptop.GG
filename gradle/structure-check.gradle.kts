@@ -1979,6 +1979,33 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler reference-only JPA adapters must use entity manager references",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/LaptopPriceHistoryJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerReferenceJpaAdapterTest.kt",
+			),
+			patterns = listOf(
+				Regex("""private val entityManager: EntityManager"""),
+				Regex("""entityManager\.getReference\(Laptop::class\.java, command\.laptopId\)"""),
+				Regex("""price history adapter saves laptop reference through entity manager"""),
+				Regex("""profile adapter creates laptop reference through entity manager for new profile"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler reference-only JPA adapters must not depend on laptop repository",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/LaptopPriceHistoryJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""CrawlerLaptopRepository"""),
+				Regex("""getReferenceById\(command\.laptopId\)"""),
+			),
+		)
+
+		assertPresent(
 			rule = "crawler JPA mappers must reject missing persisted ids with explicit crawler state errors",
 			paths = listOf(
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopSnapshotMapper.kt",

@@ -3,14 +3,15 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
 import going9.laptopgg.application.crawler.profile.UpsertCrawledLaptopProfileCommand
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
-import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
+import going9.laptopgg.persistence.model.laptop.Laptop
+import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Component
 
 @Component
 internal class CrawledLaptopProfileJpaAdapter(
     private val laptopProfileRepository: CrawlerLaptopProfileRepository,
-    private val laptopRepository: CrawlerLaptopRepository,
+    private val entityManager: EntityManager,
 ) : CrawledLaptopProfilePort {
     override fun upsert(command: UpsertCrawledLaptopProfileCommand): CrawledLaptopProfileState {
         val existingProfile = laptopProfileRepository.findByLaptopId(command.laptopId)
@@ -25,7 +26,7 @@ internal class CrawledLaptopProfileJpaAdapter(
         return CrawledLaptopProfileEntityMapper.toState(
             laptopProfileRepository.save(
                 CrawledLaptopProfileEntityMapper.newProfile(
-                    laptop = laptopRepository.getReferenceById(command.laptopId),
+                    laptop = entityManager.getReference(Laptop::class.java, command.laptopId),
                     snapshot = command.profile,
                 ),
             ),
