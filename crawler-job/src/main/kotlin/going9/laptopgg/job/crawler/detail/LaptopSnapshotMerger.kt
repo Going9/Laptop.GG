@@ -41,30 +41,30 @@ class LaptopSnapshotMerger(
             price = productCard.price,
             cpuManufacturer = cpuManufacturer,
             cpu = cpu,
-            os = DanawaDetailParser.normalizeOs(spec["운영체제(OS)"] ?: summaryFallback.os),
-            screenSize = DanawaDetailParser.parseScreenSize(spec["화면 크기"]) ?: summaryFallback.screenSize,
+            os = DanawaSpecValueParser.normalizeOs(spec["운영체제(OS)"] ?: summaryFallback.os),
+            screenSize = DanawaSpecValueParser.parseScreenSize(spec["화면 크기"]) ?: summaryFallback.screenSize,
             resolution = spec["해상도"] ?: summaryFallback.resolution,
-            brightness = DanawaDetailParser.parseIntValue(spec["밝기"]) ?: summaryFallback.brightness,
-            refreshRate = DanawaDetailParser.parseIntValue(spec["주사율"]) ?: summaryFallback.refreshRate ?: DEFAULT_REFRESH_RATE,
-            ramSize = DanawaDetailParser.parseCapacityInGb(spec["램"]) ?: summaryFallback.ramSize,
+            brightness = DanawaSpecValueParser.parseIntValue(spec["밝기"]) ?: summaryFallback.brightness,
+            refreshRate = DanawaSpecValueParser.parseIntValue(spec["주사율"]) ?: summaryFallback.refreshRate ?: DEFAULT_REFRESH_RATE,
+            ramSize = DanawaSpecValueParser.parseCapacityInGb(spec["램"]) ?: summaryFallback.ramSize,
             ramType = spec["램 타입"] ?: summaryFallback.ramType,
-            isRamReplaceable = DanawaDetailParser.parsePossible(spec["램 교체"]) ?: summaryFallback.isRamReplaceable,
+            isRamReplaceable = DanawaSpecValueParser.parsePossible(spec["램 교체"]) ?: summaryFallback.isRamReplaceable,
             graphicsType = gpuModel,
-            tgp = DanawaDetailParser.parseIntValue(spec["TGP"])
+            tgp = DanawaSpecValueParser.parseIntValue(spec["TGP"])
                 ?: summaryFallback.tgp
                 ?: if (crawledGraphicsModelResolver.isIntegrated(gpuKind, gpuModel)) 0 else null,
-            thunderboltCount = DanawaDetailParser.parseThunderboltCount(spec),
-            usbCCount = DanawaDetailParser.parseUsbCCount(spec),
-            usbACount = DanawaDetailParser.parseCountValue(spec["USB-A"]),
-            sdCard = DanawaDetailParser.parseSdCard(spec),
+            thunderboltCount = DanawaSpecValueParser.parseThunderboltCount(spec),
+            usbCCount = DanawaSpecValueParser.parseUsbCCount(spec),
+            usbACount = DanawaSpecValueParser.parseCountValue(spec["USB-A"]),
+            sdCard = DanawaSpecValueParser.parseSdCard(spec),
             isSupportsPdCharging = when {
                 spec["전원"] != null -> spec["전원"]!!.contains("USB-PD", ignoreCase = true)
                 else -> summaryFallback.isSupportsPdCharging
             },
-            batteryCapacity = DanawaDetailParser.parseDoubleValue(spec["배터리"]) ?: summaryFallback.batteryCapacity,
-            storageCapacity = DanawaDetailParser.parseCapacityInGb(spec["용량"]) ?: summaryFallback.storageCapacity,
-            storageSlotCount = DanawaDetailParser.parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,
-            weight = DanawaDetailParser.parseWeightValue(spec["무게"]) ?: summaryFallback.weight,
+            batteryCapacity = DanawaSpecValueParser.parseDoubleValue(spec["배터리"]) ?: summaryFallback.batteryCapacity,
+            storageCapacity = DanawaSpecValueParser.parseCapacityInGb(spec["용량"]) ?: summaryFallback.storageCapacity,
+            storageSlotCount = DanawaSpecValueParser.parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,
+            weight = DanawaSpecValueParser.parseWeightValue(spec["무게"]) ?: summaryFallback.weight,
             lastDetailedCrawledAt = LocalDateTime.now(),
             usages = usages.distinct(),
         )
@@ -75,7 +75,7 @@ class LaptopSnapshotMerger(
     }
 
     private fun resolveCpuManufacturer(rawManufacturer: String?, productName: String, rawCpu: String?): String? {
-        rawManufacturer?.let(DanawaDetailParser::normalizeCpuManufacturer)?.let { return it }
+        rawManufacturer?.let(DanawaSpecValueParser::normalizeCpuManufacturer)?.let { return it }
 
         val normalizedName = productName.uppercase()
         val normalizedCpu = rawCpu.orEmpty().uppercase()

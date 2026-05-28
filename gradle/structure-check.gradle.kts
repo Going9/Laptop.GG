@@ -844,6 +844,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa detail html parser must delegate scalar spec value parsing",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DanawaDetailParser.kt"),
+			patterns = listOf(
+				Regex("""fun\s+(parseScreenSize|parseIntValue|parseDoubleValue|parseWeightValue|parseCapacityInGb|parseCountValue|parsePossible|parseThunderboltCount|parseUsbCCount|parseSdCard|normalizeOs|normalizeCpuManufacturer)\b"""),
+				Regex("""roundToInt"""),
+				Regex("""USB-C겸용"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime applications must not own JPA repository scanning",
 			paths = listOf(
 				"web-app/src/main",

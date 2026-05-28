@@ -38,14 +38,14 @@ class CrawlerServiceNormalizationTest {
 
     @Test
     fun `weight parser supports gram values`() {
-        val weight = DanawaDetailParser.parseWeightValue("891g")
+        val weight = DanawaSpecValueParser.parseWeightValue("891g")
 
         assertThat(weight).isCloseTo(0.891, offset(0.0001))
     }
 
     @Test
     fun `weight parser keeps the practical package weight when multiple values exist`() {
-        val weight = DanawaDetailParser.parseWeightValue("0.87kg / 1.17kg")
+        val weight = DanawaSpecValueParser.parseWeightValue("0.87kg / 1.17kg")
 
         assertThat(weight).isCloseTo(1.17, offset(0.0001))
     }
