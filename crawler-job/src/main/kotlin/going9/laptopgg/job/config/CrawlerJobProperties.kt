@@ -13,6 +13,13 @@ internal data class CrawlerJobProperties(
     val maxListPages: Int = DEFAULT_MAX_LIST_PAGES,
     val detailFetchConcurrency: Int = DEFAULT_DETAIL_FETCH_CONCURRENCY,
 ) {
+    fun validateForStartup() {
+        resolvedLimit()
+        resolvedStartPage()
+        resolvedMaxListPages()
+        resolvedDetailFetchConcurrency()
+    }
+
     fun resolvedLimit(): Int? {
         return limit?.let { requirePositive("app.crawler.limit", it) }
     }

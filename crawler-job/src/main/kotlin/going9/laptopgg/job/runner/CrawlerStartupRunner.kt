@@ -20,6 +20,7 @@ internal class CrawlerStartupRunner(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
+        crawlerJobProperties.validateForStartup()
         val filterProfileResolution = crawlerJobProperties.resolvedFilterProfileResolution()
         if (filterProfileResolution.usedDefaultForUnknownValue) {
             logger.warn(

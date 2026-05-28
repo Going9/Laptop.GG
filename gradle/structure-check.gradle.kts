@@ -398,14 +398,18 @@ val verifyStructure by tasks.registering {
 			rule = "crawler job numeric configuration must fail fast on non-positive values",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerJobProperties.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunner.kt",
 				"crawler-job/src/test/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunnerTest.kt",
 				".github/workflows/crawler.yml",
 			),
 			patterns = listOf(
 				Regex("""InvalidCrawlerJobConfigurationException"""),
+				Regex("""fun\s+validateForStartup\(\)"""),
+				Regex("""crawlerJobProperties\.validateForStartup\(\)"""),
 				Regex("""app\.crawler\.limit must be positive"""),
 				Regex("""non positive crawler request settings fail fast"""),
 				Regex("""non positive crawler tuning values fail fast"""),
+				Regex("""startup validation rejects invalid tuning before crawler execution"""),
 				Regex("""CRAWLER_LIMIT must be a positive number like 100"""),
 				Regex("""CRAWLER_START_PAGE must be a positive number like 15"""),
 				Regex("""CRAWLER_MAX_LIST_PAGES must be a positive number like 5000"""),

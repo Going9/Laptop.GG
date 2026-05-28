@@ -75,6 +75,17 @@ class CrawlerStartupRunnerTest {
     }
 
     @Test
+    fun `startup validation rejects invalid tuning before crawler execution`() {
+        val properties = CrawlerJobProperties(maxListPages = 0)
+
+        assertThatThrownBy {
+            properties.validateForStartup()
+        }
+            .isInstanceOf(InvalidCrawlerJobConfigurationException::class.java)
+            .hasMessage("app.crawler.max-list-pages must be positive.")
+    }
+
+    @Test
     fun `detail fetch concurrency is capped for operational safety`() {
         val properties = CrawlerJobProperties(detailFetchConcurrency = 100)
 
