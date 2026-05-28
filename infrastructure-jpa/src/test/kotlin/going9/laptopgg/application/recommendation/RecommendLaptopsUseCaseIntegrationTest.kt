@@ -1,17 +1,17 @@
-package going9.laptopgg.application.service
+package going9.laptopgg.application.recommendation
 
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
+import going9.laptopgg.application.service.LaptopProfileService
+import going9.laptopgg.application.service.RecommendationScoreService
+import going9.laptopgg.application.service.ScoreCalculatorService
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
 import going9.laptopgg.domain.laptop.BatteryTier
 import going9.laptopgg.domain.laptop.CpuClass
 import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.PortabilityTier
-import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
-import going9.laptopgg.application.recommendation.RecommendationUseCase
-import going9.laptopgg.application.recommendation.ScreenSizeMode
 import going9.laptopgg.infrastructure.jpa.repository.LaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.LaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.LaptopUsageRepository
@@ -25,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest(properties = ["spring.profiles.active=test"])
 @Transactional
-class RecommendationServiceIntegrationTest {
+class RecommendLaptopsUseCaseIntegrationTest {
     @Autowired
-    lateinit var recommendationService: RecommendationService
+    lateinit var recommendLaptopsUseCase: RecommendLaptopsUseCase
 
     @Autowired
     lateinit var laptopRepository: LaptopRepository
@@ -98,8 +98,8 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.OFFICE_STUDY,
         )
 
-        val firstPage = recommendationService.recommendLaptops(request, page(0, 1))
-        val secondPage = recommendationService.recommendLaptops(request, page(1, 1))
+        val firstPage = recommendLaptopsUseCase.recommend(request, page(0, 1))
+        val secondPage = recommendLaptopsUseCase.recommend(request, page(1, 1))
 
         assertThat(firstPage.content.first().score).isGreaterThanOrEqualTo(secondPage.content.first().score)
     }
@@ -144,7 +144,7 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.BATTERY_FIRST,
         )
 
-        val result = recommendationService.recommendLaptops(request, page(0, 10))
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
         val names = result.content.map { it.name }
 
         assertThat(names).contains("Battery 255H", "Battery 350", "Battery 340")
@@ -190,7 +190,7 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.CASUAL_GAME,
         )
 
-        val result = recommendationService.recommendLaptops(request, page(0, 10))
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
         val names = result.content.map { it.name }
 
         assertThat(names).contains("Arc Casual", "Radeon Casual", "Intel Casual")
@@ -248,8 +248,8 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.AAA_GAME,
         )
 
-        val onlineResult = recommendationService.recommendLaptops(onlineRequest, page(0, 10))
-        val aaaResult = recommendationService.recommendLaptops(aaaRequest, page(0, 10))
+        val onlineResult = recommendLaptopsUseCase.recommend(onlineRequest, page(0, 10))
+        val aaaResult = recommendLaptopsUseCase.recommend(aaaRequest, page(0, 10))
 
         assertThat(onlineResult.content.map { it.name }).contains("RTX 5060 Online", "RTX 5070 Ti Online")
         assertThat(aaaResult.content.first().name).isEqualTo("RTX 5090 AAA")
@@ -311,9 +311,9 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.NOT_SURE,
         )
 
-        val selectResult = recommendationService.recommendLaptops(selectRequest, page(0, 10))
-        val anyResult = recommendationService.recommendLaptops(anyRequest, page(0, 10))
-        val notSureResult = recommendationService.recommendLaptops(notSureRequest, page(0, 10))
+        val selectResult = recommendLaptopsUseCase.recommend(selectRequest, page(0, 10))
+        val anyResult = recommendLaptopsUseCase.recommend(anyRequest, page(0, 10))
+        val notSureResult = recommendLaptopsUseCase.recommend(notSureRequest, page(0, 10))
 
         assertThat(selectResult.content.map { it.name }).containsExactly("Compact 14")
         assertThat(anyResult.content.map { it.name }).contains("Compact 14", "Large 17", "Unknown Screen")
@@ -341,7 +341,7 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.OFFICE_STUDY,
         )
 
-        val result = recommendationService.recommendLaptops(request, page(0, 10))
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
         val laptop = result.content.first { it.name == "Display Friendly" }
 
         assertThat(laptop.cpu).isEqualTo("350")
@@ -405,7 +405,7 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.OFFICE_STUDY,
         )
 
-        val result = recommendationService.recommendLaptops(request, page(0, 10))
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
 
         assertThat(result.content.map { it.name }).contains("Office Strong")
         assertThat(result.content.map { it.name }).doesNotContain("Office Weak")
@@ -453,7 +453,7 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.NOT_SURE,
         )
 
-        val result = recommendationService.recommendLaptops(request, page(0, 10))
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
 
         assertThat(result.content.map { it.name }).contains("Not Sure Borderline")
         assertThat(result.content.map { it.name }).doesNotContain("Not Sure Below Boundary")
@@ -489,7 +489,7 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.NOT_SURE,
         )
 
-        val result = recommendationService.recommendLaptops(request, page(0, 10))
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
 
         assertThat(result.content.map { it.name }).contains("Known Weight", "Unknown Weight")
     }
@@ -534,7 +534,7 @@ class RecommendationServiceIntegrationTest {
             useCase = RecommendationUseCase.NOT_SURE,
         )
 
-        val result = recommendationService.recommendLaptops(
+        val result = recommendLaptopsUseCase.recommend(
             request,
             page(0, 10, sortOrder("weight", SortDirection.DESC)),
         )
@@ -622,8 +622,8 @@ class RecommendationServiceIntegrationTest {
                 useCase = useCase,
             )
             val actual = listOf(
-                recommendationService.recommendLaptops(request, page(0, 2)).content,
-                recommendationService.recommendLaptops(request, page(1, 2)).content,
+                recommendLaptopsUseCase.recommend(request, page(0, 2)).content,
+                recommendLaptopsUseCase.recommend(request, page(1, 2)).content,
             ).flatten()
 
             val expectedNames = actual
@@ -779,8 +779,8 @@ class RecommendationServiceIntegrationTest {
         order: SortOrder,
     ): List<String> {
         return listOf(
-            recommendationService.recommendLaptops(request, page(0, 2, order)).content,
-            recommendationService.recommendLaptops(request, page(1, 2, order)).content,
+            recommendLaptopsUseCase.recommend(request, page(0, 2, order)).content,
+            recommendLaptopsUseCase.recommend(request, page(1, 2, order)).content,
         ).flatten().map { it.name }
     }
 
