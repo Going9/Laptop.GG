@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
@@ -125,6 +126,7 @@ class LaptopGgApplicationTests {
 	fun `web api maps missing application resources to 404 response`() {
 		mockMvc.perform(get("/api/laptops").param("id", "999999"))
 			.andExpect(status().isNotFound)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.code").value("not_found"))
 	}
 
@@ -136,6 +138,22 @@ class LaptopGgApplicationTests {
 				.content("""{"laptopId":0,"author":"","content":"","passWord":""}"""),
 		)
 			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
+	fun `web page maps missing application resources to html error page`() {
+		val html = mockMvc.perform(get("/laptops/999999"))
+			.andExpect(status().isNotFound)
+			.andReturn()
+			.response
+			.contentAsString
+
+		assertThat(html).contains(
+			"요청한 정보를 찾을 수 없습니다",
+			"추천으로 돌아가기",
+		)
+		assertThat(html).doesNotContain("\"code\"")
 	}
 }

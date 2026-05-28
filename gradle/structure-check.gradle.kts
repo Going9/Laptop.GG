@@ -324,6 +324,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common/ApplicationException.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/controller/WebExceptionHandler.kt",
+				"web-app/src/main/resources/templates/error/application-error.html",
 				"web-app/src/test/kotlin/going9/laptopgg/LaptopGgApplicationTests.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/comment/ManageCommentUseCaseTest.kt",
 			),
@@ -337,8 +338,12 @@ val verifyStructure by tasks.registering {
 				Regex("""HttpStatus\.NOT_FOUND"""),
 				Regex("""HttpStatus\.BAD_REQUEST"""),
 				Regex("""HttpStatus\.FORBIDDEN"""),
+				Regex("""request\.requestURI\.startsWith\("/api/"\)"""),
+				Regex("""ModelAndView"""),
+				Regex("""error/application-error"""),
 				Regex("""web api maps missing application resources to 404 response"""),
 				Regex("""web api maps invalid application commands to 400 response"""),
+				Regex("""web page maps missing application resources to html error page"""),
 				Regex("""add rejects blank comment fields before persistence"""),
 			),
 		)

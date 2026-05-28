@@ -79,7 +79,8 @@ body.app-body::after {
 
 body.page-recommend-form,
 body.page-recommend-list,
-body.page-laptop-detail {
+body.page-laptop-detail,
+body.page-error {
     color: var(--text-strong);
     background-color: #ffffff;
     background-image:
@@ -90,34 +91,39 @@ body.page-laptop-detail {
 
 body.page-recommend-form::before,
 body.page-recommend-list::before,
-body.page-laptop-detail::before {
+body.page-laptop-detail::before,
+body.page-error::before {
     background: rgba(202, 107, 69, 0.12);
     opacity: 0.14;
 }
 
 body.page-recommend-form::after,
 body.page-recommend-list::after,
-body.page-laptop-detail::after {
+body.page-laptop-detail::after,
+body.page-error::after {
     background: rgba(82, 121, 108, 0.08);
     opacity: 0.12;
 }
 
 body.page-recommend-form .site-header,
 body.page-recommend-list .site-header,
-body.page-laptop-detail .site-header {
+body.page-laptop-detail .site-header,
+body.page-error .site-header {
     background: rgba(255, 255, 255, 0.92);
     border-bottom: 1px solid rgba(20, 33, 29, 0.08);
 }
 
 body.page-recommend-form .site-brand-note,
 body.page-recommend-list .site-brand-note,
-body.page-laptop-detail .site-brand-note {
+body.page-laptop-detail .site-brand-note,
+body.page-error .site-brand-note {
     color: rgba(20, 33, 29, 0.45);
 }
 
 body.page-recommend-form .eyebrow,
 body.page-recommend-list .eyebrow,
-body.page-laptop-detail .eyebrow {
+body.page-laptop-detail .eyebrow,
+body.page-error .eyebrow {
     color: var(--accent-deep);
 }
 
@@ -1734,6 +1740,28 @@ img {
 .comment-delete-form .ghost-button {
     min-height: 2.8rem;
     white-space: nowrap;
+}
+
+.error-shell {
+    min-height: calc(100vh - 6rem);
+    display: grid;
+    place-items: center;
+}
+
+.error-panel {
+    width: min(720px, 100%);
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border: 1px solid rgba(20, 33, 29, 0.08);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 20px 40px rgba(20, 33, 29, 0.06);
+}
+
+.page-error .section-title,
+.page-error .section-lead {
+    color: var(--text-strong);
 }
 
 @keyframes drift {
