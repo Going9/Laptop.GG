@@ -252,6 +252,25 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "comment persistence must enforce required application fields",
+			paths = listOf(
+				"persistence-model/src/main/kotlin/going9/laptopgg/persistence/model/web/Comment.kt",
+				"infrastructure-jpa-core/src/main/resources/db/migration/V9__comment_required_fields.sql",
+			),
+			patterns = listOf(
+				Regex("""@JoinColumn\(name = "laptop_id", nullable = false\)"""),
+				Regex("""@Column\(nullable = false\)\s+var author"""),
+				Regex("""@Column\(nullable = false\)\s+var content"""),
+				Regex("""@Column\(name = "pass_word", nullable = false\)"""),
+				Regex("""comment_invalid_legacy"""),
+				Regex("""ALTER COLUMN author SET NOT NULL"""),
+				Regex("""ALTER COLUMN content SET NOT NULL"""),
+				Regex("""ALTER COLUMN pass_word SET NOT NULL"""),
+				Regex("""ALTER COLUMN laptop_id SET NOT NULL"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "application must not depend on persistence models, infrastructure, or public web DTOs",
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),

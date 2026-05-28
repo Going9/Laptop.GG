@@ -33,6 +33,7 @@ flowchart LR
 - `laptop-taxonomy`: CPU/GPU/배터리/휴대성 분류 enum
 - `persistence-model`: JPA entity와 DB 매핑 모델
 - JPA entity는 Kotlin `data class`를 쓰지 않고, to-one 연관관계는 `fetch = LAZY`를 명시합니다.
+- 댓글 테이블은 application 계약에 맞춰 laptop, author, content, password hash를 필수로 관리하고, 레거시 nullable 댓글은 `comment_invalid_legacy`에 보관합니다.
 - `recommendation-contract`: web/crawler/application이 공유하는 추천 use-case enum
 - `recommendation-core`: 추천 점수 가중치와 gate 정책
 - `application`: 추천/상세/댓글 use case와 port

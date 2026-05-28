@@ -93,6 +93,51 @@ class PostgresFlywayMigrationTest {
                     )
                 }
             }
+
+            connection.prepareStatement(
+                """
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'comment'
+                  and is_nullable = 'NO'
+                """.trimIndent(),
+            ).use { statement ->
+                statement.executeQuery().use { resultSet ->
+                    val requiredCommentColumns = generateSequence {
+                        if (resultSet.next()) resultSet.getString("column_name") else null
+                    }.toSet()
+
+                    assertThat(requiredCommentColumns).contains(
+                        "id",
+                        "author",
+                        "content",
+                        "pass_word",
+                        "laptop_id",
+                    )
+                }
+            }
+
+            connection.prepareStatement(
+                """
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'comment_invalid_legacy'
+                """.trimIndent(),
+            ).use { statement ->
+                statement.executeQuery().use { resultSet ->
+                    val invalidCommentColumns = generateSequence {
+                        if (resultSet.next()) resultSet.getString("column_name") else null
+                    }.toSet()
+
+                    assertThat(invalidCommentColumns).contains(
+                        "original_comment_id",
+                        "reason",
+                        "archived_at",
+                    )
+                }
+            }
         }
     }
 }
