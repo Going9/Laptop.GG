@@ -1,6 +1,6 @@
 package going9.laptopgg.job.config
 
-import going9.laptopgg.application.crawler.assembly.CrawlerUseCaseAssembler
+import going9.laptopgg.application.crawler.assembly.CrawlerPersistenceAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
@@ -21,7 +21,7 @@ class CrawlerPersistenceUseCaseConfig {
         recommendationScorePort: RecommendationScorePort,
         transactionPort: CrawlerTransactionPort,
     ): RecommendationScoreService {
-        return CrawlerUseCaseAssembler.createRecommendationScoreService(
+        return CrawlerPersistenceAssembler.createRecommendationScoreService(
             recommendationScorePort = recommendationScorePort,
             transactionPort = transactionPort,
         )
@@ -34,7 +34,7 @@ class CrawlerPersistenceUseCaseConfig {
         recommendationScoreService: RecommendationScoreService,
         transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
-        return CrawlerUseCaseAssembler.createLaptopProfileService(
+        return CrawlerPersistenceAssembler.createLaptopProfileService(
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreService = recommendationScoreService,
@@ -47,7 +47,7 @@ class CrawlerPersistenceUseCaseConfig {
         laptopPriceHistoryPort: LaptopPriceHistoryPort,
         transactionPort: CrawlerTransactionPort,
     ): LaptopPriceHistoryService {
-        return CrawlerUseCaseAssembler.createLaptopPriceHistoryService(
+        return CrawlerPersistenceAssembler.createLaptopPriceHistoryService(
             laptopPriceHistoryPort = laptopPriceHistoryPort,
             transactionPort = transactionPort,
         )
@@ -60,7 +60,7 @@ class CrawlerPersistenceUseCaseConfig {
         laptopPriceHistoryService: LaptopPriceHistoryService,
         transactionPort: CrawlerTransactionPort,
     ): SaveCrawledLaptopUseCase {
-        return CrawlerUseCaseAssembler.createSaveCrawledLaptopUseCase(
+        return CrawlerPersistenceAssembler.createSaveCrawledLaptopUseCase(
             laptopPort = laptopPort,
             laptopProfileService = laptopProfileService,
             laptopPriceHistoryService = laptopPriceHistoryService,

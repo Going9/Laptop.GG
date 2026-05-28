@@ -1,6 +1,8 @@
 package going9.laptopgg.integration.config
 
-import going9.laptopgg.application.crawler.assembly.CrawlerUseCaseAssembler
+import going9.laptopgg.application.crawler.assembly.CrawlerPersistenceAssembler
+import going9.laptopgg.application.crawler.assembly.CrawlerProfileAssembler
+import going9.laptopgg.application.crawler.assembly.CrawlerRunAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
@@ -24,22 +26,22 @@ import org.springframework.context.annotation.Configuration
 class IntegrationCrawlerUseCaseConfig {
     @Bean
     fun cpuTokenResolver(): CpuTokenResolver {
-        return CrawlerUseCaseAssembler.createCpuTokenResolver()
+        return CrawlerProfileAssembler.createCpuTokenResolver()
     }
 
     @Bean
     fun cpuClassifier(cpuTokenResolver: CpuTokenResolver): CpuClassifier {
-        return CrawlerUseCaseAssembler.createCpuClassifier(cpuTokenResolver)
+        return CrawlerProfileAssembler.createCpuClassifier(cpuTokenResolver)
     }
 
     @Bean
     fun gpuClassifier(): GpuClassifier {
-        return CrawlerUseCaseAssembler.createGpuClassifier()
+        return CrawlerProfileAssembler.createGpuClassifier()
     }
 
     @Bean
     fun profileScorePolicy(): ProfileScorePolicy {
-        return CrawlerUseCaseAssembler.createProfileScorePolicy()
+        return CrawlerProfileAssembler.createProfileScorePolicy()
     }
 
     @Bean
@@ -48,7 +50,7 @@ class IntegrationCrawlerUseCaseConfig {
         gpuClassifier: GpuClassifier,
         profileScorePolicy: ProfileScorePolicy,
     ): LaptopProfileFactory {
-        return CrawlerUseCaseAssembler.createLaptopProfileFactory(
+        return CrawlerProfileAssembler.createLaptopProfileFactory(
             cpuClassifier = cpuClassifier,
             gpuClassifier = gpuClassifier,
             profileScorePolicy = profileScorePolicy,
@@ -60,7 +62,7 @@ class IntegrationCrawlerUseCaseConfig {
         recommendationScorePort: RecommendationScorePort,
         transactionPort: CrawlerTransactionPort,
     ): RecommendationScoreService {
-        return CrawlerUseCaseAssembler.createRecommendationScoreService(
+        return CrawlerPersistenceAssembler.createRecommendationScoreService(
             recommendationScorePort = recommendationScorePort,
             transactionPort = transactionPort,
         )
@@ -73,7 +75,7 @@ class IntegrationCrawlerUseCaseConfig {
         recommendationScoreService: RecommendationScoreService,
         transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
-        return CrawlerUseCaseAssembler.createLaptopProfileService(
+        return CrawlerPersistenceAssembler.createLaptopProfileService(
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreService = recommendationScoreService,
@@ -86,7 +88,7 @@ class IntegrationCrawlerUseCaseConfig {
         laptopPriceHistoryPort: LaptopPriceHistoryPort,
         transactionPort: CrawlerTransactionPort,
     ): LaptopPriceHistoryService {
-        return CrawlerUseCaseAssembler.createLaptopPriceHistoryService(
+        return CrawlerPersistenceAssembler.createLaptopPriceHistoryService(
             laptopPriceHistoryPort = laptopPriceHistoryPort,
             transactionPort = transactionPort,
         )
@@ -99,7 +101,7 @@ class IntegrationCrawlerUseCaseConfig {
         laptopPriceHistoryService: LaptopPriceHistoryService,
         transactionPort: CrawlerTransactionPort,
     ): SaveCrawledLaptopUseCase {
-        return CrawlerUseCaseAssembler.createSaveCrawledLaptopUseCase(
+        return CrawlerPersistenceAssembler.createSaveCrawledLaptopUseCase(
             laptopPort = laptopPort,
             laptopProfileService = laptopProfileService,
             laptopPriceHistoryService = laptopPriceHistoryService,
@@ -109,6 +111,6 @@ class IntegrationCrawlerUseCaseConfig {
 
     @Bean
     fun crawlerRunLockUseCase(crawlerRunLockPort: CrawlerRunLockPort): CrawlerRunLockUseCase {
-        return CrawlerUseCaseAssembler.createCrawlerRunLockUseCase(crawlerRunLockPort)
+        return CrawlerRunAssembler.createCrawlerRunLockUseCase(crawlerRunLockPort)
     }
 }

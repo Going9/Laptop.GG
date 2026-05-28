@@ -8,66 +8,13 @@ import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
-import going9.laptopgg.application.crawler.profile.CpuClassifier
-import going9.laptopgg.application.crawler.profile.CpuTokenResolver
-import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
-import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
-import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
-import going9.laptopgg.application.crawler.profile.GpuClassifier
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
-import going9.laptopgg.application.crawler.profile.ProfileScorePolicy
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
-import going9.laptopgg.application.crawler.run.CrawlerRunLockService
-import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
-import going9.laptopgg.application.crawler.run.TrackCrawlerRunService
-import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
-import going9.laptopgg.application.crawler.run.port.CrawlerRunLockPort
-import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 
-object CrawlerUseCaseAssembler {
-    fun createCpuTokenResolver(): CpuTokenResolver {
-        return CpuTokenResolver()
-    }
-
-    fun createCpuClassifier(cpuTokenResolver: CpuTokenResolver): CpuClassifier {
-        return CpuClassifier(cpuTokenResolver)
-    }
-
-    fun createGpuClassifier(): GpuClassifier {
-        return GpuClassifier()
-    }
-
-    fun createProfileScorePolicy(): ProfileScorePolicy {
-        return ProfileScorePolicy()
-    }
-
-    fun createCrawledCpuManufacturerResolver(): CrawledCpuManufacturerResolver {
-        return CrawledCpuManufacturerResolver()
-    }
-
-    fun createCrawledCpuModelResolver(cpuTokenResolver: CpuTokenResolver): CrawledCpuModelResolver {
-        return CrawledCpuModelResolver(cpuTokenResolver)
-    }
-
-    fun createCrawledGraphicsModelResolver(gpuClassifier: GpuClassifier): CrawledGraphicsModelResolver {
-        return CrawledGraphicsModelResolver(gpuClassifier)
-    }
-
-    fun createLaptopProfileFactory(
-        cpuClassifier: CpuClassifier,
-        gpuClassifier: GpuClassifier,
-        profileScorePolicy: ProfileScorePolicy,
-    ): LaptopProfileFactory {
-        return LaptopProfileFactory(
-            cpuClassifier = cpuClassifier,
-            gpuClassifier = gpuClassifier,
-            profileScorePolicy = profileScorePolicy,
-        )
-    }
-
+object CrawlerPersistenceAssembler {
     fun createRecommendationScoreService(
         recommendationScorePort: RecommendationScorePort,
         transactionPort: CrawlerTransactionPort,
@@ -117,19 +64,5 @@ object CrawlerUseCaseAssembler {
             ),
             transactionPort = transactionPort,
         )
-    }
-
-    fun createTrackCrawlerRunUseCase(
-        crawlerRunPort: CrawlerRunPort,
-        transactionPort: CrawlerTransactionPort,
-    ): TrackCrawlerRunUseCase {
-        return TrackCrawlerRunService(
-            crawlerRunPort = crawlerRunPort,
-            transactionPort = transactionPort,
-        )
-    }
-
-    fun createCrawlerRunLockUseCase(crawlerRunLockPort: CrawlerRunLockPort): CrawlerRunLockUseCase {
-        return CrawlerRunLockService(crawlerRunLockPort)
     }
 }
