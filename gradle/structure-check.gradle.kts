@@ -2285,6 +2285,20 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "recommendation candidate filter must not carry legacy per-use-case score thresholds",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/port/RecommendationCandidatePort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationCandidateFilterFactory.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/recommendation/RecommendationBoundaryComponentsTest.kt",
+			),
+			patterns = listOf(
+				Regex("""min(Office|Battery|CasualGame|OnlineGame|AaaGame|Creator)Score"""),
+				Regex("""minNotSureGateTotal"""),
+				Regex("""minimumRoundedAverageTotal"""),
+			),
+		)
+
 		assertPresent(
 			rule = "recommendation candidate reads must use explicit projections",
 			paths = listOf(

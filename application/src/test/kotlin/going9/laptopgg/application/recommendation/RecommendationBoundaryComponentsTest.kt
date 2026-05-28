@@ -17,7 +17,7 @@ class RecommendationBoundaryComponentsTest {
     private val reasonBuilder = RecommendationReasonBuilder()
 
     @Test
-    fun `candidate filter keeps selected screen policy and use case gate`() {
+    fun `candidate filter keeps selected screen policy only`() {
         val query = LaptopRecommendationQuery(
             budget = 2_000_000,
             maxWeightKg = 1.4,
@@ -26,29 +26,27 @@ class RecommendationBoundaryComponentsTest {
             useCase = RecommendationUseCase.OFFICE_STUDY,
         )
 
-        val filter = filterFactory.create(query, RecommendationUseCase.OFFICE_STUDY, gateThreshold = 70)
+        val filter = filterFactory.create(query)
 
         assertThat(filter.maxPrice).isEqualTo(2_000_000)
         assertThat(filter.maxWeight).isEqualTo(1.4)
         assertThat(filter.screenFilterEnabled).isTrue()
         assertThat(filter.includeUnknownScreen).isFalse()
         assertThat(filter.screenSizes).containsExactly(14, 16)
-        assertThat(filter.minOfficeScore).isEqualTo(70)
     }
 
     @Test
-    fun `not sure filter converts average gate threshold to total score`() {
+    fun `not sure filter keeps common screen sizes and unknown screen candidates`() {
         val query = LaptopRecommendationQuery(
             screenSizeMode = ScreenSizeMode.NOT_SURE,
             useCase = RecommendationUseCase.NOT_SURE,
         )
 
-        val filter = filterFactory.create(query, RecommendationUseCase.NOT_SURE, gateThreshold = 70)
+        val filter = filterFactory.create(query)
 
         assertThat(filter.screenFilterEnabled).isTrue()
         assertThat(filter.includeUnknownScreen).isTrue()
         assertThat(filter.screenSizes).containsExactly(13, 14, 15, 16)
-        assertThat(filter.minNotSureGateTotal).isEqualTo(209)
     }
 
     @Test

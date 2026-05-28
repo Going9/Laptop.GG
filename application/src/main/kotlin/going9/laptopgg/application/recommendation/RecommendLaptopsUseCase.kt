@@ -37,7 +37,7 @@ internal class DefaultRecommendLaptopsUseCase(
     ): PagedResult<LaptopRecommendationResult> {
         val useCase = request.resolvedUseCase()
         val gateThreshold = recommendationScoreCalculator.gateThreshold(useCase)
-        val candidateFilter = candidateFilterFactory.create(request, useCase, gateThreshold)
+        val candidateFilter = candidateFilterFactory.create(request)
         val sortMode = sortModeResolver.resolve(pageQuery)
 
         val candidatePage = findCandidatePage(request, candidateFilter, gateThreshold, useCase, sortMode, pageQuery)

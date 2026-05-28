@@ -40,13 +40,6 @@ data class RecommendationCandidateFilter(
     val screenSizes: Collection<Int>,
     val screenFilterEnabled: Boolean,
     val includeUnknownScreen: Boolean,
-    val minOfficeScore: Int? = null,
-    val minBatteryScore: Int? = null,
-    val minCasualGameScore: Int? = null,
-    val minOnlineGameScore: Int? = null,
-    val minAaaGameScore: Int? = null,
-    val minCreatorScore: Int? = null,
-    val minNotSureGateTotal: Int? = null,
 )
 
 data class RecommendationCandidatePageQuery(
