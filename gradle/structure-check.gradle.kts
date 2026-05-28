@@ -824,6 +824,11 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "crawler application use case config must be split by responsibility",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerApplicationUseCaseConfig.kt"),
+		)
+
 		assertAbsent(
 			rule = "crawler-job must not use root package default component scan",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
