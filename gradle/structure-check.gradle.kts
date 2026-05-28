@@ -1519,6 +1519,40 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "recommendation integration fixtures must seed through crawler save use case",
+			paths = listOf(
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/support/RecommendationIntegrationFixtures.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/support/RecommendationIntegrationTestSupport.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/PostgresRecommendationOrderingIntegrationTest.kt",
+			),
+			patterns = listOf(
+				Regex("""saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase"""),
+				Regex("""saveCrawledLaptopUseCase\.saveOrUpdateLaptop\("""),
+				Regex("""CrawledLaptopCommand\("""),
+				Regex("""findAllByProductCodeIn\(listOf\(productCode\)\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "profile-only sync must not remain as public crawler use case",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/assembly/CrawlerPersistenceAssembler.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/config/IntegrationCrawlerUseCaseConfig.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/support/RecommendationIntegrationFixtures.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/support/RecommendationIntegrationTestSupport.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/PostgresRecommendationOrderingIntegrationTest.kt",
+			),
+			patterns = listOf(
+				Regex("""SyncCrawledLaptopProfileUseCase"""),
+				Regex("""createSyncCrawledLaptopProfileUseCase"""),
+				Regex("""fun syncProfile\(laptop:"""),
+				Regex("""laptopProfileService\.syncProfile\("""),
+				Regex("""fun Laptop\.toCrawledSnapshot"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler run port must not expose JPA entities",
 			paths = listOf(

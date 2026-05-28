@@ -4,7 +4,7 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
-import going9.laptopgg.application.crawler.profile.SyncCrawledLaptopProfileUseCase
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
@@ -28,7 +28,7 @@ abstract class RecommendationIntegrationTestSupport {
     protected lateinit var laptopProfileRepository: CrawlerLaptopProfileRepository
 
     @Autowired
-    protected lateinit var laptopProfileService: SyncCrawledLaptopProfileUseCase
+    protected lateinit var saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase
 
     @Autowired
     protected lateinit var recommendationScoreService: RefreshRecommendationScoreUseCase
@@ -46,7 +46,7 @@ abstract class RecommendationIntegrationTestSupport {
         fixtures = RecommendationIntegrationFixtures(
             laptopRepository = laptopRepository,
             laptopProfileRepository = laptopProfileRepository,
-            laptopProfileService = laptopProfileService,
+            saveCrawledLaptopUseCase = saveCrawledLaptopUseCase,
             recommendationScoreService = recommendationScoreService,
         )
     }

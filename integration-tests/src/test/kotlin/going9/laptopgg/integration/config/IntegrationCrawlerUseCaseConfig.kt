@@ -6,7 +6,6 @@ import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
-import going9.laptopgg.application.crawler.profile.SyncCrawledLaptopProfileUseCase
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
@@ -23,19 +22,6 @@ class IntegrationCrawlerUseCaseConfig {
         transactionPort: CrawlerTransactionPort,
     ): RefreshRecommendationScoreUseCase {
         return CrawlerPersistenceAssembler.createRefreshRecommendationScoreUseCase(
-            recommendationScorePort = recommendationScorePort,
-            transactionPort = transactionPort,
-        )
-    }
-
-    @Bean
-    fun laptopProfileService(
-        laptopProfilePort: CrawledLaptopProfilePort,
-        recommendationScorePort: RecommendationScorePort,
-        transactionPort: CrawlerTransactionPort,
-    ): SyncCrawledLaptopProfileUseCase {
-        return CrawlerPersistenceAssembler.createSyncCrawledLaptopProfileUseCase(
-            laptopProfilePort = laptopProfilePort,
             recommendationScorePort = recommendationScorePort,
             transactionPort = transactionPort,
         )

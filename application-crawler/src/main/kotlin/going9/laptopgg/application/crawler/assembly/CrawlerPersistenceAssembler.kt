@@ -10,7 +10,6 @@ import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
-import going9.laptopgg.application.crawler.profile.SyncCrawledLaptopProfileUseCase
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
@@ -22,22 +21,6 @@ object CrawlerPersistenceAssembler {
         transactionPort: CrawlerTransactionPort,
     ): RefreshRecommendationScoreUseCase {
         return createRecommendationScoreService(recommendationScorePort, transactionPort)
-    }
-
-    fun createSyncCrawledLaptopProfileUseCase(
-        laptopProfilePort: CrawledLaptopProfilePort,
-        recommendationScorePort: RecommendationScorePort,
-        transactionPort: CrawlerTransactionPort,
-    ): SyncCrawledLaptopProfileUseCase {
-        return createLaptopProfileService(
-            laptopProfilePort = laptopProfilePort,
-            laptopProfileFactory = CrawlerProfileAssembler.createLaptopProfileFactory(),
-            recommendationScoreService = createRecommendationScoreService(
-                recommendationScorePort = recommendationScorePort,
-                transactionPort = transactionPort,
-            ),
-            transactionPort = transactionPort,
-        )
     }
 
     fun createSaveCrawledLaptopUseCase(
@@ -55,7 +38,6 @@ object CrawlerPersistenceAssembler {
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = CrawlerProfileAssembler.createLaptopProfileFactory(),
             recommendationScoreService = recommendationScoreService,
-            transactionPort = transactionPort,
         )
         val laptopPriceHistoryService = createLaptopPriceHistoryService(
             laptopPriceHistoryPort = laptopPriceHistoryPort,
@@ -87,13 +69,11 @@ object CrawlerPersistenceAssembler {
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopProfileFactory: LaptopProfileFactory,
         recommendationScoreService: RecommendationScoreService,
-        transactionPort: CrawlerTransactionPort,
     ): LaptopProfileService {
         return LaptopProfileService(
             laptopProfilePort = laptopProfilePort,
             laptopProfileFactory = laptopProfileFactory,
             recommendationScoreRefresher = recommendationScoreService,
-            transactionPort = transactionPort,
         )
     }
 

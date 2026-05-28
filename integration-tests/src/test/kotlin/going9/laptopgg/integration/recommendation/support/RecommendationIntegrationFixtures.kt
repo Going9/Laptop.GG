@@ -2,19 +2,19 @@ package going9.laptopgg.integration.recommendation.support
 
 import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
 import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
-import going9.laptopgg.application.crawler.profile.SyncCrawledLaptopProfileUseCase
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.persistence.SaveResult
 import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.laptop.LaptopProfile
-import going9.laptopgg.persistence.model.laptop.LaptopUsage
 
 class RecommendationIntegrationFixtures(
     private val laptopRepository: CrawlerLaptopRepository,
     private val laptopProfileRepository: CrawlerLaptopProfileRepository,
-    private val laptopProfileService: SyncCrawledLaptopProfileUseCase,
+    private val saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase,
     private val recommendationScoreService: RefreshRecommendationScoreUseCase,
 ) {
     fun persistSortProbeLaptops(): List<Laptop> {
@@ -213,77 +213,45 @@ class RecommendationIntegrationFixtures(
         ramSize: Int = 16,
         usages: List<String>,
     ): Laptop {
-        val laptop = Laptop(
-            name = name,
-            imageUrl = "https://example.com/${name.hashCode()}.jpg",
-            detailPage = "https://example.com/${name.hashCode()}",
-            productCode = name.hashCode().toString(),
-            price = price,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = "윈도우11홈",
-            screenSize = screenSize,
-            resolution = "2560x1600(WQXGA)",
-            brightness = 400,
-            refreshRate = 165,
-            ramSize = ramSize,
-            ramType = "LPDDR5X",
-            isRamReplaceable = false,
-            graphicsType = graphicsType,
-            tgp = tgp,
-            thunderboltCount = 1,
-            usbCCount = 2,
-            usbACount = 2,
-            sdCard = null,
-            isSupportsPdCharging = true,
-            batteryCapacity = batteryCapacity,
-            storageCapacity = 1024,
-            storageSlotCount = 1,
-            weight = weight,
-            laptopUsage = mutableListOf(),
+        val productCode = name.hashCode().toString()
+        val result = saveCrawledLaptopUseCase.saveOrUpdateLaptop(
+            CrawledLaptopCommand(
+                name = name,
+                imageUrl = "https://example.com/$productCode.jpg",
+                detailPage = "https://example.com/$productCode",
+                productCode = productCode,
+                price = price,
+                cpuManufacturer = cpuManufacturer,
+                cpu = cpu,
+                os = "윈도우11홈",
+                screenSize = screenSize,
+                resolution = "2560x1600(WQXGA)",
+                brightness = 400,
+                refreshRate = 165,
+                ramSize = ramSize,
+                ramType = "LPDDR5X",
+                isRamReplaceable = false,
+                graphicsType = graphicsType,
+                tgp = tgp,
+                thunderboltCount = 1,
+                usbCCount = 2,
+                usbACount = 2,
+                sdCard = null,
+                isSupportsPdCharging = true,
+                batteryCapacity = batteryCapacity,
+                storageCapacity = 1024,
+                storageSlotCount = 1,
+                weight = weight,
+                lastDetailedCrawledAt = null,
+                usages = usages,
+            ),
         )
+        require(result == SaveResult.CREATED || result == SaveResult.UPDATED) {
+            "Fixture laptop must be created or updated, but was $result."
+        }
 
-        laptop.laptopUsage = usages
-            .map { usage -> LaptopUsage(usage = usage, laptop = laptop) }
-            .toMutableList()
-
-        val savedLaptop = laptopRepository.save(laptop)
-        laptopProfileService.syncProfile(savedLaptop.toCrawledSnapshot())
-        return savedLaptop
-    }
-
-    private fun Laptop.toCrawledSnapshot(): PersistedCrawledLaptopSnapshot {
-        return PersistedCrawledLaptopSnapshot(
-            id = requireNotNull(id),
-            name = name,
-            imageUrl = imageUrl,
-            detailPage = detailPage,
-            productCode = productCode,
-            price = price,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            brightness = brightness,
-            refreshRate = refreshRate,
-            ramSize = ramSize,
-            ramType = ramType,
-            isRamReplaceable = isRamReplaceable,
-            graphicsType = graphicsType,
-            tgp = tgp,
-            thunderboltCount = thunderboltCount,
-            usbCCount = usbCCount,
-            usbACount = usbACount,
-            sdCard = sdCard,
-            isSupportsPdCharging = isSupportsPdCharging,
-            batteryCapacity = batteryCapacity,
-            storageCapacity = storageCapacity,
-            storageSlotCount = storageSlotCount,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usages = laptopUsage.map { usage -> usage.usage },
-        )
+        return laptopRepository.findAllByProductCodeIn(listOf(productCode)).singleOrNull()
+            ?: error("Fixture laptop was saved but could not be loaded for productCode=$productCode.")
     }
 
     private companion object {

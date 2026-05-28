@@ -42,7 +42,6 @@ class SaveCrawledLaptopServiceTest {
             profileScorePolicy = ProfileScorePolicy(),
         ),
         recommendationScoreRefresher = recommendationScoreService,
-        transactionPort = transactionPort,
     )
     private val service = SaveCrawledLaptopService(
         laptopPort = laptopPort,
