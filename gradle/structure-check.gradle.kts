@@ -1042,6 +1042,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "laptop snapshot merger must delegate CPU manufacturer resolution",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/LaptopSnapshotMerger.kt"),
+			patterns = listOf(
+				Regex("""fun\s+resolveCpuManufacturer\b"""),
+				Regex("""normalizeCpuManufacturer"""),
+				Regex("""SNAPDRAGON"""),
+				Regex("""애플\(ARM\)"""),
+				Regex("""퀄컴"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "Danawa detail html parser must delegate summary fallback parsing",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DanawaDetailParser.kt"),
 			patterns = listOf(

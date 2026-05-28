@@ -1,8 +1,11 @@
 package going9.laptopgg.job.crawler.detail
 
+import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
 import kotlin.math.roundToInt
 
 internal object DanawaSpecValueParser {
+    private val cpuManufacturerResolver = CrawledCpuManufacturerResolver()
+
     fun parseScreenSize(value: String?): Int? {
         val inches = Regex("""([0-9.]+)인치""").find(value.orEmpty())?.groupValues?.getOrNull(1)?.toDoubleOrNull()
             ?: return null
@@ -92,12 +95,8 @@ internal object DanawaSpecValueParser {
     }
 
     fun normalizeCpuManufacturer(rawManufacturer: String): String {
-        return when {
-            rawManufacturer.contains("intel", ignoreCase = true) || rawManufacturer.contains("인텔") -> "인텔"
-            rawManufacturer.contains("amd", ignoreCase = true) -> "AMD"
-            rawManufacturer.contains("apple", ignoreCase = true) || rawManufacturer.contains("애플") -> "애플(ARM)"
-            rawManufacturer.contains("qualcomm", ignoreCase = true) || rawManufacturer.contains("퀄컴") -> "퀄컴"
-            else -> rawManufacturer.trim()
+        return requireNotNull(cpuManufacturerResolver.normalize(rawManufacturer)) {
+            "rawManufacturer must not be blank."
         }
     }
 }

@@ -2,6 +2,7 @@ package going9.laptopgg.job.config
 
 import going9.laptopgg.application.crawler.profile.CpuClassifier
 import going9.laptopgg.application.crawler.profile.CpuTokenResolver
+import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.profile.GpuClassifier
@@ -30,6 +31,11 @@ class CrawlerProfileUseCaseConfig {
     @Bean
     fun profileScorePolicy(): ProfileScorePolicy {
         return ProfileScorePolicy()
+    }
+
+    @Bean
+    fun crawledCpuManufacturerResolver(): CrawledCpuManufacturerResolver {
+        return CrawledCpuManufacturerResolver()
     }
 
     @Bean

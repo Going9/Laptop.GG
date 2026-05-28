@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.detail
 
+import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
@@ -13,7 +14,11 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class CrawlerServiceNormalizationTest {
-    private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver(), CrawledGraphicsModelResolver())
+    private val laptopSnapshotMerger = LaptopSnapshotMerger(
+        CrawledCpuManufacturerResolver(),
+        CrawledCpuModelResolver(),
+        CrawledGraphicsModelResolver(),
+    )
 
     @Test
     fun `apple cpu fallback is extracted from product name`() {

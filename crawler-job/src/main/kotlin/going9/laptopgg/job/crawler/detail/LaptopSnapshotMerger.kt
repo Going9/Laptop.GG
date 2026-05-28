@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.detail
 
+import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class LaptopSnapshotMerger(
+    private val crawledCpuManufacturerResolver: CrawledCpuManufacturerResolver,
     private val crawledCpuModelResolver: CrawledCpuModelResolver,
     private val crawledGraphicsModelResolver: CrawledGraphicsModelResolver,
 ) {
@@ -19,7 +21,7 @@ class LaptopSnapshotMerger(
     ): CrawledLaptopCommand {
         val spec = parsedSpecTable.values
         val rawCpu = spec["CPU 넘버"]?.substringBefore(" (") ?: summaryFallback.cpu
-        val cpuManufacturer = resolveCpuManufacturer(
+        val cpuManufacturer = crawledCpuManufacturerResolver.resolve(
             rawManufacturer = spec["CPU 제조사"] ?: summaryFallback.cpuManufacturer,
             productName = productCard.productName,
             rawCpu = rawCpu,
@@ -72,23 +74,6 @@ class LaptopSnapshotMerger(
 
     internal fun resolveCpuModel(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
         return crawledCpuModelResolver.resolve(rawCpu, cpuManufacturer, productName)
-    }
-
-    private fun resolveCpuManufacturer(rawManufacturer: String?, productName: String, rawCpu: String?): String? {
-        rawManufacturer?.let(DanawaSpecValueParser::normalizeCpuManufacturer)?.let { return it }
-
-        val normalizedName = productName.uppercase()
-        val normalizedCpu = rawCpu.orEmpty().uppercase()
-
-        return when {
-            normalizedName.contains("APPLE") || normalizedName.contains("맥북") -> "애플(ARM)"
-            normalizedName.contains("SNAPDRAGON") ||
-                normalizedName.contains("X ELITE") ||
-                normalizedName.contains("X PLUS") ||
-                normalizedCpu.startsWith("X1") ||
-                normalizedCpu.startsWith("X2") -> "퀄컴"
-            else -> null
-        }
     }
 
     private companion object {
