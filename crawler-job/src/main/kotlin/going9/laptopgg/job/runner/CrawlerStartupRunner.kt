@@ -1,4 +1,4 @@
-package going9.laptopgg.runner
+package going9.laptopgg.job.runner
 
 import going9.laptopgg.application.crawler.CrawlerRunCompletionStatus
 import going9.laptopgg.application.crawler.CrawlerRunStatusResult

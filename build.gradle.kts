@@ -335,6 +335,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler-job runtime support must live under job packages",
+			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.config"""),
+				Regex("""going9\.laptopgg\.runner"""),
+				Regex("""package going9\.laptopgg\.config"""),
+				Regex("""package going9\.laptopgg\.runner"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not use root package default component scan",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
 			patterns = listOf(
@@ -358,6 +369,8 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex(""""going9\.laptopgg\.infrastructure\.jpa","""),
 				Regex(""""going9\.laptopgg\.infrastructure\.jpa\.adapter\.shared","""),
+				Regex(""""going9\.laptopgg\.config","""),
+				Regex(""""going9\.laptopgg\.runner","""),
 			),
 		)
 

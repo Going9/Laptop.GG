@@ -1,4 +1,4 @@
-package going9.laptopgg.config
+package going9.laptopgg.job.config
 
 import going9.laptopgg.application.crawler.CpuClassifier
 import going9.laptopgg.application.crawler.CrawledCpuModelResolver
