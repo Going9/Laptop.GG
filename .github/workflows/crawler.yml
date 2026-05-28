@@ -148,6 +148,10 @@ jobs:
               echo "CRAWLER_DETAIL_FETCH_CONCURRENCY must be a number like 6." >&2
               exit 1
             fi
+            if [ "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" -gt 12 ]; then
+              echo "CRAWLER_DETAIL_FETCH_CONCURRENCY must be 12 or less." >&2
+              exit 1
+            fi
             APP_ARGS="${APP_ARGS} --app.crawler.detail-fetch-concurrency=${CRAWLER_DETAIL_FETCH_CONCURRENCY}"
           fi
 

@@ -33,4 +33,12 @@ class CrawlerStartupRunnerTest {
         assertThat(properties.resolvedDetailFetchConcurrency())
             .isEqualTo(CrawlerJobProperties.DEFAULT_DETAIL_FETCH_CONCURRENCY)
     }
+
+    @Test
+    fun `detail fetch concurrency is capped for operational safety`() {
+        val properties = CrawlerJobProperties(detailFetchConcurrency = 100)
+
+        assertThat(properties.resolvedDetailFetchConcurrency())
+            .isEqualTo(CrawlerJobProperties.MAX_DETAIL_FETCH_CONCURRENCY)
+    }
 }

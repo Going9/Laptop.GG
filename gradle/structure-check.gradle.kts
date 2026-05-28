@@ -326,6 +326,23 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler detail fetch concurrency must be capped at the job boundary",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerJobProperties.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunnerTest.kt",
+				".github/workflows/crawler.yml",
+				"ops/RUNBOOK.md",
+			),
+			patterns = listOf(
+				Regex("""MAX_DETAIL_FETCH_CONCURRENCY = 12"""),
+				Regex("""coerceAtMost\(MAX_DETAIL_FETCH_CONCURRENCY\)"""),
+				Regex("""detail fetch concurrency is capped for operational safety"""),
+				Regex("""CRAWLER_DETAIL_FETCH_CONCURRENCY.*12 or less"""),
+				Regex("""Detail fetch concurrency is capped at 12"""),
+			),
+		)
+
+		assertPresent(
 			rule = "crawler service orchestration must be covered without disabled live smoke tests",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",

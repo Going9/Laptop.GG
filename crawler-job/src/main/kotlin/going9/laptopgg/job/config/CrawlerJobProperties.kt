@@ -28,13 +28,15 @@ internal data class CrawlerJobProperties(
     }
 
     fun resolvedDetailFetchConcurrency(): Int {
-        return detailFetchConcurrency.takeIf { it > 0 } ?: DEFAULT_DETAIL_FETCH_CONCURRENCY
+        return (detailFetchConcurrency.takeIf { it > 0 } ?: DEFAULT_DETAIL_FETCH_CONCURRENCY)
+            .coerceAtMost(MAX_DETAIL_FETCH_CONCURRENCY)
     }
 
     companion object {
         internal const val DEFAULT_FILTER_PROFILE = "core"
         internal const val DEFAULT_MAX_LIST_PAGES = 5000
         internal const val DEFAULT_DETAIL_FETCH_CONCURRENCY = 6
+        internal const val MAX_DETAIL_FETCH_CONCURRENCY = 12
 
         internal fun normalizedFilterProfile(rawValue: String?): String {
             return rawValue
