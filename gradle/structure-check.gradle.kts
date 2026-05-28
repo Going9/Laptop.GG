@@ -818,6 +818,11 @@ val verifyStructure by tasks.registering {
 			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/application"),
 		)
 
+		assertPathAbsent(
+			rule = "recommendation integration tests must stay split by test responsibility",
+			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendLaptopsUseCaseIntegrationTest.kt"),
+		)
+
 		assertAbsent(
 			rule = "infrastructure-backed integration tests must use integration packages",
 			paths = listOf("integration-tests/src/test"),
@@ -828,12 +833,33 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "recommendation integration scenario tests must keep persistence fixtures in support classes",
-			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendLaptopsUseCaseIntegrationTest.kt"),
+			paths = listOf(
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationCandidateFilteringIntegrationTest.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationOrderingIntegrationTest.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationProjectionIntegrationTest.kt",
+			),
 			patterns = listOf(
 				Regex("""fun\s+(persistLaptop|persistSortProbeLaptops|overrideProfileScores|saveProfileAndScores)\b"""),
 				Regex("""fun\s+Laptop\.toCrawledSnapshot"""),
 				Regex("""LaptopUsage\("""),
 				Regex("""PersistedCrawledLaptopSnapshot"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "recommendation integration scenario tests must reuse shared Spring support",
+			paths = listOf(
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationCandidateFilteringIntegrationTest.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationOrderingIntegrationTest.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationProjectionIntegrationTest.kt",
+			),
+			patterns = listOf(
+				Regex("""@SpringBootTest"""),
+				Regex("""@Transactional"""),
+				Regex("""@Autowired"""),
+				Regex("""CrawlerLaptop(Profile)?Repository"""),
+				Regex("""RecommendationScoreRepository"""),
+				Regex("""RecommendationIntegrationFixtures\("""),
 			),
 		)
 
