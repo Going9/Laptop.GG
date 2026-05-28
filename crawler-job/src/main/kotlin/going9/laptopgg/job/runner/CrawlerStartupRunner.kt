@@ -7,9 +7,9 @@ import going9.laptopgg.application.crawler.CrawlerRunSummary
 import going9.laptopgg.application.crawler.TrackCrawlerRunUseCase
 import going9.laptopgg.job.crawler.CrawlerService
 import going9.laptopgg.job.crawler.CrawlSummary
+import going9.laptopgg.job.config.CrawlerJobProperties
 import kotlin.system.exitProcess
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.SpringApplication
@@ -24,32 +24,14 @@ class CrawlerStartupRunner(
     private val crawlerService: CrawlerService,
     private val crawlerRunLockUseCase: CrawlerRunLockUseCase,
     private val trackCrawlerRunUseCase: TrackCrawlerRunUseCase,
-    @Value("\${app.crawler.limit:}") private val defaultLimitRaw: String,
-    @Value("\${app.crawler.start-page:}") private val defaultStartPageRaw: String,
-    @Value("\${app.crawler.filter-profile:core}") private val defaultFilterProfileRaw: String,
+    private val crawlerJobProperties: CrawlerJobProperties,
 ) : ApplicationRunner {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
-        val defaultLimit = defaultLimitRaw.toIntOrNull()
-            ?.takeIf { it > 0 }
-        val defaultStartPage = defaultStartPageRaw.toIntOrNull()
-            ?.takeIf { it > 0 }
-
-        val limit = args.getOptionValues("app.crawler.limit")
-            ?.firstOrNull()
-            ?.toIntOrNull()
-            ?: defaultLimit
-        val startPage = args.getOptionValues("app.crawler.start-page")
-            ?.firstOrNull()
-            ?.toIntOrNull()
-            ?: defaultStartPage
-            ?: 1
-        val filterProfile = args.getOptionValues("app.crawler.filter-profile")
-            ?.firstOrNull()
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-            ?: normalizedFilterProfile(defaultFilterProfileRaw)
+        val limit = crawlerJobProperties.resolvedLimit()
+        val startPage = crawlerJobProperties.resolvedStartPage()
+        val filterProfile = crawlerJobProperties.resolvedFilterProfile()
 
         val lockResult = runCatching {
             crawlerRunLockUseCase.runLocked {
@@ -163,16 +145,5 @@ class CrawlerStartupRunner(
             failedCount = failedCount,
             failureSamples = failureSamples,
         )
-    }
-
-    companion object {
-        internal const val DEFAULT_FILTER_PROFILE = "core"
-
-        internal fun normalizedFilterProfile(rawValue: String?): String {
-            return rawValue
-                ?.trim()
-                ?.takeIf { it.isNotBlank() }
-                ?: DEFAULT_FILTER_PROFILE
-        }
     }
 }

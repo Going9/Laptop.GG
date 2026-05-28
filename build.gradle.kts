@@ -405,6 +405,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler runner must use typed app.crawler configuration properties",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/runner"),
+			patterns = listOf(
+				Regex("""org\.springframework\.beans\.factory\.annotation\.Value"""),
+				Regex("""getOptionValues\("app\.crawler"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not use root package default component scan",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
 			patterns = listOf(
