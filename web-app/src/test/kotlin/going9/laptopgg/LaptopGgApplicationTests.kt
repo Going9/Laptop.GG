@@ -171,6 +171,26 @@ class LaptopGgApplicationTests {
 	}
 
 	@Test
+	fun `web api maps malformed json to 400 response`() {
+		mockMvc.perform(
+			post("/api/recommends")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""{"budget":"""),
+		)
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
+	fun `web api maps invalid request parameter types to 400 response`() {
+		mockMvc.perform(get("/api/laptops").param("id", "not-a-number"))
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
 	fun `web page maps missing application resources to html error page`() {
 		val html = mockMvc.perform(get("/laptops/999999"))
 			.andExpect(status().isNotFound)

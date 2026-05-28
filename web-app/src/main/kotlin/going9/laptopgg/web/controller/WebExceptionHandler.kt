@@ -8,8 +8,12 @@ import going9.laptopgg.application.common.ResourceNotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.validation.BindException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.ModelAndView
 
 @ControllerAdvice
@@ -20,6 +24,23 @@ internal class WebExceptionHandler {
         request: HttpServletRequest,
     ): Any {
         val error = WebErrorDescriptor.from(exception)
+        return render(error, request)
+    }
+
+    @ExceptionHandler(
+        HttpMessageNotReadableException::class,
+        MissingServletRequestParameterException::class,
+        MethodArgumentTypeMismatchException::class,
+        BindException::class,
+    )
+    fun handleFrameworkBadRequest(
+        request: HttpServletRequest,
+    ): Any {
+        val error = WebErrorDescriptor.badRequest()
+        return render(error, request)
+    }
+
+    private fun render(error: WebErrorDescriptor, request: HttpServletRequest): Any {
         if (request.requestURI.startsWith("/api/")) {
             return ResponseEntity
                 .status(error.status)
@@ -45,6 +66,15 @@ private data class WebErrorDescriptor(
     val message: String,
 ) {
     companion object {
+        fun badRequest(): WebErrorDescriptor {
+            return WebErrorDescriptor(
+                status = HttpStatus.BAD_REQUEST,
+                code = "bad_request",
+                title = "요청 내용을 확인해 주세요",
+                message = "입력값을 다시 확인한 뒤 시도해 주세요.",
+            )
+        }
+
         fun from(exception: ApplicationException): WebErrorDescriptor {
             return when (exception) {
                 is ResourceNotFoundException -> WebErrorDescriptor(
@@ -53,12 +83,7 @@ private data class WebErrorDescriptor(
                     title = "요청한 정보를 찾을 수 없습니다",
                     message = "대상이 삭제되었거나 주소가 변경되었을 수 있습니다.",
                 )
-                is InvalidCommandException -> WebErrorDescriptor(
-                    status = HttpStatus.BAD_REQUEST,
-                    code = "bad_request",
-                    title = "요청 내용을 확인해 주세요",
-                    message = "입력값을 다시 확인한 뒤 시도해 주세요.",
-                )
+                is InvalidCommandException -> badRequest()
                 is AuthenticationFailedException -> WebErrorDescriptor(
                     status = HttpStatus.FORBIDDEN,
                     code = "forbidden",
