@@ -208,8 +208,8 @@ class ExistingCrawledLaptopLookupLoaderTest {
             error("updateListSnapshot is not used by this test")
         }
 
-        override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
-            error("update is not used by this test")
+        override fun updateDetailSnapshot(laptopId: Long, command: UpdateCrawledLaptopCommand): Boolean {
+            error("updateDetailSnapshot is not used by this test")
         }
     }
 }

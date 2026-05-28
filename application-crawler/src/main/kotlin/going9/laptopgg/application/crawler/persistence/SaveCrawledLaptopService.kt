@@ -114,7 +114,10 @@ internal class SaveCrawledLaptopService(
             return SaveResult.UNCHANGED
         }
 
-        val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
+        if (!laptopPort.updateDetailSnapshot(existingLaptop.id, updateCommand)) {
+            throw CrawlerResourceNotFoundException("Laptop", existingLaptop.id)
+        }
+        val savedLaptop = changeDetector.applyDetailUpdate(existingLaptop, updateCommand)
         postSaveSynchronizer.afterDetailSnapshot(savedLaptop, previousPrice = existingLaptop.price)
         return SaveResult.UPDATED
     }

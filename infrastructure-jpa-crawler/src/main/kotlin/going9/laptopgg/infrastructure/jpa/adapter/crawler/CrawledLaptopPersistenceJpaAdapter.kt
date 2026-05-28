@@ -1,7 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
-import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledListSnapshot
@@ -10,12 +9,16 @@ import going9.laptopgg.application.crawler.persistence.UpdateCrawledListSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopUsageRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
+import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Component
 
 @Component
 internal class CrawledLaptopPersistenceJpaAdapter(
     private val laptopRepository: CrawlerLaptopRepository,
+    private val laptopUsageRepository: CrawlerLaptopUsageRepository,
+    private val entityManager: EntityManager,
 ) : CrawledLaptopPersistencePort {
     override fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot? {
         return laptopRepository.findListSnapshotById(laptopId)?.toPersistedCrawledListSnapshot()
@@ -68,11 +71,48 @@ internal class CrawledLaptopPersistenceJpaAdapter(
         ) > 0
     }
 
-    override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
-        val laptop = laptopRepository.findWithUsageById(laptopId)
-            ?: throw CrawlerResourceNotFoundException("Laptop", laptopId)
-        CrawledLaptopEntityMapper.applyUpdate(laptop, command)
-        return laptopRepository.save(laptop).toPersistedCrawledLaptopSnapshot()
+    override fun updateDetailSnapshot(laptopId: Long, command: UpdateCrawledLaptopCommand): Boolean {
+        val updatedRows = laptopRepository.updateDetailSnapshotById(
+            id = laptopId,
+            name = command.name,
+            imageUrl = command.imageUrl,
+            detailPage = command.detailPage,
+            productCode = command.productCode,
+            price = command.price,
+            cpuManufacturer = command.cpuManufacturer,
+            cpu = command.cpu,
+            os = command.os,
+            screenSize = command.screenSize,
+            resolution = command.resolution,
+            brightness = command.brightness,
+            refreshRate = command.refreshRate,
+            ramSize = command.ramSize,
+            ramType = command.ramType,
+            isRamReplaceable = command.isRamReplaceable,
+            graphicsType = command.graphicsType,
+            tgp = command.tgp,
+            thunderboltCount = command.thunderboltCount,
+            usbCCount = command.usbCCount,
+            usbACount = command.usbACount,
+            sdCard = command.sdCard,
+            isSupportsPdCharging = command.isSupportsPdCharging,
+            batteryCapacity = command.batteryCapacity,
+            storageCapacity = command.storageCapacity,
+            storageSlotCount = command.storageSlotCount,
+            weight = command.weight,
+            lastDetailedCrawledAt = command.lastDetailedCrawledAt,
+        )
+        if (updatedRows == 0) {
+            return false
+        }
+        command.usages?.let { usages -> replaceUsages(laptopId, usages) }
+        return true
+    }
+
+    private fun replaceUsages(laptopId: Long, usages: List<String>) {
+        laptopUsageRepository.deleteByLaptopId(laptopId)
+        val laptop = entityManager.getReference(Laptop::class.java, laptopId)
+        laptopUsageRepository.saveAll(CrawledLaptopEntityMapper.newLaptopUsages(laptop, usages))
     }
 
     private fun List<Laptop>.singleByCrawlerIdentity(identityName: String, identityValue: String): Laptop? {

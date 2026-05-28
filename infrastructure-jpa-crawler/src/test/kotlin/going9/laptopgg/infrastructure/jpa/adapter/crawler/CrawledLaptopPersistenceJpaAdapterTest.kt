@@ -2,10 +2,14 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledListSnapshotCommand
+import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopUsageRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawledListSnapshotProjection
 import going9.laptopgg.infrastructure.jpa.repository.crawler.ExistingCrawledLaptopProjection
 import going9.laptopgg.persistence.model.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.LaptopUsage
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -26,8 +30,8 @@ class CrawledLaptopPersistenceJpaAdapterTest {
                     productCode = "P10",
                     price = 1_190_000,
                 ),
-            )
-        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+        )
+        val adapter = adapter(repository)
 
         val snapshot = adapter.findListSnapshotById(10L)
 
@@ -51,7 +55,7 @@ class CrawledLaptopPersistenceJpaAdapterTest {
                 price = 1_090_000,
             ),
         ).thenReturn(1)
-        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+        val adapter = adapter(repository)
 
         val updated = adapter.updateListSnapshot(
             laptopId = 10L,
@@ -75,6 +79,92 @@ class CrawledLaptopPersistenceJpaAdapterTest {
     }
 
     @Test
+    fun `updateDetailSnapshot delegates to direct update and replaces usages without loading full laptop graph`() {
+        val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
+        val usageRepository = Mockito.mock(CrawlerLaptopUsageRepository::class.java)
+        val entityManager = Mockito.mock(EntityManager::class.java)
+        val laptop = laptop(id = 10L, productCode = "P10", detailPage = "https://prod.danawa.com/info/?pcode=P10")
+        Mockito.`when`(
+            repository.updateDetailSnapshotById(
+                id = 10L,
+                name = "New Name",
+                imageUrl = null,
+                detailPage = null,
+                productCode = null,
+                price = 1_090_000,
+                cpuManufacturer = null,
+                cpu = null,
+                os = null,
+                screenSize = null,
+                resolution = null,
+                brightness = null,
+                refreshRate = null,
+                ramSize = null,
+                ramType = null,
+                isRamReplaceable = null,
+                graphicsType = null,
+                tgp = null,
+                thunderboltCount = null,
+                usbCCount = null,
+                usbACount = null,
+                sdCard = null,
+                isSupportsPdCharging = null,
+                batteryCapacity = null,
+                storageCapacity = null,
+                storageSlotCount = null,
+                weight = null,
+                lastDetailedCrawledAt = null,
+            ),
+        ).thenReturn(1)
+        Mockito.`when`(entityManager.getReference(Laptop::class.java, 10L)).thenReturn(laptop)
+        val adapter = adapter(repository, usageRepository, entityManager)
+
+        val updated = adapter.updateDetailSnapshot(
+            laptopId = 10L,
+            command = UpdateCrawledLaptopCommand(
+                name = "New Name",
+                price = 1_090_000,
+                usages = listOf("사무/인강용", "영상편집", "사무/인강용"),
+            ),
+        )
+
+        assertThat(updated).isTrue()
+        Mockito.verify(repository).updateDetailSnapshotById(
+            id = 10L,
+            name = "New Name",
+            imageUrl = null,
+            detailPage = null,
+            productCode = null,
+            price = 1_090_000,
+            cpuManufacturer = null,
+            cpu = null,
+            os = null,
+            screenSize = null,
+            resolution = null,
+            brightness = null,
+            refreshRate = null,
+            ramSize = null,
+            ramType = null,
+            isRamReplaceable = null,
+            graphicsType = null,
+            tgp = null,
+            thunderboltCount = null,
+            usbCCount = null,
+            usbACount = null,
+            sdCard = null,
+            isSupportsPdCharging = null,
+            batteryCapacity = null,
+            storageCapacity = null,
+            storageSlotCount = null,
+            weight = null,
+            lastDetailedCrawledAt = null,
+        )
+        Mockito.verify(usageRepository).deleteByLaptopId(10L)
+        Mockito.verify(usageRepository).saveAll(Mockito.anyList<LaptopUsage>())
+        Mockito.verify(repository, Mockito.never()).findWithUsageById(Mockito.anyLong())
+    }
+
+    @Test
     fun `findByProductCode rejects duplicate crawler identities with explicit state error`() {
         val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
         Mockito.`when`(repository.findAllWithUsageByProductCodeIn(listOf("P10")))
@@ -84,7 +174,7 @@ class CrawledLaptopPersistenceJpaAdapterTest {
                     laptop(id = 11L, productCode = "P10", detailPage = "https://prod.danawa.com/info/?pcode=P10-dup"),
                 ),
             )
-        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+        val adapter = adapter(repository)
 
         assertThatThrownBy {
             adapter.findByProductCode("P10")
@@ -105,7 +195,7 @@ class CrawledLaptopPersistenceJpaAdapterTest {
                     laptop(id = 21L, productCode = "P20-dup", detailPage = detailPage),
                 ),
             )
-        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+        val adapter = adapter(repository)
 
         assertThatThrownBy {
             adapter.findByDetailPage(detailPage)
@@ -131,7 +221,7 @@ class CrawledLaptopPersistenceJpaAdapterTest {
                     ),
                 ),
             )
-        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+        val adapter = adapter(repository)
 
         val snapshots = adapter.findExistingByProductCodes(listOf("P10"))
 
@@ -151,7 +241,7 @@ class CrawledLaptopPersistenceJpaAdapterTest {
         val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
         Mockito.`when`(repository.findExistingByProductCodeIn(listOf("P10")))
             .thenReturn(listOf(existingProjection(id = null, productCode = "P10")))
-        val adapter = CrawledLaptopPersistenceJpaAdapter(repository)
+        val adapter = adapter(repository)
 
         assertThatThrownBy {
             adapter.findExistingByProductCodes(listOf("P10"))
@@ -189,6 +279,14 @@ class CrawledLaptopPersistenceJpaAdapterTest {
             weight = 1.2,
             id = id,
         )
+    }
+
+    private fun adapter(
+        repository: CrawlerLaptopRepository,
+        usageRepository: CrawlerLaptopUsageRepository = Mockito.mock(CrawlerLaptopUsageRepository::class.java),
+        entityManager: EntityManager = Mockito.mock(EntityManager::class.java),
+    ): CrawledLaptopPersistenceJpaAdapter {
+        return CrawledLaptopPersistenceJpaAdapter(repository, usageRepository, entityManager)
     }
 
     private fun existingProjection(

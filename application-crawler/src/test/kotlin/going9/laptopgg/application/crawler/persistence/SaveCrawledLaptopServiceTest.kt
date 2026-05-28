@@ -124,6 +124,28 @@ class SaveCrawledLaptopServiceTest {
     }
 
     @Test
+    fun `changed detail snapshot merges saved state without a second full graph load`() {
+        val existing = crawledLaptop(price = 1_490_000, usages = listOf("사무/인강용"))
+            .toPersistedSnapshot(id = 7L)
+        laptopPort.existingByProductCode["TX001"] = existing
+
+        val result = service.saveOrUpdateLaptop(
+            crawledLaptop(price = 1_390_000, usages = listOf("영상편집")),
+        )
+
+        assertThat(result).isEqualTo(SaveResult.UPDATED)
+        assertThat(laptopPort.findWithUsageCalls).isZero()
+        assertThat(laptopPort.detailUpdates).hasSize(1)
+        val update = laptopPort.detailUpdates.single()
+        assertThat(update.laptopId).isEqualTo(7L)
+        assertThat(update.command.price).isEqualTo(1_390_000)
+        assertThat(update.command.usages).containsExactly("영상편집")
+        assertThat(profilePort.saved.single().laptopId).isEqualTo(7L)
+        assertThat(priceHistoryPort.saved.map { it.price }).containsExactly(1_390_000)
+        assertThat(recommendationScorePort.saved).hasSize(RecommendationUseCase.entries.size)
+    }
+
+    @Test
     fun `saveListSnapshot rejects missing existing laptop with explicit crawler error`() {
         assertThatThrownBy {
             service.saveListSnapshot(existingLaptopId = 404L, productCard = crawledProductCard())
@@ -293,6 +315,7 @@ class SaveCrawledLaptopServiceTest {
         val existingByProductCode = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
         val listSnapshots = mutableMapOf<Long, PersistedCrawledListSnapshot>()
         val listUpdates = mutableListOf<ListSnapshotUpdate>()
+        val detailUpdates = mutableListOf<DetailSnapshotUpdate>()
         var createdCommand: CrawledLaptopCommand? = null
             private set
         var findWithUsageCalls = 0
@@ -328,13 +351,50 @@ class SaveCrawledLaptopServiceTest {
             return true
         }
 
-        override fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
-            error("update is not used by this test")
+        override fun updateDetailSnapshot(laptopId: Long, command: UpdateCrawledLaptopCommand): Boolean {
+            val currentEntry = existingByProductCode.entries.firstOrNull { it.value.id == laptopId } ?: return false
+            detailUpdates += DetailSnapshotUpdate(laptopId, command)
+            existingByProductCode[currentEntry.key] = currentEntry.value.copy(
+                name = command.name ?: currentEntry.value.name,
+                imageUrl = command.imageUrl ?: currentEntry.value.imageUrl,
+                detailPage = command.detailPage ?: currentEntry.value.detailPage,
+                productCode = command.productCode ?: currentEntry.value.productCode,
+                price = command.price ?: currentEntry.value.price,
+                cpuManufacturer = command.cpuManufacturer ?: currentEntry.value.cpuManufacturer,
+                cpu = command.cpu ?: currentEntry.value.cpu,
+                os = command.os ?: currentEntry.value.os,
+                screenSize = command.screenSize ?: currentEntry.value.screenSize,
+                resolution = command.resolution ?: currentEntry.value.resolution,
+                brightness = command.brightness ?: currentEntry.value.brightness,
+                refreshRate = command.refreshRate ?: currentEntry.value.refreshRate,
+                ramSize = command.ramSize ?: currentEntry.value.ramSize,
+                ramType = command.ramType ?: currentEntry.value.ramType,
+                isRamReplaceable = command.isRamReplaceable ?: currentEntry.value.isRamReplaceable,
+                graphicsType = command.graphicsType ?: currentEntry.value.graphicsType,
+                tgp = command.tgp ?: currentEntry.value.tgp,
+                thunderboltCount = command.thunderboltCount ?: currentEntry.value.thunderboltCount,
+                usbCCount = command.usbCCount ?: currentEntry.value.usbCCount,
+                usbACount = command.usbACount ?: currentEntry.value.usbACount,
+                sdCard = command.sdCard ?: currentEntry.value.sdCard,
+                isSupportsPdCharging = command.isSupportsPdCharging ?: currentEntry.value.isSupportsPdCharging,
+                batteryCapacity = command.batteryCapacity ?: currentEntry.value.batteryCapacity,
+                storageCapacity = command.storageCapacity ?: currentEntry.value.storageCapacity,
+                storageSlotCount = command.storageSlotCount ?: currentEntry.value.storageSlotCount,
+                weight = command.weight ?: currentEntry.value.weight,
+                lastDetailedCrawledAt = command.lastDetailedCrawledAt ?: currentEntry.value.lastDetailedCrawledAt,
+                usages = command.usages ?: currentEntry.value.usages,
+            )
+            return true
         }
 
         data class ListSnapshotUpdate(
             val laptopId: Long,
             val command: UpdateCrawledListSnapshotCommand,
+        )
+
+        data class DetailSnapshotUpdate(
+            val laptopId: Long,
+            val command: UpdateCrawledLaptopCommand,
         )
     }
 

@@ -16,5 +16,5 @@ interface CrawledLaptopPersistencePort {
     fun findExistingByDetailPages(detailPages: Collection<String>): List<ExistingCrawledLaptopSnapshot>
     fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot
     fun updateListSnapshot(laptopId: Long, command: UpdateCrawledListSnapshotCommand): Boolean
-    fun update(laptopId: Long, command: UpdateCrawledLaptopCommand): PersistedCrawledLaptopSnapshot
+    fun updateDetailSnapshot(laptopId: Long, command: UpdateCrawledLaptopCommand): Boolean
 }

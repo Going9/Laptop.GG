@@ -1630,6 +1630,49 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler detail snapshot update must avoid second full graph load",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerLaptopRepository.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopEntityMapper.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapterTest.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/crawler/CrawlerPersistenceIntegrationTest.kt",
+			),
+			patterns = listOf(
+				Regex("""fun applyDetailUpdate\("""),
+				Regex("""fun updateDetailSnapshot\(laptopId: Long, command: UpdateCrawledLaptopCommand\): Boolean"""),
+				Regex("""laptopPort\.updateDetailSnapshot\(existingLaptop\.id, updateCommand\)"""),
+				Regex("""changeDetector\.applyDetailUpdate\(existingLaptop, updateCommand\)"""),
+				Regex("""fun updateDetailSnapshotById\("""),
+				Regex("""interface CrawlerLaptopUsageRepository"""),
+				Regex("""fun deleteByLaptopId\("""),
+				Regex("""CrawledLaptopEntityMapper\.newLaptopUsages"""),
+				Regex("""updateDetailSnapshot delegates to direct update and replaces usages without loading full laptop graph"""),
+				Regex("""changed detail snapshot merges saved state without a second full graph load"""),
+				Regex("""saveOrUpdate replaces detail usages through direct update path"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler detail snapshot update must not reload entity graph inside adapter update",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopPersistenceJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopEntityMapper.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+			),
+			patterns = listOf(
+				Regex("""val laptop = laptopRepository\.findWithUsageById\(laptopId\)"""),
+				Regex("""CrawledLaptopEntityMapper\.applyUpdate"""),
+				Regex("""laptopRepository\.save\(laptop\)\.toPersistedCrawledLaptopSnapshot\(\)"""),
+				Regex("""val savedLaptop = laptopPort\.update\("""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler profile backfill surface must not remain without an explicit runner",
 			paths = listOf(

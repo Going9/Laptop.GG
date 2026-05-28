@@ -198,6 +198,35 @@ class CrawlerPersistenceIntegrationTest {
     }
 
     @Test
+    fun `saveOrUpdate replaces detail usages through direct update path`() {
+        val existing = laptop(
+            name = "Usage Refresh Model",
+            detailPage = "https://prod.danawa.com/info/?pcode=USAGE1&cate=112758",
+            productCode = "USAGE1",
+            price = 1_390_000,
+        )
+        existing.laptopUsage += LaptopUsage(usage = "old-usage", laptop = existing)
+        val savedExisting = laptopRepository.save(existing)
+
+        val refreshedCommand = laptop(
+            name = "Usage Refresh Model",
+            detailPage = "https://prod.danawa.com/info/?pcode=USAGE1&cate=112758",
+            productCode = "USAGE1",
+            price = 1_290_000,
+        )
+        refreshedCommand.laptopUsage += LaptopUsage(usage = "사무/인강용", laptop = refreshedCommand)
+        refreshedCommand.laptopUsage += LaptopUsage(usage = "영상편집", laptop = refreshedCommand)
+
+        val result = invokeSaveOrUpdate(refreshedCommand)
+        val refreshed = laptopRepository.findWithUsageById(savedExisting.id!!)!!
+
+        assertThat(result).isEqualTo(SaveResult.UPDATED)
+        assertThat(refreshed.price).isEqualTo(1_290_000)
+        assertThat(refreshed.laptopUsage.map { it.usage }).containsExactlyInAnyOrder("사무/인강용", "영상편집")
+        assertThat(laptopPriceHistoryRepository.findAll().map { it.price }).containsExactly(1_290_000)
+    }
+
+    @Test
     fun `saveListSnapshot updates price without touching existing specs`() {
         val existing = laptopRepository.save(
             laptop(
