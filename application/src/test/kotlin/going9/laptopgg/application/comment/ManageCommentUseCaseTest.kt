@@ -47,6 +47,16 @@ class ManageCommentUseCaseTest {
     }
 
     @Test
+    fun `add normalizes display text at application boundary while preserving raw password`() {
+        useCase.add(AddCommentCommand(laptopId = 1L, author = "  iggy  ", content = "  좋아요  ", password = " pw "))
+
+        val savedComment = commentPort.records.values.single()
+        assertThat(savedComment.author).isEqualTo("iggy")
+        assertThat(savedComment.content).isEqualTo("좋아요")
+        assertThat(savedComment.passwordHash).isEqualTo("hashed: pw ")
+    }
+
+    @Test
     fun `add rejects missing laptop with explicit not found error`() {
         assertThatThrownBy {
             useCase.add(AddCommentCommand(laptopId = 99L, author = "iggy", content = "좋아요", password = "pw"))
@@ -111,6 +121,21 @@ class ManageCommentUseCaseTest {
         assertThat(transactionPort.readCalls).isEqualTo(1)
         assertThat(transactionPort.writeCalls).isEqualTo(1)
         assertThat(passwordHashPort.matchesInsideTransaction).isFalse()
+    }
+
+    @Test
+    fun `update normalizes display content at application boundary`() {
+        commentPort.records[7L] = CommentRecord(
+            id = 7L,
+            laptopId = 3L,
+            author = "iggy",
+            content = "좋아요",
+            passwordHash = "hashed:secret",
+        )
+
+        useCase.update(7L, UpdateCommentCommand(password = "secret", content = "  수정  "))
+
+        assertThat(commentPort.records.getValue(7L).content).isEqualTo("수정")
     }
 
     @Test

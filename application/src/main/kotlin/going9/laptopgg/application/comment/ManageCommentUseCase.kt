@@ -24,6 +24,8 @@ internal class DefaultManageCommentUseCase(
 ) : ManageCommentUseCase {
     override fun add(command: AddCommentCommand) {
         validateAdd(command)
+        val author = normalizeDisplayText(command.author)
+        val content = normalizeDisplayText(command.content)
         transactionPort.read {
             validateLaptopExists(command.laptopId)
         }
@@ -31,8 +33,8 @@ internal class DefaultManageCommentUseCase(
         transactionPort.write {
             commentPort.add(
                 laptopId = command.laptopId,
-                author = command.author,
-                content = command.content,
+                author = author,
+                content = content,
                 passwordHash = passwordHash,
             )
         }
@@ -55,10 +57,11 @@ internal class DefaultManageCommentUseCase(
     override fun update(commentId: Long, command: UpdateCommentCommand): CommentMutationResult {
         validateCommentId(commentId)
         validateUpdate(command)
+        val content = normalizeDisplayText(command.content)
         val comment = findCommentInReadTransaction(commentId)
         validatePassword(comment, command.password)
         return transactionPort.write {
-            commentPort.updateContent(commentId, command.content)
+            commentPort.updateContent(commentId, content)
             CommentMutationResult(laptopId = comment.laptopId)
         }
     }
@@ -120,6 +123,10 @@ internal class DefaultManageCommentUseCase(
         if (value.isBlank()) {
             throw InvalidCommandException("$fieldName must not be blank.")
         }
+    }
+
+    private fun normalizeDisplayText(value: String): String {
+        return value.trim()
     }
 
     private fun validatePassword(comment: CommentRecord, password: String) {

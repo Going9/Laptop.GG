@@ -932,6 +932,23 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "comment use case must normalize display text without changing raw passwords",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/comment/ManageCommentUseCaseTest.kt",
+			),
+			patterns = listOf(
+				Regex("""val author = normalizeDisplayText\(command\.author\)"""),
+				Regex("""val content = normalizeDisplayText\(command\.content\)"""),
+				Regex("""private fun normalizeDisplayText\(value: String\): String"""),
+				Regex("""return value\.trim\(\)"""),
+				Regex("""add normalizes display text at application boundary while preserving raw password"""),
+				Regex("""update normalizes display content at application boundary"""),
+				Regex("""hashed: pw """),
+			),
+		)
+
 		assertAbsent(
 			rule = "application must not depend on persistence models, infrastructure, or public web DTOs",
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
