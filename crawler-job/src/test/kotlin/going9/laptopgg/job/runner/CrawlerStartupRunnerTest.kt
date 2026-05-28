@@ -25,6 +25,15 @@ class CrawlerStartupRunnerTest {
     }
 
     @Test
+    fun `unknown filter profile keeps fallback observability`() {
+        val resolution = CrawlerFilterProfile.resolve(" weird-profile ")
+
+        assertThat(resolution.profile).isEqualTo(CrawlerFilterProfile.CORE)
+        assertThat(resolution.usedDefaultForUnknownValue).isTrue()
+        assertThat(resolution.rawValue).isEqualTo("weird-profile")
+    }
+
+    @Test
     fun `resolved filter profile is typed for runtime use`() {
         val properties = CrawlerJobProperties(filterProfile = " extended ")
 

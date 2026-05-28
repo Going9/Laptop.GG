@@ -1,6 +1,7 @@
 package going9.laptopgg.job.config
 
 import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfileResolution
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app.crawler")
@@ -21,7 +22,11 @@ internal data class CrawlerJobProperties(
     }
 
     fun resolvedFilterProfile(): CrawlerFilterProfile {
-        return CrawlerFilterProfile.from(filterProfile)
+        return resolvedFilterProfileResolution().profile
+    }
+
+    fun resolvedFilterProfileResolution(): CrawlerFilterProfileResolution {
+        return CrawlerFilterProfile.resolve(filterProfile)
     }
 
     fun resolvedMaxListPages(): Int {

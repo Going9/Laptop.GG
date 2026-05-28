@@ -364,6 +364,23 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler filter profile fallback must stay observable before execution",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerFilterProfile.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerJobProperties.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunner.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunnerTest.kt",
+			),
+			patterns = listOf(
+				Regex("""data class CrawlerFilterProfileResolution"""),
+				Regex("""usedDefaultForUnknownValue"""),
+				Regex("""fun resolvedFilterProfileResolution\(\): CrawlerFilterProfileResolution"""),
+				Regex("""logger\.warn\("""),
+				Regex("""unknown filter profile keeps fallback observability"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler runtime must not pass raw filter profile strings after configuration parsing",
 			paths = listOf(

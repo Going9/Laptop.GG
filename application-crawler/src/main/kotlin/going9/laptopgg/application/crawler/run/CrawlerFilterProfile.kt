@@ -10,17 +10,31 @@ enum class CrawlerFilterProfile(
 
     companion object {
         fun from(rawValue: String?): CrawlerFilterProfile {
-            return when (rawValue
+            return resolve(rawValue).profile
+        }
+
+        fun resolve(rawValue: String?): CrawlerFilterProfileResolution {
+            val normalizedValue = rawValue
                 ?.trim()
                 ?.takeIf { it.isNotBlank() }
                 ?.lowercase()
-            ) {
-                null -> CORE
-                CORE.storageValue -> CORE
-                EXTENDED.storageValue -> EXTENDED
-                NONE.storageValue, "all" -> NONE
-                else -> CORE
+            return when (normalizedValue) {
+                null -> CrawlerFilterProfileResolution(profile = CORE, usedDefaultForUnknownValue = false)
+                CORE.storageValue -> CrawlerFilterProfileResolution(profile = CORE, usedDefaultForUnknownValue = false)
+                EXTENDED.storageValue -> CrawlerFilterProfileResolution(profile = EXTENDED, usedDefaultForUnknownValue = false)
+                NONE.storageValue, "all" -> CrawlerFilterProfileResolution(profile = NONE, usedDefaultForUnknownValue = false)
+                else -> CrawlerFilterProfileResolution(
+                    profile = CORE,
+                    usedDefaultForUnknownValue = true,
+                    rawValue = normalizedValue,
+                )
             }
         }
     }
 }
+
+data class CrawlerFilterProfileResolution(
+    val profile: CrawlerFilterProfile,
+    val usedDefaultForUnknownValue: Boolean,
+    val rawValue: String? = null,
+)
