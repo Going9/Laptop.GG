@@ -40,7 +40,7 @@ internal class RecommendationScoreService(
         val scores = RecommendationUseCase.entries.map { useCase ->
             UpsertRecommendationScoreCommand(
                 laptopId = profileState.laptopId,
-                useCase = useCase.name,
+                useCase = useCase,
                 gateScore = recommendationScoringPolicy.gateScore(gateInputs, useCase),
                 staticScore = recommendationScoringPolicy.staticScore(useCase, inputs),
                 budgetWeight = recommendationScoringPolicy.budgetWeight(useCase),

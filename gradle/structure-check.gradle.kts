@@ -101,9 +101,9 @@ val verifyStructure by tasks.registering {
 			":laptop-taxonomy" to emptySet(),
 			":persistence-model" to emptySet(),
 			":recommendation-contract" to emptySet(),
-			":recommendation-core" to setOf(":recommendation-contract"),
-			":application" to setOf(":recommendation-contract", ":recommendation-core"),
-			":application-crawler" to setOf(":laptop-taxonomy", ":recommendation-contract", ":recommendation-core"),
+			":recommendation-core" to emptySet(),
+			":application" to setOf(":recommendation-core"),
+			":application-crawler" to setOf(":recommendation-core"),
 			":infrastructure-jpa-core" to emptySet(),
 			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":infrastructure-jpa-core"),
@@ -124,9 +124,9 @@ val verifyStructure by tasks.registering {
 			":laptop-taxonomy" to emptySet(),
 			":persistence-model" to setOf(":laptop-taxonomy"),
 			":recommendation-contract" to emptySet(),
-			":recommendation-core" to emptySet(),
-			":application" to emptySet(),
-			":application-crawler" to emptySet(),
+			":recommendation-core" to setOf(":recommendation-contract"),
+			":application" to setOf(":recommendation-contract"),
+			":application-crawler" to setOf(":laptop-taxonomy", ":recommendation-contract"),
 			":infrastructure-jpa-core" to emptySet(),
 			":infrastructure-jpa" to emptySet(),
 			":infrastructure-jpa-crawler" to emptySet(),
@@ -136,7 +136,7 @@ val verifyStructure by tasks.registering {
 			":integration-tests" to emptySet(),
 		).forEach { (projectPath, expectedProjectPaths) ->
 			assertProjectDependencies(
-				rule = "public module dependency graph must expose only shared taxonomy",
+				rule = "public module dependency graph must expose only shared contracts",
 				projectPath = projectPath,
 				configurationName = "api",
 				expectedProjectPaths = expectedProjectPaths,
@@ -627,6 +627,34 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""List<RecommendationScore>"""),
 				Regex("""Iterable<RecommendationScore>"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler recommendation score command must keep use case typed until adapter storage",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/RecommendationScoreJpaAdapter.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreServiceTest.kt",
+			),
+			patterns = listOf(
+				Regex("""val useCase: RecommendationUseCase"""),
+				Regex("""useCase = useCase,"""),
+				Regex("""val useCase = command\.useCase\.name"""),
+				Regex("""containsExactlyElementsOf\(RecommendationUseCase\.entries\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler recommendation score application contract must not use raw use case strings",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
+			),
+			patterns = listOf(
+				Regex("""val useCase: String"""),
+				Regex("""useCase = useCase\.name"""),
 			),
 		)
 

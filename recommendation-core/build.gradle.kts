@@ -1,3 +1,7 @@
+plugins {
+    `java-library`
+}
+
 dependencies {
-    implementation(project(":recommendation-contract"))
+    api(project(":recommendation-contract"))
 }

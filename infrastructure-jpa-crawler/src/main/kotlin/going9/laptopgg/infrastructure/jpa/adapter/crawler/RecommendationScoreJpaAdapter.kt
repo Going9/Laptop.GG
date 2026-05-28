@@ -29,9 +29,10 @@ internal class RecommendationScoreJpaAdapter(
         val existingScores = recommendationScoreRepository.findAllByLaptopId(laptopId)
             .associateBy { it.useCase }
         val entities = commands.map { command ->
-            val score = existingScores[command.useCase] ?: RecommendationScore(
+            val useCase = command.useCase.name
+            val score = existingScores[useCase] ?: RecommendationScore(
                 laptop = laptopReference,
-                useCase = command.useCase,
+                useCase = useCase,
                 gateScore = 0,
                 staticScore = 0.0,
                 budgetWeight = 0.0,

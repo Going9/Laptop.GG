@@ -1,5 +1,9 @@
+plugins {
+    `java-library`
+}
+
 dependencies {
-    implementation(project(":recommendation-contract"))
+    api(project(":recommendation-contract"))
     implementation(project(":recommendation-core"))
 
     testImplementation("org.junit.jupiter:junit-jupiter")

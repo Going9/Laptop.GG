@@ -29,7 +29,7 @@ class RecommendationScoreServiceTest {
         assertThat(recommendationScorePort.saved).hasSize(RecommendationUseCase.entries.size)
         assertThat(recommendationScorePort.saved.map { it.laptopId }.distinct()).containsExactly(30L)
         assertThat(recommendationScorePort.saved.map { it.useCase })
-            .containsExactlyElementsOf(RecommendationUseCase.entries.map { it.name })
+            .containsExactlyElementsOf(RecommendationUseCase.entries)
         assertThat(recommendationScorePort.saved).allSatisfy { command ->
             assertThat(command.gateScore).isGreaterThanOrEqualTo(0)
             assertThat(command.staticScore).isGreaterThanOrEqualTo(0.0)
