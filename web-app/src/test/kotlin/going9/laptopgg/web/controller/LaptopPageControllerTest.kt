@@ -33,7 +33,7 @@ class LaptopPageControllerTest {
         assertThat(viewName).isEqualTo("laptop-detail")
         assertThat(model["laptopDetail"]).isEqualTo(LaptopDetailResponse.from(laptopDetail))
         assertThat(model["commentsOfLaptop"]).isEqualTo(comments.map(CommentResponse::from))
-        assertThat(model["commentRequest"]).isEqualTo(CommentRequest())
+        assertThat(model["commentRequest"]).isEqualTo(CommentRequest(laptopId = 10L))
     }
 
     private fun laptopDetailResponse(id: Long): LaptopDetailResult {

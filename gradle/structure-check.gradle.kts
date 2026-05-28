@@ -1114,6 +1114,28 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "laptop detail page must expose the comment use case surface it loads",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/LaptopPageController.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/CommentPageController.kt",
+				"web-app/src/main/resources/templates/laptop-detail.html",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/CommentPageControllerTest.kt",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/LaptopDetailPageRenderingTest.kt",
+			),
+			patterns = listOf(
+				Regex("""CommentRequest\(laptopId = laptopId\)"""),
+				Regex("""@PostMapping\("/comments/\{commentId}/delete"\)"""),
+				Regex("""commentsOfLaptop"""),
+				Regex("""th:action="@\{/comments}""""),
+				Regex("""comment\.id"""),
+				Regex("""'/edit'"""),
+				Regex("""'/delete'"""),
+				Regex("""comment delete redirects to laptop detail after service call"""),
+				Regex("""laptop detail page renders comment create list edit and delete surface"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "thymeleaf templates must keep CSS and behavior in static resources",
 			paths = listOf("web-app/src/main/resources/templates"),

@@ -21,7 +21,7 @@ internal class LaptopPageController(
         val commentsOfLaptop = manageCommentUseCase.listByLaptop(laptopId).map(CommentResponse::from)
         model.addAttribute("laptopDetail", laptopDetail)
         model.addAttribute("commentsOfLaptop", commentsOfLaptop)
-        model.addAttribute("commentRequest", CommentRequest())
+        model.addAttribute("commentRequest", CommentRequest(laptopId = laptopId))
         return "laptop-detail"
     }
 }

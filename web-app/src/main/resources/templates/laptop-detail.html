@@ -123,6 +123,63 @@
             </div>
         </section>
     </section>
+
+    <section class="comment-panel reveal delay-030">
+        <div class="comment-panel-heading">
+            <div>
+                <p class="eyebrow">Comments</p>
+                <h2 class="spec-panel-title">사용자 의견</h2>
+            </div>
+            <span class="comment-count" th:text="${#lists.size(commentsOfLaptop)} + '개'"></span>
+        </div>
+
+        <form th:action="@{/comments}" th:object="${commentRequest}" method="post" class="comment-form">
+            <input type="hidden" th:field="*{laptopId}">
+            <div class="comment-form-grid">
+                <label>
+                    <span>작성자</span>
+                    <input type="text" th:field="*{author}" maxlength="40" required>
+                </label>
+                <label>
+                    <span>비밀번호</span>
+                    <input type="password" th:field="*{passWord}" maxlength="80" required>
+                </label>
+            </div>
+            <label>
+                <span>내용</span>
+                <textarea th:field="*{content}" rows="4" maxlength="500" required></textarea>
+            </label>
+            <button type="submit" class="primary-button">댓글 남기기</button>
+        </form>
+
+        <div class="comment-empty" th:if="${#lists.isEmpty(commentsOfLaptop)}">아직 등록된 의견이 없습니다.</div>
+
+        <div class="comment-list" th:unless="${#lists.isEmpty(commentsOfLaptop)}">
+            <article class="comment-item" th:each="comment : ${commentsOfLaptop}">
+                <div class="comment-copy">
+                    <strong th:text="${comment.author}"></strong>
+                    <p th:text="${comment.content}"></p>
+                </div>
+                <div class="comment-actions">
+                    <form class="comment-inline-form"
+                          method="post"
+                          th:action="@{'/comments/' + ${comment.id} + '/edit'}">
+                        <input type="hidden" name="laptopId" th:value="${laptopDetail.id}">
+                        <textarea name="content" rows="2" maxlength="500" required th:text="${comment.content}"></textarea>
+                        <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
+                        <button type="submit" class="secondary-button">수정</button>
+                    </form>
+                    <form class="comment-delete-form"
+                          method="post"
+                          th:action="@{'/comments/' + ${comment.id} + '/delete'}">
+                        <input type="hidden" name="laptopId" th:value="${laptopDetail.id}">
+                        <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
+                        <button type="submit" class="ghost-button">삭제</button>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
 </main>
 
 </body>

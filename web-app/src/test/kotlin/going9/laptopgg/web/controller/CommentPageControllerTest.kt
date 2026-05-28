@@ -1,6 +1,7 @@
 package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.comment.AddCommentCommand
+import going9.laptopgg.application.comment.DeleteCommentCommand
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.comment.UpdateCommentCommand
 import going9.laptopgg.web.dto.request.CommentRequest
@@ -39,6 +40,19 @@ class CommentPageControllerTest {
         Mockito.verify(manageCommentUseCase).update(
             7L,
             UpdateCommentCommand(password = "pw", content = "수정"),
+        )
+    }
+
+    @Test
+    fun `comment delete redirects to laptop detail after service call`() {
+        val request = CommentRequest(laptopId = 3L, passWord = "pw")
+
+        val viewName = controller.deleteComment(7L, request)
+
+        assertThat(viewName).isEqualTo("redirect:/laptops/3")
+        Mockito.verify(manageCommentUseCase).delete(
+            7L,
+            DeleteCommentCommand(password = "pw"),
         )
     }
 }
