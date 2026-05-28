@@ -2,6 +2,7 @@ package going9.laptopgg.application.recommendation
 
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.application.common.InvalidCommandException
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateFilter
 import going9.laptopgg.application.recommendation.port.RecommendationCandidatePageQuery
@@ -22,6 +23,7 @@ internal class DefaultRecommendLaptopsUseCase(
     private val transactionPort: ApplicationTransactionPort,
 ) : RecommendLaptopsUseCase {
     override fun recommend(request: LaptopRecommendationQuery, pageQuery: PageQuery): PagedResult<LaptopRecommendationResult> {
+        validatePageQuery(pageQuery)
         return transactionPort.read {
             recommendInTransaction(request, pageQuery)
         }
@@ -68,4 +70,13 @@ internal class DefaultRecommendLaptopsUseCase(
             pageQuery = pageQuery,
         ),
     )
+
+    private fun validatePageQuery(pageQuery: PageQuery) {
+        if (pageQuery.page < 0) {
+            throw InvalidCommandException("page must not be negative.")
+        }
+        if (pageQuery.size <= 0) {
+            throw InvalidCommandException("size must be positive.")
+        }
+    }
 }

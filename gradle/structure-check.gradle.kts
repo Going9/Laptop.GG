@@ -617,6 +617,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/LaptopDetailJpaAdapter.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/RecommendationCandidateJpaAdapter.kt",
@@ -2307,6 +2308,9 @@ val verifyStructure by tasks.registering {
 				Regex("""transactionPort: ApplicationTransactionPort"""),
 				Regex("""transactionPort = transactionPort"""),
 				Regex("""recommendation query runs inside application read transaction"""),
+				Regex("""recommendation query rejects invalid page query before persistence"""),
+				Regex("""page must not be negative"""),
+				Regex("""size must be positive"""),
 			),
 		)
 

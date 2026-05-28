@@ -2,11 +2,13 @@ package going9.laptopgg.application.recommendation
 
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.application.common.InvalidCommandException
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import going9.laptopgg.application.recommendation.port.RecommendationCandidatePageQuery
 import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateRecord
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class RecommendLaptopsUseCaseTransactionTest {
@@ -24,6 +26,26 @@ class RecommendLaptopsUseCaseTransactionTest {
         assertThat(transactionPort.readCount).isEqualTo(1)
         assertThat(transactionPort.writeCount).isZero()
         assertThat(candidatePort.calledInsideReadTransaction).isTrue()
+    }
+
+    @Test
+    fun `recommendation query rejects invalid page query before persistence`() {
+        val transactionPort = RecordingApplicationTransactionPort()
+        val candidatePort = RecordingRecommendationCandidatePort(transactionPort)
+        val useCase = RecommendationUseCaseAssembler.createRecommendLaptopsUseCase(
+            recommendationCandidatePort = candidatePort,
+            transactionPort = transactionPort,
+        )
+
+        assertThatThrownBy {
+            useCase.recommend(LaptopRecommendationQuery(), PageQuery(page = -1, size = 10))
+        }.isInstanceOf(InvalidCommandException::class.java)
+        assertThatThrownBy {
+            useCase.recommend(LaptopRecommendationQuery(), PageQuery(page = 0, size = 0))
+        }.isInstanceOf(InvalidCommandException::class.java)
+
+        assertThat(transactionPort.readCount).isZero()
+        assertThat(candidatePort.callCount).isZero()
     }
 
     private class RecordingApplicationTransactionPort : ApplicationTransactionPort {
@@ -53,12 +75,15 @@ class RecommendLaptopsUseCaseTransactionTest {
     private class RecordingRecommendationCandidatePort(
         private val transactionPort: RecordingApplicationTransactionPort,
     ) : RecommendationCandidatePort {
+        var callCount = 0
+            private set
         var calledInsideReadTransaction = false
             private set
 
         override fun findRecommendationCandidatePage(
             query: RecommendationCandidatePageQuery,
         ): PagedResult<RecommendationCandidateRecord> {
+            callCount++
             calledInsideReadTransaction = transactionPort.insideReadTransaction
             return PagedResult(
                 content = listOf(recommendationCandidate()),
