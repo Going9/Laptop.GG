@@ -4,7 +4,7 @@ import going9.laptopgg.recommendation.RecommendationUseCase
 import org.springframework.stereotype.Component
 
 @Component
-class RecommendationUseCasePresentation {
+internal class RecommendationUseCasePresentation {
     fun options(): List<UseCaseOption> {
         return listOf(
             UseCaseOption(
@@ -71,7 +71,7 @@ class RecommendationUseCasePresentation {
     }
 }
 
-data class UseCaseOption(
+internal data class UseCaseOption(
     val value: RecommendationUseCase,
     val label: String,
     val description: String,

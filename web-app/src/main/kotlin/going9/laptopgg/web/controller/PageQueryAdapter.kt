@@ -8,7 +8,7 @@ import going9.laptopgg.application.common.SortProperty
 private const val DEFAULT_PAGE_SIZE = 10
 private const val MAX_PAGE_SIZE = 2_000
 
-fun pageQueryFrom(
+internal fun pageQueryFrom(
     page: Int?,
     size: Int?,
     sort: List<String>?,

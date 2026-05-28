@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 
 @Controller
-class LaptopPageController(
+internal class LaptopPageController(
     private val getLaptopDetailUseCase: GetLaptopDetailUseCase,
     private val manageCommentUseCase: ManageCommentUseCase,
 ) {

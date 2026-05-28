@@ -5,7 +5,7 @@ import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import org.springframework.stereotype.Component
 
 @Component
-class RecommendationScreenSizePresentation {
+internal class RecommendationScreenSizePresentation {
     fun options(): List<ScreenSizeModeOption> {
         return listOf(
             ScreenSizeModeOption(
@@ -35,7 +35,7 @@ class RecommendationScreenSizePresentation {
     }
 }
 
-data class ScreenSizeModeOption(
+internal data class ScreenSizeModeOption(
     val value: ScreenSizeMode,
     val label: String,
     val description: String,

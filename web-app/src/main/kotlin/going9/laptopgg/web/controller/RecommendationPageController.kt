@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
-class RecommendationPageController(
+internal class RecommendationPageController(
     private val recommendLaptopsUseCase: RecommendLaptopsUseCase,
     private val recommendationPageModelFactory: RecommendationPageModelFactory,
 ) {

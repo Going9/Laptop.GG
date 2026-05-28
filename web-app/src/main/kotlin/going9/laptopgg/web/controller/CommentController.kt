@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/comments")
-class CommentController(
+internal class CommentController(
     private val manageCommentUseCase: ManageCommentUseCase,
 ) {
 

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/laptops")
-class LaptopController(
+internal class LaptopController(
     private val getLaptopDetailUseCase: GetLaptopDetailUseCase,
 ) {
 

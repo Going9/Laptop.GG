@@ -914,6 +914,22 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "web-app implementation packages must not expose public Kotlin declarations",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/config",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller",
+				"web-app/src/main/kotlin/going9/laptopgg/web/view",
+			),
+			patterns = listOf(
+				Regex("""^(data\s+)?class\s+"""),
+				Regex("""^object\s+"""),
+				Regex("""^interface\s+"""),
+				Regex("""^enum\s+class\s+"""),
+				Regex("""^fun\s+"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app must not keep legacy form templates or routes",
 			paths = listOf("web-app/src/main"),
 			patterns = listOf(

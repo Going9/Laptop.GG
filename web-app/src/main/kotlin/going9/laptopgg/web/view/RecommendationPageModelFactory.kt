@@ -8,7 +8,7 @@ import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
 import org.springframework.stereotype.Component
 
 @Component
-class RecommendationPageModelFactory(
+internal class RecommendationPageModelFactory(
     private val useCasePresentation: RecommendationUseCasePresentation,
     private val screenSizePresentation: RecommendationScreenSizePresentation,
     private val presetCatalog: RecommendationPresetCatalog,

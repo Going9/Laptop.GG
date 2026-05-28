@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/recommends")
-class RecommendationController(
+internal class RecommendationController(
     private val recommendLaptopsUseCase: RecommendLaptopsUseCase,
 ) {
 

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 
 @Controller
-class CommentPageController(
+internal class CommentPageController(
     private val manageCommentUseCase: ManageCommentUseCase,
 ) {
     @PostMapping("/comments")
