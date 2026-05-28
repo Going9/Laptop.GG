@@ -1184,7 +1184,9 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/common/CrawlerApplicationException.kt",
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopCommandValidator.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/LoadExistingCrawledLaptopLookupServiceTest.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunServiceTest.kt",
 			),
 			patterns = listOf(
@@ -1286,6 +1288,40 @@ val verifyStructure by tasks.registering {
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/ExistingCrawledLaptopLookupLoader.kt"),
 			patterns = listOf(
 				Regex("""CrawledLaptopPersistencePort"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler save use case must not expose batch existing lookup loading",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopUseCase.kt"),
+			patterns = listOf(
+				Regex("""loadExistingLookup"""),
+				Regex("""ExistingCrawledLaptopLookup"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler existing lookup must be its own use case",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/LoadExistingCrawledLaptopLookupUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/LoadExistingCrawledLaptopLookupService.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt",
+			),
+			patterns = listOf(
+				Regex("""interface LoadExistingCrawledLaptopLookupUseCase"""),
+				Regex("""ExistingCrawledLaptopLookupLoader"""),
+				Regex("""transactionPort\.read"""),
+				Regex("""LoadExistingCrawledLaptopLookupUseCase"""),
+				Regex("""loadExistingLookupUseCase\.load"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler batch processor must not use save use case for existing lookup",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt"),
+			patterns = listOf(
+				Regex("""SaveCrawledLaptopUseCase"""),
+				Regex("""saveCrawledLaptopUseCase\.load"""),
 			),
 		)
 

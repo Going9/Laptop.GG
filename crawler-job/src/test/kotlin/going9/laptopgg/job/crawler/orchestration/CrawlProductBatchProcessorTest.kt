@@ -3,6 +3,7 @@ package going9.laptopgg.job.crawler.orchestration
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLookup
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupUseCase
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.SaveResult
 import going9.laptopgg.job.crawler.detail.BuildLaptopResult
@@ -19,12 +20,13 @@ import org.mockito.Mockito
 
 class CrawlProductBatchProcessorTest {
     private val fixedNow = LocalDateTime.of(2026, 5, 28, 15, 10)
+    private val loadExistingLookupUseCase = Mockito.mock(LoadExistingCrawledLaptopLookupUseCase::class.java)
     private val saveCrawledLaptopUseCase = Mockito.mock(SaveCrawledLaptopUseCase::class.java)
     private val detailCrawler = Mockito.mock(ProductDetailCrawler::class.java)
     private val snapshotSaver = CrawlProductSnapshotSaver(saveCrawledLaptopUseCase)
     private val detailRefreshOutcomeHandler = DetailRefreshOutcomeHandler(snapshotSaver)
     private val processor = CrawlProductBatchProcessor(
-        saveCrawledLaptopUseCase,
+        loadExistingLookupUseCase,
         detailCrawler,
         snapshotSaver,
         detailRefreshOutcomeHandler,
@@ -35,7 +37,7 @@ class CrawlProductBatchProcessorTest {
     fun `fresh existing product is saved as list snapshot without detail refresh`() {
         val productCard = productCard("100")
         val existingLaptop = existingLaptop(id = 1L, productCode = productCard.productCode)
-        Mockito.`when`(saveCrawledLaptopUseCase.loadExistingLookup(listOf(productCard.toCommand())))
+        Mockito.`when`(loadExistingLookupUseCase.load(listOf(productCard.toCommand())))
             .thenReturn(
                 ExistingCrawledLaptopLookup(
                     byProductCode = mapOf(productCard.productCode to existingLaptop),
@@ -67,7 +69,7 @@ class CrawlProductBatchProcessorTest {
             workItem = workItems.first(),
             buildResult = BuildLaptopResult(command = crawledLaptopCommand(productCard), degradationReasons = emptyList()),
         )
-        Mockito.`when`(saveCrawledLaptopUseCase.loadExistingLookup(listOf(productCard.toCommand())))
+        Mockito.`when`(loadExistingLookupUseCase.load(listOf(productCard.toCommand())))
             .thenReturn(ExistingCrawledLaptopLookup(byProductCode = emptyMap(), byDetailPage = emptyMap()))
         Mockito.`when`(detailCrawler.fetchDetailRefreshOutcomes(workItems, detailFetchExecutor))
             .thenReturn(listOf(detailOutcome))

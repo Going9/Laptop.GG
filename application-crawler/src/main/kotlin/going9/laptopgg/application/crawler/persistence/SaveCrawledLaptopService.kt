@@ -1,73 +1,31 @@
 package going9.laptopgg.application.crawler.persistence
 
-import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 
 internal class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPersistencePort,
-    private val existingLookupLoader: ExistingCrawledLaptopLookupLoader,
     private val postSaveSynchronizer: CrawledLaptopPostSaveSynchronizer,
     private val transactionPort: CrawlerTransactionPort,
     private val changeDetector: CrawledLaptopChangeDetector = CrawledLaptopChangeDetector(),
+    private val validator: CrawledLaptopCommandValidator = CrawledLaptopCommandValidator(),
 ) : SaveCrawledLaptopUseCase {
-    override fun loadExistingLookup(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
-        val normalizedProductCards = productCards.map(changeDetector::normalizedProductCard)
-        normalizedProductCards.forEach(::validateProductCard)
-        return transactionPort.read {
-            existingLookupLoader.load(normalizedProductCards)
-        }
-    }
-
     override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
-        validateExistingLaptopId(existingLaptopId)
+        validator.validateExistingLaptopId(existingLaptopId)
         val normalizedProductCard = changeDetector.normalizedProductCard(productCard)
-        validateProductCard(normalizedProductCard)
+        validator.validateProductCard(normalizedProductCard)
         return transactionPort.write {
             saveListSnapshotInTransaction(existingLaptopId, normalizedProductCard)
         }
     }
 
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
-        existingLaptopId?.let(::validateExistingLaptopId)
+        existingLaptopId?.let(validator::validateExistingLaptopId)
         val normalizedCommand = changeDetector.normalizedDetailCommand(command)
-        validateLaptopCommand(normalizedCommand)
+        validator.validateLaptopCommand(normalizedCommand)
         return transactionPort.write {
             saveOrUpdateLaptopInTransaction(normalizedCommand, existingLaptopId)
-        }
-    }
-
-    private fun validateExistingLaptopId(existingLaptopId: Long) {
-        if (existingLaptopId <= 0) {
-            throw CrawlerInvalidCommandException("existingLaptopId must be positive.")
-        }
-    }
-
-    private fun validateProductCard(productCard: CrawledProductCardCommand) {
-        requireNonBlank(fieldName = "productCode", value = productCard.productCode)
-        requireNonBlank(fieldName = "productName", value = productCard.productName)
-        requireNonBlank(fieldName = "detailPage", value = productCard.detailPage)
-        requireNonBlank(fieldName = "imageUrl", value = productCard.imageUrl)
-        productCard.price?.let { requireNonNegative(fieldName = "price", value = it) }
-    }
-
-    private fun validateLaptopCommand(command: CrawledLaptopCommand) {
-        requireNonBlank(fieldName = "name", value = command.name)
-        requireNonBlank(fieldName = "imageUrl", value = command.imageUrl)
-        requireNonBlank(fieldName = "detailPage", value = command.detailPage)
-        command.price?.let { requireNonNegative(fieldName = "price", value = it) }
-    }
-
-    private fun requireNonBlank(fieldName: String, value: String) {
-        if (value.isBlank()) {
-            throw CrawlerInvalidCommandException("$fieldName must not be blank.")
-        }
-    }
-
-    private fun requireNonNegative(fieldName: String, value: Int) {
-        if (value < 0) {
-            throw CrawlerInvalidCommandException("$fieldName must not be negative.")
         }
     }
 

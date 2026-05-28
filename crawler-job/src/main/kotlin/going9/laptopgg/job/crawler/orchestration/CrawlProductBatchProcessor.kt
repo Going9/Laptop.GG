@@ -1,6 +1,6 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupUseCase
 import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.detail.ProductDetailCrawler
 import going9.laptopgg.job.crawler.list.ProductCard
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 
 @Component
 internal class CrawlProductBatchProcessor(
-    private val saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase,
+    private val loadExistingLookupUseCase: LoadExistingCrawledLaptopLookupUseCase,
     private val detailCrawler: ProductDetailCrawler,
     private val snapshotSaver: CrawlProductSnapshotSaver,
     private val detailRefreshOutcomeHandler: DetailRefreshOutcomeHandler,
@@ -27,7 +27,7 @@ internal class CrawlProductBatchProcessor(
         }
 
         var pagePriceOnlyUpdatedCount = 0
-        val existingLookup = saveCrawledLaptopUseCase.loadExistingLookup(productCards.map { it.toCommand() })
+        val existingLookup = loadExistingLookupUseCase.load(productCards.map { it.toCommand() })
         val workPlan = DetailRefreshPlanner.plan(productCards, existingLookup, now())
 
         for (workItem in workPlan.priceOnlySnapshotWorkItems) {

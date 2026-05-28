@@ -2,6 +2,7 @@ package going9.laptopgg.job.config
 
 import going9.laptopgg.application.crawler.assembly.CrawlerPersistenceAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
+import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupUseCase
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
@@ -16,7 +17,6 @@ internal class CrawlerPersistenceUseCaseConfig {
     @Bean
     fun saveCrawledLaptopService(
         laptopPort: CrawledLaptopPersistencePort,
-        existingLaptopLookupPort: ExistingCrawledLaptopLookupPort,
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopPriceHistoryPort: LaptopPriceHistoryPort,
         recommendationScorePort: RecommendationScorePort,
@@ -24,10 +24,20 @@ internal class CrawlerPersistenceUseCaseConfig {
     ): SaveCrawledLaptopUseCase {
         return CrawlerPersistenceAssembler.createSaveCrawledLaptopUseCase(
             laptopPort = laptopPort,
-            existingLaptopLookupPort = existingLaptopLookupPort,
             laptopProfilePort = laptopProfilePort,
             laptopPriceHistoryPort = laptopPriceHistoryPort,
             recommendationScorePort = recommendationScorePort,
+            transactionPort = transactionPort,
+        )
+    }
+
+    @Bean
+    fun loadExistingCrawledLaptopLookupUseCase(
+        existingLaptopLookupPort: ExistingCrawledLaptopLookupPort,
+        transactionPort: CrawlerTransactionPort,
+    ): LoadExistingCrawledLaptopLookupUseCase {
+        return CrawlerPersistenceAssembler.createLoadExistingCrawledLaptopLookupUseCase(
+            existingLaptopLookupPort = existingLaptopLookupPort,
             transactionPort = transactionPort,
         )
     }

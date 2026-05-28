@@ -4,7 +4,6 @@ import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
-import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
 import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.RecordPriceHistoryCommand
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
@@ -46,7 +45,6 @@ class SaveCrawledLaptopServiceTest {
     )
     private val service = SaveCrawledLaptopService(
         laptopPort = laptopPort,
-        existingLookupLoader = ExistingCrawledLaptopLookupLoader(laptopPort),
         postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
             laptopProfileSynchronizer = laptopProfileService,
             laptopPriceHistoryRecorder = LaptopPriceHistoryService(
@@ -188,15 +186,6 @@ class SaveCrawledLaptopServiceTest {
     }
 
     @Test
-    fun `loadExistingLookup rejects invalid product card before persistence`() {
-        assertThatThrownBy {
-            service.loadExistingLookup(listOf(crawledProductCard(productCode = "")))
-        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
-
-        assertThat(transactionPort.readCount).isZero()
-    }
-
-    @Test
     fun `saveListSnapshot rejects invalid command before persistence`() {
         assertThatThrownBy {
             service.saveListSnapshot(existingLaptopId = 0L, productCard = crawledProductCard())
@@ -312,7 +301,7 @@ class SaveCrawledLaptopServiceTest {
         }
     }
 
-    private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort, ExistingCrawledLaptopLookupPort {
+    private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
         val existingByProductCode = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
         val listSnapshots = mutableMapOf<Long, PersistedCrawledListSnapshot>()
         val listUpdates = mutableListOf<ListSnapshotUpdate>()
@@ -331,8 +320,6 @@ class SaveCrawledLaptopServiceTest {
 
         override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = existingByProductCode[productCode]
         override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
-        override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> = emptyList()
-        override fun findExistingByDetailPages(detailPages: Collection<String>): List<ExistingCrawledLaptopSnapshot> = emptyList()
 
         override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {
             createdCommand = command

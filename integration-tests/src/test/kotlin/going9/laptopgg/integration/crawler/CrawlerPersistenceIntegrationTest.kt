@@ -2,6 +2,7 @@ package going9.laptopgg.integration.crawler
 
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.CrawledProductCardCommand
+import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupUseCase
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.SaveResult
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
@@ -22,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional
 class CrawlerPersistenceIntegrationTest {
     @Autowired
     lateinit var saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase
+
+    @Autowired
+    lateinit var loadExistingCrawledLaptopLookupUseCase: LoadExistingCrawledLaptopLookupUseCase
 
     @Autowired
     lateinit var laptopRepository: CrawlerLaptopRepository
@@ -97,7 +101,7 @@ class CrawlerPersistenceIntegrationTest {
         existing.laptopUsage += LaptopUsage(usage = "student", laptop = existing)
         laptopRepository.save(existing)
 
-        val lookup = saveCrawledLaptopUseCase.loadExistingLookup(
+        val lookup = loadExistingCrawledLaptopLookupUseCase.load(
             listOf(
                 CrawledProductCardCommand(
                     productCode = "LOOKUP",

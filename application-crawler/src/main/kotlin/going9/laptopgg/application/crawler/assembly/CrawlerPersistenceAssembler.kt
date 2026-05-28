@@ -3,6 +3,8 @@ package going9.laptopgg.application.crawler.assembly
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopPostSaveSynchronizer
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLookupLoader
+import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupService
+import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupUseCase
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
@@ -18,7 +20,6 @@ import going9.laptopgg.application.crawler.recommendation.port.RecommendationSco
 object CrawlerPersistenceAssembler {
     fun createSaveCrawledLaptopUseCase(
         laptopPort: CrawledLaptopPersistencePort,
-        existingLaptopLookupPort: ExistingCrawledLaptopLookupPort,
         laptopProfilePort: CrawledLaptopProfilePort,
         laptopPriceHistoryPort: LaptopPriceHistoryPort,
         recommendationScorePort: RecommendationScorePort,
@@ -40,11 +41,20 @@ object CrawlerPersistenceAssembler {
 
         return SaveCrawledLaptopService(
             laptopPort = laptopPort,
-            existingLookupLoader = ExistingCrawledLaptopLookupLoader(existingLaptopLookupPort),
             postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
                 laptopProfileSynchronizer = laptopProfileService,
                 laptopPriceHistoryRecorder = laptopPriceHistoryService,
             ),
+            transactionPort = transactionPort,
+        )
+    }
+
+    fun createLoadExistingCrawledLaptopLookupUseCase(
+        existingLaptopLookupPort: ExistingCrawledLaptopLookupPort,
+        transactionPort: CrawlerTransactionPort,
+    ): LoadExistingCrawledLaptopLookupUseCase {
+        return LoadExistingCrawledLaptopLookupService(
+            existingLookupLoader = ExistingCrawledLaptopLookupLoader(existingLaptopLookupPort),
             transactionPort = transactionPort,
         )
     }
