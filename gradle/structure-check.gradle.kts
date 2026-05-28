@@ -879,6 +879,20 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler startup runner must delegate job execution",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunner.kt"),
+			patterns = listOf(
+				Regex("""CrawlerRunLockUseCase"""),
+				Regex("""TrackCrawlerRunUseCase"""),
+				Regex("""CrawlerService"""),
+				Regex("""CrawlerRunCompletionStatus"""),
+				Regex("""CrawlerRunSummary"""),
+				Regex("""runLocked"""),
+				Regex("""CRAWLER_SUMMARY"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime applications must not own JPA repository scanning",
 			paths = listOf(
 				"web-app/src/main",
