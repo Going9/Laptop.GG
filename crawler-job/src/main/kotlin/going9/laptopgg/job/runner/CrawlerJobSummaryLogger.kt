@@ -20,7 +20,7 @@ internal class CrawlerJobSummaryLogger {
             "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 detailRefreshCount=0 priceOnlyUpdatedCount=0 degradedCount=0 failedCount=0",
             run.id,
             run.status,
-            request.filterProfile,
+            request.filterProfile.storageValue,
             request.startPage,
             request.limitLabel(),
         )
@@ -36,7 +36,7 @@ internal class CrawlerJobSummaryLogger {
             "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount={} createdCount={} updatedCount={} detailRefreshCount={} priceOnlyUpdatedCount={} degradedCount={} failedCount={}",
             runId,
             status,
-            request.filterProfile,
+            request.filterProfile.storageValue,
             request.startPage,
             request.limitLabel(),
             summary.processedCount,
@@ -62,7 +62,7 @@ internal class CrawlerJobSummaryLogger {
             "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 detailRefreshCount=0 priceOnlyUpdatedCount=0 degradedCount=0 failedCount=1",
             runId,
             CrawlerRunStatusResult.FAILED,
-            request.filterProfile,
+            request.filterProfile.storageValue,
             request.startPage,
             request.limitLabel(),
         )

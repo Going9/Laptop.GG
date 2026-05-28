@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.orchestration
 
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.job.crawler.source.CrawlSourceResolver
 import going9.laptopgg.job.config.CrawlerJobProperties
 import org.slf4j.LoggerFactory
@@ -14,8 +15,12 @@ internal class CrawlerService(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun crawlAll(limit: Int? = null, startPage: Int = 1, filterProfileRaw: String? = null): CrawlSummary {
-        val resolvedCrawlSources = crawlSourceResolver.resolve(filterProfileRaw)
+    fun crawlAll(
+        limit: Int? = null,
+        startPage: Int = 1,
+        filterProfile: CrawlerFilterProfile = CrawlerFilterProfile.CORE,
+    ): CrawlSummary {
+        val resolvedCrawlSources = crawlSourceResolver.resolve(filterProfile)
         val maxListPages = crawlerJobProperties.resolvedMaxListPages()
         val seenDetailPages = linkedSetOf<String>()
         val progress = CrawlProgress()

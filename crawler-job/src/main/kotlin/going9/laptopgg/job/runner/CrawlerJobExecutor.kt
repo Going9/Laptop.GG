@@ -1,6 +1,7 @@
 package going9.laptopgg.job.runner
 
 import going9.laptopgg.application.crawler.run.CrawlerRunCompletionStatus
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
 import going9.laptopgg.application.crawler.run.CrawlerRunSummary
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
@@ -50,7 +51,7 @@ internal class CrawlerJobExecutor(
             val summary = crawlerService.crawlAll(
                 limit = request.limit,
                 startPage = request.startPage,
-                filterProfileRaw = request.filterProfile,
+                filterProfile = request.filterProfile,
             )
             val finishedStatus = if (summary.failedCount == 0) {
                 CrawlerRunCompletionStatus.SUCCEEDED
@@ -98,5 +99,5 @@ internal class CrawlerJobExecutor(
 internal data class CrawlerJobRequest(
     val limit: Int?,
     val startPage: Int,
-    val filterProfile: String,
+    val filterProfile: CrawlerFilterProfile,
 )

@@ -2,6 +2,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.run.CreateCrawlerRunCommand
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerRunRepository
 import going9.laptopgg.persistence.model.crawler.CrawlerRun
@@ -30,7 +31,7 @@ class CrawlerRunJpaAdapterTest {
         assertThatThrownBy {
             adapter.create(
                 CreateCrawlerRunCommand(
-                    filterProfile = "core",
+                    filterProfile = CrawlerFilterProfile.CORE,
                     startPage = 1,
                     limitCount = null,
                     startedAt = LocalDateTime.of(2026, 5, 28, 22, 0),
@@ -54,7 +55,7 @@ class CrawlerRunJpaAdapterTest {
         assertThatThrownBy {
             adapter.create(
                 CreateCrawlerRunCommand(
-                    filterProfile = "core",
+                    filterProfile = CrawlerFilterProfile.CORE,
                     startPage = 1,
                     limitCount = null,
                     startedAt = startedAt,

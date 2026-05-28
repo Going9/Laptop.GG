@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.danawa
 
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -8,7 +9,7 @@ class DanawaCrawlSourceResolverTest {
 
     @Test
     fun `core filter profile resolves codename source plus apple source`() {
-        val resolved = resolver.resolve("core")
+        val resolved = resolver.resolve(CrawlerFilterProfile.CORE)
         val crawlSources = resolved.sources
 
         assertThat(resolved.profileName).isEqualTo("core")
@@ -21,10 +22,12 @@ class DanawaCrawlSourceResolverTest {
     }
 
     @Test
-    fun `unknown filter profile falls back to core`() {
-        assertThat(resolver.resolve("weird-profile").profileName)
-            .isEqualTo("core")
-        assertThat(resolver.resolve("none").profileName)
+    fun `none filter profile resolves unfiltered notebook source`() {
+        val resolved = resolver.resolve(CrawlerFilterProfile.NONE)
+
+        assertThat(resolved.profileName)
             .isEqualTo("none")
+        assertThat(resolved.sources.first().key).isEqualTo("notebook-all")
+        assertThat(resolved.sources.first().attributeFilters).isEmpty()
     }
 }

@@ -10,7 +10,7 @@ class CrawlerRunCommandFactoryTest {
 
     @Test
     fun `start command owns the run start time`() {
-        val command = factory.start(filterProfile = "core", startPage = 1, limit = null)
+        val command = factory.start(filterProfile = CrawlerFilterProfile.CORE, startPage = 1, limit = null)
 
         assertThat(command.startedAt).isEqualTo(endedAt)
         assertThat(command.endedAt).isNull()
@@ -18,7 +18,7 @@ class CrawlerRunCommandFactoryTest {
 
     @Test
     fun `skip locked command is completed immediately`() {
-        val command = factory.skipLocked(filterProfile = "core", startPage = 2, limit = 10)
+        val command = factory.skipLocked(filterProfile = CrawlerFilterProfile.CORE, startPage = 2, limit = 10)
 
         assertThat(command.status).isEqualTo(CrawlerRunStatusResult.SKIPPED_LOCKED)
         assertThat(command.startedAt).isEqualTo(endedAt)

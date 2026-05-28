@@ -9,13 +9,13 @@ internal class TrackCrawlerRunService(
     private val transactionPort: CrawlerTransactionPort,
     private val commandFactory: CrawlerRunCommandFactory = CrawlerRunCommandFactory(),
 ) : TrackCrawlerRunUseCase {
-    override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
+    override fun start(filterProfile: CrawlerFilterProfile, startPage: Int, limit: Int?): CrawlerRunRecord {
         return transactionPort.write {
             crawlerRunPort.create(commandFactory.start(filterProfile, startPage, limit)).toRecord()
         }
     }
 
-    override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
+    override fun skipLocked(filterProfile: CrawlerFilterProfile, startPage: Int, limit: Int?): CrawlerRunRecord {
         return transactionPort.write {
             crawlerRunPort.create(commandFactory.skipLocked(filterProfile, startPage, limit)).toRecord()
         }

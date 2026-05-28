@@ -19,7 +19,7 @@ internal class CrawlerRunJpaAdapter(
     override fun create(command: CreateCrawlerRunCommand): CrawlerRunState {
         return crawlerRunRepository.save(
             CrawlerRun(
-                filterProfile = command.filterProfile,
+                filterProfile = command.filterProfile.storageValue,
                 startPage = command.startPage,
                 limitCount = command.limitCount,
                 status = command.status.toEntityStatus(),

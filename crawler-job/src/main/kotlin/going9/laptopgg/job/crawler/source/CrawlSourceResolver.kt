@@ -1,7 +1,9 @@
 package going9.laptopgg.job.crawler.source
 
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
+
 internal interface CrawlSourceResolver {
-    fun resolve(rawProfile: String?): ResolvedCrawlSources
+    fun resolve(filterProfile: CrawlerFilterProfile): ResolvedCrawlSources
 }
 
 internal data class ResolvedCrawlSources(

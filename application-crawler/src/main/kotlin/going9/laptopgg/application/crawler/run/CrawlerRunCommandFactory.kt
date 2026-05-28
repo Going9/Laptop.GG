@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 internal class CrawlerRunCommandFactory(
     private val now: () -> LocalDateTime = { LocalDateTime.now() },
 ) {
-    fun start(filterProfile: String, startPage: Int, limit: Int?): CreateCrawlerRunCommand {
+    fun start(filterProfile: CrawlerFilterProfile, startPage: Int, limit: Int?): CreateCrawlerRunCommand {
         return CreateCrawlerRunCommand(
             filterProfile = filterProfile,
             startPage = startPage,
@@ -14,7 +14,7 @@ internal class CrawlerRunCommandFactory(
         )
     }
 
-    fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CreateCrawlerRunCommand {
+    fun skipLocked(filterProfile: CrawlerFilterProfile, startPage: Int, limit: Int?): CreateCrawlerRunCommand {
         val timestamp = now()
         return CreateCrawlerRunCommand(
             filterProfile = filterProfile,

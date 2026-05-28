@@ -1,6 +1,7 @@
 package going9.laptopgg.job.runner
 
 import going9.laptopgg.application.crawler.run.CrawlerLockResult
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.application.crawler.run.CrawlerRunCompletionStatus
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
 import going9.laptopgg.application.crawler.run.CrawlerRunRecord
@@ -18,7 +19,7 @@ class CrawlerJobExecutorTest {
     @Test
     fun `successful crawler run is tracked and returns zero`() {
         val crawlerService = Mockito.mock(CrawlerService::class.java)
-        Mockito.`when`(crawlerService.crawlAll(5, 2, "core"))
+        Mockito.`when`(crawlerService.crawlAll(5, 2, CrawlerFilterProfile.CORE))
             .thenReturn(crawlSummary(failedCount = 0))
         val trackUseCase = RecordingTrackCrawlerRunUseCase()
         val executor = CrawlerJobExecutor(
@@ -28,10 +29,13 @@ class CrawlerJobExecutorTest {
             crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
-        val exitCode = executor.execute(CrawlerJobRequest(limit = 5, startPage = 2, filterProfile = "core"))
+        val exitCode = executor.execute(
+            CrawlerJobRequest(limit = 5, startPage = 2, filterProfile = CrawlerFilterProfile.CORE),
+        )
 
         assertThat(exitCode).isZero()
-        assertThat(trackUseCase.startedRequests).containsExactly(CrawlerJobRequest(limit = 5, startPage = 2, filterProfile = "core"))
+        assertThat(trackUseCase.startedRequests)
+            .containsExactly(CrawlerJobRequest(limit = 5, startPage = 2, filterProfile = CrawlerFilterProfile.CORE))
         assertThat(trackUseCase.finishedStatus).isEqualTo(CrawlerRunCompletionStatus.SUCCEEDED)
         assertThat(trackUseCase.finishedSummary?.failedCount).isZero()
         assertThat(trackUseCase.finishedSummary?.detailRefreshCount).isEqualTo(4)
@@ -41,7 +45,7 @@ class CrawlerJobExecutorTest {
     @Test
     fun `crawler run with failed items records failed completion and returns one`() {
         val crawlerService = Mockito.mock(CrawlerService::class.java)
-        Mockito.`when`(crawlerService.crawlAll(null, 1, "extended"))
+        Mockito.`when`(crawlerService.crawlAll(null, 1, CrawlerFilterProfile.EXTENDED))
             .thenReturn(crawlSummary(failedCount = 2, failureSamples = listOf("sample failure")))
         val trackUseCase = RecordingTrackCrawlerRunUseCase()
         val executor = CrawlerJobExecutor(
@@ -51,7 +55,9 @@ class CrawlerJobExecutorTest {
             crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
-        val exitCode = executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "extended"))
+        val exitCode = executor.execute(
+            CrawlerJobRequest(limit = null, startPage = 1, filterProfile = CrawlerFilterProfile.EXTENDED),
+        )
 
         assertThat(exitCode).isEqualTo(1)
         assertThat(trackUseCase.finishedStatus).isEqualTo(CrawlerRunCompletionStatus.FAILED)
@@ -70,10 +76,13 @@ class CrawlerJobExecutorTest {
             crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
-        val exitCode = executor.execute(CrawlerJobRequest(limit = 3, startPage = 4, filterProfile = "core"))
+        val exitCode = executor.execute(
+            CrawlerJobRequest(limit = 3, startPage = 4, filterProfile = CrawlerFilterProfile.CORE),
+        )
 
         assertThat(exitCode).isZero()
-        assertThat(trackUseCase.skippedRequests).containsExactly(CrawlerJobRequest(limit = 3, startPage = 4, filterProfile = "core"))
+        assertThat(trackUseCase.skippedRequests)
+            .containsExactly(CrawlerJobRequest(limit = 3, startPage = 4, filterProfile = CrawlerFilterProfile.CORE))
         Mockito.verifyNoInteractions(crawlerService)
     }
 
@@ -81,7 +90,7 @@ class CrawlerJobExecutorTest {
     fun `crawler exception records failed run and returns one`() {
         val crawlerService = Mockito.mock(CrawlerService::class.java)
         val exception = IllegalStateException("boom")
-        Mockito.`when`(crawlerService.crawlAll(null, 1, "core")).thenThrow(exception)
+        Mockito.`when`(crawlerService.crawlAll(null, 1, CrawlerFilterProfile.CORE)).thenThrow(exception)
         val trackUseCase = RecordingTrackCrawlerRunUseCase()
         val executor = CrawlerJobExecutor(
             crawlerService = crawlerService,
@@ -90,7 +99,9 @@ class CrawlerJobExecutorTest {
             crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
         )
 
-        val exitCode = executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "core"))
+        val exitCode = executor.execute(
+            CrawlerJobRequest(limit = null, startPage = 1, filterProfile = CrawlerFilterProfile.CORE),
+        )
 
         assertThat(exitCode).isEqualTo(1)
         assertThat(trackUseCase.failedFailure).isSameAs(exception)
@@ -100,7 +111,7 @@ class CrawlerJobExecutorTest {
     fun `crawler fatal error is recorded and propagated`() {
         val crawlerService = Mockito.mock(CrawlerService::class.java)
         val error = NoClassDefFoundError("crawler linkage")
-        Mockito.`when`(crawlerService.crawlAll(null, 1, "core")).thenThrow(error)
+        Mockito.`when`(crawlerService.crawlAll(null, 1, CrawlerFilterProfile.CORE)).thenThrow(error)
         val trackUseCase = RecordingTrackCrawlerRunUseCase()
         val executor = CrawlerJobExecutor(
             crawlerService = crawlerService,
@@ -110,7 +121,7 @@ class CrawlerJobExecutorTest {
         )
 
         assertThatThrownBy {
-            executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "core"))
+            executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = CrawlerFilterProfile.CORE))
         }.isSameAs(error)
         assertThat(trackUseCase.failedFailure).isSameAs(error)
     }
@@ -155,12 +166,12 @@ class CrawlerJobExecutorTest {
         var failedFailure: Throwable? = null
             private set
 
-        override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
+        override fun start(filterProfile: CrawlerFilterProfile, startPage: Int, limit: Int?): CrawlerRunRecord {
             startedRequests += CrawlerJobRequest(limit = limit, startPage = startPage, filterProfile = filterProfile)
             return CrawlerRunRecord(id = RUN_ID, status = CrawlerRunStatusResult.RUNNING)
         }
 
-        override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
+        override fun skipLocked(filterProfile: CrawlerFilterProfile, startPage: Int, limit: Int?): CrawlerRunRecord {
             skippedRequests += CrawlerJobRequest(limit = limit, startPage = startPage, filterProfile = filterProfile)
             return CrawlerRunRecord(id = RUN_ID, status = CrawlerRunStatusResult.SKIPPED_LOCKED)
         }

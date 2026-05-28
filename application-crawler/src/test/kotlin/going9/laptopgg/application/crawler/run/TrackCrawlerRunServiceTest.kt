@@ -17,7 +17,7 @@ class TrackCrawlerRunServiceTest {
 
     @Test
     fun `finish explicitly saves completed crawler run through port`() {
-        val started = service.start(filterProfile = "core", startPage = 1, limit = 10)
+        val started = service.start(filterProfile = CrawlerFilterProfile.CORE, startPage = 1, limit = 10)
 
         val finished = service.finish(
             runId = started.id,
@@ -48,7 +48,7 @@ class TrackCrawlerRunServiceTest {
 
     @Test
     fun `fail explicitly saves failed crawler run through port`() {
-        val started = service.start(filterProfile = "core", startPage = 1, limit = null)
+        val started = service.start(filterProfile = CrawlerFilterProfile.CORE, startPage = 1, limit = null)
 
         val failed = service.fail(started.id, IllegalStateException("network timeout"))
 
@@ -130,7 +130,7 @@ class TrackCrawlerRunServiceTest {
 
     private data class StoredCrawlerRun(
         val id: Long,
-        val filterProfile: String,
+        val filterProfile: CrawlerFilterProfile,
         val startPage: Int,
         val limitCount: Int?,
         val status: CrawlerRunStatusResult,

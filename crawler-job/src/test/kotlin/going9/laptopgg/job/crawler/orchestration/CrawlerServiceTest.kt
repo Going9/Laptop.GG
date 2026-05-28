@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.orchestration
 
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.job.config.CrawlerJobProperties
 import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.source.CrawlSource
@@ -25,7 +26,11 @@ class CrawlerServiceTest {
             maxListPages = 7,
         )
 
-        val summary = service.crawlAll(limit = 5, startPage = 3, filterProfileRaw = "extended")
+        val summary = service.crawlAll(
+            limit = 5,
+            startPage = 3,
+            filterProfile = CrawlerFilterProfile.EXTENDED,
+        )
 
         assertThat(summary.processedCount).isEqualTo(2)
         assertThat(sourceRunner.calls.map { it.source }).containsExactly(firstSource, secondSource)
@@ -48,7 +53,7 @@ class CrawlerServiceTest {
             maxListPages = 7,
         )
 
-        service.crawlAll(limit = 1, startPage = 1, filterProfileRaw = "core")
+        service.crawlAll(limit = 1, startPage = 1, filterProfile = CrawlerFilterProfile.CORE)
 
         assertThat(sourceRunner.calls).hasSize(1)
     }
@@ -61,8 +66,8 @@ class CrawlerServiceTest {
         return CrawlerService(
             crawlSourceRunner = sourceRunner,
             crawlSourceResolver = object : CrawlSourceResolver {
-                override fun resolve(rawProfile: String?): ResolvedCrawlSources {
-                    return ResolvedCrawlSources(rawProfile ?: "core", sources)
+                override fun resolve(filterProfile: CrawlerFilterProfile): ResolvedCrawlSources {
+                    return ResolvedCrawlSources(filterProfile.storageValue, sources)
                 }
             },
             crawlerJobProperties = CrawlerJobProperties(maxListPages = maxListPages),

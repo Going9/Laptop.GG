@@ -1,5 +1,6 @@
 package going9.laptopgg.job.config
 
+import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app.crawler")
@@ -19,8 +20,8 @@ internal data class CrawlerJobProperties(
         return startPage?.takeIf { it > 0 } ?: 1
     }
 
-    fun resolvedFilterProfile(): String {
-        return normalizedFilterProfile(filterProfile)
+    fun resolvedFilterProfile(): CrawlerFilterProfile {
+        return CrawlerFilterProfile.from(filterProfile)
     }
 
     fun resolvedMaxListPages(): Int {
@@ -37,19 +38,5 @@ internal data class CrawlerJobProperties(
         internal const val DEFAULT_MAX_LIST_PAGES = 5000
         internal const val DEFAULT_DETAIL_FETCH_CONCURRENCY = 6
         internal const val MAX_DETAIL_FETCH_CONCURRENCY = 12
-
-        internal fun normalizedFilterProfile(rawValue: String?): String {
-            return when (rawValue
-                ?.trim()
-                ?.takeIf { it.isNotBlank() }
-                ?.lowercase()
-            ) {
-                null -> DEFAULT_FILTER_PROFILE
-                DEFAULT_FILTER_PROFILE -> DEFAULT_FILTER_PROFILE
-                "extended" -> "extended"
-                "none", "all" -> "none"
-                else -> DEFAULT_FILTER_PROFILE
-            }
-        }
     }
 }

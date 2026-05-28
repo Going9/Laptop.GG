@@ -8,7 +8,7 @@ data class CrawlerLockResult<T>(
 )
 
 data class CreateCrawlerRunCommand(
-    val filterProfile: String,
+    val filterProfile: CrawlerFilterProfile,
     val startPage: Int,
     val limitCount: Int?,
     val startedAt: LocalDateTime,

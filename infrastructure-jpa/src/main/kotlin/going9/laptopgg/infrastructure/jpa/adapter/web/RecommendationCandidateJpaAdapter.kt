@@ -23,7 +23,7 @@ internal class RecommendationCandidateJpaAdapter(
             includeUnknownScreen = query.filter.includeUnknownScreen,
             gateThreshold = query.gateThreshold,
             budget = query.budget,
-            useCase = query.useCase,
+            useCase = query.useCase.name,
             sortMode = query.sortMode.queryValue,
             pageable = PageRequest.of(query.pageQuery.page, query.pageQuery.size),
         )

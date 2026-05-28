@@ -345,15 +345,39 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
-			rule = "crawler filter profile must be canonicalized before run tracking",
+			rule = "crawler filter profile must be typed after configuration parsing",
 			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerFilterProfile.kt",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerJobProperties.kt",
-				"crawler-job/src/test/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunnerTest.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/DanawaCrawlSourceResolver.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
 			),
 			patterns = listOf(
-				Regex(""""none", "all" -> "none""""),
-				Regex("""else -> DEFAULT_FILTER_PROFILE"""),
-				Regex("""filter profile is canonicalized before run tracking"""),
+				Regex("""enum class CrawlerFilterProfile"""),
+				Regex("""fun resolvedFilterProfile\(\): CrawlerFilterProfile"""),
+				Regex("""val filterProfile: CrawlerFilterProfile"""),
+				Regex("""override fun resolve\(filterProfile: CrawlerFilterProfile\)"""),
+				Regex("""filterProfile = command\.filterProfile\.storageValue"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler runtime must not pass raw filter profile strings after configuration parsing",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source/CrawlSourceResolver.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/DanawaCrawlSourceResolver.kt",
+			),
+			patterns = listOf(
+				Regex("""filterProfileRaw"""),
+				Regex("""rawProfile"""),
+				Regex("""filterProfile: String"""),
+				Regex("""DanawaFilterProfile"""),
 			),
 		)
 
@@ -1187,6 +1211,32 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""val property: String"""),
 				Regex("""val sortMode: String"""),
+			),
+		)
+
+		assertPresent(
+			rule = "application recommendation candidate query must keep use case typed until adapter storage",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/port/RecommendationCandidatePort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/RecommendationCandidateJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""val useCase: RecommendationUseCase"""),
+				Regex("""useCase = useCase,"""),
+				Regex("""useCase = query\.useCase\.name"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "application recommendation candidate contract must not use raw use case strings",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/port/RecommendationCandidatePort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
+			),
+			patterns = listOf(
+				Regex("""val useCase: String"""),
+				Regex("""useCase = useCase\.name"""),
 			),
 		)
 
@@ -2426,7 +2476,6 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.job\.crawler\.danawa"""),
 				Regex("""Danawa(Endpoints|AttributeFilterCatalog|CrawlSourceResolver|FilterProfile)"""),
 				Regex("""CrawlerFilterSets"""),
-				Regex("""FilterProfile"""),
 				Regex("""\d+\|6492\|"""),
 			),
 		)

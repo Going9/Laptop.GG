@@ -2,6 +2,7 @@ package going9.laptopgg.application.recommendation.port
 
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.recommendation.RecommendationUseCase
 
 interface RecommendationCandidatePort {
     fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord>
@@ -52,7 +53,7 @@ data class RecommendationCandidatePageQuery(
     val filter: RecommendationCandidateFilter,
     val gateThreshold: Int,
     val budget: Int,
-    val useCase: String,
+    val useCase: RecommendationUseCase,
     val sortMode: RecommendationCandidateSortMode,
     val pageQuery: PageQuery,
 )

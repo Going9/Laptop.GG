@@ -52,7 +52,7 @@ internal class DefaultRecommendLaptopsUseCase(
             filter = candidateFilter,
             gateThreshold = gateThreshold,
             budget = request.budget,
-            useCase = useCase.name,
+            useCase = useCase,
             sortMode = sortMode,
             pageQuery = pageQuery,
         ),
