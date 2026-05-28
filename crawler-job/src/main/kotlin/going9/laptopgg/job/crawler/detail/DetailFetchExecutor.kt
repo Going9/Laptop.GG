@@ -2,8 +2,10 @@ package going9.laptopgg.job.crawler.detail
 
 import java.io.Closeable
 import java.time.Duration
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -24,7 +26,18 @@ internal class DetailFetchExecutor private constructor(
                 task(workItem)
             }
         }.map { future ->
-            future.get()
+            future.getOutcome()
+        }
+    }
+
+    private fun Future<DetailRefreshOutcome>.getOutcome(): DetailRefreshOutcome {
+        return try {
+            get()
+        } catch (exception: ExecutionException) {
+            throw exception.cause ?: exception
+        } catch (exception: InterruptedException) {
+            Thread.currentThread().interrupt()
+            throw exception
         }
     }
 

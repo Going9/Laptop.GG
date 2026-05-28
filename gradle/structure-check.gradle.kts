@@ -1909,6 +1909,21 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "detail fetch executor must unwrap worker failures before the job boundary",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DetailFetchExecutor.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/detail/DetailFetchExecutorTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawlerFailureContractTest.kt",
+			),
+			patterns = listOf(
+				Regex("""ExecutionException"""),
+				Regex("""throw exception\.cause \?: exception"""),
+				Regex("""fatal detail task error is rethrown without execution wrapper"""),
+				Regex("""\.isSameAs\(error\)"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "Danawa detail crawler must not catch fatal throwables as product failures",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawler.kt"),

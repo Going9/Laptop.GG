@@ -7,7 +7,6 @@ import going9.laptopgg.job.crawler.danawa.client.DanawaClient
 import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.list.ProductCard
-import java.util.concurrent.ExecutionException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -51,9 +50,7 @@ class DanawaDetailCrawlerFailureContractTest {
             DetailFetchExecutor.fixed(1).use { executor ->
                 crawler.fetchDetailRefreshOutcomes(listOf(workItem), executor)
             }
-        }
-            .isInstanceOf(ExecutionException::class.java)
-            .hasCause(error)
+        }.isSameAs(error)
     }
 
     private fun detailWorkItem(code: String): DetailRefreshWorkItem {

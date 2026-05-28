@@ -36,6 +36,21 @@ class DetailFetchExecutorTest {
         }.isInstanceOf(RejectedExecutionException::class.java)
     }
 
+    @Test
+    fun `fatal detail task error is rethrown without execution wrapper`() {
+        val error = NoClassDefFoundError("detail parser linkage")
+
+        assertThatThrownBy {
+            DetailFetchExecutor.fixed(1).use { detailFetchExecutor ->
+                detailFetchExecutor.fetch(
+                    listOf(DetailRefreshWorkItem(productCard = productCard("400"), existingLaptop = null)),
+                ) {
+                    throw error
+                }
+            }
+        }.isSameAs(error)
+    }
+
     private fun productCard(code: String): ProductCard {
         return ProductCard(
             productCode = code,
