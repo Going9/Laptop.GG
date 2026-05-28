@@ -1,11 +1,7 @@
 package going9.laptopgg.job.crawler.danawa.client
 
 import java.io.IOException
-import java.net.http.HttpClient
 import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.nio.charset.StandardCharsets
-import java.time.Duration
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -13,12 +9,9 @@ import org.springframework.stereotype.Component
 internal class DanawaHttpClient(
     private val requestPacer: DanawaRequestPacer,
     private val retryPolicy: DanawaRetryPolicy,
+    private val transport: DanawaHttpTransport,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val httpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(20))
-        .followRedirects(HttpClient.Redirect.NORMAL)
-        .build()
 
     internal fun send(request: HttpRequest): String {
         var lastException: Exception? = null
@@ -26,7 +19,7 @@ internal class DanawaHttpClient(
         repeat(retryPolicy.maxAttempts) { attempt ->
             try {
                 requestPacer.awaitRequestSlot()
-                val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                val response = transport.send(request)
                 if (response.statusCode() in 200..299) {
                     return response.body()
                 }
@@ -43,12 +36,12 @@ internal class DanawaHttpClient(
                     return@repeat
                 }
 
-                throw IllegalStateException("HTTP ${response.statusCode()} 요청 실패: ${request.uri()}")
+                throw DanawaHttpStatusException(response.statusCode(), request.uri())
             } catch (e: IOException) {
                 lastException = e
 
                 if (attempt == retryPolicy.maxAttempts - 1) {
-                    throw e
+                    throw DanawaHttpRequestException(request.uri(), e)
                 }
 
                 val cooldown = retryPolicy.retryDelayMillis(attempt)
@@ -56,10 +49,10 @@ internal class DanawaHttpClient(
                 logger.warn("I/O 오류로 요청을 재시도합니다. wait={}ms, uri={}, reason={}", cooldown, request.uri(), e.message)
             } catch (e: InterruptedException) {
                 Thread.currentThread().interrupt()
-                throw IllegalStateException("HTTP 요청이 중단되었습니다: ${request.uri()}", e)
+                throw DanawaHttpInterruptedException(request.uri(), e)
             }
         }
 
-        throw IllegalStateException("HTTP 요청 실패: ${request.uri()}", lastException)
+        throw DanawaHttpRequestException(request.uri(), lastException)
     }
 }

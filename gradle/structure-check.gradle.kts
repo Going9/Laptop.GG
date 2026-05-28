@@ -1523,6 +1523,38 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "Danawa HTTP client must expose explicit provider transport and error contracts",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaHttpTransport.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaHttpException.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaHttpClient.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaClient.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaHttpClientTest.kt",
+			),
+			patterns = listOf(
+				Regex("""internal fun interface DanawaHttpTransport"""),
+				Regex("""internal class JavaDanawaHttpTransport"""),
+				Regex("""sealed class DanawaHttpException"""),
+				Regex("""class DanawaHttpStatusException"""),
+				Regex("""class DanawaHttpRequestException"""),
+				Regex("""class DanawaHttpInterruptedException"""),
+				Regex("""transport\.send\(request\)"""),
+				Regex("""catch \(e: DanawaHttpException\)"""),
+				Regex("""send rejects non retryable status with explicit Danawa http status error"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "Danawa retrying HTTP client must not own Java HTTP transport or generic state errors",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaHttpClient.kt"),
+			patterns = listOf(
+				Regex("""HttpClient\.newBuilder"""),
+				Regex("""HttpResponse\.BodyHandlers"""),
+				Regex("""IllegalStateException"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "CrawlerService must delegate source page traversal",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),

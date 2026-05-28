@@ -33,7 +33,7 @@ internal class DanawaClient(
 
         val responseBody = try {
             danawaHttpClient.send(request)
-        } catch (e: Exception) {
+        } catch (e: DanawaHttpException) {
             logger.warn("상세 스펙 테이블 요청 실패, 요약 스펙으로 대체합니다: {} / {}", productCard.detailPage, e.message)
             return null
         }
