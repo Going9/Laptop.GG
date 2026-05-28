@@ -109,6 +109,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "runtime modules must import shared persistence config instead of owning datasource or JPA settings",
+			paths = listOf("web-app/src/main/resources/application.yml", "crawler-job/src/main/resources/application.yml"),
+			patterns = listOf(
+				Regex("""(?m)^\s{2}datasource:"""),
+				Regex("""(?m)^\s{2}jpa:"""),
+				Regex("""ddl-auto:"""),
+				Regex("""baseline-version:"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app public packages must live under web",
 			paths = listOf("web-app/src/main", "web-app/src/test"),
 			patterns = listOf(
