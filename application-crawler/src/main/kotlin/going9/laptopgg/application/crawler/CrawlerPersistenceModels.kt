@@ -75,6 +75,15 @@ data class RecordPriceHistoryCommand(
     val capturedAt: LocalDateTime,
 )
 
+data class UpsertRecommendationScoreCommand(
+    val laptopId: Long,
+    val useCase: String,
+    val gateScore: Int,
+    val staticScore: Double,
+    val budgetWeight: Double,
+    val updatedAt: LocalDateTime,
+)
+
 enum class SaveResult {
     CREATED,
     UPDATED,

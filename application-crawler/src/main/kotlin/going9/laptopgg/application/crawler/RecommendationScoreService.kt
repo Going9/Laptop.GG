@@ -2,7 +2,6 @@ package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.domain.laptop.LaptopProfile
-import going9.laptopgg.domain.recommendation.RecommendationScore
 import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy
@@ -20,26 +19,19 @@ class RecommendationScoreService(
         val laptopId = requireNotNull(profile.laptop.id) {
             "Laptop must be persisted before refreshing recommendation scores."
         }
-        val existingScores = recommendationScorePort.findAllByLaptopId(laptopId)
-            .associateBy { it.useCase }
         val inputs = scoreInputs(profile)
         val gateInputs = gateInputs(profile)
         val now = LocalDateTime.now()
 
         val scores = RecommendationUseCase.entries.map { useCase ->
-            val useCaseName = useCase.name
-            val score = existingScores[useCaseName] ?: RecommendationScore(
-                laptop = profile.laptop,
-                useCase = useCaseName,
-                gateScore = 0,
-                staticScore = 0.0,
-                budgetWeight = 0.0,
+            UpsertRecommendationScoreCommand(
+                laptopId = laptopId,
+                useCase = useCase.name,
+                gateScore = recommendationScoringPolicy.gateScore(gateInputs, useCase),
+                staticScore = recommendationScoringPolicy.staticScore(useCase, inputs),
+                budgetWeight = recommendationScoringPolicy.budgetWeight(useCase),
+                updatedAt = now,
             )
-            score.gateScore = recommendationScoringPolicy.gateScore(gateInputs, useCase)
-            score.staticScore = recommendationScoringPolicy.staticScore(useCase, inputs)
-            score.budgetWeight = recommendationScoringPolicy.budgetWeight(useCase)
-            score.updatedAt = now
-            score
         }
 
         recommendationScorePort.saveAll(scores)
