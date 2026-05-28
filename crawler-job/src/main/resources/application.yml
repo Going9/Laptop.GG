@@ -16,6 +16,9 @@ spring:
   config:
     import: classpath:/laptopgg-persistence.yml
 
+  main:
+    web-application-type: none
+
   sql:
     init:
       mode: never
@@ -28,9 +31,6 @@ spring:
 
   flyway:
     enabled: false
-
-  main:
-    web-application-type: none
 
 app:
   crawler:

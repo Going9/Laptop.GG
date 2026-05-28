@@ -5,18 +5,21 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.ListableBeanFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.core.env.Environment
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(
     properties = [
         "app.crawler.run-on-startup=false",
-        "spring.main.web-application-type=none",
     ],
 )
 @ActiveProfiles("test", "crawler")
 class CrawlerJobApplicationTests {
     @Autowired
     lateinit var beanFactory: ListableBeanFactory
+
+    @Autowired
+    lateinit var environment: Environment
 
     @Test
     fun `crawler context does not load web beans`() {
@@ -65,6 +68,11 @@ class CrawlerJobApplicationTests {
             "trackCrawlerRunService",
             "crawledCpuModelResolver",
         )
+    }
+
+    @Test
+    fun `crawler runtime is explicitly non web independently of profile overrides`() {
+        assertThat(environment.getProperty("spring.main.web-application-type")).isEqualTo("none")
     }
 
     @Test

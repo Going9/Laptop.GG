@@ -301,6 +301,28 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertOrdered(
+			rule = "crawler job must declare non-web runtime before profile-specific overrides",
+			path = "crawler-job/src/main/resources/application.yml",
+			patterns = listOf(
+				Regex("""(?m)^spring:"""),
+				Regex("""(?m)^\s+main:"""),
+				Regex("""(?m)^\s+web-application-type: none"""),
+				Regex("""(?m)^---"""),
+				Regex("""(?m)^\s+on-profile: crawler"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler context must verify non-web runtime is profile independent",
+			paths = listOf("crawler-job/src/test/kotlin/going9/laptopgg/CrawlerJobApplicationTests.kt"),
+			patterns = listOf(
+				Regex("""crawler runtime is explicitly non web independently of profile overrides"""),
+				Regex("""spring\.main\.web-application-type"""),
+				Regex("""isEqualTo\("none"\)"""),
+			),
+		)
+
 		mapOf(
 			":web-app" to setOf(":infrastructure-flyway"),
 			":crawler-job" to emptySet(),
