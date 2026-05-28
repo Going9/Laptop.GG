@@ -25,6 +25,12 @@ class LaptopGgApplicationTests {
 			"crawlerService",
 			"danawaClient",
 			"crawlerStartupRunner",
+			"saveCrawledLaptopService",
+			"trackCrawlerRunService",
+			"crawledCpuModelResolver",
+			"laptopProfileService",
+			"laptopPriceHistoryService",
+			"recommendationScoreService",
 		)
 	}
 }

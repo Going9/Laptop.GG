@@ -5,9 +5,11 @@ import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.recommendation.RecommendationScore
 import java.time.LocalDateTime
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+@Profile("crawler")
 @Service
 class RecommendationScoreService(
     private val recommendationScorePort: RecommendationScorePort,

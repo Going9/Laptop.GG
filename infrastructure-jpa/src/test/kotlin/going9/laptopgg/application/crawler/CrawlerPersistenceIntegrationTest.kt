@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 
-@SpringBootTest(properties = ["spring.profiles.active=test"])
+@SpringBootTest(properties = ["spring.profiles.active=test,crawler"])
 @Transactional
 class CrawlerPersistenceIntegrationTest {
     @Autowired

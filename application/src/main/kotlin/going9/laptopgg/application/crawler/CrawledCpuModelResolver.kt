@@ -1,8 +1,10 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.service.CpuClassifier
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
+@Profile("crawler")
 @Component
 class CrawledCpuModelResolver(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),

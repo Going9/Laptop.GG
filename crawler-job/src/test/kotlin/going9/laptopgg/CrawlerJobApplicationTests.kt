@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles
         "spring.main.web-application-type=none",
     ],
 )
-@ActiveProfiles("test")
+@ActiveProfiles("test", "crawler")
 class CrawlerJobApplicationTests {
     @Autowired
     lateinit var beanFactory: ListableBeanFactory
@@ -26,6 +26,17 @@ class CrawlerJobApplicationTests {
             "pageController",
             "recommendationController",
             "thymeleafViewResolver",
+        )
+    }
+
+    @Test
+    fun `crawler context loads crawler application beans`() {
+        val beanNames = beanFactory.beanDefinitionNames.toSet()
+
+        assertThat(beanNames).contains(
+            "saveCrawledLaptopService",
+            "trackCrawlerRunService",
+            "crawledCpuModelResolver",
         )
     }
 }

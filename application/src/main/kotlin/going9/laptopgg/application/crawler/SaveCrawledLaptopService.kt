@@ -5,9 +5,11 @@ import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
 import going9.laptopgg.application.service.LaptopPriceHistoryService
 import going9.laptopgg.application.service.LaptopProfileService
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+@Profile("crawler")
 @Service
 class SaveCrawledLaptopService(
     private val laptopPort: LaptopPort,
