@@ -1,4 +1,4 @@
-package going9.laptopgg.application.recommendation
+package going9.laptopgg.integration.recommendation
 
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
@@ -9,7 +9,10 @@ import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
+import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
+import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
+import going9.laptopgg.application.recommendation.ScreenSizeMode
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.laptop.LaptopUsage
 import going9.laptopgg.taxonomy.BatteryTier

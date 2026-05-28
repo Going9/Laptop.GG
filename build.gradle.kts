@@ -792,6 +792,19 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPathAbsent(
+			rule = "infrastructure-backed integration tests must not live under application package paths",
+			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/application"),
+		)
+
+		assertAbsent(
+			rule = "infrastructure-backed integration tests must use integration packages",
+			paths = listOf("integration-tests/src/test"),
+			patterns = listOf(
+				Regex("""^package going9\.laptopgg\.application\."""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler-job tests must not reach into JPA repositories directly",
 			paths = listOf(
