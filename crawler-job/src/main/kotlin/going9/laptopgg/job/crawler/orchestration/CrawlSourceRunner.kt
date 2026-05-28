@@ -37,7 +37,16 @@ internal class CrawlSourceRunner(
         progress: CrawlProgress,
         detailFetchExecutor: DetailFetchExecutor,
     ): CrawlSourceRunResult {
-        val listRequestContext = listPageCrawler.createListRequestContext(crawlSource)
+        val listRequestContext = try {
+            listPageCrawler.createListRequestContext(crawlSource)
+        } catch (exception: Exception) {
+            if (exception.isInterruptedFailure()) {
+                throw exception
+            }
+            progress.recordSourceFailure(crawlSource.key, exception.toFailureReason())
+            logger.error("크롤 소스 요청 컨텍스트 생성에 실패했습니다. source={}", crawlSource.key, exception)
+            return CrawlSourceRunResult(reachedLimit = false, hitMaxListPages = false)
+        }
         val requestFilterCount = listRequestContext.searchAttributeValues.size
         val requestDistinctFilterCount = listRequestContext.searchAttributeValues.toSet().size
         val traversalState = CrawlSourceTraversalState(startPage, seenDetailPages)
@@ -52,7 +61,21 @@ internal class CrawlSourceRunner(
 
         while (traversalState.currentPage <= maxListPages) {
             val pageStartTime = crawlClock.currentTimeMillis()
-            val pageBatch = listPageCrawler.fetchProductPageBatch(traversalState.currentPage, listRequestContext)
+            val pageBatch = try {
+                listPageCrawler.fetchProductPageBatch(traversalState.currentPage, listRequestContext)
+            } catch (exception: Exception) {
+                if (exception.isInterruptedFailure()) {
+                    throw exception
+                }
+                progress.recordPageFailure(crawlSource.key, traversalState.currentPage, exception.toFailureReason())
+                logger.error(
+                    "목록 페이지 수집에 실패해 현재 소스를 중단합니다. source={}, page={}",
+                    crawlSource.key,
+                    traversalState.currentPage,
+                    exception,
+                )
+                break
+            }
             val pageAnalysis = traversalState.analyze(pageBatch)
 
             if (pageAnalysis.productCards.isEmpty()) {
@@ -129,6 +152,26 @@ internal class CrawlSourceRunner(
         }
 
         return traversalState.toRunResult(maxListPages)
+    }
+
+    private fun Exception.toFailureReason(): String {
+        return message ?: javaClass.simpleName
+    }
+
+    private fun Exception.isInterruptedFailure(): Boolean {
+        if (Thread.currentThread().isInterrupted) {
+            return true
+        }
+
+        var cause: Throwable? = this
+        while (cause != null) {
+            if (cause is InterruptedException) {
+                Thread.currentThread().interrupt()
+                return true
+            }
+            cause = cause.cause
+        }
+        return false
     }
 }
 

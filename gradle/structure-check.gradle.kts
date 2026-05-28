@@ -521,6 +521,24 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawl source runner must isolate recoverable list source failures",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProgress.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceFailureIsolationTest.kt",
+			),
+			patterns = listOf(
+				Regex("""recordSourceFailure"""),
+				Regex("""recordPageFailure"""),
+				Regex("""isInterruptedFailure"""),
+				Regex("""목록 페이지 수집에 실패해 현재 소스를 중단합니다"""),
+				Regex("""crawler continues with next source when list page fetch fails"""),
+				Regex("""crawler continues with next source when source request context fails"""),
+				Regex("""crawler propagates interrupted list page failures"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler tests must not keep disabled live smoke placeholders",
 			paths = listOf("crawler-job/src/test"),

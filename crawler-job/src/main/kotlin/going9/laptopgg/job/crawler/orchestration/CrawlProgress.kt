@@ -65,6 +65,14 @@ internal class CrawlProgress(
         failureSamples.record(productCard, reason)
     }
 
+    fun recordSourceFailure(sourceKey: String, reason: String) {
+        recordFailureSample("source=$sourceKey | $reason")
+    }
+
+    fun recordPageFailure(sourceKey: String, page: Int, reason: String) {
+        recordFailureSample("source=$sourceKey page=$page | $reason")
+    }
+
     fun reachedLimit(limit: Int?): Boolean {
         return limit != null && processedCount >= limit
     }
@@ -85,5 +93,10 @@ internal class CrawlProgress(
 
     companion object {
         private const val MAX_SAMPLE_COUNT = 10
+    }
+
+    private fun recordFailureSample(sample: String) {
+        failedCount++
+        failureSamples.record(sample)
     }
 }

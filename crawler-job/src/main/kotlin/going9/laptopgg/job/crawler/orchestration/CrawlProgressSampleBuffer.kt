@@ -8,11 +8,15 @@ internal class CrawlProgressSampleBuffer(
     private val samples = mutableListOf<String>()
 
     fun record(productCard: ProductCard, reason: String) {
+        record(formatSample(productCard, reason))
+    }
+
+    fun record(sample: String) {
         if (samples.size >= maxSampleCount) {
             return
         }
 
-        samples += formatSample(productCard, reason)
+        samples += sample
     }
 
     fun toList(): List<String> {
