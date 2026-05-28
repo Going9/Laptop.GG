@@ -56,15 +56,27 @@ internal class CrawlerJobSummaryLogger {
         }
     }
 
-    fun logRunFailure(runId: Long, request: CrawlerJobRequest, failure: Throwable) {
+    fun logRunFailure(
+        runId: Long,
+        request: CrawlerJobRequest,
+        failure: Throwable,
+        partialSummary: CrawlSummary? = null,
+    ) {
         logger.error("Crawler run failed. runId={}", runId, failure)
         logger.error(
-            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 detailRefreshCount=0 priceOnlyUpdatedCount=0 degradedCount=0 failedCount=1",
+            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount={} createdCount={} updatedCount={} detailRefreshCount={} priceOnlyUpdatedCount={} degradedCount={} failedCount={}",
             runId,
             CrawlerRunStatusResult.FAILED,
             request.filterProfile.storageValue,
             request.startPage,
             request.limitLabel(),
+            partialSummary?.processedCount ?: 0,
+            partialSummary?.createdCount ?: 0,
+            partialSummary?.updatedCount ?: 0,
+            partialSummary?.detailRefreshCount ?: 0,
+            partialSummary?.priceOnlyUpdatedCount ?: 0,
+            partialSummary?.degradedCount ?: 0,
+            partialSummary?.failedCount ?: 1,
         )
     }
 

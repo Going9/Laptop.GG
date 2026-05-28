@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test
 class ManageCommentUseCaseTest {
     private val commentPort = InMemoryCommentPort()
     private val laptopPort = InMemoryCommentLaptopPort(existingIds = setOf(1L))
-    private val passwordHashPort = PlainPasswordHashPort()
     private val transactionPort = RecordingApplicationTransactionPort()
+    private val passwordHashPort = PlainPasswordHashPort(transactionPort)
     private val useCase = CommentUseCaseAssembler.createManageCommentUseCase(
         commentPort = commentPort,
         laptopPort = laptopPort,
@@ -35,10 +35,24 @@ class ManageCommentUseCaseTest {
     }
 
     @Test
+    fun `add hashes password outside transaction and keeps database work scoped`() {
+        useCase.add(AddCommentCommand(laptopId = 1L, author = "iggy", content = "좋아요", password = "pw"))
+
+        assertThat(commentPort.records.values.single().passwordHash).isEqualTo("hashed:pw")
+        assertThat(transactionPort.readCalls).isEqualTo(1)
+        assertThat(transactionPort.writeCalls).isEqualTo(1)
+        assertThat(passwordHashPort.hashCalls).isEqualTo(1)
+        assertThat(passwordHashPort.hashInsideTransaction).isFalse()
+    }
+
+    @Test
     fun `add rejects missing laptop with explicit not found error`() {
         assertThatThrownBy {
             useCase.add(AddCommentCommand(laptopId = 99L, author = "iggy", content = "좋아요", password = "pw"))
         }.isInstanceOf(ResourceNotFoundException::class.java)
+
+        assertThat(passwordHashPort.hashCalls).isZero()
+        assertThat(transactionPort.writeCalls).isZero()
     }
 
     @Test
@@ -73,6 +87,10 @@ class ManageCommentUseCaseTest {
         assertThatThrownBy {
             useCase.update(7L, UpdateCommentCommand(password = "wrong", content = "수정"))
         }.isInstanceOf(AuthenticationFailedException::class.java)
+
+        assertThat(transactionPort.readCalls).isEqualTo(1)
+        assertThat(transactionPort.writeCalls).isZero()
+        assertThat(passwordHashPort.matchesInsideTransaction).isFalse()
     }
 
     @Test
@@ -89,6 +107,9 @@ class ManageCommentUseCaseTest {
 
         assertThat(result.laptopId).isEqualTo(3L)
         assertThat(commentPort.records.getValue(7L).content).isEqualTo("수정")
+        assertThat(transactionPort.readCalls).isEqualTo(1)
+        assertThat(transactionPort.writeCalls).isEqualTo(1)
+        assertThat(passwordHashPort.matchesInsideTransaction).isFalse()
     }
 
     @Test
@@ -105,6 +126,9 @@ class ManageCommentUseCaseTest {
 
         assertThat(result.laptopId).isEqualTo(3L)
         assertThat(commentPort.records).doesNotContainKey(7L)
+        assertThat(transactionPort.readCalls).isEqualTo(1)
+        assertThat(transactionPort.writeCalls).isEqualTo(1)
+        assertThat(passwordHashPort.matchesInsideTransaction).isFalse()
     }
 
     @Test
@@ -174,13 +198,28 @@ class ManageCommentUseCaseTest {
         }
     }
 
-    private class PlainPasswordHashPort : PasswordHashPort {
+    private class PlainPasswordHashPort(
+        private val transactionPort: RecordingApplicationTransactionPort,
+    ) : PasswordHashPort {
+        var hashCalls = 0
+            private set
+        var matchesCalls = 0
+            private set
+        var hashInsideTransaction = false
+            private set
+        var matchesInsideTransaction = false
+            private set
+
         override fun hash(rawPassword: String): String {
+            hashCalls++
+            hashInsideTransaction = hashInsideTransaction || transactionPort.insideTransaction
             return "hashed:$rawPassword"
         }
 
         override fun matches(rawPassword: String, hashedPassword: String): Boolean {
-            return hash(rawPassword) == hashedPassword
+            matchesCalls++
+            matchesInsideTransaction = matchesInsideTransaction || transactionPort.insideTransaction
+            return "hashed:$rawPassword" == hashedPassword
         }
     }
 
@@ -189,15 +228,27 @@ class ManageCommentUseCaseTest {
             private set
         var writeCalls = 0
             private set
+        var insideTransaction = false
+            private set
 
         override fun <T> read(block: () -> T): T {
             readCalls++
-            return block()
+            return enter(block)
         }
 
         override fun <T> write(block: () -> T): T {
             writeCalls++
-            return block()
+            return enter(block)
+        }
+
+        private fun <T> enter(block: () -> T): T {
+            check(!insideTransaction) { "Nested application transaction was called." }
+            insideTransaction = true
+            return try {
+                block()
+            } finally {
+                insideTransaction = false
+            }
         }
     }
 }

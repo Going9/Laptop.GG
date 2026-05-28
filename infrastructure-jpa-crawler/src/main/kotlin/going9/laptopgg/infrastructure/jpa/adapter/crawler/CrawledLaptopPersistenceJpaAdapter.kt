@@ -1,11 +1,13 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
+import going9.laptopgg.persistence.model.laptop.Laptop
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,11 +19,15 @@ internal class CrawledLaptopPersistenceJpaAdapter(
     }
 
     override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? {
-        return laptopRepository.findByProductCode(productCode)?.toPersistedCrawledLaptopSnapshot()
+        return laptopRepository.findAllByProductCodeIn(listOf(productCode))
+            .singleByCrawlerIdentity(identityName = "productCode", identityValue = productCode)
+            ?.toPersistedCrawledLaptopSnapshot()
     }
 
     override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? {
-        return laptopRepository.findByDetailPage(detailPage)?.toPersistedCrawledLaptopSnapshot()
+        return laptopRepository.findAllByDetailPageIn(listOf(detailPage))
+            .singleByCrawlerIdentity(identityName = "detailPage", identityValue = detailPage)
+            ?.toPersistedCrawledLaptopSnapshot()
     }
 
     override fun findAllByProductCodes(productCodes: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
@@ -47,5 +53,19 @@ internal class CrawledLaptopPersistenceJpaAdapter(
             ?: throw CrawlerResourceNotFoundException("Laptop", laptopId)
         CrawledLaptopEntityMapper.applyUpdate(laptop, command)
         return laptopRepository.save(laptop).toPersistedCrawledLaptopSnapshot()
+    }
+
+    private fun List<Laptop>.singleByCrawlerIdentity(identityName: String, identityValue: String): Laptop? {
+        val uniqueLaptops = distinctBy { laptop -> laptop.id }
+        if (uniqueLaptops.size > 1) {
+            val ids = uniqueLaptops
+                .map { laptop -> laptop.id?.toString() ?: "<unpersisted>" }
+                .sorted()
+                .joinToString(prefix = "[", postfix = "]")
+            throw CrawlerInvalidStateException(
+                "Multiple laptops found for $identityName=$identityValue; clean duplicate crawler identities before crawling: $ids",
+            )
+        }
+        return uniqueLaptops.singleOrNull()
     }
 }

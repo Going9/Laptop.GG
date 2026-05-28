@@ -11,3 +11,8 @@ internal data class CrawlSummary(
     val failedCount: Int,
     val failureSamples: List<String>,
 )
+
+internal class CrawlFailedWithPartialSummary(
+    val partialSummary: CrawlSummary,
+    cause: Exception,
+) : RuntimeException(cause.message ?: cause::class.simpleName ?: "Crawler failed.", cause)

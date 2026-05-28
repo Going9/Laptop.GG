@@ -1,7 +1,10 @@
 package going9.laptopgg.application.crawler.persistence
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
+import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -35,8 +38,8 @@ class ExistingCrawledLaptopLookupLoaderTest {
             productCode = null,
             usages = listOf("gaming"),
         )
-        laptopPort.laptopsByProductCode["P10"] = productMatch
-        laptopPort.laptopsByDetailPage[detailPageMatch.detailPage] = detailPageMatch
+        laptopPort.laptops += productMatch
+        laptopPort.laptops += detailPageMatch
 
         val lookup = loader.load(
             listOf(
@@ -71,6 +74,74 @@ class ExistingCrawledLaptopLookupLoaderTest {
                 ),
             )
         assertThat(lookup.byDetailPage[detailPageMatch.detailPage]?.usageCount).isEqualTo(1)
+    }
+
+    @Test
+    fun `rejects one product code mapped to multiple detail pages in the same batch`() {
+        assertThatThrownBy {
+            loader.load(
+                listOf(
+                    productCard(productCode = "P10", detailPage = "https://prod.danawa.com/info/?pcode=P10"),
+                    productCard(productCode = "P10", detailPage = "https://prod.danawa.com/info/?pcode=P10-variant"),
+                ),
+            )
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+            .hasMessageContaining("productCode")
+    }
+
+    @Test
+    fun `rejects one detail page mapped to multiple product codes in the same batch`() {
+        assertThatThrownBy {
+            loader.load(
+                listOf(
+                    productCard(productCode = "P10", detailPage = "https://prod.danawa.com/info/?pcode=P10"),
+                    productCard(productCode = "P10-ALT", detailPage = "https://prod.danawa.com/info/?pcode=P10"),
+                ),
+            )
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+            .hasMessageContaining("detailPage")
+    }
+
+    @Test
+    fun `rejects duplicate persisted product code identities instead of choosing one row`() {
+        laptopPort.laptops += persistedLaptop(
+            id = 10L,
+            detailPage = "https://prod.danawa.com/info/?pcode=P10",
+            productCode = "P10",
+        )
+        laptopPort.laptops += persistedLaptop(
+            id = 11L,
+            detailPage = "https://prod.danawa.com/info/?pcode=P10-duplicate",
+            productCode = "P10",
+        )
+
+        assertThatThrownBy {
+            loader.load(listOf(productCard(productCode = "P10", detailPage = "https://prod.danawa.com/info/?pcode=P10")))
+        }.isInstanceOf(CrawlerInvalidStateException::class.java)
+            .hasMessageContaining("productCode")
+            .hasMessageContaining("10")
+            .hasMessageContaining("11")
+    }
+
+    @Test
+    fun `rejects duplicate persisted detail page identities instead of choosing one row`() {
+        laptopPort.laptops += persistedLaptop(
+            id = 20L,
+            detailPage = "https://prod.danawa.com/info/?pcode=P20",
+            productCode = "P20",
+        )
+        laptopPort.laptops += persistedLaptop(
+            id = 21L,
+            detailPage = "https://prod.danawa.com/info/?pcode=P20",
+            productCode = "P20-duplicate",
+        )
+
+        assertThatThrownBy {
+            loader.load(listOf(productCard(productCode = "P20", detailPage = "https://prod.danawa.com/info/?pcode=P20")))
+        }.isInstanceOf(CrawlerInvalidStateException::class.java)
+            .hasMessageContaining("detailPage")
+            .hasMessageContaining("20")
+            .hasMessageContaining("21")
     }
 
     private fun productCard(productCode: String, detailPage: String): CrawledProductCardCommand {
@@ -124,8 +195,7 @@ class ExistingCrawledLaptopLookupLoaderTest {
     }
 
     private class RecordingCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
-        val laptopsByProductCode = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
-        val laptopsByDetailPage = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
+        val laptops = mutableListOf<PersistedCrawledLaptopSnapshot>()
         val productCodeLookups = mutableListOf<List<String>>()
         val detailPageLookups = mutableListOf<List<String>>()
 
@@ -135,12 +205,12 @@ class ExistingCrawledLaptopLookupLoaderTest {
 
         override fun findAllByProductCodes(productCodes: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
             productCodeLookups += productCodes.toList()
-            return productCodes.mapNotNull(laptopsByProductCode::get)
+            return laptops.filter { laptop -> laptop.productCode in productCodes }
         }
 
         override fun findAllByDetailPages(detailPages: Collection<String>): List<PersistedCrawledLaptopSnapshot> {
             detailPageLookups += detailPages.toList()
-            return detailPages.mapNotNull(laptopsByDetailPage::get)
+            return laptops.filter { laptop -> laptop.detailPage in detailPages }
         }
 
         override fun create(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot {

@@ -24,8 +24,17 @@ internal class DefaultManageCommentUseCase(
 ) : ManageCommentUseCase {
     override fun add(command: AddCommentCommand) {
         validateAdd(command)
+        transactionPort.read {
+            validateLaptopExists(command.laptopId)
+        }
+        val passwordHash = passwordHashPort.hash(command.password)
         transactionPort.write {
-            addInTransaction(command)
+            commentPort.add(
+                laptopId = command.laptopId,
+                author = command.author,
+                content = command.content,
+                passwordHash = passwordHash,
+            )
         }
     }
 
@@ -46,9 +55,9 @@ internal class DefaultManageCommentUseCase(
     override fun update(commentId: Long, command: UpdateCommentCommand): CommentMutationResult {
         validateCommentId(commentId)
         validateUpdate(command)
+        val comment = findCommentInReadTransaction(commentId)
+        validatePassword(comment, command.password)
         return transactionPort.write {
-            val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
-            validatePassword(comment, command.password)
             commentPort.updateContent(commentId, command.content)
             CommentMutationResult(laptopId = comment.laptopId)
         }
@@ -57,22 +66,18 @@ internal class DefaultManageCommentUseCase(
     override fun delete(commentId: Long, command: DeleteCommentCommand): CommentMutationResult {
         validateCommentId(commentId)
         validateDelete(command)
+        val comment = findCommentInReadTransaction(commentId)
+        validatePassword(comment, command.password)
         return transactionPort.write {
-            val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
-            validatePassword(comment, command.password)
             commentPort.deleteById(commentId)
             CommentMutationResult(laptopId = comment.laptopId)
         }
     }
 
-    private fun addInTransaction(command: AddCommentCommand) {
-        validateLaptopExists(command.laptopId)
-        commentPort.add(
-            laptopId = command.laptopId,
-            author = command.author,
-            content = command.content,
-            passwordHash = passwordHashPort.hash(command.password),
-        )
+    private fun findCommentInReadTransaction(commentId: Long): CommentRecord {
+        return transactionPort.read {
+            commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
+        }
     }
 
     private fun validateAdd(command: AddCommentCommand) {

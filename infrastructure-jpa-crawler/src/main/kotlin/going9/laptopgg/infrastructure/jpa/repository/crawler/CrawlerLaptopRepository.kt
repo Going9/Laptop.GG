@@ -13,12 +13,6 @@ interface CrawlerLaptopRepository : JpaRepository<Laptop, Long> {
     @EntityGraph(attributePaths = ["laptopUsage"])
     fun findAllByDetailPageIn(detailPages: Collection<String>): List<Laptop>
 
-    @EntityGraph(attributePaths = ["laptopUsage"])
-    fun findByDetailPage(detailPage: String): Laptop?
-
-    @EntityGraph(attributePaths = ["laptopUsage"])
-    fun findByProductCode(productCode: String): Laptop?
-
     @Query(
         """
         select distinct l

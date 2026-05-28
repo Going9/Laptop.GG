@@ -8,6 +8,7 @@ import going9.laptopgg.application.crawler.run.CrawlerRunRecord
 import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
 import going9.laptopgg.application.crawler.run.CrawlerRunSummary
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
+import going9.laptopgg.job.crawler.orchestration.CrawlFailedWithPartialSummary
 import going9.laptopgg.job.crawler.orchestration.CrawlSummary
 import going9.laptopgg.job.crawler.orchestration.CrawlerService
 import org.assertj.core.api.Assertions.assertThat
@@ -105,6 +106,33 @@ class CrawlerJobExecutorTest {
 
         assertThat(exitCode).isEqualTo(1)
         assertThat(trackUseCase.failedFailure).isSameAs(exception)
+    }
+
+    @Test
+    fun `crawler exception with partial summary records failed completion counts`() {
+        val crawlerService = Mockito.mock(CrawlerService::class.java)
+        val partialSummary = crawlSummary(failedCount = 1, failureSamples = listOf("identity conflict"))
+        val exception = CrawlFailedWithPartialSummary(partialSummary, IllegalStateException("boom"))
+        Mockito.`when`(crawlerService.crawlAll(null, 1, CrawlerFilterProfile.CORE)).thenThrow(exception)
+        val trackUseCase = RecordingTrackCrawlerRunUseCase()
+        val executor = CrawlerJobExecutor(
+            crawlerService = crawlerService,
+            crawlerRunLockUseCase = RecordingCrawlerRunLockUseCase(acquired = true),
+            trackCrawlerRunUseCase = trackUseCase,
+            crawlerJobSummaryLogger = CrawlerJobSummaryLogger(),
+        )
+
+        val exitCode = executor.execute(
+            CrawlerJobRequest(limit = null, startPage = 1, filterProfile = CrawlerFilterProfile.CORE),
+        )
+
+        assertThat(exitCode).isEqualTo(1)
+        assertThat(trackUseCase.finishedStatus).isEqualTo(CrawlerRunCompletionStatus.FAILED)
+        assertThat(trackUseCase.finishedSummary?.processedCount).isEqualTo(10)
+        assertThat(trackUseCase.finishedSummary?.failedCount).isEqualTo(1)
+        assertThat(trackUseCase.finishedSummary?.failureSamples).containsExactly("identity conflict")
+        assertThat(trackUseCase.finishedErrorMessage).isEqualTo("boom")
+        assertThat(trackUseCase.failedFailure).isNull()
     }
 
     @Test

@@ -7,6 +7,7 @@ import going9.laptopgg.job.crawler.source.CrawlSource
 import going9.laptopgg.job.crawler.source.CrawlSourceResolver
 import going9.laptopgg.job.crawler.source.ResolvedCrawlSources
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.api.Test
 
 class CrawlerServiceTest {
@@ -58,6 +59,30 @@ class CrawlerServiceTest {
         assertThat(sourceRunner.calls).hasSize(1)
     }
 
+    @Test
+    fun `crawlAll wraps fatal source failure with partial progress summary`() {
+        val sourceFailure = IllegalStateException("identity conflict")
+        val sourceRunner = RecordingCrawlSourceRunUseCase(
+            results = emptyList(),
+            failureAfterRecording = sourceFailure,
+        )
+        val service = crawlerService(
+            sourceRunner = sourceRunner,
+            sources = listOf(crawlSource("first")),
+            maxListPages = 7,
+        )
+
+        val thrown = catchThrowable {
+            service.crawlAll(limit = null, startPage = 1, filterProfile = CrawlerFilterProfile.CORE)
+        }
+
+        assertThat(thrown)
+            .isInstanceOf(CrawlFailedWithPartialSummary::class.java)
+            .hasCause(sourceFailure)
+        val partialSummary = (thrown as CrawlFailedWithPartialSummary).partialSummary
+        assertThat(partialSummary.processedCount).isEqualTo(1)
+    }
+
     private fun crawlerService(
         sourceRunner: RecordingCrawlSourceRunUseCase,
         sources: List<CrawlSource>,
@@ -86,6 +111,7 @@ class CrawlerServiceTest {
 
     private class RecordingCrawlSourceRunUseCase(
         private val results: List<CrawlSourceRunResult>,
+        private val failureAfterRecording: RuntimeException? = null,
     ) : CrawlSourceRunUseCase {
         val calls = mutableListOf<CrawlSourceRunCall>()
 
@@ -100,6 +126,7 @@ class CrawlerServiceTest {
         ): CrawlSourceRunResult {
             calls += CrawlSourceRunCall(crawlSource, startPage, maxListPages, limit)
             progress.recordProcessed(1)
+            failureAfterRecording?.let { throw it }
             return results[calls.lastIndex]
         }
     }

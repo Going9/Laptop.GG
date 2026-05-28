@@ -5,6 +5,7 @@ import going9.laptopgg.application.crawler.run.CrawlerFilterProfile
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
 import going9.laptopgg.application.crawler.run.CrawlerRunSummary
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
+import going9.laptopgg.job.crawler.orchestration.CrawlFailedWithPartialSummary
 import going9.laptopgg.job.crawler.orchestration.CrawlSummary
 import going9.laptopgg.job.crawler.orchestration.CrawlerService
 import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
@@ -75,7 +76,12 @@ internal class CrawlerJobExecutor(
             if (summary.failedCount == 0) 0 else 1
         } catch (failure: Throwable) {
             failure.isCrawlerInterruptedFailure()
-            recordRunFailure(runId, request, failure)
+            recordRunFailure(
+                runId = runId,
+                request = request,
+                failure = failure,
+                partialSummary = (failure as? CrawlFailedWithPartialSummary)?.partialSummary,
+            )
             if (failure is Exception) {
                 1
             } else {
@@ -84,13 +90,31 @@ internal class CrawlerJobExecutor(
         }
     }
 
-    private fun recordRunFailure(runId: Long, request: CrawlerJobRequest, failure: Throwable) {
+    private fun recordRunFailure(
+        runId: Long,
+        request: CrawlerJobRequest,
+        failure: Throwable,
+        partialSummary: CrawlSummary?,
+    ) {
         try {
-            trackCrawlerRunUseCase.fail(runId, failure)
+            if (partialSummary == null) {
+                trackCrawlerRunUseCase.fail(runId, failure)
+            } else {
+                trackCrawlerRunUseCase.finish(
+                    runId = runId,
+                    summary = partialSummary.toRunSummary(),
+                    status = CrawlerRunCompletionStatus.FAILED,
+                    errorMessage = failure.toCrawlerErrorMessage(),
+                )
+            }
         } catch (trackingFailure: Throwable) {
             failure.addSuppressed(trackingFailure)
         }
-        crawlerJobSummaryLogger.logRunFailure(runId, request, failure)
+        crawlerJobSummaryLogger.logRunFailure(runId, request, failure, partialSummary)
+    }
+
+    private fun Throwable.toCrawlerErrorMessage(): String {
+        return cause?.message ?: message ?: javaClass.simpleName ?: "Unknown crawler failure"
     }
 
     private fun CrawlSummary.toRunSummary(): CrawlerRunSummary {

@@ -64,8 +64,8 @@ class CrawlerPersistenceIntegrationTest {
 
         assertThat(result).isEqualTo(SaveResult.CREATED)
         assertThat(laptopRepository.count()).isEqualTo(2)
-        assertThat(laptopRepository.findByProductCode("A001")).isNotNull
-        assertThat(laptopRepository.findByProductCode("B002")).isNotNull
+        assertThat(laptopRepository.findAllByProductCodeIn(listOf("A001"))).hasSize(1)
+        assertThat(laptopRepository.findAllByProductCodeIn(listOf("B002"))).hasSize(1)
     }
 
     @Test
