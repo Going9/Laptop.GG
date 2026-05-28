@@ -1043,6 +1043,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawl product batch processor must delegate snapshot saving and detail outcome handling",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt"),
+			patterns = listOf(
+				Regex("""DetailRefreshOutcome\b"""),
+				Regex("""BuildLaptopResult"""),
+				Regex("""fun\s+saveListSnapshot"""),
+				Regex("""saveCrawledLaptopUseCase\.saveListSnapshot\("""),
+				Regex("""saveCrawledLaptopUseCase\.saveOrUpdateLaptop\("""),
+				Regex("""recordDegraded"""),
+				Regex("""recordFailure"""),
+				Regex("""logger\.(warn|error)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "recommend laptop use case must delegate filtering, sorting, and result mapping",
 			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt"),
 			patterns = listOf(

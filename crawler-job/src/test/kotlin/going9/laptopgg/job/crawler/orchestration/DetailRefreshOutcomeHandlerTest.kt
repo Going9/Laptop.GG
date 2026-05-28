@@ -1,90 +1,73 @@
 package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
-import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLookup
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.SaveResult
 import going9.laptopgg.job.crawler.detail.BuildLaptopResult
-import going9.laptopgg.job.crawler.detail.DetailCrawler
 import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
 import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
 import java.time.LocalDateTime
-import java.util.concurrent.Executors
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
-class CrawlProductBatchProcessorTest {
+class DetailRefreshOutcomeHandlerTest {
     private val saveCrawledLaptopUseCase = Mockito.mock(SaveCrawledLaptopUseCase::class.java)
-    private val detailCrawler = Mockito.mock(DetailCrawler::class.java)
     private val snapshotSaver = CrawlProductSnapshotSaver(saveCrawledLaptopUseCase)
-    private val detailRefreshOutcomeHandler = DetailRefreshOutcomeHandler(snapshotSaver)
-    private val processor = CrawlProductBatchProcessor(
-        saveCrawledLaptopUseCase,
-        detailCrawler,
-        snapshotSaver,
-        detailRefreshOutcomeHandler,
-    )
+    private val handler = DetailRefreshOutcomeHandler(snapshotSaver)
 
     @Test
-    fun `fresh existing product is saved as list snapshot without detail refresh`() {
+    fun `records degraded full snapshot saves`() {
         val productCard = productCard("100")
-        val existingLaptop = existingLaptop(id = 1L, productCode = productCard.productCode)
-        Mockito.`when`(saveCrawledLaptopUseCase.loadExistingLookup(listOf(productCard.toCommand())))
-            .thenReturn(
-                ExistingCrawledLaptopLookup(
-                    byProductCode = mapOf(productCard.productCode to existingLaptop),
-                    byDetailPage = emptyMap(),
-                ),
-            )
-        Mockito.`when`(saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand()))
-            .thenReturn(SaveResult.UPDATED)
-        val progress = CrawlProgress()
-        val executor = Executors.newSingleThreadExecutor()
-
-        try {
-            val result = processor.process(listOf(productCard), progress, executor)
-
-            assertThat(result.processedCount).isEqualTo(1)
-            assertThat(result.detailRefreshCount).isEqualTo(0)
-            assertThat(result.pagePriceOnlyUpdatedCount).isEqualTo(1)
-            assertThat(progress.toSummary().updatedCount).isEqualTo(1)
-            Mockito.verifyNoInteractions(detailCrawler)
-        } finally {
-            executor.shutdown()
-        }
-    }
-
-    @Test
-    fun `new product is fetched in detail and saved as full snapshot`() {
-        val productCard = productCard("200")
-        val executor = Executors.newSingleThreadExecutor()
-        val workItems = listOf(DetailRefreshWorkItem(productCard = productCard, existingLaptop = null))
-        val detailOutcome = DetailRefreshOutcome(
-            workItem = workItems.first(),
-            buildResult = BuildLaptopResult(command = crawledLaptopCommand(productCard), degradationReasons = emptyList()),
+        val buildResult = BuildLaptopResult(
+            command = crawledLaptopCommand(productCard),
+            degradationReasons = listOf("summary fallback"),
         )
-        Mockito.`when`(saveCrawledLaptopUseCase.loadExistingLookup(listOf(productCard.toCommand())))
-            .thenReturn(ExistingCrawledLaptopLookup(byProductCode = emptyMap(), byDetailPage = emptyMap()))
-        Mockito.`when`(detailCrawler.fetchDetailRefreshOutcomes(workItems, executor))
-            .thenReturn(listOf(detailOutcome))
-        Mockito.`when`(saveCrawledLaptopUseCase.saveOrUpdateLaptop(detailOutcome.buildResult!!.command, null))
+        Mockito.`when`(saveCrawledLaptopUseCase.saveOrUpdateLaptop(buildResult.command, null))
             .thenReturn(SaveResult.CREATED)
         val progress = CrawlProgress()
 
-        try {
-            val result = processor.process(listOf(productCard), progress, executor)
+        val result = handler.handle(
+            detailRefreshOutcomes = listOf(
+                DetailRefreshOutcome(
+                    workItem = DetailRefreshWorkItem(productCard = productCard, existingLaptop = null),
+                    buildResult = buildResult,
+                ),
+            ),
+            progress = progress,
+        )
 
-            assertThat(result.processedCount).isEqualTo(1)
-            assertThat(result.detailRefreshCount).isEqualTo(1)
-            assertThat(result.pagePriceOnlyUpdatedCount).isEqualTo(0)
-            assertThat(progress.toSummary().createdCount).isEqualTo(1)
-        } finally {
-            executor.shutdown()
-        }
+        assertThat(result.pagePriceOnlyUpdatedCount).isZero()
+        assertThat(progress.toSummary().createdCount).isEqualTo(1)
+        assertThat(progress.toSummary().degradedCount).isEqualTo(1)
+        assertThat(progress.toSummary().degradedSamples).containsExactly("100 | Laptop 100 | summary fallback")
+    }
+
+    @Test
+    fun `falls back to list snapshot and records failure when detail build failed for existing laptop`() {
+        val productCard = productCard("200")
+        val existingLaptop = existingLaptop(id = 2L, productCode = productCard.productCode)
+        Mockito.`when`(saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand()))
+            .thenReturn(SaveResult.UPDATED)
+        val progress = CrawlProgress()
+
+        val result = handler.handle(
+            detailRefreshOutcomes = listOf(
+                DetailRefreshOutcome(
+                    workItem = DetailRefreshWorkItem(productCard = productCard, existingLaptop = existingLaptop),
+                    error = IllegalStateException("detail failed"),
+                ),
+            ),
+            progress = progress,
+        )
+
+        assertThat(result.pagePriceOnlyUpdatedCount).isEqualTo(1)
+        assertThat(progress.toSummary().updatedCount).isEqualTo(1)
+        assertThat(progress.toSummary().failedCount).isEqualTo(1)
+        assertThat(progress.toSummary().failureSamples).containsExactly("200 | Laptop 200 | detail failed")
     }
 
     private fun productCard(code: String): ProductCard {
