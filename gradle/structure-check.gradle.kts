@@ -1603,6 +1603,34 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler run updates must use direct update queries",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerRunRepository.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapterTest.kt",
+			),
+			patterns = listOf(
+				Regex("""@Modifying\(clearAutomatically = true, flushAutomatically = true\)"""),
+				Regex("""fun updateCompletionById\("""),
+				Regex("""fun updateFailureById\("""),
+				Regex("""crawlerRunRepository\.updateCompletionById\("""),
+				Regex("""crawlerRunRepository\.updateFailureById\("""),
+				Regex("""update completion delegates to direct update query without loading crawler run entity"""),
+				Regex("""update failure delegates to direct update query without loading crawler run entity"""),
+				Regex("""Mockito\.verify\(crawlerRunRepository, Mockito\.never\(\)\)\.findById"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler run updates must not reload entities",
+			paths = listOf("infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt"),
+			patterns = listOf(
+				Regex("""findByIdOrNull\(command\.runId\)"""),
+				Regex("""crawlerRunRepository\.save\(crawlerRun\)"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler run tracking service must delegate command creation and storage formatting",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt"),
