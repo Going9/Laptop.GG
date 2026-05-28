@@ -355,6 +355,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler save use case must delegate laptop change detection",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt"),
+			patterns = listOf(
+				Regex("""UpdateCrawledLaptopCommand\("""),
+				Regex("""fun\s+changed(Text|Present|Usages)\b"""),
+				Regex("""fun\s+PersistedCrawledLaptopSnapshot\.toUpdateCommand\b"""),
+				Regex("""fun\s+UpdateCrawledLaptopCommand\.hasChanges\b"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler run port must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/port/CrawlerRunPort.kt",
