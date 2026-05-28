@@ -26,6 +26,7 @@ class CrawlerJobApplicationTests {
             "pageController",
             "recommendationController",
             "thymeleafViewResolver",
+            "commentJpaAdapter",
         )
     }
 

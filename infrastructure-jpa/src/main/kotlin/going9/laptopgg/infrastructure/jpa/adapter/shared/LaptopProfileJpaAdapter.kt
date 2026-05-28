@@ -1,4 +1,4 @@
-package going9.laptopgg.infrastructure.jpa.adapter
+package going9.laptopgg.infrastructure.jpa.adapter.shared
 
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.port.out.LaptopProfilePort

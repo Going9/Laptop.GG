@@ -184,6 +184,15 @@ val verifyStructure by tasks.registering {
 			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/LaptopGgApplication.kt"),
 			patterns = listOf(
 				Regex("""@SpringBootApplication\s*$"""),
+				Regex(""""going9\.laptopgg\.infrastructure\.jpa","""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler-job must not scan all JPA adapters",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
+			patterns = listOf(
+				Regex(""""going9\.laptopgg\.infrastructure\.jpa","""),
 			),
 		)
 

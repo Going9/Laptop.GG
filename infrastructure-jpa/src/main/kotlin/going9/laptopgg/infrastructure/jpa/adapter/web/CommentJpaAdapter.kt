@@ -1,4 +1,4 @@
-package going9.laptopgg.infrastructure.jpa.adapter
+package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.port.out.CommentPort
 import going9.laptopgg.domain.laptop.Comment

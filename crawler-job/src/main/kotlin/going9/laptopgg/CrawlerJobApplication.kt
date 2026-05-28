@@ -6,7 +6,8 @@ import org.springframework.boot.runApplication
 @SpringBootApplication(
     scanBasePackages = [
         "going9.laptopgg.application.crawler",
-        "going9.laptopgg.infrastructure.jpa",
+        "going9.laptopgg.infrastructure.jpa.adapter.crawler",
+        "going9.laptopgg.infrastructure.jpa.adapter.shared",
         "going9.laptopgg.job",
         "going9.laptopgg.runner",
     ],

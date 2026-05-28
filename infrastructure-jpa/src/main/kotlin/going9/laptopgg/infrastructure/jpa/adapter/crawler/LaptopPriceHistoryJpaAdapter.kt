@@ -1,4 +1,4 @@
-package going9.laptopgg.infrastructure.jpa.adapter
+package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.domain.laptop.LaptopPriceHistory
