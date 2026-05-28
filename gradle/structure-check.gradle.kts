@@ -930,6 +930,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa detail html parser must delegate summary fallback parsing",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DanawaDetailParser.kt"),
+			patterns = listOf(
+				Regex("""fun\s+extractSummaryText\b"""),
+				Regex("""fun\s+parseSummaryFallback\b"""),
+				Regex("""fun\s+isEmpty\b"""),
+				Regex("""summary_info"""),
+				Regex("""SummaryFallback\("""),
+			),
+		)
+
+		assertAbsent(
 			rule = "Danawa list html parser must delegate request context extraction",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListParser.kt"),
 			patterns = listOf(

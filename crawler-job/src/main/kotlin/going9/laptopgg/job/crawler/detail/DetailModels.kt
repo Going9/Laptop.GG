@@ -43,7 +43,29 @@ internal data class SummaryFallback(
     val storageSlotCount: Int? = null,
     val weight: Double? = null,
     val usages: List<String> = emptyList(),
-)
+) {
+    fun isEmpty(): Boolean {
+        return cpuManufacturer == null &&
+            cpu == null &&
+            os == null &&
+            screenSize == null &&
+            resolution == null &&
+            brightness == null &&
+            refreshRate == null &&
+            ramSize == null &&
+            ramType == null &&
+            isRamReplaceable == null &&
+            graphicsKind == null &&
+            graphicsModel == null &&
+            tgp == null &&
+            isSupportsPdCharging == null &&
+            batteryCapacity == null &&
+            storageCapacity == null &&
+            storageSlotCount == null &&
+            weight == null &&
+            usages.isEmpty()
+    }
+}
 
 internal data class DetailRefreshWorkItem(
     val productCard: ProductCard,

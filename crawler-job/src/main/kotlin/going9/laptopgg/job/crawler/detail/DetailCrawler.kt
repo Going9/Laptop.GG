@@ -55,8 +55,10 @@ class DetailCrawler(
             degradationReasons += "상세 스펙 테이블 파싱 결과 비어 있음"
         }
 
-        val summaryFallback = DanawaDetailParser.parseSummaryFallback(DanawaDetailParser.extractSummaryText(detailPageHtml))
-        if (parsedSpecTable.values.isEmpty() && DanawaDetailParser.isEmpty(summaryFallback)) {
+        val summaryFallback = DanawaSummaryFallbackParser.parseSummaryFallback(
+            DanawaSummaryFallbackParser.extractSummaryText(detailPageHtml),
+        )
+        if (parsedSpecTable.values.isEmpty() && summaryFallback.isEmpty()) {
             degradationReasons += "상세/요약 스펙 모두 비어 있음"
         }
 

@@ -1,6 +1,7 @@
 package going9.laptopgg.job.crawler.list
 
 import going9.laptopgg.job.crawler.detail.DanawaDetailParser
+import going9.laptopgg.job.crawler.detail.DanawaSummaryFallbackParser
 import going9.laptopgg.job.crawler.orchestration.DuplicateTailStopPolicy
 import going9.laptopgg.job.crawler.orchestration.ProductPageSignature
 import going9.laptopgg.job.crawler.source.CrawlSource
@@ -36,12 +37,8 @@ class CrawlerHtmlFixtureParsingTest {
 
         val detailRequestContext = DanawaDetailParser.extractDetailRequestContext(detailPageHtml)
         val parsedSpecTable = DanawaDetailParser.parseSpecTable(detailSpecHtml)
-        val summaryFallback = DanawaDetailParser.parseSummaryFallback(
-            Regex("""<div class="spec_list">\s*(.*?)\s*</div>""", setOf(RegexOption.DOT_MATCHES_ALL))
-                .find(detailPageHtml)
-                ?.groupValues
-                ?.get(1)
-                .orEmpty(),
+        val summaryFallback = DanawaSummaryFallbackParser.parseSummaryFallback(
+            DanawaSummaryFallbackParser.extractSummaryText(detailPageHtml),
         )
 
         assertThat(detailRequestContext?.makerName).isEqualTo("레노버")
