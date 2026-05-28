@@ -53,6 +53,8 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.dto"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
+				Regex("""spring-security-crypto"""),
+				Regex("""org\.springframework\.security"""),
 				Regex("""com\.h2database"""),
 			),
 		)
