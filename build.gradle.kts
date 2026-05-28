@@ -581,6 +581,20 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler orchestration must not own product batch persistence flow",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			patterns = listOf(
+				Regex("""SaveCrawledLaptopUseCase"""),
+				Regex("""DetailCrawler"""),
+				Regex("""DetailRefreshWorkItem"""),
+				Regex("""DetailRefreshOutcome"""),
+				Regex("""loadExistingLookup"""),
+				Regex("""saveListSnapshot"""),
+				Regex("""saveOrUpdateLaptop"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(
