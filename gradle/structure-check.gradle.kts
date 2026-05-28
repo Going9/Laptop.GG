@@ -341,6 +341,19 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "profile metric policy must delegate display scoring",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileMetricPolicy.kt"),
+			patterns = listOf(
+				Regex("""fun\s+displayScore\b"""),
+				Regex("""RESOLUTION_REGEX"""),
+				Regex("""REFERENCE_PIXELS"""),
+				Regex("""brightnessScore"""),
+				Regex("""refreshScore"""),
+				Regex("""roundToInt"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler laptop persistence boundary must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/port/CrawledLaptopPersistencePort.kt",

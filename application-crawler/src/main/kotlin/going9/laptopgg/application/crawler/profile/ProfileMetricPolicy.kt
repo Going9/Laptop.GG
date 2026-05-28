@@ -3,7 +3,6 @@ package going9.laptopgg.application.crawler.profile
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.PortabilityTier
-import kotlin.math.roundToInt
 
 data class ProfileMetrics(
     val batteryTier: BatteryTier,
@@ -23,14 +22,16 @@ data class UsageBoosts(
     val gameBoost: Int,
 )
 
-class ProfileMetricPolicy {
+class ProfileMetricPolicy(
+    private val displayMetricPolicy: DisplayMetricPolicy = DisplayMetricPolicy(),
+) {
     fun calculate(laptop: PersistedCrawledLaptopSnapshot, gpu: GpuInsights): ProfileMetrics {
         return ProfileMetrics(
             batteryTier = batteryTier(laptop.batteryCapacity),
             portabilityTier = portabilityTier(laptop.weight),
             batteryCapacityScore = batteryCapacityScore(laptop.batteryCapacity),
             portabilityScore = portabilityScore(laptop.weight),
-            displayScore = displayScore(laptop),
+            displayScore = displayMetricPolicy.displayScore(laptop),
             ramScore = ramScore(laptop.ramSize),
             tgpScore = tgpScore(laptop.tgp, gpu.isIntegrated),
             usageBoosts = usageBoosts(laptop),
@@ -101,30 +102,6 @@ class ProfileMetricPolicy {
         }
     }
 
-    fun displayScore(laptop: PersistedCrawledLaptopSnapshot): Int {
-        val resolution = laptop.resolution.orEmpty()
-        val resolutionMatch = RESOLUTION_REGEX.find(resolution)
-        val pixelScore = if (resolutionMatch != null) {
-            val width = resolutionMatch.groupValues[1].toInt()
-            val height = resolutionMatch.groupValues[2].toInt()
-            ((width.toDouble() * height) / REFERENCE_PIXELS * 100.0).coerceIn(20.0, 100.0)
-        } else {
-            50.0
-        }
-
-        val brightnessScore = when (val brightness = laptop.brightness) {
-            null -> 55.0
-            else -> (brightness.toDouble() / 500.0 * 100.0).coerceIn(35.0, 100.0)
-        }
-
-        val refreshScore = when (val refreshRate = laptop.refreshRate) {
-            null -> 50.0
-            else -> (refreshRate.toDouble() / 240.0 * 100.0).coerceIn(25.0, 100.0)
-        }
-
-        return clampScore((pixelScore * 0.60) + (brightnessScore * 0.25) + (refreshScore * 0.15))
-    }
-
     fun tgpScore(tgp: Int?, isIntegrated: Boolean): Int {
         if (isIntegrated) {
             return 25
@@ -152,12 +129,4 @@ class ProfileMetricPolicy {
         )
     }
 
-    private fun clampScore(value: Double): Int {
-        return value.roundToInt().coerceIn(0, 100)
-    }
-
-    private companion object {
-        private val RESOLUTION_REGEX = Regex("""([0-9]{3,4})x([0-9]{3,4})""", RegexOption.IGNORE_CASE)
-        private const val REFERENCE_PIXELS = 2880.0 * 1800.0
-    }
 }
