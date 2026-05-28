@@ -2,6 +2,7 @@ package going9.laptopgg.integration
 
 import going9.laptopgg.integration.support.PostgresIntegrationDatabase
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -71,6 +72,60 @@ class PostgresFlywayMigrationTest {
                     )
                 }
             }
+
+            connection.prepareStatement(
+                """
+                select conname, convalidated
+                from pg_constraint c
+                join pg_class t on t.oid = c.conrelid
+                join pg_namespace n on n.oid = t.relnamespace
+                where n.nspname = 'public'
+                  and t.relname = 'laptop'
+                  and c.contype = 'c'
+                """.trimIndent(),
+            ).use { statement ->
+                statement.executeQuery().use { resultSet ->
+                    val constraints = generateSequence {
+                        if (resultSet.next()) resultSet.getString("conname") to resultSet.getBoolean("convalidated") else null
+                    }.toMap()
+
+                    assertThat(constraints).containsKeys(
+                        "chk_laptop_name_required",
+                        "chk_laptop_image_url_required",
+                        "chk_laptop_detail_page_required",
+                    )
+                    assertThat(constraints["chk_laptop_name_required"]).isFalse()
+                    assertThat(constraints["chk_laptop_image_url_required"]).isFalse()
+                    assertThat(constraints["chk_laptop_detail_page_required"]).isFalse()
+                }
+            }
+
+            assertThatThrownBy {
+                connection.prepareStatement(
+                    """
+                    insert into public.laptop (name, image_url, detail_page)
+                    values ('', 'https://example.com/laptop.jpg', 'https://example.com/detail')
+                    """.trimIndent(),
+                ).use { statement -> statement.executeUpdate() }
+            }.hasMessageContaining("chk_laptop_name_required")
+
+            assertThatThrownBy {
+                connection.prepareStatement(
+                    """
+                    insert into public.laptop (name, image_url, detail_page)
+                    values ('Valid Laptop', '   ', 'https://example.com/detail')
+                    """.trimIndent(),
+                ).use { statement -> statement.executeUpdate() }
+            }.hasMessageContaining("chk_laptop_image_url_required")
+
+            assertThatThrownBy {
+                connection.prepareStatement(
+                    """
+                    insert into public.laptop (name, image_url, detail_page)
+                    values ('Valid Laptop', 'https://example.com/laptop.jpg', null)
+                    """.trimIndent(),
+                ).use { statement -> statement.executeUpdate() }
+            }.hasMessageContaining("chk_laptop_detail_page_required")
 
             connection.prepareStatement(
                 """

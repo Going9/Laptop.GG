@@ -539,6 +539,28 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "laptop persistence must enforce required display identity fields for new writes",
+			paths = listOf(
+				"infrastructure-jpa-core/src/main/resources/db/migration/V11__laptop_required_identity_fields.sql",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
+				"docs/architecture.md",
+			),
+			patterns = listOf(
+				Regex("""chk_laptop_name_required"""),
+				Regex("""chk_laptop_image_url_required"""),
+				Regex("""chk_laptop_detail_page_required"""),
+				Regex("""NOT VALID"""),
+				Regex("""btrim\(name\) <> ''"""),
+				Regex("""btrim\(image_url\) <> ''"""),
+				Regex("""detail_page IS NOT NULL"""),
+				Regex("""hasMessageContaining\("chk_laptop_name_required"\)"""),
+				Regex("""hasMessageContaining\("chk_laptop_image_url_required"\)"""),
+				Regex("""hasMessageContaining\("chk_laptop_detail_page_required"\)"""),
+				Regex("""신규/변경 데이터부터 막는 `NOT VALID` constraint"""),
+			),
+		)
+
+		assertPresent(
 			rule = "comment read contracts must expose persisted non-null ids",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
