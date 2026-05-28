@@ -14,6 +14,7 @@ import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.web.dto.response.CommentResponse
 import going9.laptopgg.web.dto.response.LaptopDetailResponse
 import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
+import going9.laptopgg.web.view.RecommendationPageModelFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -27,6 +28,7 @@ class PageControllerTest {
         getLaptopDetailUseCase = getLaptopDetailUseCase,
         recommendLaptopsUseCase = recommendLaptopsUseCase,
         manageCommentUseCase = manageCommentUseCase,
+        recommendationPageModelFactory = RecommendationPageModelFactory(),
     )
 
     @Test

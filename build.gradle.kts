@@ -320,6 +320,20 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "page controllers must not own recommendation view option catalogs",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/controller/PageController.kt"),
+			patterns = listOf(
+				Regex("""UseCaseOption"""),
+				Regex("""ScreenSizeModeOption"""),
+				Regex("""fun\s+useCaseLabel"""),
+				Regex("""fun\s+useCaseHeading"""),
+				Regex("""fun\s+screenSizeSummary"""),
+				Regex("""fun\s+budgetPresetList"""),
+				Regex("""fun\s+weightPresetList"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "infrastructure-security must stay free of JPA and domain persistence concerns",
 			paths = listOf("infrastructure-security/src/main", "infrastructure-security/src/test", "infrastructure-security/build.gradle.kts"),
 			patterns = listOf(
