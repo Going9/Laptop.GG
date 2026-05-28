@@ -22,7 +22,7 @@ class RecommendationScoreService(
         }
     }
 
-    private fun refreshScoresInTransaction(profileState: CrawledLaptopProfileState) {
+    internal fun refreshScoresInTransaction(profileState: CrawledLaptopProfileState) {
         val profile = profileState.profile
         val inputs = scoreInputs(profile)
         val gateInputs = gateInputs(profile)

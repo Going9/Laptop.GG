@@ -118,7 +118,7 @@ class LaptopProfileService(
         return ids.size
     }
 
-    private fun syncProfileInTransaction(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
+    internal fun syncProfileInTransaction(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
         val laptopId = laptop.id
         val snapshot = laptopProfileFactory.build(laptop)
         val profile = laptopProfilePort.upsert(
@@ -128,7 +128,7 @@ class LaptopProfileService(
             ),
         )
 
-        recommendationScoreService.refreshScores(profile)
+        recommendationScoreService.refreshScoresInTransaction(profile)
         return profile
     }
 

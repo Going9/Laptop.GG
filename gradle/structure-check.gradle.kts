@@ -430,6 +430,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler save use case must avoid nested transactional service entrypoints",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt"),
+			patterns = listOf(
+				Regex("""laptopProfileService\.syncProfile\("""),
+				Regex("""laptopPriceHistoryService\.recordCurrentPrice\("""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler run port must not expose JPA entities",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/port/CrawlerRunPort.kt",

@@ -57,7 +57,7 @@ class SaveCrawledLaptopService(
         }
 
         val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
-        laptopPriceHistoryService.recordCurrentPrice(
+        laptopPriceHistoryService.recordCurrentPriceInTransaction(
             laptopId = savedLaptop.id,
             currentPrice = savedLaptop.price,
             previousPrice = existingLaptop.price,
@@ -78,8 +78,8 @@ class SaveCrawledLaptopService(
     ): SaveResult {
         if (existingLaptop == null) {
             val savedLaptop = laptopPort.create(command)
-            laptopProfileService.syncProfile(savedLaptop)
-            laptopPriceHistoryService.recordCurrentPrice(
+            laptopProfileService.syncProfileInTransaction(savedLaptop)
+            laptopPriceHistoryService.recordCurrentPriceInTransaction(
                 laptopId = savedLaptop.id,
                 currentPrice = savedLaptop.price,
                 previousPrice = null,
@@ -93,8 +93,8 @@ class SaveCrawledLaptopService(
         }
 
         val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
-        laptopProfileService.syncProfile(savedLaptop)
-        laptopPriceHistoryService.recordCurrentPrice(
+        laptopProfileService.syncProfileInTransaction(savedLaptop)
+        laptopPriceHistoryService.recordCurrentPriceInTransaction(
             laptopId = savedLaptop.id,
             currentPrice = savedLaptop.price,
             previousPrice = existingLaptop.price,

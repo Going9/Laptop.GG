@@ -14,7 +14,7 @@ class LaptopPriceHistoryService(
         }
     }
 
-    private fun recordCurrentPriceInTransaction(laptopId: Long, currentPrice: Int?, previousPrice: Int?) {
+    internal fun recordCurrentPriceInTransaction(laptopId: Long, currentPrice: Int?, previousPrice: Int?) {
         val price = currentPrice ?: return
 
         if (previousPrice == price) {
