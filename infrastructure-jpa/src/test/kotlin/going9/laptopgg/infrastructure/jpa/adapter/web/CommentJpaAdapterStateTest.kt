@@ -5,9 +5,9 @@ import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentListProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentMutationProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
-import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.web.Comment
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -18,19 +18,18 @@ class CommentJpaAdapterStateTest {
     @Test
     fun `add saves comment with laptop reference without loading laptop entity`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
-        val laptopRepository = Mockito.mock(WebLaptopRepository::class.java)
+        val entityManager = Mockito.mock(EntityManager::class.java)
         val laptop = laptopFixture(id = 3L)
         val savedCommentCaptor = ArgumentCaptor.forClass(Comment::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = laptopRepository,
+            entityManager = entityManager,
         )
-        Mockito.`when`(laptopRepository.getReferenceById(3L)).thenReturn(laptop)
+        Mockito.`when`(entityManager.getReference(Laptop::class.java, 3L)).thenReturn(laptop)
 
         adapter.add(laptopId = 3L, author = "iggy", content = "좋아요", passwordHash = "hashed:pw")
 
-        Mockito.verify(laptopRepository).getReferenceById(3L)
-        Mockito.verify(laptopRepository, Mockito.never()).findById(Mockito.anyLong())
+        Mockito.verify(entityManager).getReference(Laptop::class.java, 3L)
         Mockito.verify(commentRepository).save(savedCommentCaptor.capture())
         assertThat(savedCommentCaptor.value.laptop).isSameAs(laptop)
         assertThat(savedCommentCaptor.value.author).isEqualTo("iggy")
@@ -43,7 +42,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
         Mockito.`when`(commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(3L)).thenReturn(
             listOf(
@@ -63,7 +62,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
         Mockito.`when`(commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(3L)).thenReturn(
             listOf(commentListProjection(id = null)),
@@ -79,7 +78,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
 
         Mockito.`when`(commentRepository.findMutationProjectedById(1L))
@@ -99,7 +98,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
 
         Mockito.`when`(commentRepository.findMutationProjectedById(1L))
@@ -115,7 +114,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
 
         Mockito.`when`(commentRepository.findMutationProjectedById(1L))
@@ -131,7 +130,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
 
         Mockito.`when`(commentRepository.updateContentById(7L, "수정")).thenReturn(1)
@@ -147,7 +146,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
 
         Mockito.`when`(commentRepository.updateContentById(7L, "수정")).thenReturn(0)
@@ -162,7 +161,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
 
         Mockito.`when`(commentRepository.deleteByCommentId(7L)).thenReturn(1)
@@ -178,7 +177,7 @@ class CommentJpaAdapterStateTest {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
         val adapter = CommentJpaAdapter(
             commentRepository = commentRepository,
-            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+            entityManager = Mockito.mock(EntityManager::class.java),
         )
 
         Mockito.`when`(commentRepository.deleteByCommentId(7L)).thenReturn(0)

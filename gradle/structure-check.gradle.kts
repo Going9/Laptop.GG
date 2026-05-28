@@ -924,9 +924,9 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""validateLaptopExists\(command\.laptopId\)"""),
-				Regex("""laptopRepository\.getReferenceById\(laptopId\)"""),
+				Regex("""entityManager\.getReference\(Laptop::class\.java, laptopId\)"""),
 				Regex("""add saves comment with laptop reference without loading laptop entity"""),
-				Regex("""Mockito\.verify\(laptopRepository, Mockito\.never\(\)\)\.findById"""),
+				Regex("""Mockito\.verify\(entityManager\)\.getReference\(Laptop::class\.java, 3L\)"""),
 			),
 		)
 
@@ -934,6 +934,8 @@ val verifyStructure by tasks.registering {
 			rule = "comment creation must not reselect laptop after application validation",
 			paths = listOf("infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt"),
 			patterns = listOf(
+				Regex("""WebLaptopRepository"""),
+				Regex("""getReferenceById\(laptopId\)"""),
 				Regex("""findByIdOrNull\(laptopId\)"""),
 				Regex("""findById\(laptopId\)"""),
 			),
