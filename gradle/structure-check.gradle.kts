@@ -1538,6 +1538,21 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "PostgreSQL integration tests must use shared database support",
+			paths = listOf(
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresCrawlerPersistenceUseCaseTest.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
+			),
+			patterns = listOf(
+				Regex("""PostgreSQLContainer"""),
+				Regex("""DockerImageName"""),
+				Regex("""POSTGRES_INTEGRATION_JDBC_URL"""),
+				Regex("""POSTGRES_INTEGRATION_USERNAME"""),
+				Regex("""POSTGRES_INTEGRATION_PASSWORD"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "infrastructure-backed integration tests must not live under application package paths",
 			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/application"),

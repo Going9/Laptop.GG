@@ -12,10 +12,10 @@ import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfil
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
+import going9.laptopgg.integration.support.PostgresIntegrationDatabase
 import going9.laptopgg.recommendation.RecommendationUseCase
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -23,8 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.utility.DockerImageName
 
 @EnabledIfEnvironmentVariable(named = "POSTGRES_INTEGRATION_TESTS", matches = "true")
 @SpringBootTest(
@@ -157,40 +155,10 @@ class PostgresCrawlerPersistenceUseCaseTest {
     }
 
     companion object {
-        private val postgresContainer: PostgreSQLContainer<*>? =
-            if (
-                System.getenv("POSTGRES_INTEGRATION_TESTS") == "true" &&
-                System.getenv("POSTGRES_INTEGRATION_JDBC_URL").isNullOrBlank()
-            ) {
-                PostgreSQLContainer(DockerImageName.parse("postgres:16"))
-                    .withDatabaseName("laptopgg_test")
-                    .withUsername("laptopgg")
-                    .withPassword("laptopgg")
-                    .also { it.start() }
-            } else {
-                null
-            }
-
         @JvmStatic
         @DynamicPropertySource
         fun registerPostgresProperties(registry: DynamicPropertyRegistry) {
-            val externalJdbcUrl = System.getenv("POSTGRES_INTEGRATION_JDBC_URL")
-            val container = postgresContainer
-            registry.add("spring.datasource.url") {
-                externalJdbcUrl ?: requireNotNull(container).jdbcUrl
-            }
-            registry.add("spring.datasource.username") {
-                System.getenv("POSTGRES_INTEGRATION_USERNAME") ?: container?.username ?: "laptopgg"
-            }
-            registry.add("spring.datasource.password") {
-                System.getenv("POSTGRES_INTEGRATION_PASSWORD") ?: container?.password ?: "laptopgg"
-            }
-        }
-
-        @JvmStatic
-        @AfterAll
-        fun stopPostgresContainer() {
-            postgresContainer?.stop()
+            PostgresIntegrationDatabase.registerSpringDatasource(registry)
         }
     }
 }
