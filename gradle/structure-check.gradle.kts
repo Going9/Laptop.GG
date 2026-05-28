@@ -1531,6 +1531,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawl progress must delegate sample formatting and capping",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProgress.kt"),
+			patterns = listOf(
+				Regex("""mutableListOf<String>\("""),
+				Regex("""fun\s+recordSample\b"""),
+				Regex("""productCard\.productCode.*productCard\.productName"""),
+				Regex("""samples\.size\s*>=\s*maxSampleCount"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler orchestration must not expose parser or merger test delegates",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(

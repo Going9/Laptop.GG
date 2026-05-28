@@ -21,8 +21,8 @@ internal class CrawlProgress(
     var failedCount: Int = 0
         private set
 
-    private val degradedSamples = mutableListOf<String>()
-    private val failureSamples = mutableListOf<String>()
+    private val degradedSamples = CrawlProgressSampleBuffer(maxSampleCount)
+    private val failureSamples = CrawlProgressSampleBuffer(maxSampleCount)
 
     fun remainingQuota(limit: Int?): Int? {
         return limit?.let { (it - processedCount).coerceAtLeast(0) }
@@ -57,12 +57,12 @@ internal class CrawlProgress(
 
     fun recordDegraded(productCard: ProductCard, reason: String) {
         degradedCount++
-        recordSample(degradedSamples, productCard, reason)
+        degradedSamples.record(productCard, reason)
     }
 
     fun recordFailure(productCard: ProductCard, reason: String) {
         failedCount++
-        recordSample(failureSamples, productCard, reason)
+        failureSamples.record(productCard, reason)
     }
 
     fun reachedLimit(limit: Int?): Boolean {
@@ -79,18 +79,6 @@ internal class CrawlProgress(
             failedCount = failedCount,
             failureSamples = failureSamples.toList(),
         )
-    }
-
-    private fun recordSample(
-        samples: MutableList<String>,
-        productCard: ProductCard,
-        reason: String,
-    ) {
-        if (samples.size >= maxSampleCount) {
-            return
-        }
-
-        samples += "${productCard.productCode} | ${productCard.productName} | $reason"
     }
 
     companion object {
