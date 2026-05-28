@@ -10,7 +10,6 @@ import going9.laptopgg.infrastructure.jpa.repository.web.CommentMutationProjecti
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import going9.laptopgg.persistence.model.web.Comment
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
@@ -27,8 +26,7 @@ internal class CommentJpaAdapter(
     }
 
     override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {
-        val laptop = laptopRepository.findByIdOrNull(laptopId)
-            ?: throw ResourceNotFoundException("Laptop", laptopId)
+        val laptop = laptopRepository.getReferenceById(laptopId)
         commentRepository.save(
             Comment(
                 laptop = laptop,

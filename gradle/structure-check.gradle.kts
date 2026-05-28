@@ -916,6 +916,30 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "comment creation must use validated laptop references without reloading laptop rows",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
+			),
+			patterns = listOf(
+				Regex("""validateLaptopExists\(command\.laptopId\)"""),
+				Regex("""laptopRepository\.getReferenceById\(laptopId\)"""),
+				Regex("""add saves comment with laptop reference without loading laptop entity"""),
+				Regex("""Mockito\.verify\(laptopRepository, Mockito\.never\(\)\)\.findById"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "comment creation must not reselect laptop after application validation",
+			paths = listOf("infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt"),
+			patterns = listOf(
+				Regex("""findByIdOrNull\(laptopId\)"""),
+				Regex("""findById\(laptopId\)"""),
+			),
+		)
+
+		assertPresent(
 			rule = "comment mutations must not reload comment entities after application password check",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",

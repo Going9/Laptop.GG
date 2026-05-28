@@ -6,12 +6,38 @@ import going9.laptopgg.infrastructure.jpa.repository.web.CommentListProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentMutationProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
+import going9.laptopgg.persistence.model.laptop.Laptop
+import going9.laptopgg.persistence.model.web.Comment
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 
 class CommentJpaAdapterStateTest {
+    @Test
+    fun `add saves comment with laptop reference without loading laptop entity`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val laptopRepository = Mockito.mock(WebLaptopRepository::class.java)
+        val laptop = laptopFixture(id = 3L)
+        val savedCommentCaptor = ArgumentCaptor.forClass(Comment::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = laptopRepository,
+        )
+        Mockito.`when`(laptopRepository.getReferenceById(3L)).thenReturn(laptop)
+
+        adapter.add(laptopId = 3L, author = "iggy", content = "좋아요", passwordHash = "hashed:pw")
+
+        Mockito.verify(laptopRepository).getReferenceById(3L)
+        Mockito.verify(laptopRepository, Mockito.never()).findById(Mockito.anyLong())
+        Mockito.verify(commentRepository).save(savedCommentCaptor.capture())
+        assertThat(savedCommentCaptor.value.laptop).isSameAs(laptop)
+        assertThat(savedCommentCaptor.value.author).isEqualTo("iggy")
+        assertThat(savedCommentCaptor.value.content).isEqualTo("좋아요")
+        assertThat(savedCommentCaptor.value.passWord).isEqualTo("hashed:pw")
+    }
+
     @Test
     fun `findAllByLaptopId reads comments in persisted id order`() {
         val commentRepository = Mockito.mock(CommentRepository::class.java)
@@ -176,5 +202,36 @@ class CommentJpaAdapterStateTest {
             override val laptopId: Long? = laptopId
             override val passwordHash: String = "hashed:pw"
         }
+    }
+
+    private fun laptopFixture(id: Long): Laptop {
+        return Laptop(
+            name = "Laptop",
+            imageUrl = "https://example.com/laptop.jpg",
+            detailPage = "https://example.com/laptop",
+            price = 1_000_000,
+            cpuManufacturer = null,
+            cpu = null,
+            os = null,
+            screenSize = null,
+            resolution = null,
+            brightness = null,
+            refreshRate = null,
+            ramSize = null,
+            ramType = null,
+            isRamReplaceable = null,
+            graphicsType = null,
+            tgp = null,
+            thunderboltCount = null,
+            usbCCount = null,
+            usbACount = null,
+            sdCard = null,
+            isSupportsPdCharging = null,
+            batteryCapacity = null,
+            storageCapacity = null,
+            storageSlotCount = null,
+            weight = null,
+            id = id,
+        )
     }
 }
