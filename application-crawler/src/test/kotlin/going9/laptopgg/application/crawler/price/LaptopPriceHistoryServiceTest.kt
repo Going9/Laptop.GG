@@ -2,14 +2,17 @@ package going9.laptopgg.application.crawler.price
 
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.support.InMemoryCrawlerTransactionPort
+import java.time.LocalDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class LaptopPriceHistoryServiceTest {
+    private val fixedNow = LocalDateTime.of(2026, 5, 28, 14, 30)
     private val laptopPriceHistoryPort = InMemoryLaptopPriceHistoryPort()
     private val service = LaptopPriceHistoryService(
         laptopPriceHistoryPort = laptopPriceHistoryPort,
         transactionPort = InMemoryCrawlerTransactionPort(),
+        now = { fixedNow },
     )
 
     @Test
@@ -19,7 +22,7 @@ class LaptopPriceHistoryServiceTest {
         assertThat(laptopPriceHistoryPort.saved).hasSize(1)
         assertThat(laptopPriceHistoryPort.saved.first().laptopId).isEqualTo(10L)
         assertThat(laptopPriceHistoryPort.saved.first().price).isEqualTo(1_490_000)
-        assertThat(laptopPriceHistoryPort.saved.first().capturedAt).isNotNull()
+        assertThat(laptopPriceHistoryPort.saved.first().capturedAt).isEqualTo(fixedNow)
     }
 
     @Test

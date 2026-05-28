@@ -11,6 +11,7 @@ internal interface LaptopPriceHistoryRecorder {
 internal class LaptopPriceHistoryService(
     private val laptopPriceHistoryPort: LaptopPriceHistoryPort,
     private val transactionPort: CrawlerTransactionPort,
+    private val now: () -> LocalDateTime = LocalDateTime::now,
 ) : LaptopPriceHistoryRecorder {
     fun recordCurrentPrice(laptopId: Long, currentPrice: Int?, previousPrice: Int?) {
         transactionPort.write {
@@ -29,7 +30,7 @@ internal class LaptopPriceHistoryService(
             RecordPriceHistoryCommand(
                 laptopId = laptopId,
                 price = price,
-                capturedAt = LocalDateTime.now(),
+                capturedAt = now(),
             ),
         )
     }

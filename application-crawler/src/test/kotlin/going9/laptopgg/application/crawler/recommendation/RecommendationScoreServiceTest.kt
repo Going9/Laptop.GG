@@ -9,14 +9,17 @@ import going9.laptopgg.taxonomy.CpuClass
 import going9.laptopgg.taxonomy.GpuClass
 import going9.laptopgg.taxonomy.PortabilityTier
 import going9.laptopgg.recommendation.RecommendationUseCase
+import java.time.LocalDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class RecommendationScoreServiceTest {
+    private val fixedNow = LocalDateTime.of(2026, 5, 28, 14, 45)
     private val recommendationScorePort = InMemoryRecommendationScorePort()
     private val service = RecommendationScoreService(
         recommendationScorePort = recommendationScorePort,
         transactionPort = InMemoryCrawlerTransactionPort(),
+        now = { fixedNow },
     )
 
     @Test
@@ -30,7 +33,7 @@ class RecommendationScoreServiceTest {
         assertThat(recommendationScorePort.saved).allSatisfy { command ->
             assertThat(command.gateScore).isGreaterThanOrEqualTo(0)
             assertThat(command.staticScore).isGreaterThanOrEqualTo(0.0)
-            assertThat(command.updatedAt).isNotNull()
+            assertThat(command.updatedAt).isEqualTo(fixedNow)
         }
     }
 

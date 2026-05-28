@@ -21,6 +21,7 @@ internal interface RecommendationScoreRefresher {
 internal class RecommendationScoreService(
     private val recommendationScorePort: RecommendationScorePort,
     private val transactionPort: CrawlerTransactionPort,
+    private val now: () -> LocalDateTime = LocalDateTime::now,
 ) : RefreshRecommendationScoreUseCase, RecommendationScoreRefresher {
     private val recommendationScoringPolicy = RecommendationScoringPolicy()
 
@@ -34,7 +35,7 @@ internal class RecommendationScoreService(
         val profile = profileState.profile
         val inputs = scoreInputs(profile)
         val gateInputs = gateInputs(profile)
-        val now = LocalDateTime.now()
+        val updatedAt = now()
 
         val scores = RecommendationUseCase.entries.map { useCase ->
             UpsertRecommendationScoreCommand(
@@ -43,7 +44,7 @@ internal class RecommendationScoreService(
                 gateScore = recommendationScoringPolicy.gateScore(gateInputs, useCase),
                 staticScore = recommendationScoringPolicy.staticScore(useCase, inputs),
                 budgetWeight = recommendationScoringPolicy.budgetWeight(useCase),
-                updatedAt = now,
+                updatedAt = updatedAt,
             )
         }
 

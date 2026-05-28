@@ -722,6 +722,30 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler application persistence services must use injected time providers",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
+			),
+			patterns = listOf(
+				Regex("""LocalDateTime\.now\(\)"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler application persistence service tests must pin generated timestamps",
+			paths = listOf(
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryServiceTest.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreServiceTest.kt",
+			),
+			patterns = listOf(
+				Regex("""now = \{ fixedNow }"""),
+				Regex("""capturedAt\)\.isEqualTo\(fixedNow\)"""),
+				Regex("""updatedAt\)\.isEqualTo\(fixedNow\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "infrastructure-jpa-core must not define runtime repositories",
 			paths = listOf("infrastructure-jpa-core/src/main"),
 			patterns = listOf(
