@@ -93,6 +93,7 @@ jobs:
             RELEASE_JAR="$APP_DIR/releases/${{ github.sha }}/app-${{ github.sha }}.jar"
             CURRENT_LINK="$APP_DIR/app.jar"
             PREVIOUS_TARGET="$(readlink -f "$CURRENT_LINK" || true)"
+            RELEASES_TO_KEEP=5
 
             if [ ! -f "$RELEASE_JAR" ]; then
               echo "Release jar not found: $RELEASE_JAR" >&2
@@ -107,10 +108,40 @@ jobs:
               fi
             }
 
+            prune_old_releases() {
+              KEEP_FILE="$(mktemp)"
+              printf '%s\n' "$(dirname "$RELEASE_JAR")" >> "$KEEP_FILE"
+              if [ -n "$PREVIOUS_TARGET" ] && [ -f "$PREVIOUS_TARGET" ]; then
+                printf '%s\n' "$(dirname "$PREVIOUS_TARGET")" >> "$KEEP_FILE"
+              fi
+
+              find "$APP_DIR/releases" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' \
+                | sort -rn \
+                | awk -v keep="$RELEASES_TO_KEEP" 'NR <= keep { sub(/^[^ ]+ /, ""); print }' \
+                >> "$KEEP_FILE"
+
+              find "$APP_DIR/releases" -mindepth 1 -maxdepth 1 -type d | while IFS= read -r release_dir; do
+                if ! grep -Fxq "$release_dir" "$KEEP_FILE"; then
+                  case "$release_dir" in
+                    "$APP_DIR"/releases/*)
+                      rm -rf "$release_dir"
+                      echo "Pruned old release $release_dir"
+                      ;;
+                    *)
+                      echo "Refusing to prune unexpected release path: $release_dir" >&2
+                      return 1
+                      ;;
+                  esac
+                fi
+              done
+              rm -f "$KEEP_FILE"
+            }
+
             ln -sfn "$RELEASE_JAR" "$CURRENT_LINK"
             sudo systemctl restart laptopgg
             for i in {1..60}; do
               if curl -fsS http://127.0.0.1:8080/actuator/health/readiness >/dev/null; then
+                prune_old_releases || echo "Release pruning failed; deployed release remains active." >&2
                 sudo systemctl status laptopgg --no-pager
                 exit 0
               fi

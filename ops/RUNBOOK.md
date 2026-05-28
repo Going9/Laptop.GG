@@ -32,6 +32,7 @@ GitHub Actions deploy runs:
 5. restart `laptopgg`
 6. check `/actuator/health/readiness`
 7. rollback symlink to the previous jar if health fails
+8. after a successful health check, prune old release directories while preserving the active jar, the previous rollback target, and the latest 5 releases
 
 Deploy workflow runs are serialized. Do not cancel an in-progress deploy unless you are ready to check the remote symlink and service status manually.
 
@@ -44,6 +45,16 @@ ln -sfn /home/ubuntu/laptopgg/releases/<previous-sha>/app-<previous-sha>.jar app
 sudo systemctl restart laptopgg
 curl -fsS http://127.0.0.1:8080/actuator/health/readiness
 ```
+
+Release retention:
+
+```bash
+cd /home/ubuntu/laptopgg
+readlink -f app.jar
+ls -lt releases | head
+```
+
+The deploy workflow keeps the current release, the previous rollback target, and the newest 5 release directories. If pruning fails, the deployed release stays active and cleanup can be repeated manually after checking the symlink target.
 
 ## Crawler Job
 

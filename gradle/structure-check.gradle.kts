@@ -249,6 +249,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "deploy workflow must prune old releases after successful health check",
+			paths = listOf(".github/workflows/deploy-web.yml", "docs/architecture.md", "README.md", "ops/RUNBOOK.md"),
+			patterns = listOf(
+				Regex("""RELEASES_TO_KEEP=5"""),
+				Regex("""prune_old_releases\(\)"""),
+				Regex("""dirname "[$]RELEASE_JAR""""),
+				Regex("""dirname "[$]PREVIOUS_TARGET""""),
+				Regex("""curl -fsS http://127\.0\.0\.1:8080/actuator/health/readiness >/dev/null;\s+then\s+prune_old_releases"""),
+				Regex("""current release, the previous rollback target, and the newest 5 release directories"""),
+				Regex("""active release, 이전 rollback 대상, 최신 5개 release"""),
+				Regex("""Successful web deploys prune old release directories"""),
+			),
+		)
+
+		assertPresent(
 			rule = "PostgreSQL integration tests must cover recommendation ordering",
 			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/PostgresRecommendationOrderingIntegrationTest.kt"),
 			patterns = listOf(
