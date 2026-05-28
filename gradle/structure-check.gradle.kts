@@ -1981,6 +1981,39 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler profile upsert must update directly before insert",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/CrawlerLaptopProfileRepository.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerReferenceJpaAdapterTest.kt",
+			),
+			patterns = listOf(
+				Regex("""@Modifying\(flushAutomatically = true\)"""),
+				Regex("""fun updateByLaptopId\("""),
+				Regex("""update LaptopProfile p"""),
+				Regex("""val updatedRows = laptopProfileRepository\.updateByLaptopId\("""),
+				Regex("""if \(updatedRows > 0\)"""),
+				Regex("""profile adapter updates existing profile directly without loading profile entity"""),
+				Regex("""Mockito\.verify\(repository, Mockito\.never\(\)\)\.findByLaptopId\(Mockito\.anyLong\(\)\)"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler profile upsert adapter must not load profile entity before mutation",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileEntityMapper.kt",
+			),
+			patterns = listOf(
+				Regex("""findByLaptopId\(command\.laptopId\)"""),
+				Regex("""existingProfile"""),
+				Regex("""applySnapshot"""),
+				Regex("""laptopProfileRepository\.save\(existingProfile\)"""),
+				Regex("""fun\s+<T>\s+updateField"""),
+			),
+		)
+
+		assertPresent(
 			rule = "crawler reference-only JPA adapters must use entity manager references",
 			paths = listOf(
 				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileJpaAdapter.kt",

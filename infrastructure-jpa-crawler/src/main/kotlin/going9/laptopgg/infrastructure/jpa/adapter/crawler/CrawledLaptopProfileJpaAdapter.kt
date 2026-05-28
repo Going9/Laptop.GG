@@ -14,22 +14,45 @@ internal class CrawledLaptopProfileJpaAdapter(
     private val entityManager: EntityManager,
 ) : CrawledLaptopProfilePort {
     override fun upsert(command: UpsertCrawledLaptopProfileCommand): CrawledLaptopProfileState {
-        val existingProfile = laptopProfileRepository.findByLaptopId(command.laptopId)
-        if (existingProfile != null) {
-            return if (CrawledLaptopProfileEntityMapper.applySnapshot(existingProfile, command.profile)) {
-                CrawledLaptopProfileEntityMapper.toState(laptopProfileRepository.save(existingProfile))
-            } else {
-                CrawledLaptopProfileEntityMapper.toState(existingProfile)
-            }
+        val profile = command.profile
+        val updatedRows = laptopProfileRepository.updateByLaptopId(
+            laptopId = command.laptopId,
+            cpuClass = profile.cpuClass,
+            gpuClass = profile.gpuClass,
+            batteryTier = profile.batteryTier,
+            portabilityTier = profile.portabilityTier,
+            officeScore = profile.officeScore,
+            batteryScore = profile.batteryScore,
+            casualGameScore = profile.casualGameScore,
+            onlineGameScore = profile.onlineGameScore,
+            aaaGameScore = profile.aaaGameScore,
+            creatorScore = profile.creatorScore,
+            cpuPerformanceScore = profile.cpuPerformanceScore,
+            lowPowerCpuScore = profile.lowPowerCpuScore,
+            gpuPerformanceScore = profile.gpuPerformanceScore,
+            gpuCreatorBonus = profile.gpuCreatorBonus,
+            portabilityScore = profile.portabilityScore,
+            displayScore = profile.displayScore,
+            ramScore = profile.ramScore,
+            tgpScore = profile.tgpScore,
+        )
+        if (updatedRows > 0) {
+            return command.toState()
         }
 
-        return CrawledLaptopProfileEntityMapper.toState(
-            laptopProfileRepository.save(
-                CrawledLaptopProfileEntityMapper.newProfile(
-                    laptop = entityManager.getReference(Laptop::class.java, command.laptopId),
-                    snapshot = command.profile,
-                ),
+        laptopProfileRepository.save(
+            CrawledLaptopProfileEntityMapper.newProfile(
+                laptop = entityManager.getReference(Laptop::class.java, command.laptopId),
+                snapshot = profile,
             ),
+        )
+        return command.toState()
+    }
+
+    private fun UpsertCrawledLaptopProfileCommand.toState(): CrawledLaptopProfileState {
+        return CrawledLaptopProfileState(
+            laptopId = laptopId,
+            profile = profile,
         )
     }
 }

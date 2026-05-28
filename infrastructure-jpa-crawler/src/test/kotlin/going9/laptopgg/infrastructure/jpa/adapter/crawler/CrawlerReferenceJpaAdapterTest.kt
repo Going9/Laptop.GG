@@ -48,7 +48,8 @@ class CrawlerReferenceJpaAdapterTest {
         val repository = Mockito.mock(CrawlerLaptopProfileRepository::class.java)
         val entityManager = Mockito.mock(EntityManager::class.java)
         val laptopReference = laptop()
-        Mockito.`when`(repository.findByLaptopId(30L)).thenReturn(null)
+        val snapshot = profileSnapshot()
+        stubProfileUpdate(repository, laptopId = 30L, snapshot = snapshot, updatedRows = 0)
         Mockito.`when`(entityManager.getReference(Laptop::class.java, 30L)).thenReturn(laptopReference)
         Mockito.`when`(repository.save(Mockito.any(LaptopProfile::class.java)))
             .thenAnswer { invocation -> invocation.arguments[0] as LaptopProfile }
@@ -57,15 +58,41 @@ class CrawlerReferenceJpaAdapterTest {
         val result = adapter.upsert(
             UpsertCrawledLaptopProfileCommand(
                 laptopId = 30L,
-                profile = profileSnapshot(),
+                profile = snapshot,
             ),
         )
 
         val profileCaptor = ArgumentCaptor.forClass(LaptopProfile::class.java)
+        verifyProfileUpdate(repository, laptopId = 30L, snapshot = snapshot)
         Mockito.verify(repository).save(profileCaptor.capture())
+        Mockito.verify(repository, Mockito.never()).findByLaptopId(Mockito.anyLong())
         assertThat(profileCaptor.value.laptop).isSameAs(laptopReference)
         assertThat(result.laptopId).isEqualTo(30L)
+        assertThat(result.profile).isEqualTo(snapshot)
         Mockito.verify(entityManager).getReference(Laptop::class.java, 30L)
+    }
+
+    @Test
+    fun `profile adapter updates existing profile directly without loading profile entity`() {
+        val repository = Mockito.mock(CrawlerLaptopProfileRepository::class.java)
+        val entityManager = Mockito.mock(EntityManager::class.java)
+        val snapshot = profileSnapshot()
+        stubProfileUpdate(repository, laptopId = 30L, snapshot = snapshot, updatedRows = 1)
+        val adapter = CrawledLaptopProfileJpaAdapter(repository, entityManager)
+
+        val result = adapter.upsert(
+            UpsertCrawledLaptopProfileCommand(
+                laptopId = 30L,
+                profile = snapshot,
+            ),
+        )
+
+        verifyProfileUpdate(repository, laptopId = 30L, snapshot = snapshot)
+        Mockito.verify(repository, Mockito.never()).findByLaptopId(Mockito.anyLong())
+        Mockito.verify(repository, Mockito.never()).save(Mockito.any(LaptopProfile::class.java))
+        Mockito.verifyNoInteractions(entityManager)
+        assertThat(result.laptopId).isEqualTo(30L)
+        assertThat(result.profile).isEqualTo(snapshot)
     }
 
     private fun laptop(): Laptop {
@@ -120,6 +147,65 @@ class CrawlerReferenceJpaAdapterTest {
             displayScore = 80,
             ramScore = 75,
             tgpScore = 0,
+        )
+    }
+
+    private fun stubProfileUpdate(
+        repository: CrawlerLaptopProfileRepository,
+        laptopId: Long,
+        snapshot: LaptopProfileSnapshot,
+        updatedRows: Int,
+    ) {
+        Mockito.`when`(
+            repository.updateByLaptopId(
+                laptopId = laptopId,
+                cpuClass = snapshot.cpuClass,
+                gpuClass = snapshot.gpuClass,
+                batteryTier = snapshot.batteryTier,
+                portabilityTier = snapshot.portabilityTier,
+                officeScore = snapshot.officeScore,
+                batteryScore = snapshot.batteryScore,
+                casualGameScore = snapshot.casualGameScore,
+                onlineGameScore = snapshot.onlineGameScore,
+                aaaGameScore = snapshot.aaaGameScore,
+                creatorScore = snapshot.creatorScore,
+                cpuPerformanceScore = snapshot.cpuPerformanceScore,
+                lowPowerCpuScore = snapshot.lowPowerCpuScore,
+                gpuPerformanceScore = snapshot.gpuPerformanceScore,
+                gpuCreatorBonus = snapshot.gpuCreatorBonus,
+                portabilityScore = snapshot.portabilityScore,
+                displayScore = snapshot.displayScore,
+                ramScore = snapshot.ramScore,
+                tgpScore = snapshot.tgpScore,
+            ),
+        ).thenReturn(updatedRows)
+    }
+
+    private fun verifyProfileUpdate(
+        repository: CrawlerLaptopProfileRepository,
+        laptopId: Long,
+        snapshot: LaptopProfileSnapshot,
+    ) {
+        Mockito.verify(repository).updateByLaptopId(
+            laptopId = laptopId,
+            cpuClass = snapshot.cpuClass,
+            gpuClass = snapshot.gpuClass,
+            batteryTier = snapshot.batteryTier,
+            portabilityTier = snapshot.portabilityTier,
+            officeScore = snapshot.officeScore,
+            batteryScore = snapshot.batteryScore,
+            casualGameScore = snapshot.casualGameScore,
+            onlineGameScore = snapshot.onlineGameScore,
+            aaaGameScore = snapshot.aaaGameScore,
+            creatorScore = snapshot.creatorScore,
+            cpuPerformanceScore = snapshot.cpuPerformanceScore,
+            lowPowerCpuScore = snapshot.lowPowerCpuScore,
+            gpuPerformanceScore = snapshot.gpuPerformanceScore,
+            gpuCreatorBonus = snapshot.gpuCreatorBonus,
+            portabilityScore = snapshot.portabilityScore,
+            displayScore = snapshot.displayScore,
+            ramScore = snapshot.ramScore,
+            tgpScore = snapshot.tgpScore,
         )
     }
 }

@@ -31,29 +31,6 @@ internal object CrawledLaptopProfileEntityMapper {
         )
     }
 
-    fun applySnapshot(profile: LaptopProfile, snapshot: LaptopProfileSnapshot): Boolean {
-        var changed = false
-        changed = updateField(profile.cpuClass, snapshot.cpuClass) { profile.cpuClass = it } || changed
-        changed = updateField(profile.gpuClass, snapshot.gpuClass) { profile.gpuClass = it } || changed
-        changed = updateField(profile.batteryTier, snapshot.batteryTier) { profile.batteryTier = it } || changed
-        changed = updateField(profile.portabilityTier, snapshot.portabilityTier) { profile.portabilityTier = it } || changed
-        changed = updateField(profile.officeScore, snapshot.officeScore) { profile.officeScore = it } || changed
-        changed = updateField(profile.batteryScore, snapshot.batteryScore) { profile.batteryScore = it } || changed
-        changed = updateField(profile.casualGameScore, snapshot.casualGameScore) { profile.casualGameScore = it } || changed
-        changed = updateField(profile.onlineGameScore, snapshot.onlineGameScore) { profile.onlineGameScore = it } || changed
-        changed = updateField(profile.aaaGameScore, snapshot.aaaGameScore) { profile.aaaGameScore = it } || changed
-        changed = updateField(profile.creatorScore, snapshot.creatorScore) { profile.creatorScore = it } || changed
-        changed = updateField(profile.cpuPerformanceScore, snapshot.cpuPerformanceScore) { profile.cpuPerformanceScore = it } || changed
-        changed = updateField(profile.lowPowerCpuScore, snapshot.lowPowerCpuScore) { profile.lowPowerCpuScore = it } || changed
-        changed = updateField(profile.gpuPerformanceScore, snapshot.gpuPerformanceScore) { profile.gpuPerformanceScore = it } || changed
-        changed = updateField(profile.gpuCreatorBonus, snapshot.gpuCreatorBonus) { profile.gpuCreatorBonus = it } || changed
-        changed = updateField(profile.portabilityScore, snapshot.portabilityScore) { profile.portabilityScore = it } || changed
-        changed = updateField(profile.displayScore, snapshot.displayScore) { profile.displayScore = it } || changed
-        changed = updateField(profile.ramScore, snapshot.ramScore) { profile.ramScore = it } || changed
-        changed = updateField(profile.tgpScore, snapshot.tgpScore) { profile.tgpScore = it } || changed
-        return changed
-    }
-
     fun toState(profile: LaptopProfile): CrawledLaptopProfileState {
         return CrawledLaptopProfileState(
             laptopId = profile.laptop.id
@@ -79,14 +56,5 @@ internal object CrawledLaptopProfileEntityMapper {
                 tgpScore = profile.tgpScore,
             ),
         )
-    }
-
-    private fun <T> updateField(currentValue: T, newValue: T, updater: (T) -> Unit): Boolean {
-        if (currentValue == newValue) {
-            return false
-        }
-
-        updater(newValue)
-        return true
     }
 }
