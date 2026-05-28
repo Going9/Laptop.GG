@@ -781,6 +781,25 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "comment mutations must not reload comment entities after application password check",
+			paths = listOf(
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
+			),
+			patterns = listOf(
+				Regex("""@Modifying\(clearAutomatically = true, flushAutomatically = true\)"""),
+				Regex("""fun updateContentById\("""),
+				Regex("""fun deleteByCommentId\("""),
+				Regex("""commentRepository\.updateContentById\(commentId, content\)"""),
+				Regex("""commentRepository\.deleteByCommentId\(commentId\)"""),
+				Regex("""updateContent delegates to direct update query without loading comment entity"""),
+				Regex("""deleteById delegates to direct delete query without loading comment entity"""),
+				Regex("""Mockito\.never\(\)\)\.findById"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "application must not depend on persistence models, infrastructure, or public web DTOs",
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),

@@ -39,15 +39,15 @@ internal class CommentJpaAdapter(
     }
 
     override fun updateContent(commentId: Long, content: String) {
-        val comment = commentRepository.findByIdOrNull(commentId)
-            ?: throw ResourceNotFoundException("Comment", commentId)
-        comment.updateComment(content)
+        if (commentRepository.updateContentById(commentId, content) == 0) {
+            throw ResourceNotFoundException("Comment", commentId)
+        }
     }
 
     override fun deleteById(commentId: Long) {
-        val comment = commentRepository.findByIdOrNull(commentId)
-            ?: throw ResourceNotFoundException("Comment", commentId)
-        commentRepository.delete(comment)
+        if (commentRepository.deleteByCommentId(commentId) == 0) {
+            throw ResourceNotFoundException("Comment", commentId)
+        }
     }
 
     private fun Comment.toRecord(): CommentRecord {

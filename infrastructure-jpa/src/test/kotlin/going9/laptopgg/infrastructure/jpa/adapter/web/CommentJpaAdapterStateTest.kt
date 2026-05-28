@@ -1,6 +1,7 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.common.ApplicationInvalidStateException
+import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentListProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
@@ -96,14 +97,66 @@ class CommentJpaAdapterStateTest {
         }.isInstanceOf(ApplicationInvalidStateException::class.java)
     }
 
-    private fun commentFixture(id: Long, laptopId: Long): Comment {
-        return Comment(
-            laptop = laptopFixture(id = laptopId),
-            author = "iggy",
-            content = "좋아요",
-            passWord = "hashed:pw",
-            id = id,
+    @Test
+    fun `updateContent delegates to direct update query without loading comment entity`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
         )
+
+        Mockito.`when`(commentRepository.updateContentById(7L, "수정")).thenReturn(1)
+
+        adapter.updateContent(commentId = 7L, content = "수정")
+
+        Mockito.verify(commentRepository).updateContentById(7L, "수정")
+        Mockito.verify(commentRepository, Mockito.never()).findById(Mockito.anyLong())
+    }
+
+    @Test
+    fun `updateContent maps missing direct update row to not found error`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+        )
+
+        Mockito.`when`(commentRepository.updateContentById(7L, "수정")).thenReturn(0)
+
+        assertThatThrownBy {
+            adapter.updateContent(commentId = 7L, content = "수정")
+        }.isInstanceOf(ResourceNotFoundException::class.java)
+    }
+
+    @Test
+    fun `deleteById delegates to direct delete query without loading comment entity`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+        )
+
+        Mockito.`when`(commentRepository.deleteByCommentId(7L)).thenReturn(1)
+
+        adapter.deleteById(7L)
+
+        Mockito.verify(commentRepository).deleteByCommentId(7L)
+        Mockito.verify(commentRepository, Mockito.never()).findById(Mockito.anyLong())
+    }
+
+    @Test
+    fun `deleteById maps missing direct delete row to not found error`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+        )
+
+        Mockito.`when`(commentRepository.deleteByCommentId(7L)).thenReturn(0)
+
+        assertThatThrownBy {
+            adapter.deleteById(7L)
+        }.isInstanceOf(ResourceNotFoundException::class.java)
     }
 
     private fun commentListProjection(id: Long?): CommentListProjection {
