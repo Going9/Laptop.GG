@@ -17,7 +17,7 @@ internal class CrawlerJobSummaryLogger {
 
     fun logSkipped(run: CrawlerRunRecord, request: CrawlerJobRequest) {
         logger.warn(
-            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=0",
+            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 detailRefreshCount=0 priceOnlyUpdatedCount=0 degradedCount=0 failedCount=0",
             run.id,
             run.status,
             request.filterProfile,
@@ -33,7 +33,7 @@ internal class CrawlerJobSummaryLogger {
         summary: CrawlSummary,
     ) {
         logger.info(
-            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount={} createdCount={} updatedCount={} degradedCount={} failedCount={}",
+            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount={} createdCount={} updatedCount={} detailRefreshCount={} priceOnlyUpdatedCount={} degradedCount={} failedCount={}",
             runId,
             status,
             request.filterProfile,
@@ -42,6 +42,8 @@ internal class CrawlerJobSummaryLogger {
             summary.processedCount,
             summary.createdCount,
             summary.updatedCount,
+            summary.detailRefreshCount,
+            summary.priceOnlyUpdatedCount,
             summary.degradedCount,
             summary.failedCount,
         )
@@ -57,7 +59,7 @@ internal class CrawlerJobSummaryLogger {
     fun logRunFailure(runId: Long, request: CrawlerJobRequest, exception: Exception) {
         logger.error("Crawler run failed. runId={}", runId, exception)
         logger.error(
-            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=1",
+            "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 detailRefreshCount=0 priceOnlyUpdatedCount=0 degradedCount=0 failedCount=1",
             runId,
             CrawlerRunStatusResult.FAILED,
             request.filterProfile,

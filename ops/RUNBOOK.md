@@ -61,7 +61,9 @@ Useful query:
 
 ```sql
 select id, status, filter_profile, started_at, ended_at,
-       processed_count, created_count, updated_count, degraded_count, failed_count
+       processed_count, created_count, updated_count,
+       detail_refresh_count, price_only_updated_count,
+       degraded_count, failed_count
 from crawler_run
 order by started_at desc
 limit 20;

@@ -34,6 +34,8 @@ class CrawlerRunCommandFactoryTest {
                 processedCount = 30,
                 createdCount = 10,
                 updatedCount = 15,
+                detailRefreshCount = 12,
+                priceOnlyUpdatedCount = 3,
                 degradedCount = 2,
                 failedCount = 25,
                 failureSamples = (1..25).map { index -> "failure-$index" },
@@ -43,6 +45,8 @@ class CrawlerRunCommandFactoryTest {
         )
 
         assertThat(command.status).isEqualTo(CrawlerRunStatusResult.FAILED)
+        assertThat(command.detailRefreshCount).isEqualTo(12)
+        assertThat(command.priceOnlyUpdatedCount).isEqualTo(3)
         assertThat(command.failureSamples!!.lines()).hasSize(20)
         assertThat(command.failureSamples!!.lines().last()).isEqualTo("failure-20")
         assertThat(command.errorMessage).hasSize(4_000)

@@ -4,6 +4,8 @@ internal data class CrawlSummary(
     val processedCount: Int,
     val createdCount: Int,
     val updatedCount: Int,
+    val detailRefreshCount: Int,
+    val priceOnlyUpdatedCount: Int,
     val degradedCount: Int,
     val degradedSamples: List<String>,
     val failedCount: Int,

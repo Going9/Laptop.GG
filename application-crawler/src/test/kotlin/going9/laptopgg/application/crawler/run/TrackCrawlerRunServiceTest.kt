@@ -25,6 +25,8 @@ class TrackCrawlerRunServiceTest {
                 processedCount = 10,
                 createdCount = 4,
                 updatedCount = 5,
+                detailRefreshCount = 6,
+                priceOnlyUpdatedCount = 2,
                 degradedCount = 1,
                 failedCount = 0,
                 failureSamples = emptyList(),
@@ -38,6 +40,8 @@ class TrackCrawlerRunServiceTest {
         assertThat(persisted.processedCount).isEqualTo(10)
         assertThat(persisted.createdCount).isEqualTo(4)
         assertThat(persisted.updatedCount).isEqualTo(5)
+        assertThat(persisted.detailRefreshCount).isEqualTo(6)
+        assertThat(persisted.priceOnlyUpdatedCount).isEqualTo(2)
         assertThat(persisted.degradedCount).isEqualTo(1)
         assertThat(persisted.endedAt).isNotNull()
     }
@@ -64,6 +68,8 @@ class TrackCrawlerRunServiceTest {
                     processedCount = 0,
                     createdCount = 0,
                     updatedCount = 0,
+                    detailRefreshCount = 0,
+                    priceOnlyUpdatedCount = 0,
                     degradedCount = 0,
                     failedCount = 0,
                     failureSamples = emptyList(),
@@ -98,6 +104,8 @@ class TrackCrawlerRunServiceTest {
                 processedCount = command.processedCount ?: storedRun.processedCount,
                 createdCount = command.createdCount ?: storedRun.createdCount,
                 updatedCount = command.updatedCount ?: storedRun.updatedCount,
+                detailRefreshCount = command.detailRefreshCount ?: storedRun.detailRefreshCount,
+                priceOnlyUpdatedCount = command.priceOnlyUpdatedCount ?: storedRun.priceOnlyUpdatedCount,
                 degradedCount = command.degradedCount ?: storedRun.degradedCount,
                 failedCount = command.failedCount ?: storedRun.failedCount,
                 failureSamples = command.failureSamples,
@@ -129,6 +137,8 @@ class TrackCrawlerRunServiceTest {
         val processedCount: Int = 0,
         val createdCount: Int = 0,
         val updatedCount: Int = 0,
+        val detailRefreshCount: Int = 0,
+        val priceOnlyUpdatedCount: Int = 0,
         val degradedCount: Int = 0,
         val failedCount: Int = 0,
         val failureSamples: String? = null,

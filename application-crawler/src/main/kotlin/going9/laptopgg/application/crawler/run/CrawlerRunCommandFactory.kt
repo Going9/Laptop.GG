@@ -39,6 +39,8 @@ internal class CrawlerRunCommandFactory(
             processedCount = summary.processedCount,
             createdCount = summary.createdCount,
             updatedCount = summary.updatedCount,
+            detailRefreshCount = summary.detailRefreshCount,
+            priceOnlyUpdatedCount = summary.priceOnlyUpdatedCount,
             degradedCount = summary.degradedCount,
             failedCount = summary.failedCount,
             failureSamples = summary.failureSamples.toStorageText(),

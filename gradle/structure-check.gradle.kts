@@ -272,6 +272,29 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler run observability must keep detail refresh and price-only counters through persistence",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSummary.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunModels.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactory.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
+				"persistence-model/src/main/kotlin/going9/laptopgg/persistence/model/crawler/CrawlerRun.kt",
+				"infrastructure-jpa-core/src/main/resources/db/migration/V10__crawler_run_observability_counts.sql",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobSummaryLogger.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresFlywayMigrationTest.kt",
+				"ops/RUNBOOK.md",
+			),
+			patterns = listOf(
+				Regex("""detailRefreshCount"""),
+				Regex("""priceOnlyUpdatedCount"""),
+				Regex("""detail_refresh_count"""),
+				Regex("""price_only_updated_count"""),
+				Regex("""ALTER TABLE public\.crawler_run"""),
+				Regex("""detailRefreshCount=\{\} priceOnlyUpdatedCount=\{\}"""),
+			),
+		)
+
+		assertPresent(
 			rule = "crawler job runner must record recoverable exceptions without swallowing fatal errors",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt",

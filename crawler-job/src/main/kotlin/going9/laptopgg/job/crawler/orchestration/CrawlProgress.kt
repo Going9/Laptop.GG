@@ -74,6 +74,8 @@ internal class CrawlProgress(
             processedCount = processedCount,
             createdCount = createdCount,
             updatedCount = updatedCount,
+            detailRefreshCount = detailRefreshCount,
+            priceOnlyUpdatedCount = priceOnlyUpdatedCount,
             degradedCount = degradedCount,
             degradedSamples = degradedSamples.toList(),
             failedCount = failedCount,

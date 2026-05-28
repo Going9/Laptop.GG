@@ -35,6 +35,12 @@ class CrawlerRun(
     @Column(name = "updated_count", nullable = false)
     var updatedCount: Int = 0,
 
+    @Column(name = "detail_refresh_count", nullable = false)
+    var detailRefreshCount: Int = 0,
+
+    @Column(name = "price_only_updated_count", nullable = false)
+    var priceOnlyUpdatedCount: Int = 0,
+
     @Column(name = "degraded_count", nullable = false)
     var degradedCount: Int = 0,
 

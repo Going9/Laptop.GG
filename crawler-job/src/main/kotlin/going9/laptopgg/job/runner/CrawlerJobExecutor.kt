@@ -82,6 +82,8 @@ internal class CrawlerJobExecutor(
             processedCount = processedCount,
             createdCount = createdCount,
             updatedCount = updatedCount,
+            detailRefreshCount = detailRefreshCount,
+            priceOnlyUpdatedCount = priceOnlyUpdatedCount,
             degradedCount = degradedCount,
             failedCount = failedCount,
             failureSamples = failureSamples,

@@ -63,6 +63,8 @@ class PostgresFlywayMigrationTest {
                         "filter_profile",
                         "status",
                         "processed_count",
+                        "detail_refresh_count",
+                        "price_only_updated_count",
                         "failure_samples",
                         "started_at",
                         "ended_at",

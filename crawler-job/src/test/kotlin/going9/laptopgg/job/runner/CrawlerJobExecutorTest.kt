@@ -34,6 +34,8 @@ class CrawlerJobExecutorTest {
         assertThat(trackUseCase.startedRequests).containsExactly(CrawlerJobRequest(limit = 5, startPage = 2, filterProfile = "core"))
         assertThat(trackUseCase.finishedStatus).isEqualTo(CrawlerRunCompletionStatus.SUCCEEDED)
         assertThat(trackUseCase.finishedSummary?.failedCount).isZero()
+        assertThat(trackUseCase.finishedSummary?.detailRefreshCount).isEqualTo(4)
+        assertThat(trackUseCase.finishedSummary?.priceOnlyUpdatedCount).isEqualTo(2)
     }
 
     @Test
@@ -121,6 +123,8 @@ class CrawlerJobExecutorTest {
             processedCount = 10,
             createdCount = 3,
             updatedCount = 7,
+            detailRefreshCount = 4,
+            priceOnlyUpdatedCount = 2,
             degradedCount = 0,
             degradedSamples = emptyList(),
             failedCount = failedCount,

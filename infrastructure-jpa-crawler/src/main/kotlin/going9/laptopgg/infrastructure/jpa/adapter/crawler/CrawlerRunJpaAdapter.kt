@@ -36,6 +36,8 @@ internal class CrawlerRunJpaAdapter(
         command.processedCount?.let { crawlerRun.processedCount = it }
         command.createdCount?.let { crawlerRun.createdCount = it }
         command.updatedCount?.let { crawlerRun.updatedCount = it }
+        command.detailRefreshCount?.let { crawlerRun.detailRefreshCount = it }
+        command.priceOnlyUpdatedCount?.let { crawlerRun.priceOnlyUpdatedCount = it }
         command.degradedCount?.let { crawlerRun.degradedCount = it }
         command.failedCount?.let { crawlerRun.failedCount = it }
         crawlerRun.failureSamples = command.failureSamples
