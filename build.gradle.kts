@@ -245,6 +245,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "web-app must not keep legacy form templates or routes",
+			paths = listOf("web-app/src/main"),
+			patterns = listOf(
+				Regex("""spec-form"""),
+				Regex("""foreignLaptop"""),
+				Regex("""gaming-options"""),
+				Regex("""tenkey"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app must not carry crawler runtime configuration",
 			paths = listOf("web-app/src/main/resources/application.yml"),
 			patterns = listOf(

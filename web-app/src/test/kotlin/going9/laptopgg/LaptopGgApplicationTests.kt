@@ -57,6 +57,12 @@ class LaptopGgApplicationTests {
 	}
 
 	@Test
+	fun `web context keeps legacy spec form out of public surface`() {
+		mockMvc.perform(get("/spec-form"))
+			.andExpect(status().isNotFound)
+	}
+
+	@Test
 	fun `web context exposes health but not other actuator endpoints`() {
 		mockMvc.perform(get("/actuator/health/readiness"))
 			.andExpect(status().isOk)
