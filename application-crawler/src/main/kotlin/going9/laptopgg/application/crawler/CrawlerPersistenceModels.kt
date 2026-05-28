@@ -84,6 +84,33 @@ data class UpsertRecommendationScoreCommand(
     val updatedAt: LocalDateTime,
 )
 
+data class CreateCrawlerRunCommand(
+    val filterProfile: String,
+    val startPage: Int,
+    val limitCount: Int?,
+    val status: CrawlerRunStatusResult = CrawlerRunStatusResult.RUNNING,
+    val endedAt: LocalDateTime? = null,
+    val errorMessage: String? = null,
+)
+
+data class UpdateCrawlerRunCommand(
+    val runId: Long,
+    val status: CrawlerRunStatusResult,
+    val processedCount: Int? = null,
+    val createdCount: Int? = null,
+    val updatedCount: Int? = null,
+    val degradedCount: Int? = null,
+    val failedCount: Int? = null,
+    val failureSamples: String? = null,
+    val errorMessage: String? = null,
+    val endedAt: LocalDateTime,
+)
+
+data class CrawlerRunState(
+    val id: Long?,
+    val status: CrawlerRunStatusResult,
+)
+
 enum class SaveResult {
     CREATED,
     UPDATED,

@@ -1,8 +1,7 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
-import going9.laptopgg.domain.crawler.CrawlerRun
-import going9.laptopgg.domain.crawler.CrawlerRunStatus
+import java.time.LocalDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -29,7 +28,7 @@ class TrackCrawlerRunServiceTest {
 
         val persisted = crawlerRunPort.snapshot(started.id!!)
         assertThat(finished.status).isEqualTo(CrawlerRunStatusResult.SUCCEEDED)
-        assertThat(persisted.status).isEqualTo(CrawlerRunStatus.SUCCEEDED)
+        assertThat(persisted.status).isEqualTo(CrawlerRunStatusResult.SUCCEEDED)
         assertThat(persisted.processedCount).isEqualTo(10)
         assertThat(persisted.createdCount).isEqualTo(4)
         assertThat(persisted.updatedCount).isEqualTo(5)
@@ -45,28 +44,71 @@ class TrackCrawlerRunServiceTest {
 
         val persisted = crawlerRunPort.snapshot(started.id!!)
         assertThat(failed.status).isEqualTo(CrawlerRunStatusResult.FAILED)
-        assertThat(persisted.status).isEqualTo(CrawlerRunStatus.FAILED)
+        assertThat(persisted.status).isEqualTo(CrawlerRunStatusResult.FAILED)
         assertThat(persisted.errorMessage).isEqualTo("network timeout")
         assertThat(persisted.endedAt).isNotNull()
     }
 
     private class InMemoryCrawlerRunPort : CrawlerRunPort {
-        private val stored = linkedMapOf<Long, CrawlerRun>()
+        private val stored = linkedMapOf<Long, StoredCrawlerRun>()
         private var nextId = 1L
 
-        override fun save(crawlerRun: CrawlerRun): CrawlerRun {
-            val id = crawlerRun.id ?: nextId++
-            val saved = crawlerRun.copy(id = id)
-            stored[id] = saved.copy()
-            return saved.copy()
+        override fun create(command: CreateCrawlerRunCommand): CrawlerRunState {
+            val id = nextId++
+            stored[id] = StoredCrawlerRun(
+                id = id,
+                filterProfile = command.filterProfile,
+                startPage = command.startPage,
+                limitCount = command.limitCount,
+                status = command.status,
+                errorMessage = command.errorMessage,
+                endedAt = command.endedAt,
+            )
+            return stored[id]!!.toState()
         }
 
-        override fun findById(runId: Long): CrawlerRun? {
-            return stored[runId]?.copy()
+        override fun update(command: UpdateCrawlerRunCommand): CrawlerRunState? {
+            val storedRun = stored[command.runId] ?: return null
+            stored[command.runId] = storedRun.copy(
+                status = command.status,
+                processedCount = command.processedCount ?: storedRun.processedCount,
+                createdCount = command.createdCount ?: storedRun.createdCount,
+                updatedCount = command.updatedCount ?: storedRun.updatedCount,
+                degradedCount = command.degradedCount ?: storedRun.degradedCount,
+                failedCount = command.failedCount ?: storedRun.failedCount,
+                failureSamples = command.failureSamples,
+                errorMessage = command.errorMessage,
+                endedAt = command.endedAt,
+            )
+            return stored[command.runId]!!.toState()
         }
 
-        fun snapshot(runId: Long): CrawlerRun {
+        override fun findById(runId: Long): CrawlerRunState? {
+            return stored[runId]?.toState()
+        }
+
+        fun snapshot(runId: Long): StoredCrawlerRun {
             return requireNotNull(stored[runId]) { "Crawler run not found: $runId" }
         }
+
+        private fun StoredCrawlerRun.toState(): CrawlerRunState {
+            return CrawlerRunState(id = id, status = status)
+        }
     }
+
+    private data class StoredCrawlerRun(
+        val id: Long,
+        val filterProfile: String,
+        val startPage: Int,
+        val limitCount: Int?,
+        val status: CrawlerRunStatusResult,
+        val processedCount: Int = 0,
+        val createdCount: Int = 0,
+        val updatedCount: Int = 0,
+        val degradedCount: Int = 0,
+        val failedCount: Int = 0,
+        val failureSamples: String? = null,
+        val errorMessage: String? = null,
+        val endedAt: LocalDateTime? = null,
+    )
 }

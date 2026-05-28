@@ -1,8 +1,6 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
-import going9.laptopgg.domain.crawler.CrawlerRun
-import going9.laptopgg.domain.crawler.CrawlerRunStatus
 import java.time.LocalDateTime
 import org.springframework.transaction.annotation.Transactional
 
@@ -11,8 +9,8 @@ class TrackCrawlerRunService(
     private val crawlerRunPort: CrawlerRunPort,
 ) : TrackCrawlerRunUseCase {
     override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
-        return crawlerRunPort.save(
-            CrawlerRun(
+        return crawlerRunPort.create(
+            CreateCrawlerRunCommand(
                 filterProfile = filterProfile,
                 startPage = startPage,
                 limitCount = limit,
@@ -21,12 +19,12 @@ class TrackCrawlerRunService(
     }
 
     override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
-        return crawlerRunPort.save(
-            CrawlerRun(
+        return crawlerRunPort.create(
+            CreateCrawlerRunCommand(
                 filterProfile = filterProfile,
                 startPage = startPage,
                 limitCount = limit,
-                status = CrawlerRunStatus.SKIPPED_LOCKED,
+                status = CrawlerRunStatusResult.SKIPPED_LOCKED,
                 endedAt = LocalDateTime.now(),
                 errorMessage = "Another crawler run already holds the PostgreSQL advisory lock.",
             ),
@@ -39,50 +37,49 @@ class TrackCrawlerRunService(
         status: CrawlerRunCompletionStatus,
         errorMessage: String?,
     ): CrawlerRunRecord {
-        val crawlerRun = crawlerRunPort.findById(runId)
-            ?: throw IllegalArgumentException("Crawler run not found: $runId")
-
-        crawlerRun.status = status.toDomainStatus()
-        crawlerRun.processedCount = summary.processedCount
-        crawlerRun.createdCount = summary.createdCount
-        crawlerRun.updatedCount = summary.updatedCount
-        crawlerRun.degradedCount = summary.degradedCount
-        crawlerRun.failedCount = summary.failedCount
-        crawlerRun.failureSamples = summary.failureSamples.toStorageText()
-        crawlerRun.errorMessage = errorMessage?.truncateForStorage()
-        crawlerRun.endedAt = LocalDateTime.now()
-
-        return crawlerRunPort.save(crawlerRun).toRecord()
+        return (
+            crawlerRunPort.update(
+                UpdateCrawlerRunCommand(
+                    runId = runId,
+                    status = status.toStatusResult(),
+                    processedCount = summary.processedCount,
+                    createdCount = summary.createdCount,
+                    updatedCount = summary.updatedCount,
+                    degradedCount = summary.degradedCount,
+                    failedCount = summary.failedCount,
+                    failureSamples = summary.failureSamples.toStorageText(),
+                    errorMessage = errorMessage?.truncateForStorage(),
+                    endedAt = LocalDateTime.now(),
+                ),
+            ) ?: throw IllegalArgumentException("Crawler run not found: $runId")
+        ).toRecord()
     }
 
     override fun fail(runId: Long, exception: Throwable): CrawlerRunRecord {
-        val crawlerRun = crawlerRunPort.findById(runId)
-            ?: throw IllegalArgumentException("Crawler run not found: $runId")
-
-        crawlerRun.status = CrawlerRunStatus.FAILED
-        crawlerRun.errorMessage = (exception.message ?: exception::class.simpleName ?: "Unknown crawler failure")
-            .truncateForStorage()
-        crawlerRun.endedAt = LocalDateTime.now()
-
-        return crawlerRunPort.save(crawlerRun).toRecord()
+        return (
+            crawlerRunPort.update(
+                UpdateCrawlerRunCommand(
+                    runId = runId,
+                    status = CrawlerRunStatusResult.FAILED,
+                    errorMessage = (exception.message ?: exception::class.simpleName ?: "Unknown crawler failure")
+                        .truncateForStorage(),
+                    endedAt = LocalDateTime.now(),
+                ),
+            ) ?: throw IllegalArgumentException("Crawler run not found: $runId")
+        ).toRecord()
     }
 
-    private fun CrawlerRunCompletionStatus.toDomainStatus(): CrawlerRunStatus {
+    private fun CrawlerRunCompletionStatus.toStatusResult(): CrawlerRunStatusResult {
         return when (this) {
-            CrawlerRunCompletionStatus.SUCCEEDED -> CrawlerRunStatus.SUCCEEDED
-            CrawlerRunCompletionStatus.FAILED -> CrawlerRunStatus.FAILED
+            CrawlerRunCompletionStatus.SUCCEEDED -> CrawlerRunStatusResult.SUCCEEDED
+            CrawlerRunCompletionStatus.FAILED -> CrawlerRunStatusResult.FAILED
         }
     }
 
-    private fun CrawlerRun.toRecord(): CrawlerRunRecord {
+    private fun CrawlerRunState.toRecord(): CrawlerRunRecord {
         return CrawlerRunRecord(
             id = id,
-            status = when (status) {
-                CrawlerRunStatus.RUNNING -> CrawlerRunStatusResult.RUNNING
-                CrawlerRunStatus.SUCCEEDED -> CrawlerRunStatusResult.SUCCEEDED
-                CrawlerRunStatus.FAILED -> CrawlerRunStatusResult.FAILED
-                CrawlerRunStatus.SKIPPED_LOCKED -> CrawlerRunStatusResult.SKIPPED_LOCKED
-            },
+            status = status,
         )
     }
 
