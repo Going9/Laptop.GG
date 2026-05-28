@@ -1,7 +1,7 @@
 dependencies {
-    implementation(project(":application"))
     implementation(project(":application-crawler"))
     implementation(project(":domain"))
+    implementation(project(":infrastructure-jpa"))
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

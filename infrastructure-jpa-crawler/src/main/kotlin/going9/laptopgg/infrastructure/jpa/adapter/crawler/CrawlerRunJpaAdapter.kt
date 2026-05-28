@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
-import going9.laptopgg.application.port.out.CrawlerRunPort
+import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
 import going9.laptopgg.domain.crawler.CrawlerRun
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerRunRepository
 import org.springframework.data.repository.findByIdOrNull

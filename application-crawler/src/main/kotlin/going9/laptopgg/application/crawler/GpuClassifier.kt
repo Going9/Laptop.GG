@@ -2,7 +2,6 @@ package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.Laptop
-import org.springframework.stereotype.Component
 
 data class GpuInsights(
     val normalizedGpu: String?,
@@ -12,7 +11,6 @@ data class GpuInsights(
     val isIntegrated: Boolean,
 )
 
-@Component
 class GpuClassifier {
     fun classify(laptop: Laptop): GpuInsights {
         val rawGpu = laptop.graphicsType?.trim().takeUnless { it.isNullOrBlank() } ?: return GpuInsights(

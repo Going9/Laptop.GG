@@ -1,6 +1,7 @@
-package going9.laptopgg
+package going9.laptopgg.config
 
 import going9.laptopgg.application.crawler.CpuClassifier
+import going9.laptopgg.application.crawler.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.GpuClassifier
 import going9.laptopgg.application.crawler.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.LaptopProfileFactory
@@ -9,54 +10,18 @@ import going9.laptopgg.application.crawler.ProfileScorePolicy
 import going9.laptopgg.application.crawler.RecommendationScoreService
 import going9.laptopgg.application.crawler.SaveCrawledLaptopService
 import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.TrackCrawlerRunService
+import going9.laptopgg.application.crawler.TrackCrawlerRunUseCase
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
 import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
-import going9.laptopgg.application.port.out.LaptopProfilePort
-import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.application.service.RecommendationScoringPolicy
-import going9.laptopgg.application.service.ScoreCalculatorService
-import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.context.annotation.Configuration
 
-@SpringBootApplication(
-    scanBasePackages = [
-        "going9.laptopgg.infrastructure.jpa.adapter.crawler",
-        "going9.laptopgg.infrastructure.jpa.adapter.shared",
-        "going9.laptopgg.infrastructure.jpa.adapter.web",
-    ],
-)
-@EnableJpaRepositories(
-    basePackages = [
-        "going9.laptopgg.infrastructure.jpa.repository.crawler",
-        "going9.laptopgg.infrastructure.jpa.repository.shared",
-        "going9.laptopgg.infrastructure.jpa.repository.web",
-    ],
-)
-class InfrastructureJpaTestApplication {
-    @Bean
-    fun recommendationScoringPolicy(): RecommendationScoringPolicy {
-        return RecommendationScoringPolicy()
-    }
-
-    @Bean
-    fun scoreCalculatorService(recommendationScoringPolicy: RecommendationScoringPolicy): ScoreCalculatorService {
-        return ScoreCalculatorService(recommendationScoringPolicy)
-    }
-
-    @Bean
-    fun recommendLaptopsUseCase(
-        laptopProfilePort: LaptopProfilePort,
-        scoreCalculatorService: ScoreCalculatorService,
-    ): RecommendLaptopsUseCase {
-        return RecommendLaptopsUseCase(
-            laptopProfilePort = laptopProfilePort,
-            scoreCalculatorService = scoreCalculatorService,
-        )
-    }
-
+@Configuration(proxyBeanMethods = false)
+class CrawlerApplicationUseCaseConfig {
     @Bean
     fun cpuClassifier(): CpuClassifier {
         return CpuClassifier()
@@ -70,6 +35,11 @@ class InfrastructureJpaTestApplication {
     @Bean
     fun profileScorePolicy(): ProfileScorePolicy {
         return ProfileScorePolicy()
+    }
+
+    @Bean
+    fun crawledCpuModelResolver(cpuClassifier: CpuClassifier): CrawledCpuModelResolver {
+        return CrawledCpuModelResolver(cpuClassifier)
     }
 
     @Bean
@@ -121,5 +91,10 @@ class InfrastructureJpaTestApplication {
             laptopProfileService = laptopProfileService,
             laptopPriceHistoryService = laptopPriceHistoryService,
         )
+    }
+
+    @Bean
+    fun trackCrawlerRunService(crawlerRunPort: CrawlerRunPort): TrackCrawlerRunUseCase {
+        return TrackCrawlerRunService(crawlerRunPort)
     }
 }

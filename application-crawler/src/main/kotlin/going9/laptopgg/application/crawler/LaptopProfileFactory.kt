@@ -5,9 +5,7 @@ import going9.laptopgg.domain.laptop.CpuClass
 import going9.laptopgg.domain.laptop.GpuClass
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.PortabilityTier
-import org.springframework.stereotype.Component
 
-@Component
 class LaptopProfileFactory(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),
     private val gpuClassifier: GpuClassifier = GpuClassifier(),

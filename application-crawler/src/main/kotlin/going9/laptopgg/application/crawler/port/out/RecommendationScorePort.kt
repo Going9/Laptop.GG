@@ -1,4 +1,4 @@
-package going9.laptopgg.application.port.out
+package going9.laptopgg.application.crawler.port.out
 
 import going9.laptopgg.domain.recommendation.RecommendationScore
 

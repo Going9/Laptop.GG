@@ -8,10 +8,8 @@ import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
 import going9.laptopgg.application.service.ScoreCalculatorService
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
-import org.springframework.stereotype.Service
 import kotlin.math.ceil
 
-@Service
 class RecommendLaptopsUseCase(
     private val laptopProfilePort: LaptopProfilePort,
     private val scoreCalculatorService: ScoreCalculatorService,

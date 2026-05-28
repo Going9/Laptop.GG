@@ -4,16 +4,14 @@ import going9.laptopgg.application.port.out.CommentPort
 import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.application.port.out.PasswordHashPort
 import going9.laptopgg.domain.laptop.Comment
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Service
+@Transactional
 class ManageCommentUseCase(
     private val commentPort: CommentPort,
     private val laptopPort: LaptopPort,
     private val passwordHashPort: PasswordHashPort,
 ) {
-    @Transactional
     fun add(command: AddCommentCommand) {
         val comment = Comment(
             laptop = laptopPort.findById(command.laptopId) ?: throw IllegalArgumentException("Laptop not found: ${command.laptopId}"),
@@ -35,14 +33,12 @@ class ManageCommentUseCase(
         }
     }
 
-    @Transactional
     fun update(commentId: Long, command: UpdateCommentCommand) {
         val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
         validatePassword(comment, command.password)
         comment.updateComment(command.content)
     }
 
-    @Transactional
     fun delete(commentId: Long, command: DeleteCommentCommand) {
         val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
         validatePassword(comment, command.password)

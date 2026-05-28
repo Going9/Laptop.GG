@@ -1,8 +1,5 @@
 package going9.laptopgg.application.crawler
 
-import org.springframework.stereotype.Component
-
-@Component
 class CrawledCpuModelResolver(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),
 ) {

@@ -3,7 +3,6 @@ package going9.laptopgg.application.crawler
 import going9.laptopgg.domain.laptop.CpuClass
 import going9.laptopgg.domain.laptop.Laptop
 import kotlin.math.roundToInt
-import org.springframework.stereotype.Component
 
 data class CpuInsights(
     val normalizedCpu: String?,
@@ -12,7 +11,6 @@ data class CpuInsights(
     val lowPowerScore: Int,
 )
 
-@Component
 class CpuClassifier {
     fun classify(laptop: Laptop): CpuInsights {
         val resolvedCpu = resolveCpuToken(laptop.cpu, laptop.cpuManufacturer, laptop.name)

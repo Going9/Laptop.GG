@@ -13,21 +13,6 @@ import org.springframework.stereotype.Component
 class LaptopProfileJpaAdapter(
     private val laptopProfileRepository: LaptopProfileRepository,
 ) : LaptopProfilePort {
-    override fun findByLaptopId(laptopId: Long): LaptopProfile? {
-        return laptopProfileRepository.findByLaptopId(laptopId)
-    }
-
-    override fun save(laptopProfile: LaptopProfile): LaptopProfile {
-        return laptopProfileRepository.save(laptopProfile)
-    }
-
-    override fun findLaptopIdsWithIncompleteStaticScores(limit: Int): List<Long> {
-        if (limit <= 0) {
-            return emptyList()
-        }
-        return laptopProfileRepository.findLaptopIdsWithIncompleteStaticScores(PageRequest.of(0, limit))
-    }
-
     override fun findRecommendationCandidates(filter: RecommendationCandidateFilter): List<LaptopProfile> {
         return laptopProfileRepository.findRecommendationCandidates(
             maxPrice = filter.maxPrice,

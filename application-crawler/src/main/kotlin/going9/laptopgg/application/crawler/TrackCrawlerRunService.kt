@@ -1,17 +1,15 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.application.port.out.CrawlerRunPort
+import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
 import going9.laptopgg.domain.crawler.CrawlerRun
 import going9.laptopgg.domain.crawler.CrawlerRunStatus
 import java.time.LocalDateTime
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Service
+@Transactional
 class TrackCrawlerRunService(
     private val crawlerRunPort: CrawlerRunPort,
 ) : TrackCrawlerRunUseCase {
-    @Transactional
     override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
         return crawlerRunPort.save(
             CrawlerRun(
@@ -22,7 +20,6 @@ class TrackCrawlerRunService(
         ).toRecord()
     }
 
-    @Transactional
     override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
         return crawlerRunPort.save(
             CrawlerRun(
@@ -36,7 +33,6 @@ class TrackCrawlerRunService(
         ).toRecord()
     }
 
-    @Transactional
     override fun finish(
         runId: Long,
         summary: CrawlerRunSummary,
@@ -59,7 +55,6 @@ class TrackCrawlerRunService(
         return crawlerRun.toRecord()
     }
 
-    @Transactional
     override fun fail(runId: Long, exception: Throwable): CrawlerRunRecord {
         val crawlerRun = crawlerRunPort.findById(runId)
             ?: throw IllegalArgumentException("Crawler run not found: $runId")

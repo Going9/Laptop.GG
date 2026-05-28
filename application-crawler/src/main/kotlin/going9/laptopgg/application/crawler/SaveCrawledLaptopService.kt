@@ -1,14 +1,13 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.application.port.out.LaptopPort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Service
+@Transactional
 class SaveCrawledLaptopService(
-    private val laptopPort: LaptopPort,
+    private val laptopPort: CrawledLaptopPort,
     private val laptopProfileService: LaptopProfileService,
     private val laptopPriceHistoryService: LaptopPriceHistoryService,
 ) : SaveCrawledLaptopUseCase {
@@ -30,7 +29,6 @@ class SaveCrawledLaptopService(
         )
     }
 
-    @Transactional
     override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         val existingLaptop = laptopPort.findWithUsageById(existingLaptopId)
             ?: throw IllegalArgumentException("Laptop not found: $existingLaptopId")
@@ -52,7 +50,6 @@ class SaveCrawledLaptopService(
         return SaveResult.UPDATED
     }
 
-    @Transactional
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
         val crawledLaptop = command.toLaptop()
         val existingLaptop = existingLaptopId?.let(laptopPort::findWithUsageById)

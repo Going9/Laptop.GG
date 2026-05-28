@@ -1,16 +1,15 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.application.port.out.LaptopPort
-import going9.laptopgg.application.port.out.LaptopProfilePort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
+import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Service
+@Transactional
 class LaptopProfileService(
-    private val laptopPort: LaptopPort,
-    private val laptopProfilePort: LaptopProfilePort,
+    private val laptopPort: CrawledLaptopPort,
+    private val laptopProfilePort: CrawledLaptopProfilePort,
     private val laptopProfileFactory: LaptopProfileFactory,
     private val recommendationScoreService: RecommendationScoreService,
 ) {
@@ -23,12 +22,10 @@ class LaptopProfileService(
     @Volatile
     private var incompleteProfilesBackfilled = false
 
-    @Transactional
     fun syncMissingProfiles() {
         syncMissingProfilesBatch()
     }
 
-    @Transactional
     fun syncMissingProfilesIfNeeded() {
         if (missingProfilesBackfilled) {
             return
@@ -47,12 +44,10 @@ class LaptopProfileService(
         }
     }
 
-    @Transactional
     fun syncIncompleteProfiles() {
         syncIncompleteProfilesBatch()
     }
 
-    @Transactional
     fun syncIncompleteProfilesIfNeeded() {
         if (incompleteProfilesBackfilled) {
             return
@@ -71,7 +66,6 @@ class LaptopProfileService(
         }
     }
 
-    @Transactional
     fun syncMissingProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
         val ids = laptopPort.findIdsWithoutProfile(limit)
         if (ids.isEmpty()) {
@@ -85,7 +79,6 @@ class LaptopProfileService(
         return ids.size
     }
 
-    @Transactional
     fun syncIncompleteProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
         val ids = laptopProfilePort.findLaptopIdsWithIncompleteStaticScores(limit)
         if (ids.isEmpty()) {
@@ -99,7 +92,6 @@ class LaptopProfileService(
         return ids.size
     }
 
-    @Transactional
     fun syncProfile(laptop: Laptop): LaptopProfile {
         val laptopId = requireNotNull(laptop.id) { "Laptop must be persisted before syncing a profile." }
         val snapshot = laptopProfileFactory.build(laptop)

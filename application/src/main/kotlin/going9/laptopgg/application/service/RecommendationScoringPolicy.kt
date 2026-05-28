@@ -3,9 +3,7 @@ package going9.laptopgg.application.service
 import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.domain.laptop.LaptopProfile
 import kotlin.math.roundToInt
-import org.springframework.stereotype.Component
 
-@Component
 class RecommendationScoringPolicy {
     fun staticScore(useCase: RecommendationUseCase, inputs: RecommendationScoreInputs): Double {
         return weightedScore(useCase, inputs.copy(budgetScore = 0))

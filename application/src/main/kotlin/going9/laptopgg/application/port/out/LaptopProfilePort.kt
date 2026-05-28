@@ -5,9 +5,6 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.domain.laptop.LaptopProfile
 
 interface LaptopProfilePort {
-    fun findByLaptopId(laptopId: Long): LaptopProfile?
-    fun save(laptopProfile: LaptopProfile): LaptopProfile
-    fun findLaptopIdsWithIncompleteStaticScores(limit: Int): List<Long>
     fun findRecommendationCandidates(filter: RecommendationCandidateFilter): List<LaptopProfile>
     fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<LaptopProfile>
 }

@@ -62,6 +62,23 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application must not define crawler persistence contracts",
+			paths = listOf("application/src/main", "application/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain\.crawler"""),
+				Regex("""CrawlerRunPort"""),
+				Regex("""LaptopPriceHistoryPort"""),
+				Regex("""RecommendationScorePort"""),
+				Regex("""findIdsWithoutProfile"""),
+				Regex("""findLaptopIdsWithIncompleteStaticScores"""),
+				Regex("""findAllByProductCodes"""),
+				Regex("""findAllByDetailPages"""),
+				Regex("""findAllByDetailPageContaining"""),
+				Regex("""findByProductCode"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application-crawler must not depend on infrastructure or web",
 			paths = listOf("application-crawler/src/main", "application-crawler/src/test", "application-crawler/build.gradle.kts"),
 			patterns = listOf(
@@ -89,6 +106,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "infrastructure-jpa-crawler must implement crawler ports without direct web application contracts",
+			paths = listOf("infrastructure-jpa-crawler/src/main", "infrastructure-jpa-crawler/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.application\.port\.out"""),
+				Regex("""project\(":application"\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application command and result contracts must not expose domain models",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common",
@@ -111,6 +137,17 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""org\.springframework\.context\.annotation\.Profile"""),
 				Regex("""@Profile"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "application modules must not use Spring component-scan stereotypes",
+			paths = listOf("application/src/main", "application-crawler/src/main", "application/build.gradle.kts", "application-crawler/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""org\.springframework\.stereotype"""),
+				Regex("""@Service"""),
+				Regex("""@Component"""),
+				Regex("""spring-context"""),
 			),
 		)
 
@@ -226,6 +263,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
 			patterns = listOf(
 				Regex(""""going9\.laptopgg\.infrastructure\.jpa","""),
+				Regex(""""going9\.laptopgg\.infrastructure\.jpa\.adapter\.shared","""),
 			),
 		)
 
@@ -252,12 +290,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "crawler-job must depend on application contracts, not domain models or internal application services",
+			rule = "crawler-job must depend on application-crawler contracts, not domain models or web application contracts",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test", "crawler-job/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.application\.port\.out"""),
+				Regex("""going9\.laptopgg\.application\.recommendation"""),
 				Regex("""going9\.laptopgg\.application\.service"""),
 				Regex("""project\(":domain"\)"""),
+				Regex("""project\(":application"\)"""),
 			),
 		)
 	}

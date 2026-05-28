@@ -1,22 +1,20 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.application.port.out.RecommendationScorePort
+import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.application.service.RecommendationScoreInputs
 import going9.laptopgg.application.service.RecommendationScoringPolicy
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.recommendation.RecommendationScore
 import java.time.LocalDateTime
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Service
+@Transactional
 class RecommendationScoreService(
     private val recommendationScorePort: RecommendationScorePort,
 ) {
     private val recommendationScoringPolicy = RecommendationScoringPolicy()
 
-    @Transactional
     fun refreshScores(profile: LaptopProfile) {
         val laptopId = requireNotNull(profile.laptop.id) {
             "Laptop must be persisted before refreshing recommendation scores."

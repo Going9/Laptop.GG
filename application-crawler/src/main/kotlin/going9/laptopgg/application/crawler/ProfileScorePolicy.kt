@@ -4,7 +4,6 @@ import going9.laptopgg.domain.laptop.BatteryTier
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.PortabilityTier
 import kotlin.math.roundToInt
-import org.springframework.stereotype.Component
 
 data class ProfileScores(
     val batteryTier: BatteryTier,
@@ -21,7 +20,6 @@ data class ProfileScores(
     val tgpScore: Int,
 )
 
-@Component
 class ProfileScorePolicy {
     fun calculate(laptop: Laptop, cpu: CpuInsights, gpu: GpuInsights): ProfileScores {
         val portabilityScore = portabilityScore(laptop.weight)

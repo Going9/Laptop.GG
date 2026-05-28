@@ -4,11 +4,9 @@ import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
-import org.springframework.stereotype.Service
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-@Service
 class ScoreCalculatorService(
     private val recommendationScoringPolicy: RecommendationScoringPolicy,
 ) {

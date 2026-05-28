@@ -39,6 +39,8 @@ class LaptopGgApplicationTests {
 			"laptopProfileService",
 			"laptopPriceHistoryService",
 			"recommendationScoreService",
+			"crawledLaptopJpaAdapter",
+			"crawledLaptopProfileJpaAdapter",
 			"crawlerRunJpaAdapter",
 			"laptopPriceHistoryJpaAdapter",
 			"recommendationScoreJpaAdapter",
