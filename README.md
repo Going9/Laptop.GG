@@ -32,7 +32,8 @@ flowchart LR
 
 - `laptop-taxonomy`: CPU/GPU/배터리/휴대성 분류 enum
 - `persistence-model`: JPA entity와 DB 매핑 모델
-- `recommendation-core`: web/crawler가 공유하는 추천 use-case enum과 점수 정책
+- `recommendation-contract`: web/crawler/application이 공유하는 추천 use-case enum
+- `recommendation-core`: 추천 점수 가중치와 gate 정책
 - `application`: 추천/상세/댓글 use case와 port
 - `application-crawler`: crawler 저장/동기화 use case, feature별 crawler 전용 port, profile/score 정책
 - `infrastructure-jpa-core`: Flyway migration, 공통 persistence 설정
@@ -77,7 +78,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 `application`은 JPA entity를 노출하지 않는 application record 계약만 사용하고, 실제 entity 매핑은 JPA adapter에서 처리합니다.
 `web-app`은 web use case bean을 명시적으로 조립하며, `application-crawler`와 crawler JPA adapter는 classpath에 올리지 않습니다.
 `crawler-job`은 Danawa 수집과 application-crawler command 변환만 담당하며, persistence model 조립과 저장 트랜잭션은 application-crawler use case가 처리합니다.
-추천 use-case enum과 점수 정책은 `recommendation-core`에 두어 web 추천 계산과 crawler 점수 projection이 같은 정책을 공유합니다.
+추천 use-case enum은 `recommendation-contract`, 점수 정책은 `recommendation-core`에 두어 web은 공개 선택지 계약만 알고 crawler 점수 projection과 web 추천 계산은 같은 정책을 공유합니다.
 크롤러 저장/이력/추천 점수/중복 실행 lock port는 `application-crawler`의 feature별 `*.port` 패키지에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
 Flyway 마이그레이션과 공통 persistence 설정은 `infrastructure-jpa-core`에 있고, entity scan과 Spring Data repository는 `infrastructure-jpa`와 `infrastructure-jpa-crawler`가 역할별로 소유합니다.
 

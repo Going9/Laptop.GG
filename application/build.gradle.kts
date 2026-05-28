@@ -1,4 +1,5 @@
 dependencies {
+    implementation(project(":recommendation-contract"))
     implementation(project(":recommendation-core"))
 
     testImplementation("org.junit.jupiter:junit-jupiter")

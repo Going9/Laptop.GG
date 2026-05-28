@@ -85,15 +85,16 @@ val verifyStructure by tasks.registering {
 		mapOf(
 			":laptop-taxonomy" to emptySet(),
 			":persistence-model" to emptySet(),
-			":recommendation-core" to emptySet(),
-			":application" to setOf(":recommendation-core"),
-			":application-crawler" to setOf(":laptop-taxonomy", ":recommendation-core"),
+			":recommendation-contract" to emptySet(),
+			":recommendation-core" to setOf(":recommendation-contract"),
+			":application" to setOf(":recommendation-contract", ":recommendation-core"),
+			":application-crawler" to setOf(":laptop-taxonomy", ":recommendation-contract", ":recommendation-core"),
 			":infrastructure-jpa-core" to emptySet(),
 			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-security" to setOf(":application"),
-			":web-app" to setOf(":application", ":infrastructure-jpa", ":infrastructure-security", ":recommendation-core"),
-			":crawler-job" to setOf(":application-crawler", ":infrastructure-jpa-core", ":infrastructure-jpa-crawler"),
+			":web-app" to setOf(":application", ":infrastructure-jpa", ":infrastructure-security", ":recommendation-contract"),
+			":crawler-job" to setOf(":application-crawler", ":infrastructure-jpa-crawler"),
 			":integration-tests" to emptySet(),
 		).forEach { (projectPath, expectedProjectPaths) ->
 			assertProjectDependencies(
@@ -107,6 +108,7 @@ val verifyStructure by tasks.registering {
 		mapOf(
 			":laptop-taxonomy" to emptySet(),
 			":persistence-model" to setOf(":laptop-taxonomy"),
+			":recommendation-contract" to emptySet(),
 			":recommendation-core" to emptySet(),
 			":application" to emptySet(),
 			":application-crawler" to emptySet(),
@@ -139,6 +141,7 @@ val verifyStructure by tasks.registering {
 				":infrastructure-jpa-core",
 				":infrastructure-jpa-crawler",
 				":recommendation-core",
+				":recommendation-contract",
 			),
 		)
 
@@ -464,6 +467,24 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "recommendation-contract must stay a Spring-free public recommendation vocabulary module",
+			paths = listOf("recommendation-contract/src/main", "recommendation-contract/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""RecommendationScoringPolicy"""),
+				Regex("""RecommendationScoreInputs"""),
+				Regex("""RecommendationGateInputs"""),
+				Regex("""going9\.laptopgg\.application"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
+				Regex("""going9\.laptopgg\.infrastructure"""),
+				Regex("""going9\.laptopgg\.web"""),
+				Regex("""org\.springframework"""),
+				Regex("""spring-boot"""),
+				Regex("""spring-context"""),
+				Regex("""project\("""),
+			),
+		)
+
+		assertAbsent(
 			rule = "recommendation-core must stay a Spring-free scoring policy module",
 			paths = listOf("recommendation-core/src/main", "recommendation-core/build.gradle.kts"),
 			patterns = listOf(
@@ -681,8 +702,10 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.application\.crawler"""),
+				Regex("""RecommendationScoringPolicy"""),
 				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
+				Regex("""project\(":recommendation-core"\)"""),
 				Regex("""project\(":infrastructure-jpa-crawler"\)"""),
 			),
 		)
