@@ -49,6 +49,29 @@ val verifyStructure by tasks.registering {
 			}
 		}
 
+		fun assertOrdered(rule: String, path: String, patterns: List<Regex>) {
+			val file = project.file(path)
+			val text = file.readText()
+			var searchStart = 0
+			val missingPatterns = mutableListOf<String>()
+
+			for (pattern in patterns) {
+				val match = pattern.find(text, searchStart)
+				if (match == null) {
+					missingPatterns += pattern.pattern
+				} else {
+					searchStart = match.range.last + 1
+				}
+			}
+
+			check(missingPatterns.isEmpty()) {
+				buildString {
+					appendLine("Structure rule failed: $rule")
+					missingPatterns.forEach { appendLine("missing in order: $it") }
+				}
+			}
+		}
+
 		fun assertPathAbsent(rule: String, paths: List<String>) {
 			val violations = paths
 				.map(project::file)
@@ -186,6 +209,17 @@ val verifyStructure by tasks.registering {
 				Regex("""runs PostgreSQL integration tests against a local PostgreSQL service before opening the production write path"""),
 				Regex("""크롤러 워크플로는 운영 DB 쓰기 전에 로컬 PostgreSQL 16 service DB로 PostgreSQL 통합 테스트를 먼저 실행합니다"""),
 				Regex("""Crawler workflow validates the persistence path against a local PostgreSQL service before the production crawl"""),
+			),
+		)
+
+		assertOrdered(
+			rule = "crawler workflow must validate before opening the production database tunnel",
+			path = ".github/workflows/crawler.yml",
+			patterns = listOf(
+				Regex("""name: Test and build crawler jar"""),
+				Regex("""name: Prepare SSH key"""),
+				Regex("""name: Open PostgreSQL tunnel"""),
+				Regex("""name: Run crawler"""),
 			),
 		)
 
