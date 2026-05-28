@@ -888,6 +888,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawl product batch processor must delegate detail refresh planning",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt"),
+			patterns = listOf(
+				Regex("""DetailRefreshPolicy"""),
+				Regex("""DetailRefreshWorkItem\("""),
+				Regex("""mutableListOf<DetailRefreshWorkItem>"""),
+				Regex("""existingLookup\.find"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "recommend laptop use case must delegate filtering, sorting, and result mapping",
 			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt"),
 			patterns = listOf(

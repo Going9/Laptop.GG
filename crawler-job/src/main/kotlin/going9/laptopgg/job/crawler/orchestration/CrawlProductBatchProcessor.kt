@@ -4,8 +4,6 @@ import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.job.crawler.detail.BuildLaptopResult
 import going9.laptopgg.job.crawler.detail.DetailCrawler
 import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
-import going9.laptopgg.job.crawler.detail.DetailRefreshPolicy
-import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
 import java.util.concurrent.ExecutorService
@@ -31,24 +29,19 @@ class CrawlProductBatchProcessor(
 
         var pagePriceOnlyUpdatedCount = 0
         val existingLookup = saveCrawledLaptopUseCase.loadExistingLookup(productCards.map { it.toCommand() })
-        val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
+        val workPlan = DetailRefreshPlanner.plan(productCards, existingLookup)
 
-        for (productCard in productCards) {
-            val existingLaptop = existingLookup.find(productCard.toCommand())
-            if (existingLaptop != null && !DetailRefreshPolicy.needsRefresh(existingLaptop)) {
-                pagePriceOnlyUpdatedCount += saveListSnapshot(existingLaptop.id, productCard, progress)
-            } else {
-                detailRefreshWorkItems += DetailRefreshWorkItem(
-                    productCard = productCard,
-                    existingLaptop = existingLaptop,
-                )
-            }
+        for (workItem in workPlan.priceOnlySnapshotWorkItems) {
+            pagePriceOnlyUpdatedCount += saveListSnapshot(workItem.existingLaptop.id, workItem.productCard, progress)
         }
 
-        progress.recordDetailRefresh(detailRefreshWorkItems.size)
-        if (detailRefreshWorkItems.isNotEmpty()) {
+        progress.recordDetailRefresh(workPlan.detailRefreshWorkItems.size)
+        if (workPlan.detailRefreshWorkItems.isNotEmpty()) {
             processDetailRefreshOutcomes(
-                detailRefreshOutcomes = detailCrawler.fetchDetailRefreshOutcomes(detailRefreshWorkItems, detailFetchExecutor),
+                detailRefreshOutcomes = detailCrawler.fetchDetailRefreshOutcomes(
+                    workPlan.detailRefreshWorkItems,
+                    detailFetchExecutor,
+                ),
                 progress = progress,
                 pagePriceOnlyUpdatedCount = { pagePriceOnlyUpdatedCount++ },
             )
@@ -56,7 +49,7 @@ class CrawlProductBatchProcessor(
 
         return CrawlPageProcessingResult(
             processedCount = productCards.size,
-            detailRefreshCount = detailRefreshWorkItems.size,
+            detailRefreshCount = workPlan.detailRefreshWorkItems.size,
             pagePriceOnlyUpdatedCount = pagePriceOnlyUpdatedCount,
         )
     }
