@@ -98,6 +98,79 @@ class RecommendationIntegrationFixtures(
         }?.let(::saveProfileAndScores)
     }
 
+    fun overrideSortProbeScores(laptops: List<Laptop>) {
+        require(laptops.size >= SORT_PROBE_COUNT) { "Sort probe score overrides require at least $SORT_PROBE_COUNT laptops." }
+
+        overrideProfileScores(
+            laptop = laptops[0],
+            officeScore = 95,
+            batteryScore = 85,
+            casualGameScore = 75,
+            onlineGameScore = 75,
+            aaaGameScore = 75,
+            creatorScore = 80,
+            cpuPerformanceScore = 75,
+            lowPowerCpuScore = 85,
+            gpuPerformanceScore = 70,
+            gpuCreatorBonus = 5,
+            portabilityScore = 95,
+            displayScore = 83,
+            ramScore = 75,
+            tgpScore = 70,
+        )
+        overrideProfileScores(
+            laptop = laptops[1],
+            officeScore = 75,
+            batteryScore = 70,
+            casualGameScore = 95,
+            onlineGameScore = 98,
+            aaaGameScore = 98,
+            creatorScore = 90,
+            cpuPerformanceScore = 90,
+            lowPowerCpuScore = 55,
+            gpuPerformanceScore = 98,
+            gpuCreatorBonus = 8,
+            portabilityScore = 50,
+            displayScore = 90,
+            ramScore = 90,
+            tgpScore = 98,
+        )
+        overrideProfileScores(
+            laptop = laptops[2],
+            officeScore = 85,
+            batteryScore = 80,
+            casualGameScore = 82,
+            onlineGameScore = 84,
+            aaaGameScore = 80,
+            creatorScore = 98,
+            cpuPerformanceScore = 95,
+            lowPowerCpuScore = 75,
+            gpuPerformanceScore = 90,
+            gpuCreatorBonus = 10,
+            portabilityScore = 82,
+            displayScore = 98,
+            ramScore = 100,
+            tgpScore = 80,
+        )
+        overrideProfileScores(
+            laptop = laptops[3],
+            officeScore = 88,
+            batteryScore = 90,
+            casualGameScore = 72,
+            onlineGameScore = 72,
+            aaaGameScore = 70,
+            creatorScore = 75,
+            cpuPerformanceScore = 70,
+            lowPowerCpuScore = 92,
+            gpuPerformanceScore = 65,
+            gpuCreatorBonus = 0,
+            portabilityScore = 100,
+            displayScore = 75,
+            ramScore = 70,
+            tgpScore = 65,
+        )
+    }
+
     fun saveProfileAndScores(profile: LaptopProfile) {
         val savedProfile = laptopProfileRepository.save(profile)
         recommendationScoreService.refreshScores(
@@ -211,5 +284,9 @@ class RecommendationIntegrationFixtures(
             lastDetailedCrawledAt = lastDetailedCrawledAt,
             usages = laptopUsage.map { usage -> usage.usage },
         )
+    }
+
+    private companion object {
+        const val SORT_PROBE_COUNT = 4
     }
 }

@@ -108,74 +108,7 @@ class RecommendationOrderingIntegrationTest : RecommendationIntegrationTestSuppo
     @Test
     fun `recommended database pages match calculator order for every use case`() {
         val laptops = fixtures.persistSortProbeLaptops()
-        fixtures.overrideProfileScores(
-            laptop = laptops[0],
-            officeScore = 95,
-            batteryScore = 85,
-            casualGameScore = 75,
-            onlineGameScore = 75,
-            aaaGameScore = 75,
-            creatorScore = 80,
-            cpuPerformanceScore = 75,
-            lowPowerCpuScore = 85,
-            gpuPerformanceScore = 70,
-            gpuCreatorBonus = 5,
-            portabilityScore = 95,
-            displayScore = 83,
-            ramScore = 75,
-            tgpScore = 70,
-        )
-        fixtures.overrideProfileScores(
-            laptop = laptops[1],
-            officeScore = 75,
-            batteryScore = 70,
-            casualGameScore = 95,
-            onlineGameScore = 98,
-            aaaGameScore = 98,
-            creatorScore = 90,
-            cpuPerformanceScore = 90,
-            lowPowerCpuScore = 55,
-            gpuPerformanceScore = 98,
-            gpuCreatorBonus = 8,
-            portabilityScore = 50,
-            displayScore = 90,
-            ramScore = 90,
-            tgpScore = 98,
-        )
-        fixtures.overrideProfileScores(
-            laptop = laptops[2],
-            officeScore = 85,
-            batteryScore = 80,
-            casualGameScore = 82,
-            onlineGameScore = 84,
-            aaaGameScore = 80,
-            creatorScore = 98,
-            cpuPerformanceScore = 95,
-            lowPowerCpuScore = 75,
-            gpuPerformanceScore = 90,
-            gpuCreatorBonus = 10,
-            portabilityScore = 82,
-            displayScore = 98,
-            ramScore = 100,
-            tgpScore = 80,
-        )
-        fixtures.overrideProfileScores(
-            laptop = laptops[3],
-            officeScore = 88,
-            batteryScore = 90,
-            casualGameScore = 72,
-            onlineGameScore = 72,
-            aaaGameScore = 70,
-            creatorScore = 75,
-            cpuPerformanceScore = 70,
-            lowPowerCpuScore = 92,
-            gpuPerformanceScore = 65,
-            gpuCreatorBonus = 0,
-            portabilityScore = 100,
-            displayScore = 75,
-            ramScore = 70,
-            tgpScore = 65,
-        )
+        fixtures.overrideSortProbeScores(laptops)
 
         RecommendationUseCase.entries.forEach { useCase ->
             val request = LaptopRecommendationQuery(

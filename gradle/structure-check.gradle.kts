@@ -175,6 +175,16 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "PostgreSQL integration tests must cover recommendation ordering",
+			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/PostgresRecommendationOrderingIntegrationTest.kt"),
+			patterns = listOf(
+				Regex("""POSTGRES_INTEGRATION_TESTS"""),
+				Regex("""recommended database pages match calculator order"""),
+				Regex("""RecommendationUseCase\.entries"""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "JPA entity model must live in persistence-model, not legacy domain module",
 			paths = listOf("domain"),
@@ -1602,6 +1612,7 @@ val verifyStructure by tasks.registering {
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationCandidateFilteringIntegrationTest.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationOrderingIntegrationTest.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationProjectionIntegrationTest.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/PostgresRecommendationOrderingIntegrationTest.kt",
 			),
 			patterns = listOf(
 				Regex("""fun\s+(persistLaptop|persistSortProbeLaptops|overrideProfileScores|saveProfileAndScores)\b"""),
