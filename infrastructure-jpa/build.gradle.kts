@@ -11,6 +11,7 @@ dependencies {
 
     testImplementation(project(":application-crawler"))
     testImplementation(project(":infrastructure-jpa-crawler"))
+    testImplementation(project(":recommendation-core"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")

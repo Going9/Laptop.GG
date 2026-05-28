@@ -16,6 +16,7 @@ import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileReposit
 import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopUsageRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
+import going9.laptopgg.recommendation.RecommendationUseCase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

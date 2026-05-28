@@ -84,9 +84,28 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.infrastructure"""),
 				Regex("""going9\.laptopgg\.web"""),
+				Regex("""going9\.laptopgg\.application\.recommendation"""),
+				Regex("""going9\.laptopgg\.application\.service"""),
+				Regex("""going9\.laptopgg\.application\.port\.out"""),
+				Regex("""project\(":application"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""project\(":web-app"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "recommendation-core must stay a Spring-free shared policy module",
+			paths = listOf("recommendation-core/src/main", "recommendation-core/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.application"""),
+				Regex("""going9\.laptopgg\.infrastructure"""),
+				Regex("""going9\.laptopgg\.web"""),
+				Regex("""org\.springframework"""),
+				Regex("""spring-boot"""),
+				Regex("""spring-context"""),
+				Regex("""project\(":application"\)"""),
+				Regex("""project\(":application-crawler"\)"""),
 			),
 		)
 

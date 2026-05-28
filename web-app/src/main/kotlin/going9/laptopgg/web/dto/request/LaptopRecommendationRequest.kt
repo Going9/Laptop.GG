@@ -2,8 +2,8 @@ package going9.laptopgg.web.dto.request
 
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.LegacyRecommendationPurpose
-import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.application.recommendation.ScreenSizeMode
+import going9.laptopgg.recommendation.RecommendationUseCase
 
 class LaptopRecommendationRequest(
     val budget: Int = 1_500_000,

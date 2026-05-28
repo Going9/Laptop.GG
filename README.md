@@ -31,6 +31,7 @@ flowchart LR
 ## 저장소 구조
 
 - `domain`: JPA entity, enum 등 도메인 모델
+- `recommendation-core`: web/crawler가 공유하는 추천 use-case enum과 점수 정책
 - `application`: 추천/상세/댓글 use case와 port
 - `application-crawler`: crawler 저장/동기화 use case, crawler 전용 port, profile/score 정책
 - `infrastructure-jpa`: Spring Data repository, Flyway migration, JPA adapter
@@ -71,6 +72,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 웹 앱은 사용자 화면과 추천/상세/댓글 API만 실행합니다. 크롤링은 아래 `crawler-job` 명령으로 별도 실행합니다.
 `web-app`은 web use case bean을 명시적으로 조립하며, `application-crawler`와 crawler JPA adapter는 classpath에 올리지 않습니다.
 `crawler-job`은 Danawa 수집과 application-crawler command 변환만 담당하며, domain entity 조립과 저장 트랜잭션은 application-crawler use case가 처리합니다.
+추천 use-case enum과 점수 정책은 `recommendation-core`에 두어 web 추천 계산과 crawler 점수 projection이 같은 정책을 공유합니다.
 크롤러 저장/이력/추천 점수 port는 `application-crawler`에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
 
 주의:

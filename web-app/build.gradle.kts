@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":application"))
+    implementation(project(":recommendation-core"))
     implementation(project(":infrastructure-jpa"))
     implementation(project(":infrastructure-security"))
 

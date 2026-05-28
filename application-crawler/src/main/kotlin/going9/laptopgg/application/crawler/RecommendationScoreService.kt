@@ -1,11 +1,11 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
-import going9.laptopgg.application.recommendation.RecommendationUseCase
-import going9.laptopgg.application.service.RecommendationScoreInputs
-import going9.laptopgg.application.service.RecommendationScoringPolicy
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.recommendation.RecommendationScore
+import going9.laptopgg.recommendation.RecommendationScoreInputs
+import going9.laptopgg.recommendation.RecommendationScoringPolicy
+import going9.laptopgg.recommendation.RecommendationUseCase
 import java.time.LocalDateTime
 import org.springframework.transaction.annotation.Transactional
 

@@ -1,5 +1,7 @@
 package going9.laptopgg.application.recommendation
 
+import going9.laptopgg.recommendation.RecommendationUseCase
+
 data class LaptopRecommendationQuery(
     val budget: Int = 1_500_000,
     val maxWeightKg: Double = 1.5,
@@ -54,17 +56,6 @@ enum class ScreenSizeMode {
     SELECT,
     ANY,
     NOT_SURE,
-}
-
-enum class RecommendationUseCase {
-    NOT_SURE,
-    OFFICE_STUDY,
-    PORTABLE_OFFICE,
-    BATTERY_FIRST,
-    CASUAL_GAME,
-    ONLINE_GAME,
-    AAA_GAME,
-    CREATOR,
 }
 
 enum class LegacyRecommendationPurpose {

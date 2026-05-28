@@ -2,6 +2,7 @@ rootProject.name = "LaptopGG"
 
 include(
     "domain",
+    "recommendation-core",
     "application",
     "application-crawler",
     "infrastructure-jpa",

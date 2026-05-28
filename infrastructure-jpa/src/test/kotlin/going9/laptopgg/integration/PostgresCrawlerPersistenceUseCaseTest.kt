@@ -7,11 +7,11 @@ import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.SaveResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
 import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.shared.LaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
+import going9.laptopgg.recommendation.RecommendationUseCase
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.AfterAll

@@ -1,6 +1,5 @@
-package going9.laptopgg.application.service
+package going9.laptopgg.recommendation
 
-import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.domain.laptop.LaptopProfile
 import kotlin.math.roundToInt
 

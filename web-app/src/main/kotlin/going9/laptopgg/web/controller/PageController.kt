@@ -6,8 +6,8 @@ import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.web.dto.request.CommentRequest
 import going9.laptopgg.web.dto.request.CommentUpdateRequest
 import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
-import going9.laptopgg.application.recommendation.RecommendationUseCase
 import going9.laptopgg.application.recommendation.ScreenSizeMode
+import going9.laptopgg.recommendation.RecommendationUseCase
 import going9.laptopgg.web.dto.response.CommentResponse
 import going9.laptopgg.web.dto.response.LaptopDetailResponse
 import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse

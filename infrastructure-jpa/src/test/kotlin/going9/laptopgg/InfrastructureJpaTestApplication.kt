@@ -15,7 +15,6 @@ import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.application.service.RecommendationScoringPolicy
 import going9.laptopgg.application.service.ScoreCalculatorService
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.Bean
@@ -37,13 +36,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 )
 class InfrastructureJpaTestApplication {
     @Bean
-    fun recommendationScoringPolicy(): RecommendationScoringPolicy {
-        return RecommendationScoringPolicy()
-    }
-
-    @Bean
-    fun scoreCalculatorService(recommendationScoringPolicy: RecommendationScoringPolicy): ScoreCalculatorService {
-        return ScoreCalculatorService(recommendationScoringPolicy)
+    fun scoreCalculatorService(): ScoreCalculatorService {
+        return ScoreCalculatorService()
     }
 
     @Bean

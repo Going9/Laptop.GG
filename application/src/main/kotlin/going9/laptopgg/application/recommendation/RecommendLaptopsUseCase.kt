@@ -8,6 +8,7 @@ import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
 import going9.laptopgg.application.service.ScoreCalculatorService
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.ceil
 
 class RecommendLaptopsUseCase(
