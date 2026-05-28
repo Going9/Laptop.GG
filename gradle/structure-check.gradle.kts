@@ -1008,6 +1008,20 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawl source runner must delegate traversal state and page freshness analysis",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt"),
+			patterns = listOf(
+				Regex("""seenPageSignatures"""),
+				Regex("""var\s+consecutiveDuplicateOnlyPages"""),
+				Regex("""var\s+currentPage"""),
+				Regex("""ProductPageSignature\.create"""),
+				Regex("""seenDetailPages\.add"""),
+				Regex("""currentPage\+\+"""),
+				Regex("""priceCompareCount\s*\n\s*\?\.takeIf"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawl product batch processor must delegate detail refresh planning",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt"),
 			patterns = listOf(

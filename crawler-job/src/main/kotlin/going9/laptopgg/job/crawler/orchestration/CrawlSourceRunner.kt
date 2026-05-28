@@ -26,60 +26,45 @@ class CrawlSourceRunner(
         val listRequestContext = listPageCrawler.createListRequestContext(crawlSource)
         val requestFilterCount = listRequestContext.searchAttributeValues.size
         val requestDistinctFilterCount = listRequestContext.searchAttributeValues.toSet().size
-        val seenPageSignatures = linkedSetOf<String>()
-        var currentPage = startPage.coerceAtLeast(1)
-        var consecutiveDuplicateOnlyPages = 0
-        var reachedLimit = false
+        val traversalState = CrawlSourceTraversalState(startPage, seenDetailPages)
 
         logger.info(
             "크롤 소스를 시작합니다. source={}, startPage={}, attributeFilterCount={}, filters={}",
             crawlSource.key,
-            currentPage,
+            traversalState.currentPage,
             crawlSource.attributeFilters.size,
             crawlSource.attributeFilters.joinToString { it.name }.ifBlank { "없음" },
         )
 
-        while (currentPage <= maxListPages) {
+        while (traversalState.currentPage <= maxListPages) {
             val pageStartTime = System.currentTimeMillis()
-            val pageBatch = listPageCrawler.fetchProductPageBatch(currentPage, listRequestContext)
-            val productCards = pageBatch.productCards
-            val expectedLastPage = pageBatch.priceCompareCount
-                ?.takeIf { it > 0 }
-                ?.let { ((it - 1) / pageBatch.productCards.size.coerceAtLeast(1)) + 1 }
+            val pageBatch = listPageCrawler.fetchProductPageBatch(traversalState.currentPage, listRequestContext)
+            val pageAnalysis = traversalState.analyze(pageBatch)
 
-            if (productCards.isEmpty()) {
-                logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
+            if (pageAnalysis.productCards.isEmpty()) {
+                logger.info("현재 페이지에서 수집 가능한 상품이 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, traversalState.currentPage)
                 break
             }
 
-            val pageSignature = ProductPageSignature.create(productCards)
-            val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
-            val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
-            val duplicateSkippedCount = productCards.size - freshProductCards.size
             val diagnosticContext = CrawlPageDiagnosticContext(
                 sourceKey = crawlSource.key,
-                page = currentPage,
+                page = traversalState.currentPage,
                 pageBatch = pageBatch,
-                productCards = productCards,
-                expectedLastPage = expectedLastPage,
-                repeatedPageSignature = isRepeatedPageSignature,
-                pageSignature = pageSignature,
+                productCards = pageAnalysis.productCards,
+                expectedLastPage = pageAnalysis.expectedLastPage,
+                repeatedPageSignature = pageAnalysis.repeatedPageSignature,
+                pageSignature = pageAnalysis.pageSignature,
                 requestSortMethod = listRequestContext.sortMethod,
                 requestFilterCount = requestFilterCount,
                 requestDistinctFilterCount = requestDistinctFilterCount,
             )
-            consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
-                consecutiveDuplicateOnlyPages + 1
-            } else {
-                0
-            }
 
             val remainingQuota = progress.remainingQuota(limit)
             if (remainingQuota == 0) {
                 break
             }
 
-            val candidateProductCards = remainingQuota?.let(freshProductCards::take) ?: freshProductCards
+            val candidateProductCards = remainingQuota?.let(pageAnalysis.freshProductCards::take) ?: pageAnalysis.freshProductCards
             val pageProcessingResult = crawlProductBatchProcessor.process(
                 productCards = candidateProductCards,
                 progress = progress,
@@ -87,13 +72,13 @@ class CrawlSourceRunner(
             )
 
             if (progress.reachedLimit(limit)) {
-                reachedLimit = true
+                traversalState.markReachedLimit()
             }
 
             if (crawlPageDiagnosticsLogger.shouldLogPageDiagnostics(
-                    page = currentPage,
-                    freshProductCount = freshProductCards.size,
-                    repeatedPageSignature = isRepeatedPageSignature,
+                    page = traversalState.currentPage,
+                    freshProductCount = pageAnalysis.freshProductCards.size,
+                    repeatedPageSignature = pageAnalysis.repeatedPageSignature,
                 )
             ) {
                 crawlPageDiagnosticsLogger.logPageDiagnostics(diagnosticContext)
@@ -102,49 +87,46 @@ class CrawlSourceRunner(
             crawlPageDiagnosticsLogger.logPageProcessing(
                 context = diagnosticContext,
                 pageDurationMillis = System.currentTimeMillis() - pageStartTime,
-                freshProductCount = freshProductCards.size,
+                freshProductCount = pageAnalysis.freshProductCards.size,
                 pageProcessingResult = pageProcessingResult,
-                duplicateSkippedCount = duplicateSkippedCount,
+                duplicateSkippedCount = pageAnalysis.duplicateSkippedCount,
                 progress = progress,
             )
 
-            if (reachedLimit) {
+            if (traversalState.reachedLimit) {
                 break
             }
 
-            if (expectedLastPage != null && currentPage >= expectedLastPage) {
+            if (pageAnalysis.expectedLastPage != null && traversalState.currentPage >= pageAnalysis.expectedLastPage) {
                 logger.info(
                     "총 상품 수 기준 마지막 페이지에 도달해 크롤링을 종료합니다. source={}, page={}, priceCompareCount={}, expectedLastPage={}, hasNextPage={}",
                     crawlSource.key,
-                    currentPage,
+                    traversalState.currentPage,
                     pageBatch.priceCompareCount,
-                    expectedLastPage,
+                    pageAnalysis.expectedLastPage,
                     pageBatch.hasNextPage,
                 )
                 break
             }
 
             if (DuplicateTailStopPolicy.shouldStop(
-                    freshProductCount = freshProductCards.size,
-                    consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
+                    freshProductCount = pageAnalysis.freshProductCards.size,
+                    consecutiveDuplicateOnlyPages = pageAnalysis.consecutiveDuplicateOnlyPages,
                 )
             ) {
-                crawlPageDiagnosticsLogger.logDuplicateTailStop(diagnosticContext, consecutiveDuplicateOnlyPages)
+                crawlPageDiagnosticsLogger.logDuplicateTailStop(diagnosticContext, pageAnalysis.consecutiveDuplicateOnlyPages)
                 break
             }
 
             if (!pageBatch.hasNextPage) {
-                logger.info("다음 페이지가 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, currentPage)
+                logger.info("다음 페이지가 없어 크롤링을 종료합니다. source={}, page={}", crawlSource.key, traversalState.currentPage)
                 break
             }
 
-            currentPage++
+            traversalState.advance()
         }
 
-        return CrawlSourceRunResult(
-            reachedLimit = reachedLimit,
-            hitMaxListPages = currentPage > maxListPages,
-        )
+        return traversalState.toRunResult(maxListPages)
     }
 }
 
