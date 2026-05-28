@@ -573,7 +573,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "page controllers must not own recommendation view option catalogs",
-			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/controller/PageController.kt"),
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/controller"),
 			patterns = listOf(
 				Regex("""UseCaseOption"""),
 				Regex("""ScreenSizeModeOption"""),
@@ -582,6 +582,14 @@ val verifyStructure by tasks.registering {
 				Regex("""fun\s+screenSizeSummary"""),
 				Regex("""fun\s+budgetPresetList"""),
 				Regex("""fun\s+weightPresetList"""),
+			),
+		)
+
+		assertPathAbsent(
+			rule = "web page routes must stay split by feature instead of a generic PageController",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/PageController.kt",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/PageControllerTest.kt",
 			),
 		)
 
