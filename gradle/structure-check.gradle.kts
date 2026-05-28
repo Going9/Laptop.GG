@@ -933,6 +933,18 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "recommendation API pagination must stay bounded for low-resource runtime",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/PageQueryAdapter.kt",
+				"web-app/src/test/kotlin/going9/laptopgg/web/controller/RecommendationControllerTest.kt",
+			),
+			patterns = listOf(
+				Regex("""MAX_PAGE_SIZE = 100"""),
+				Regex("""recommend api keeps pagination within operational bounds"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "page controllers must not own recommendation view option catalogs",
 			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/controller"),

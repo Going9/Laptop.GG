@@ -73,6 +73,14 @@ class RecommendationControllerTest {
     }
 
     @Test
+    fun `recommend api keeps pagination within operational bounds`() {
+        val pageQuery = pageQueryFrom(page = -1, size = 5_000, sort = null)
+
+        assertThat(pageQuery.page).isEqualTo(0)
+        assertThat(pageQuery.size).isEqualTo(100)
+    }
+
+    @Test
     fun `unsupported sort falls back to recommended query path`() {
         val pageQuery = pageQueryFrom(page = 0, size = 10, sort = listOf("unknown,desc"))
 
