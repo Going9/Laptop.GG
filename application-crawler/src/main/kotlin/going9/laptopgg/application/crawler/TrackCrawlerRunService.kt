@@ -52,7 +52,7 @@ class TrackCrawlerRunService(
         crawlerRun.errorMessage = errorMessage?.truncateForStorage()
         crawlerRun.endedAt = LocalDateTime.now()
 
-        return crawlerRun.toRecord()
+        return crawlerRunPort.save(crawlerRun).toRecord()
     }
 
     override fun fail(runId: Long, exception: Throwable): CrawlerRunRecord {
@@ -64,7 +64,7 @@ class TrackCrawlerRunService(
             .truncateForStorage()
         crawlerRun.endedAt = LocalDateTime.now()
 
-        return crawlerRun.toRecord()
+        return crawlerRunPort.save(crawlerRun).toRecord()
     }
 
     private fun CrawlerRunCompletionStatus.toDomainStatus(): CrawlerRunStatus {

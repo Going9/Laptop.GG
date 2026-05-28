@@ -6,6 +6,7 @@ import going9.laptopgg.application.common.SortOrder
 
 private const val DEFAULT_PAGE_SIZE = 10
 private const val MAX_PAGE_SIZE = 2_000
+private val SUPPORTED_SORT_PROPERTIES = setOf("recommended", "price", "weight")
 
 fun pageQueryFrom(
     page: Int?,
@@ -27,7 +28,9 @@ private fun parseSortOrder(rawSort: String): SortOrder {
         .filter { it.isNotBlank() }
 
     return SortOrder(
-        property = parts.firstOrNull() ?: "recommended",
+        property = parts.firstOrNull()
+            ?.takeIf(SUPPORTED_SORT_PROPERTIES::contains)
+            ?: "recommended",
         direction = when (parts.getOrNull(1)?.lowercase()) {
             "desc", "descending" -> SortDirection.DESC
             else -> SortDirection.ASC

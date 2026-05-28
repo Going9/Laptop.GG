@@ -145,22 +145,6 @@ interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
 
     @Query(
         """
-        select p
-        from LaptopProfile p
-        join fetch p.laptop l
-        where p.cpuPerformanceScore = 0
-          and p.lowPowerCpuScore = 0
-          and p.gpuPerformanceScore = 0
-          and p.portabilityScore = 0
-          and p.displayScore = 0
-          and p.ramScore = 0
-          and p.tgpScore = 0
-        """,
-    )
-    fun findAllIncompleteStaticScores(): List<LaptopProfile>
-
-    @Query(
-        """
         select p.laptop.id
         from LaptopProfile p
         where p.cpuPerformanceScore = 0
@@ -174,14 +158,4 @@ interface LaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         """,
     )
     fun findLaptopIdsWithIncompleteStaticScores(pageable: Pageable): List<Long>
-
-    @Query(
-        """
-        select distinct p
-        from LaptopProfile p
-        join fetch p.laptop l
-        left join fetch l.laptopUsage
-        """,
-    )
-    fun findAllWithLaptopAndUsage(): List<LaptopProfile>
 }

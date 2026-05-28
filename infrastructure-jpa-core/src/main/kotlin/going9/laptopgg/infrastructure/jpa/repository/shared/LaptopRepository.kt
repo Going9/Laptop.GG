@@ -15,9 +15,6 @@ interface LaptopRepository : JpaRepository<Laptop, Long> {
     fun findAllByDetailPageIn(detailPages: Collection<String>): List<Laptop>
 
     @EntityGraph(attributePaths = ["laptopUsage"])
-    fun findByName(name: String): Laptop?
-
-    @EntityGraph(attributePaths = ["laptopUsage"])
     fun findByDetailPage(detailPage: String): Laptop?
 
     @EntityGraph(attributePaths = ["laptopUsage"])
@@ -58,17 +55,4 @@ interface LaptopRepository : JpaRepository<Laptop, Long> {
     )
     fun findIdsWithoutProfile(pageable: Pageable): List<Long>
 
-    @Query(
-        """
-        select distinct l
-        from Laptop l
-        left join fetch l.laptopUsage
-        where not exists (
-            select 1
-            from LaptopProfile p
-            where p.laptop = l
-        )
-        """,
-    )
-    fun findAllWithoutProfile(): List<Laptop>
 }

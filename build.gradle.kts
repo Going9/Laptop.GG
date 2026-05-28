@@ -134,6 +134,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "shared JPA repositories must not keep broad legacy full-table lookup methods",
+			paths = listOf("infrastructure-jpa-core/src/main"),
+			patterns = listOf(
+				Regex("""findByName"""),
+				Regex("""findAllWithoutProfile"""),
+				Regex("""findAllIncompleteStaticScores"""),
+				Regex("""findAllWithLaptopAndUsage"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "recommendation-core must stay a Spring-free and domain-free shared policy module",
 			paths = listOf("recommendation-core/src/main", "recommendation-core/build.gradle.kts"),
 			patterns = listOf(

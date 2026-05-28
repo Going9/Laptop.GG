@@ -69,6 +69,14 @@ class RecommendationControllerTest {
     }
 
     @Test
+    fun `unsupported sort falls back to recommended query path`() {
+        val pageQuery = pageQueryFrom(page = 0, size = 10, sort = listOf("unknown,desc"))
+
+        assertThat(pageQuery.sort.single().property).isEqualTo("recommended")
+        assertThat(pageQuery.sort.single().direction.name).isEqualTo("DESC")
+    }
+
+    @Test
     fun `legacy purpose is adapted at web boundary`() {
         val request = LaptopRecommendationRequest(purpose = LegacyRecommendationPurpose.OFFICE_LOL)
 
