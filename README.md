@@ -34,6 +34,7 @@ flowchart LR
 - `application`: 추천/상세/댓글 use case와 port
 - `application-crawler`: crawler 저장/동기화 use case와 profile/score 정책
 - `infrastructure-jpa`: Spring Data repository, Flyway migration, JPA adapter
+- `infrastructure-jpa-crawler`: crawler 저장 이력/가격 이력/추천 점수 JPA adapter와 repository
 - `infrastructure-jpa.adapter.shared/web/crawler`: 런타임 역할별 JPA adapter
 - `infrastructure-jpa.repository.shared/web/crawler`: 런타임 역할별 Spring Data repository
 - `infrastructure-jpa/src/main/resources/laptopgg-persistence.yml`: web/crawler 공통 PostgreSQL/Flyway/JPA profile 설정
