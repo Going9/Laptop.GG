@@ -60,20 +60,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     timeout-minutes: 360
-    env:
-      SPRING_PROFILES_ACTIVE: postgres,crawler
-      SPRING_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:5433/${{ secrets.CRAWLER_DB_NAME }}
-      SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
-      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
-      SPRING_FLYWAY_ENABLED: "false"
-      CRAWLER_LIMIT: ${{ inputs.limit || '' }}
-      CRAWLER_START_PAGE: ${{ inputs.start_page || '' }}
-      CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile || 'core' }}
-      CRAWLER_MAX_LIST_PAGES: ${{ inputs.max_list_pages || '' }}
-      CRAWLER_DETAIL_FETCH_CONCURRENCY: ${{ inputs.detail_fetch_concurrency || '' }}
-      CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
-      CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
 
     steps:
       - uses: actions/checkout@v6
@@ -109,6 +95,9 @@ jobs:
           ssh-keyscan -p "${{ secrets.CRAWLER_SSH_PORT || 22 }}" -H "${{ secrets.CRAWLER_SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Open PostgreSQL tunnel
+        env:
+          CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
+          CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
         run: |
           ssh -f -N \
             -o ExitOnForwardFailure=yes \
@@ -118,12 +107,26 @@ jobs:
             "${{ secrets.CRAWLER_SSH_USER }}@${{ secrets.CRAWLER_SSH_HOST }}"
 
       - name: Verify DB tunnel
+        env:
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
           pg_isready -h 127.0.0.1 -p 5433 -U "${SPRING_DATASOURCE_USERNAME}" -d "${{ secrets.CRAWLER_DB_NAME }}"
 
       - name: Run crawler
+        env:
+          SPRING_PROFILES_ACTIVE: postgres,crawler
+          SPRING_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:5433/${{ secrets.CRAWLER_DB_NAME }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
+          SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
+          SPRING_FLYWAY_ENABLED: "false"
+          CRAWLER_LIMIT: ${{ inputs.limit || '' }}
+          CRAWLER_START_PAGE: ${{ inputs.start_page || '' }}
+          CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile || 'core' }}
+          CRAWLER_MAX_LIST_PAGES: ${{ inputs.max_list_pages || '' }}
+          CRAWLER_DETAIL_FETCH_CONCURRENCY: ${{ inputs.detail_fetch_concurrency || '' }}
         run: |
           set -o pipefail
 

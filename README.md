@@ -207,6 +207,8 @@ JAVA_OPTS=-Xms128m -Xmx384m -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul
 9. advisory lock을 획득한 실행만 크롤링 결과를 DB에 직접 적재합니다.
 10. 실행 상태와 처리 건수는 `crawler_run`에 남기고 GitHub Actions summary에도 표시합니다.
 
+운영 DB datasource 환경변수는 SSH 터널 확인과 실제 crawler 실행 단계에만 주입합니다. 테스트/빌드 단계는 운영 DB env를 상속하지 않아 로컬 PostgreSQL service DB와 H2 기반 context 테스트를 먼저 검증합니다.
+
 ## nginx와 도메인
 
 Oracle 서버에서는 `ops/nginx/laptopgg.conf` 를 기반으로 리버스 프록시를 설정합니다.

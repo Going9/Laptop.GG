@@ -238,6 +238,26 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertOrdered(
+			rule = "crawler workflow must scope production datasource env after preflight tests",
+			path = ".github/workflows/crawler.yml",
+			patterns = listOf(
+				Regex("""name: Test and build crawler jar"""),
+				Regex("""name: Run crawler"""),
+				Regex("""SPRING_DATASOURCE_URL:\s+jdbc:postgresql://127\.0\.0\.1:5433"""),
+			),
+		)
+
+		assertPresent(
+			rule = "crawler workflow datasource env isolation must be documented",
+			paths = listOf("README.md", "docs/architecture.md", "ops/RUNBOOK.md"),
+			patterns = listOf(
+				Regex("""운영 DB datasource 환경변수는 SSH 터널 확인과 실제 crawler 실행 단계에만 주입합니다"""),
+				Regex("""Production crawler datasource environment variables are scoped to the DB tunnel verification and crawler execution steps"""),
+				Regex("""Env isolation: production datasource variables are scoped to DB tunnel verification and actual crawler execution"""),
+			),
+		)
+
 		assertPresent(
 			rule = "deploy workflow must serialize releases so rollback can finish",
 			paths = listOf(".github/workflows/deploy-web.yml", "docs/architecture.md", "ops/RUNBOOK.md"),
