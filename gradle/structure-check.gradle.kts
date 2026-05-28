@@ -751,6 +751,7 @@ val verifyStructure by tasks.registering {
 			rule = "crawler application errors must be explicit instead of generic argument failures",
 			paths = listOf(
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/common/CrawlerApplicationException.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
 				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunServiceTest.kt",
 			),
@@ -763,6 +764,8 @@ val verifyStructure by tasks.registering {
 				Regex("""loadExistingLookup rejects invalid product card before persistence"""),
 				Regex("""saveListSnapshot rejects invalid command before persistence"""),
 				Regex("""saveOrUpdate rejects invalid laptop command before persistence"""),
+				Regex("""requireNonBlank\(fieldName = "name", value = command\.name\)"""),
+				Regex("""requireNonBlank\(fieldName = "imageUrl", value = command\.imageUrl\)"""),
 				Regex("""finish rejects missing crawler run with explicit crawler error"""),
 				Regex("""start rejects invalid run request before persistence"""),
 				Regex("""finish rejects invalid run update before persistence"""),

@@ -124,8 +124,8 @@ class CrawlerPersistenceIntegrationTest {
         )
 
         val sparseUpdate = Laptop(
-            name = " ",
-            imageUrl = "",
+            name = "Stable Model",
+            imageUrl = existing.imageUrl,
             detailPage = "https://prod.danawa.com/info/?pcode=555&cate=112758",
             productCode = "555",
             price = null,

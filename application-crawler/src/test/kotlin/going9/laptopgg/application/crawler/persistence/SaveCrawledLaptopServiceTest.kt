@@ -99,6 +99,12 @@ class SaveCrawledLaptopServiceTest {
     @Test
     fun `saveOrUpdate rejects invalid laptop command before persistence`() {
         assertThatThrownBy {
+            service.saveOrUpdateLaptop(crawledLaptop(name = ""))
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+        assertThatThrownBy {
+            service.saveOrUpdateLaptop(crawledLaptop(imageUrl = ""))
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+        assertThatThrownBy {
             service.saveOrUpdateLaptop(crawledLaptop(detailPage = ""))
         }.isInstanceOf(CrawlerInvalidCommandException::class.java)
         assertThatThrownBy {

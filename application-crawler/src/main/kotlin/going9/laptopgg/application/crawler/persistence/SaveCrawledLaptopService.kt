@@ -50,6 +50,8 @@ internal class SaveCrawledLaptopService(
     }
 
     private fun validateLaptopCommand(command: CrawledLaptopCommand) {
+        requireNonBlank(fieldName = "name", value = command.name)
+        requireNonBlank(fieldName = "imageUrl", value = command.imageUrl)
         requireNonBlank(fieldName = "detailPage", value = command.detailPage)
         command.price?.let { requireNonNegative(fieldName = "price", value = it) }
     }
