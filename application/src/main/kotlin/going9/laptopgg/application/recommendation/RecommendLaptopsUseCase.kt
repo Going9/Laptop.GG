@@ -20,9 +20,11 @@ internal class DefaultRecommendLaptopsUseCase(
     private val candidateFilterFactory: RecommendationCandidateFilterFactory,
     private val sortModeResolver: RecommendationSortModeResolver,
     private val resultMapper: LaptopRecommendationResultMapper,
+    private val queryValidator: LaptopRecommendationQueryValidator,
     private val transactionPort: ApplicationTransactionPort,
 ) : RecommendLaptopsUseCase {
     override fun recommend(request: LaptopRecommendationQuery, pageQuery: PageQuery): PagedResult<LaptopRecommendationResult> {
+        queryValidator.validate(request)
         validatePageQuery(pageQuery)
         return transactionPort.read {
             recommendInTransaction(request, pageQuery)

@@ -15,6 +15,7 @@ object RecommendationUseCaseAssembler {
             candidateFilterFactory = RecommendationCandidateFilterFactory(),
             sortModeResolver = RecommendationSortModeResolver(),
             resultMapper = LaptopRecommendationResultMapper(),
+            queryValidator = LaptopRecommendationQueryValidator(),
             transactionPort = transactionPort,
         )
     }

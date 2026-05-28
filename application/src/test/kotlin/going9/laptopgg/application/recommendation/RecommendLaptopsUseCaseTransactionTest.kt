@@ -48,6 +48,31 @@ class RecommendLaptopsUseCaseTransactionTest {
         assertThat(candidatePort.callCount).isZero()
     }
 
+    @Test
+    fun `recommendation query rejects invalid recommendation inputs before persistence`() {
+        val transactionPort = RecordingApplicationTransactionPort()
+        val candidatePort = RecordingRecommendationCandidatePort(transactionPort)
+        val useCase = RecommendationUseCaseAssembler.createRecommendLaptopsUseCase(
+            recommendationCandidatePort = candidatePort,
+            transactionPort = transactionPort,
+        )
+        val invalidQueries = listOf(
+            LaptopRecommendationQuery(budget = 0),
+            LaptopRecommendationQuery(maxWeightKg = 0.0),
+            LaptopRecommendationQuery(maxWeightKg = Double.NaN),
+            LaptopRecommendationQuery(screenSizes = listOf(12)),
+        )
+
+        invalidQueries.forEach { query ->
+            assertThatThrownBy {
+                useCase.recommend(query, PageQuery(page = 0, size = 10))
+            }.isInstanceOf(InvalidCommandException::class.java)
+        }
+
+        assertThat(transactionPort.readCount).isZero()
+        assertThat(candidatePort.callCount).isZero()
+    }
+
     private class RecordingApplicationTransactionPort : ApplicationTransactionPort {
         var readCount = 0
             private set

@@ -589,6 +589,7 @@ val verifyStructure by tasks.registering {
 				"web-app/src/test/kotlin/going9/laptopgg/web/controller/WebExceptionHandlerTest.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/comment/ManageCommentUseCaseTest.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCaseTest.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCaseTransactionTest.kt",
 			),
 			patterns = listOf(
 				Regex("""sealed class ApplicationException"""),
@@ -609,6 +610,7 @@ val verifyStructure by tasks.registering {
 				Regex("""web api maps missing comment laptop resources to 404 response"""),
 				Regex("""web api maps invalid application commands to 400 response"""),
 				Regex("""web api maps invalid laptop detail id to 400 response"""),
+				Regex("""web api maps invalid recommendation query to 400 response"""),
 				Regex("""web api maps invalid application state to 500 response"""),
 				Regex("""web page maps missing application resources to html error page"""),
 				Regex("""add rejects blank comment fields before persistence"""),
@@ -617,6 +619,7 @@ val verifyStructure by tasks.registering {
 				Regex("""update rejects invalid comment id before reading comment"""),
 				Regex("""delete rejects invalid comment id before reading comment"""),
 				Regex("""detail query rejects invalid laptop id before persistence"""),
+				Regex("""recommendation query rejects invalid recommendation inputs before persistence"""),
 			),
 		)
 

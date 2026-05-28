@@ -159,6 +159,18 @@ class LaptopGgApplicationTests {
 	}
 
 	@Test
+	fun `web api maps invalid recommendation query to 400 response`() {
+		mockMvc.perform(
+			post("/api/recommends")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""{"budget":0,"maxWeightKg":1.5,"screenSizes":[],"useCase":"NOT_SURE"}"""),
+		)
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
 	fun `web page maps missing application resources to html error page`() {
 		val html = mockMvc.perform(get("/laptops/999999"))
 			.andExpect(status().isNotFound)
