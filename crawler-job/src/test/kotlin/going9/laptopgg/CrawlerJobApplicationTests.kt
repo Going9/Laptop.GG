@@ -24,12 +24,23 @@ class CrawlerJobApplicationTests {
 
         assertThat(beanNames).doesNotContain(
             "pageController",
+            "recommendationPageController",
+            "laptopPageController",
+            "commentPageController",
             "recommendationController",
+            "laptopController",
+            "commentController",
+            "recommendationPageModelFactory",
             "thymeleafViewResolver",
             "commentJpaAdapter",
             "laptopJpaAdapter",
             "laptopProfileJpaAdapter",
+            "commentLaptopJpaAdapter",
+            "laptopDetailJpaAdapter",
+            "recommendationCandidateJpaAdapter",
             "commentRepository",
+            "webLaptopRepository",
+            "webLaptopProfileRepository",
         )
     }
 
