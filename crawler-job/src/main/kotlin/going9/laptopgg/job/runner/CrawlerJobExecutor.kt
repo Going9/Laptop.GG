@@ -72,14 +72,22 @@ internal class CrawlerJobExecutor(
             crawlerJobSummaryLogger.logCompleted(runId, finishedStatus, request, summary)
             if (summary.failedCount == 0) 0 else 1
         } catch (failure: Throwable) {
-            trackCrawlerRunUseCase.fail(runId, failure)
-            crawlerJobSummaryLogger.logRunFailure(runId, request, failure)
+            recordRunFailure(runId, request, failure)
             if (failure is Exception) {
                 1
             } else {
                 throw failure
             }
         }
+    }
+
+    private fun recordRunFailure(runId: Long, request: CrawlerJobRequest, failure: Throwable) {
+        try {
+            trackCrawlerRunUseCase.fail(runId, failure)
+        } catch (trackingFailure: Throwable) {
+            failure.addSuppressed(trackingFailure)
+        }
+        crawlerJobSummaryLogger.logRunFailure(runId, request, failure)
     }
 
     private fun CrawlSummary.toRunSummary(): CrawlerRunSummary {

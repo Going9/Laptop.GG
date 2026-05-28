@@ -309,7 +309,9 @@ val verifyStructure by tasks.registering {
 				Regex("""fun logRunFailure\(runId: Long, request: CrawlerJobRequest, failure: Throwable\)"""),
 				Regex("""if \(failure is Exception\)"""),
 				Regex("""throw failure"""),
+				Regex("""failure\.addSuppressed\(trackingFailure\)"""),
 				Regex("""crawler fatal error is recorded and propagated"""),
+				Regex("""crawler fatal error is propagated when failed run tracking fails"""),
 			),
 		)
 
