@@ -1,6 +1,8 @@
 package going9.laptopgg.web.controller
 
-import going9.laptopgg.application.comment.ManageCommentUseCase
+import going9.laptopgg.application.comment.AddCommentUseCase
+import going9.laptopgg.application.comment.DeleteCommentUseCase
+import going9.laptopgg.application.comment.UpdateCommentUseCase
 import going9.laptopgg.web.dto.request.CommentDeleteRequest
 import going9.laptopgg.web.dto.request.CommentRequest
 import going9.laptopgg.web.dto.request.CommentUpdateRequest
@@ -11,11 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping
 
 @Controller
 internal class CommentPageController(
-    private val manageCommentUseCase: ManageCommentUseCase,
+    private val addCommentUseCase: AddCommentUseCase,
+    private val updateCommentUseCase: UpdateCommentUseCase,
+    private val deleteCommentUseCase: DeleteCommentUseCase,
 ) {
     @PostMapping("/comments")
     fun addComment(@ModelAttribute commentRequest: CommentRequest): String {
-        manageCommentUseCase.add(commentRequest.toCommand())
+        addCommentUseCase.add(commentRequest.toCommand())
         return "redirect:/laptops/${commentRequest.laptopId}"
     }
 
@@ -24,7 +28,7 @@ internal class CommentPageController(
         @PathVariable commentId: Long,
         @ModelAttribute commentRequest: CommentRequest,
     ): String {
-        val result = manageCommentUseCase.update(
+        val result = updateCommentUseCase.update(
             commentId,
             CommentUpdateRequest(
                 passWord = commentRequest.passWord,
@@ -39,7 +43,7 @@ internal class CommentPageController(
         @PathVariable commentId: Long,
         @ModelAttribute commentRequest: CommentRequest,
     ): String {
-        val result = manageCommentUseCase.delete(
+        val result = deleteCommentUseCase.delete(
             commentId,
             CommentDeleteRequest(passWord = commentRequest.passWord).toCommand(),
         )

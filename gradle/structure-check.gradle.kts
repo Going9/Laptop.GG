@@ -831,6 +831,7 @@ val verifyStructure by tasks.registering {
 		assertPathAbsent(
 			rule = "comment ports and JPA adapters must not collapse query and mutation responsibilities",
 			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
 			),
@@ -841,7 +842,11 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentQueryPort.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentMutationPort.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/AddCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ListLaptopCommentsUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/UpdateCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/DeleteCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentMutationGuard.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentQueryJpaAdapter.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
@@ -910,7 +915,8 @@ val verifyStructure by tasks.registering {
 			rule = "comment mutation must redirect with canonical owning laptop id",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/UpdateCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/DeleteCommentUseCase.kt",
 				"web-app/src/main/kotlin/going9/laptopgg/web/controller/CommentPageController.kt",
 				"web-app/src/test/kotlin/going9/laptopgg/web/controller/CommentPageControllerTest.kt",
 				"web-app/src/test/kotlin/going9/laptopgg/web/controller/LaptopDetailPageRenderingTest.kt",
@@ -968,7 +974,7 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "comment creation must use validated laptop references without reloading laptop rows",
 			paths = listOf(
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/AddCommentUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
 			),
@@ -995,7 +1001,9 @@ val verifyStructure by tasks.registering {
 			rule = "comment mutations must not reload comment entities after application password check",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentMutationPort.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/UpdateCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/DeleteCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentMutationGuard.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentMutationJpaAdapter.kt",
 				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
@@ -1019,13 +1027,15 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "comment use case must normalize display text without changing raw passwords",
 			paths = listOf(
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
-				"application/src/test/kotlin/going9/laptopgg/application/comment/ManageCommentUseCaseTest.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/AddCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/UpdateCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentCommandValidator.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/comment/CommentUseCaseTest.kt",
 			),
 			patterns = listOf(
-				Regex("""val author = normalizeDisplayText\(command\.author\)"""),
-				Regex("""val content = normalizeDisplayText\(command\.content\)"""),
-				Regex("""private fun normalizeDisplayText\(value: String\): String"""),
+				Regex("""val author = CommentCommandValidator\.normalizeDisplayText\(command\.author\)"""),
+				Regex("""val content = CommentCommandValidator\.normalizeDisplayText\(command\.content\)"""),
+				Regex("""fun normalizeDisplayText\(value: String\): String"""),
 				Regex("""return value\.trim\(\)"""),
 				Regex("""add normalizes display text at application boundary while preserving raw password"""),
 				Regex("""update normalizes display content at application boundary"""),
@@ -1080,7 +1090,7 @@ val verifyStructure by tasks.registering {
 				"web-app/src/main/resources/templates/error/application-error.html",
 				"web-app/src/test/kotlin/going9/laptopgg/LaptopGgApplicationTests.kt",
 				"web-app/src/test/kotlin/going9/laptopgg/web/controller/WebExceptionHandlerTest.kt",
-				"application/src/test/kotlin/going9/laptopgg/application/comment/ManageCommentUseCaseTest.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/comment/CommentUseCaseTest.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCaseTest.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCaseTransactionTest.kt",
 			),
@@ -1161,7 +1171,12 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "web-facing application flows must not throw generic argument exceptions",
 			paths = listOf(
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/AddCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ListLaptopCommentsUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/UpdateCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/DeleteCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentCommandValidator.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentMutationGuard.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationCandidateFilterFactory.kt",
@@ -3543,13 +3558,19 @@ val verifyStructure by tasks.registering {
 		assertAbsent(
 			rule = "application use case constructors must stay hidden behind assemblers",
 			paths = listOf(
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/AddCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ListLaptopCommentsUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/UpdateCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/DeleteCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 			),
 			patterns = listOf(
-				Regex("""^class\s+DefaultManageCommentUseCase\("""),
+				Regex("""^class\s+DefaultAddCommentUseCase\("""),
+				Regex("""^class\s+DefaultListLaptopCommentsUseCase\("""),
+				Regex("""^class\s+DefaultUpdateCommentUseCase\("""),
+				Regex("""^class\s+DefaultDeleteCommentUseCase\("""),
 				Regex("""^class\s+DefaultGetLaptopDetailUseCase\("""),
 				Regex("""^class\s+DefaultGetLaptopDetailPageUseCase\("""),
 				Regex("""^class\s+DefaultRecommendLaptopsUseCase\("""),
@@ -3559,14 +3580,23 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "application use case contracts must be public interfaces with internal implementations",
 			paths = listOf(
-				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/AddCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ListLaptopCommentsUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/UpdateCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/DeleteCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 			),
 			patterns = listOf(
-				Regex("""interface\s+ManageCommentUseCase"""),
-				Regex("""internal\s+class\s+DefaultManageCommentUseCase"""),
+				Regex("""interface\s+AddCommentUseCase"""),
+				Regex("""internal\s+class\s+DefaultAddCommentUseCase"""),
+				Regex("""interface\s+ListLaptopCommentsUseCase"""),
+				Regex("""internal\s+class\s+DefaultListLaptopCommentsUseCase"""),
+				Regex("""interface\s+UpdateCommentUseCase"""),
+				Regex("""internal\s+class\s+DefaultUpdateCommentUseCase"""),
+				Regex("""interface\s+DeleteCommentUseCase"""),
+				Regex("""internal\s+class\s+DefaultDeleteCommentUseCase"""),
 				Regex("""interface\s+GetLaptopDetailUseCase"""),
 				Regex("""internal\s+class\s+DefaultGetLaptopDetailUseCase"""),
 				Regex("""interface\s+GetLaptopDetailPageUseCase"""),

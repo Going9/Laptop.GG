@@ -14,15 +14,29 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
-class ManageCommentUseCaseTest {
+class CommentUseCaseTest {
     private val commentPort = InMemoryCommentPort()
     private val laptopPort = InMemoryCommentLaptopPort(existingIds = setOf(1L))
     private val transactionPort = RecordingApplicationTransactionPort()
     private val passwordHashPort = PlainPasswordHashPort(transactionPort)
-    private val useCase = CommentUseCaseAssembler.createManageCommentUseCase(
-        commentQueryPort = commentPort,
+    private val addCommentUseCase = CommentUseCaseAssembler.createAddCommentUseCase(
         commentMutationPort = commentPort,
         laptopPort = laptopPort,
+        passwordHashPort = passwordHashPort,
+        transactionPort = transactionPort,
+    )
+    private val listLaptopCommentsUseCase = CommentUseCaseAssembler.createListLaptopCommentsUseCase(
+        commentQueryPort = commentPort,
+        laptopPort = laptopPort,
+        transactionPort = transactionPort,
+    )
+    private val updateCommentUseCase = CommentUseCaseAssembler.createUpdateCommentUseCase(
+        commentMutationPort = commentPort,
+        passwordHashPort = passwordHashPort,
+        transactionPort = transactionPort,
+    )
+    private val deleteCommentUseCase = CommentUseCaseAssembler.createDeleteCommentUseCase(
+        commentMutationPort = commentPort,
         passwordHashPort = passwordHashPort,
         transactionPort = transactionPort,
     )
@@ -30,7 +44,7 @@ class ManageCommentUseCaseTest {
     @Test
     fun `add rejects blank comment fields before persistence`() {
         assertThatThrownBy {
-            useCase.add(AddCommentCommand(laptopId = 1L, author = "", content = "좋아요", password = "pw"))
+            addCommentUseCase.add(AddCommentCommand(laptopId = 1L, author = "", content = "좋아요", password = "pw"))
         }.isInstanceOf(InvalidCommandException::class.java)
 
         assertThat(commentPort.records).isEmpty()
@@ -39,7 +53,7 @@ class ManageCommentUseCaseTest {
 
     @Test
     fun `add hashes password outside transaction and keeps database work scoped`() {
-        useCase.add(AddCommentCommand(laptopId = 1L, author = "iggy", content = "좋아요", password = "pw"))
+        addCommentUseCase.add(AddCommentCommand(laptopId = 1L, author = "iggy", content = "좋아요", password = "pw"))
 
         assertThat(commentPort.records.values.single().passwordHash).isEqualTo("hashed:pw")
         assertThat(transactionPort.readCalls).isEqualTo(1)
@@ -50,7 +64,7 @@ class ManageCommentUseCaseTest {
 
     @Test
     fun `add normalizes display text at application boundary while preserving raw password`() {
-        useCase.add(AddCommentCommand(laptopId = 1L, author = "  iggy  ", content = "  좋아요  ", password = " pw "))
+        addCommentUseCase.add(AddCommentCommand(laptopId = 1L, author = "  iggy  ", content = "  좋아요  ", password = " pw "))
 
         val savedComment = commentPort.records.values.single()
         assertThat(savedComment.author).isEqualTo("iggy")
@@ -61,7 +75,7 @@ class ManageCommentUseCaseTest {
     @Test
     fun `add rejects missing laptop with explicit not found error`() {
         assertThatThrownBy {
-            useCase.add(AddCommentCommand(laptopId = 99L, author = "iggy", content = "좋아요", password = "pw"))
+            addCommentUseCase.add(AddCommentCommand(laptopId = 99L, author = "iggy", content = "좋아요", password = "pw"))
         }.isInstanceOf(ResourceNotFoundException::class.java)
 
         assertThat(passwordHashPort.hashCalls).isZero()
@@ -71,7 +85,7 @@ class ManageCommentUseCaseTest {
     @Test
     fun `list rejects missing laptop before reading comments`() {
         assertThatThrownBy {
-            useCase.listByLaptop(99L)
+            listLaptopCommentsUseCase.listByLaptop(99L)
         }.isInstanceOf(ResourceNotFoundException::class.java)
 
         assertThat(commentPort.findAllByLaptopCalls).isZero()
@@ -80,7 +94,7 @@ class ManageCommentUseCaseTest {
     @Test
     fun `list rejects invalid laptop id before reading comments`() {
         assertThatThrownBy {
-            useCase.listByLaptop(0L)
+            listLaptopCommentsUseCase.listByLaptop(0L)
         }.isInstanceOf(InvalidCommandException::class.java)
 
         assertThat(commentPort.findAllByLaptopCalls).isZero()
@@ -98,7 +112,7 @@ class ManageCommentUseCaseTest {
         )
 
         assertThatThrownBy {
-            useCase.update(7L, UpdateCommentCommand(password = "wrong", content = "수정"))
+            updateCommentUseCase.update(7L, UpdateCommentCommand(password = "wrong", content = "수정"))
         }.isInstanceOf(AuthenticationFailedException::class.java)
 
         assertThat(transactionPort.readCalls).isEqualTo(1)
@@ -116,7 +130,7 @@ class ManageCommentUseCaseTest {
             passwordHash = "hashed:secret",
         )
 
-        val result = useCase.update(7L, UpdateCommentCommand(password = "secret", content = "수정"))
+        val result = updateCommentUseCase.update(7L, UpdateCommentCommand(password = "secret", content = "수정"))
 
         assertThat(result.laptopId).isEqualTo(3L)
         assertThat(commentPort.records.getValue(7L).content).isEqualTo("수정")
@@ -135,7 +149,7 @@ class ManageCommentUseCaseTest {
             passwordHash = "hashed:secret",
         )
 
-        useCase.update(7L, UpdateCommentCommand(password = "secret", content = "  수정  "))
+        updateCommentUseCase.update(7L, UpdateCommentCommand(password = "secret", content = "  수정  "))
 
         assertThat(commentPort.records.getValue(7L).content).isEqualTo("수정")
     }
@@ -150,7 +164,7 @@ class ManageCommentUseCaseTest {
             passwordHash = "hashed:secret",
         )
 
-        val result = useCase.delete(7L, DeleteCommentCommand(password = "secret"))
+        val result = deleteCommentUseCase.delete(7L, DeleteCommentCommand(password = "secret"))
 
         assertThat(result.laptopId).isEqualTo(3L)
         assertThat(commentPort.records).doesNotContainKey(7L)
@@ -162,7 +176,7 @@ class ManageCommentUseCaseTest {
     @Test
     fun `update rejects invalid comment id before reading comment`() {
         assertThatThrownBy {
-            useCase.update(0L, UpdateCommentCommand(password = "pw", content = "수정"))
+            updateCommentUseCase.update(0L, UpdateCommentCommand(password = "pw", content = "수정"))
         }.isInstanceOf(InvalidCommandException::class.java)
 
         assertThat(commentPort.findMutationByIdCalls).isZero()
@@ -172,7 +186,7 @@ class ManageCommentUseCaseTest {
     @Test
     fun `delete rejects invalid comment id before reading comment`() {
         assertThatThrownBy {
-            useCase.delete(0L, DeleteCommentCommand(password = "pw"))
+            deleteCommentUseCase.delete(0L, DeleteCommentCommand(password = "pw"))
         }.isInstanceOf(InvalidCommandException::class.java)
 
         assertThat(commentPort.findMutationByIdCalls).isZero()
