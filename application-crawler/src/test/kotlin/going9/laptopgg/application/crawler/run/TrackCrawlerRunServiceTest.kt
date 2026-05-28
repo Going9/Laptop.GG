@@ -173,10 +173,6 @@ class TrackCrawlerRunServiceTest {
             return stored[command.runId]!!.toState()
         }
 
-        override fun findById(runId: Long): CrawlerRunState? {
-            return stored[runId]?.toState()
-        }
-
         fun snapshot(runId: Long): StoredCrawlerRun {
             return requireNotNull(stored[runId]) { "Crawler run not found: $runId" }
         }

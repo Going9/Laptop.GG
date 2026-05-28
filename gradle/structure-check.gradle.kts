@@ -1591,6 +1591,19 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler run port must expose only mutation workflow methods",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/port/CrawlerRunPort.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawlerRunJpaAdapter.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunServiceTest.kt",
+			),
+			patterns = listOf(
+				Regex("""fun findById\(runId: Long\)"""),
+				Regex("""override fun findById\(runId: Long\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler run tracking service must delegate command creation and storage formatting",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt"),
 			patterns = listOf(

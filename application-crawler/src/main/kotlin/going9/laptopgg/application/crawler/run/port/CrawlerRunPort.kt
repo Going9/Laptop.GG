@@ -7,5 +7,4 @@ import going9.laptopgg.application.crawler.run.UpdateCrawlerRunCommand
 interface CrawlerRunPort {
     fun create(command: CreateCrawlerRunCommand): CrawlerRunState
     fun update(command: UpdateCrawlerRunCommand): CrawlerRunState?
-    fun findById(runId: Long): CrawlerRunState?
 }

@@ -46,10 +46,6 @@ internal class CrawlerRunJpaAdapter(
         return crawlerRunRepository.save(crawlerRun).toState()
     }
 
-    override fun findById(runId: Long): CrawlerRunState? {
-        return crawlerRunRepository.findByIdOrNull(runId)?.toState()
-    }
-
     private fun CrawlerRunStatusResult.toEntityStatus(): CrawlerRunStatus {
         return when (this) {
             CrawlerRunStatusResult.RUNNING -> CrawlerRunStatus.RUNNING
