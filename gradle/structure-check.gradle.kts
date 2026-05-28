@@ -2189,6 +2189,43 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler detail fetch concurrency must be wrapped behind an explicit lifecycle",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/DetailFetchExecutor.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/DetailFetchExecutorFactory.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/detail/DetailFetchExecutorTest.kt",
+			),
+			patterns = listOf(
+				Regex("""internal class DetailFetchExecutor"""),
+				Regex("""Closeable"""),
+				Regex("""awaitTermination"""),
+				Regex("""shutdownNow"""),
+				Regex("""internal fun interface DetailFetchExecutorFactory"""),
+				Regex("""DetailFetchExecutor\.fixed\(crawlerJobProperties\.resolvedDetailFetchConcurrency\(\)\)"""),
+				Regex("""detailFetchExecutorFactory\.create\(\)\.use"""),
+				Regex("""fetch executes detail tasks and preserves work item order"""),
+				Regex("""close shuts down detail task executor lifecycle"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler detail fetch executor service must not leak through orchestration ports",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail/ProductDetailCrawler.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlProductBatchProcessor.kt",
+			),
+			patterns = listOf(
+				Regex("""java\.util\.concurrent\.ExecutorService"""),
+				Regex("""java\.util\.concurrent\.Executors"""),
+				Regex("""Executors\.newFixedThreadPool"""),
+				Regex("""\.shutdown\(\)"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),

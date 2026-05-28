@@ -1,12 +1,12 @@
 package going9.laptopgg.job.crawler.danawa.detail
 
 import going9.laptopgg.job.crawler.detail.BuildLaptopResult
+import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
 import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.detail.ProductDetailCrawler
 import going9.laptopgg.job.crawler.danawa.client.DanawaClient
 import going9.laptopgg.job.crawler.list.ProductCard
-import java.util.concurrent.ExecutorService
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,28 +17,20 @@ internal class DanawaDetailCrawler(
 ) : ProductDetailCrawler {
     override fun fetchDetailRefreshOutcomes(
         workItems: List<DetailRefreshWorkItem>,
-        executor: ExecutorService,
+        detailFetchExecutor: DetailFetchExecutor,
     ): List<DetailRefreshOutcome> {
-        if (workItems.isEmpty()) {
-            return emptyList()
-        }
-
-        return workItems.map { workItem ->
-            executor.submit<DetailRefreshOutcome> {
-                runCatching {
-                    DetailRefreshOutcome(
-                        workItem = workItem,
-                        buildResult = buildLaptop(workItem.productCard),
-                    )
-                }.getOrElse { throwable ->
-                    DetailRefreshOutcome(
-                        workItem = workItem,
-                        error = throwable as? Exception ?: IllegalStateException(throwable.message, throwable),
-                    )
-                }
+        return detailFetchExecutor.fetch(workItems) { workItem ->
+            runCatching {
+                DetailRefreshOutcome(
+                    workItem = workItem,
+                    buildResult = buildLaptop(workItem.productCard),
+                )
+            }.getOrElse { throwable ->
+                DetailRefreshOutcome(
+                    workItem = workItem,
+                    error = throwable as? Exception ?: IllegalStateException(throwable.message, throwable),
+                )
             }
-        }.map { future ->
-            future.get()
         }
     }
 

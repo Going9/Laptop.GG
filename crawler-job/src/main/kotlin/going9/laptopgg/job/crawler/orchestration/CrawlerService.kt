@@ -2,7 +2,6 @@ package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.job.crawler.source.CrawlSourceResolver
 import going9.laptopgg.job.config.CrawlerJobProperties
-import java.util.concurrent.Executors
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -11,19 +10,19 @@ internal class CrawlerService(
     private val crawlSourceRunner: CrawlSourceRunner,
     private val crawlSourceResolver: CrawlSourceResolver,
     private val crawlerJobProperties: CrawlerJobProperties,
+    private val detailFetchExecutorFactory: DetailFetchExecutorFactory,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun crawlAll(limit: Int? = null, startPage: Int = 1, filterProfileRaw: String? = null): CrawlSummary {
         val resolvedCrawlSources = crawlSourceResolver.resolve(filterProfileRaw)
         val maxListPages = crawlerJobProperties.resolvedMaxListPages()
-        val detailFetchExecutor = Executors.newFixedThreadPool(crawlerJobProperties.resolvedDetailFetchConcurrency())
         val seenDetailPages = linkedSetOf<String>()
         val progress = CrawlProgress()
         var reachedLimit = false
         var hitMaxListPages = false
 
-        try {
+        detailFetchExecutorFactory.create().use { detailFetchExecutor ->
             val crawlSources = resolvedCrawlSources.sources
             logger.info(
                 "크롤링을 시작합니다. filterProfile={}, sourceCount={}, startPage={}, limit={}",
@@ -75,8 +74,6 @@ internal class CrawlerService(
             )
 
             return progress.toSummary()
-        } finally {
-            detailFetchExecutor.shutdown()
         }
     }
 }

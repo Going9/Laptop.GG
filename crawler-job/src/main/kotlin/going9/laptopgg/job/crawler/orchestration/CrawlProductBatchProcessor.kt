@@ -1,10 +1,10 @@
 package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.detail.ProductDetailCrawler
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.list.toCommand
-import java.util.concurrent.ExecutorService
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,7 +17,7 @@ internal class CrawlProductBatchProcessor(
     internal fun process(
         productCards: List<ProductCard>,
         progress: CrawlProgress,
-        detailFetchExecutor: ExecutorService,
+        detailFetchExecutor: DetailFetchExecutor,
     ): CrawlPageProcessingResult {
         progress.recordProcessed(productCards.size)
         if (productCards.isEmpty()) {

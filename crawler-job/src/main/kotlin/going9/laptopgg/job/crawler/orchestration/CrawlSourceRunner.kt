@@ -1,8 +1,8 @@
 package going9.laptopgg.job.crawler.orchestration
 
+import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.list.ProductListPageCrawler
 import going9.laptopgg.job.crawler.source.CrawlSource
-import java.util.concurrent.ExecutorService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -22,7 +22,7 @@ internal class CrawlSourceRunner(
         limit: Int?,
         seenDetailPages: MutableSet<String>,
         progress: CrawlProgress,
-        detailFetchExecutor: ExecutorService,
+        detailFetchExecutor: DetailFetchExecutor,
     ): CrawlSourceRunResult {
         val listRequestContext = listPageCrawler.createListRequestContext(crawlSource)
         val requestFilterCount = listRequestContext.searchAttributeValues.size
