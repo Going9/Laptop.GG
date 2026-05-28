@@ -69,6 +69,12 @@ data class ExistingCrawledLaptopLookup(
     }
 }
 
+data class RecordPriceHistoryCommand(
+    val laptopId: Long,
+    val price: Int,
+    val capturedAt: LocalDateTime,
+)
+
 enum class SaveResult {
     CREATED,
     UPDATED,

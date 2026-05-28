@@ -1,7 +1,7 @@
 package going9.laptopgg.application.crawler.port.out
 
-import going9.laptopgg.domain.laptop.LaptopPriceHistory
+import going9.laptopgg.application.crawler.RecordPriceHistoryCommand
 
 interface LaptopPriceHistoryPort {
-    fun save(priceHistory: LaptopPriceHistory): LaptopPriceHistory
+    fun save(command: RecordPriceHistoryCommand)
 }

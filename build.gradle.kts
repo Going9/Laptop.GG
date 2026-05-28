@@ -134,6 +134,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler price history port must not expose JPA entities",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/LaptopPriceHistoryPort.kt"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""fun\s+save\(.*LaptopPriceHistory"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "infrastructure-jpa-core must not define runtime repositories",
 			paths = listOf("infrastructure-jpa-core/src/main"),
 			patterns = listOf(
