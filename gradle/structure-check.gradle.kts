@@ -1183,6 +1183,19 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler detail save must refresh profile and recommendation scores even when unchanged",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"application-crawler/src/test/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopServiceTest.kt",
+			),
+			patterns = listOf(
+				Regex("""postSaveSynchronizer\.afterDetailSnapshot\(existingLaptop, previousPrice = existingLaptop\.price\)"""),
+				Regex("""unchanged detail snapshot still refreshes profile and recommendation scores"""),
+				Regex("""assertThat\(priceHistoryPort\.saved\)\.isEmpty\(\)"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler save use case must delegate existing laptop lookup loading",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt"),

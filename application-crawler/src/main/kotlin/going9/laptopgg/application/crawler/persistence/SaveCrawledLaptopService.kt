@@ -102,6 +102,7 @@ internal class SaveCrawledLaptopService(
 
         val updateCommand = changeDetector.detailUpdate(existingLaptop, command)
         if (!changeDetector.hasChanges(updateCommand)) {
+            postSaveSynchronizer.afterDetailSnapshot(existingLaptop, previousPrice = existingLaptop.price)
             return SaveResult.UNCHANGED
         }
 

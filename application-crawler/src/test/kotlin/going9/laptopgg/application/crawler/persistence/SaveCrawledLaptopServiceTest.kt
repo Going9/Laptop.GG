@@ -79,6 +79,20 @@ class SaveCrawledLaptopServiceTest {
     }
 
     @Test
+    fun `unchanged detail snapshot still refreshes profile and recommendation scores`() {
+        val command = crawledLaptop()
+        laptopPort.existingByProductCode[command.productCode!!] = command.toPersistedSnapshot(id = 7L)
+
+        val result = service.saveOrUpdateLaptop(command)
+
+        assertThat(result).isEqualTo(SaveResult.UNCHANGED)
+        assertThat(profilePort.saved).hasSize(1)
+        assertThat(profilePort.saved.first().laptopId).isEqualTo(7L)
+        assertThat(recommendationScorePort.saved).hasSize(RecommendationUseCase.entries.size)
+        assertThat(priceHistoryPort.saved).isEmpty()
+    }
+
+    @Test
     fun `saveListSnapshot rejects missing existing laptop with explicit crawler error`() {
         assertThatThrownBy {
             service.saveListSnapshot(existingLaptopId = 404L, productCard = crawledProductCard())
@@ -208,11 +222,12 @@ class SaveCrawledLaptopServiceTest {
     }
 
     private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
+        val existingByProductCode = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
         var createdCommand: CrawledLaptopCommand? = null
             private set
 
         override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? = null
-        override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = null
+        override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = existingByProductCode[productCode]
         override fun findByDetailPage(detailPage: String): PersistedCrawledLaptopSnapshot? = null
         override fun findAllByProductCodes(productCodes: Collection<String>): List<PersistedCrawledLaptopSnapshot> = emptyList()
         override fun findAllByDetailPages(detailPages: Collection<String>): List<PersistedCrawledLaptopSnapshot> = emptyList()
