@@ -1,12 +1,12 @@
 package going9.laptopgg.service.crawler
 
-import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
 import java.time.LocalDateTime
 
 internal object DetailRefreshPolicy {
     private const val DETAIL_REFRESH_INTERVAL_DAYS = 30L
 
-    fun needsRefresh(existingLaptop: Laptop, now: LocalDateTime = LocalDateTime.now()): Boolean {
+    fun needsRefresh(existingLaptop: ExistingCrawledLaptopSnapshot, now: LocalDateTime = LocalDateTime.now()): Boolean {
         val lastDetailedCrawledAt = existingLaptop.lastDetailedCrawledAt
         return existingLaptop.cpuManufacturer.isNullOrBlank() ||
             existingLaptop.cpu.isNullOrBlank() ||
@@ -20,6 +20,6 @@ internal object DetailRefreshPolicy {
             existingLaptop.weight == null ||
             lastDetailedCrawledAt == null ||
             lastDetailedCrawledAt.isBefore(now.minusDays(DETAIL_REFRESH_INTERVAL_DAYS)) ||
-            existingLaptop.laptopUsage.isEmpty()
+            existingLaptop.usageCount == 0
     }
 }

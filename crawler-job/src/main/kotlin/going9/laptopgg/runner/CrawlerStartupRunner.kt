@@ -1,8 +1,9 @@
 package going9.laptopgg.runner
 
+import going9.laptopgg.application.crawler.CrawlerRunSummary
+import going9.laptopgg.application.crawler.TrackCrawlerRunUseCase
 import going9.laptopgg.domain.crawler.CrawlerRunStatus
 import going9.laptopgg.service.crawler.CrawlerAdvisoryLockService
-import going9.laptopgg.service.crawler.CrawlerRunService
 import going9.laptopgg.service.crawler.CrawlerService
 import going9.laptopgg.service.crawler.CrawlSummary
 import kotlin.system.exitProcess
@@ -21,7 +22,7 @@ class CrawlerStartupRunner(
     private val applicationContext: ConfigurableApplicationContext,
     private val crawlerService: CrawlerService,
     private val crawlerAdvisoryLockService: CrawlerAdvisoryLockService,
-    private val crawlerRunService: CrawlerRunService,
+    private val trackCrawlerRunUseCase: TrackCrawlerRunUseCase,
     @Value("\${app.crawler.limit:}") private val defaultLimitRaw: String,
     @Value("\${app.crawler.start-page:}") private val defaultStartPageRaw: String,
     @Value("\${app.crawler.filter-profile:core}") private val defaultFilterProfileRaw: String,
@@ -61,7 +62,7 @@ class CrawlerStartupRunner(
         val exitCode = if (lockResult.acquired) {
             lockResult.value ?: 1
         } else {
-            val skippedRun = crawlerRunService.skipLocked(
+            val skippedRun = trackCrawlerRunUseCase.skipLocked(
                 filterProfile = filterProfile,
                 startPage = startPage,
                 limit = limit,
@@ -81,7 +82,7 @@ class CrawlerStartupRunner(
     }
 
     private fun runTrackedCrawler(limit: Int?, startPage: Int, filterProfile: String): Int {
-        val crawlerRun = crawlerRunService.start(
+        val crawlerRun = trackCrawlerRunUseCase.start(
             filterProfile = filterProfile,
             startPage = startPage,
             limit = limit,
@@ -100,9 +101,9 @@ class CrawlerStartupRunner(
             } else {
                 "Crawler finished with ${summary.failedCount} failed item(s)."
             }
-            crawlerRunService.finish(
+            trackCrawlerRunUseCase.finish(
                 runId = runId,
-                summary = summary,
+                summary = summary.toRunSummary(),
                 status = finishedStatus,
                 errorMessage = errorMessage,
             )
@@ -115,7 +116,7 @@ class CrawlerStartupRunner(
             }
             if (summary.failedCount == 0) 0 else 1
         }.getOrElse { exception ->
-            crawlerRunService.fail(runId, exception)
+            trackCrawlerRunUseCase.fail(runId, exception)
             logger.error("Crawler run failed. runId={}", runId, exception)
             logger.error(
                 "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=1",
@@ -149,6 +150,17 @@ class CrawlerStartupRunner(
             summary.updatedCount,
             summary.degradedCount,
             summary.failedCount,
+        )
+    }
+
+    private fun CrawlSummary.toRunSummary(): CrawlerRunSummary {
+        return CrawlerRunSummary(
+            processedCount = processedCount,
+            createdCount = createdCount,
+            updatedCount = updatedCount,
+            degradedCount = degradedCount,
+            failedCount = failedCount,
+            failureSamples = failureSamples,
         )
     }
 }

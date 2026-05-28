@@ -1,11 +1,10 @@
 package going9.laptopgg.service.crawler
 
+import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
-import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.LaptopProfileFactory
-import going9.laptopgg.service.LaptopPriceHistoryService
-import going9.laptopgg.service.LaptopProfileService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
@@ -16,11 +15,7 @@ class CrawlerServiceNormalizationTest {
     private val laptopSnapshotMerger = LaptopSnapshotMerger(LaptopProfileFactory())
     private val danawaClient = DanawaClient()
     private val crawlerService = CrawlerService(
-        crawlerPersistenceService = CrawlerPersistenceService(
-            laptopRepository = mock(LaptopRepository::class.java),
-            laptopProfileService = mock(LaptopProfileService::class.java),
-            laptopPriceHistoryService = mock(LaptopPriceHistoryService::class.java),
-        ),
+        saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),
         listPageCrawler = ListPageCrawler(danawaClient),
         detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
         laptopSnapshotMerger = laptopSnapshotMerger,
@@ -142,7 +137,7 @@ class CrawlerServiceNormalizationTest {
         val now = LocalDateTime.parse("2026-05-27T10:00:00")
         val laptop = sampleLaptop(lastDetailedCrawledAt = now.minusDays(5))
 
-        val result = DetailRefreshPolicy.needsRefresh(laptop, now)
+        val result = DetailRefreshPolicy.needsRefresh(laptop.toExistingSnapshot(), now)
 
         assertThat(result).isFalse()
     }
@@ -152,7 +147,7 @@ class CrawlerServiceNormalizationTest {
         val now = LocalDateTime.parse("2026-05-27T10:00:00")
         val laptop = sampleLaptop(lastDetailedCrawledAt = now.minusDays(45))
 
-        val result = DetailRefreshPolicy.needsRefresh(laptop, now)
+        val result = DetailRefreshPolicy.needsRefresh(laptop.toExistingSnapshot(), now)
 
         assertThat(result).isTrue()
     }
@@ -190,5 +185,25 @@ class CrawlerServiceNormalizationTest {
         )
         laptop.laptopUsage.add(LaptopUsage(usage = "사무/인강용", laptop = laptop))
         return laptop
+    }
+
+    private fun Laptop.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
+        return ExistingCrawledLaptopSnapshot(
+            id = id ?: 1L,
+            productCode = productCode,
+            detailPage = detailPage,
+            cpuManufacturer = cpuManufacturer,
+            cpu = cpu,
+            os = os,
+            screenSize = screenSize,
+            resolution = resolution,
+            ramSize = ramSize,
+            graphicsType = graphicsType,
+            storageCapacity = storageCapacity,
+            batteryCapacity = batteryCapacity,
+            weight = weight,
+            lastDetailedCrawledAt = lastDetailedCrawledAt,
+            usageCount = laptopUsage.size,
+        )
     }
 }

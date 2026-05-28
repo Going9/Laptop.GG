@@ -1,19 +1,19 @@
-package going9.laptopgg.service.crawler
+package going9.laptopgg.application.crawler
 
+import going9.laptopgg.application.port.out.CrawlerRunPort
 import going9.laptopgg.domain.crawler.CrawlerRun
 import going9.laptopgg.domain.crawler.CrawlerRunStatus
-import going9.laptopgg.domain.repository.CrawlerRunRepository
 import java.time.LocalDateTime
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class CrawlerRunService(
-    private val crawlerRunRepository: CrawlerRunRepository,
-) {
+class TrackCrawlerRunService(
+    private val crawlerRunPort: CrawlerRunPort,
+) : TrackCrawlerRunUseCase {
     @Transactional
-    fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRun {
-        return crawlerRunRepository.save(
+    override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRun {
+        return crawlerRunPort.save(
             CrawlerRun(
                 filterProfile = filterProfile,
                 startPage = startPage,
@@ -23,8 +23,8 @@ class CrawlerRunService(
     }
 
     @Transactional
-    fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRun {
-        return crawlerRunRepository.save(
+    override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRun {
+        return crawlerRunPort.save(
             CrawlerRun(
                 filterProfile = filterProfile,
                 startPage = startPage,
@@ -37,14 +37,18 @@ class CrawlerRunService(
     }
 
     @Transactional
-    fun finish(runId: Long, summary: CrawlSummary, status: CrawlerRunStatus, errorMessage: String? = null): CrawlerRun {
+    override fun finish(
+        runId: Long,
+        summary: CrawlerRunSummary,
+        status: CrawlerRunStatus,
+        errorMessage: String?,
+    ): CrawlerRun {
         require(status == CrawlerRunStatus.SUCCEEDED || status == CrawlerRunStatus.FAILED) {
             "Crawler run can only finish as SUCCEEDED or FAILED."
         }
 
-        val crawlerRun = crawlerRunRepository.findById(runId).orElseThrow {
-            IllegalArgumentException("Crawler run not found: $runId")
-        }
+        val crawlerRun = crawlerRunPort.findById(runId)
+            ?: throw IllegalArgumentException("Crawler run not found: $runId")
 
         crawlerRun.status = status
         crawlerRun.processedCount = summary.processedCount
@@ -60,10 +64,9 @@ class CrawlerRunService(
     }
 
     @Transactional
-    fun fail(runId: Long, exception: Throwable): CrawlerRun {
-        val crawlerRun = crawlerRunRepository.findById(runId).orElseThrow {
-            IllegalArgumentException("Crawler run not found: $runId")
-        }
+    override fun fail(runId: Long, exception: Throwable): CrawlerRun {
+        val crawlerRun = crawlerRunPort.findById(runId)
+            ?: throw IllegalArgumentException("Crawler run not found: $runId")
 
         crawlerRun.status = CrawlerRunStatus.FAILED
         crawlerRun.errorMessage = (exception.message ?: exception::class.simpleName ?: "Unknown crawler failure")

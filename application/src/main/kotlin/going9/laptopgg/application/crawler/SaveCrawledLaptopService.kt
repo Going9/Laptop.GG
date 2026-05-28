@@ -1,74 +1,41 @@
-package going9.laptopgg.service.crawler
+package going9.laptopgg.application.crawler
 
+import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage
-import going9.laptopgg.domain.repository.LaptopRepository
 import going9.laptopgg.service.LaptopPriceHistoryService
 import going9.laptopgg.service.LaptopProfileService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class CrawlerPersistenceService(
-    private val laptopRepository: LaptopRepository,
+class SaveCrawledLaptopService(
+    private val laptopPort: LaptopPort,
     private val laptopProfileService: LaptopProfileService,
     private val laptopPriceHistoryService: LaptopPriceHistoryService,
-) {
-    internal data class ExistingLookup(
-        val byProductCode: Map<String, Laptop>,
-        val byDetailPage: Map<String, Laptop>,
-    )
-
+) : SaveCrawledLaptopUseCase {
     @Transactional(readOnly = true)
-    internal fun loadExistingLookup(productCards: List<ProductCard>): ExistingLookup {
+    override fun loadExistingLookup(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
         if (productCards.isEmpty()) {
-            return ExistingLookup(emptyMap(), emptyMap())
+            return ExistingCrawledLaptopLookup(emptyMap(), emptyMap())
         }
 
-        val byProductCode = laptopRepository.findAllByProductCodeIn(productCards.map { it.productCode }.distinct())
-            .mapNotNull { laptop -> laptop.productCode?.let { it to laptop } }
+        val byProductCode = laptopPort.findAllByProductCodes(productCards.map { it.productCode }.distinct())
+            .mapNotNull { laptop -> laptop.productCode?.let { it to laptop.toExistingSnapshot() } }
             .toMap()
-        val byDetailPage = laptopRepository.findAllByDetailPageIn(productCards.map { it.detailPage }.distinct())
-            .associateBy { laptop -> laptop.detailPage }
+        val byDetailPage = laptopPort.findAllByDetailPages(productCards.map { it.detailPage }.distinct())
+            .associate { laptop -> laptop.detailPage to laptop.toExistingSnapshot() }
 
-        return ExistingLookup(
+        return ExistingCrawledLaptopLookup(
             byProductCode = byProductCode,
             byDetailPage = byDetailPage,
         )
     }
 
-    internal fun findExistingLaptop(
-        productCard: ProductCard,
-        existingLookup: ExistingLookup,
-    ): Laptop? {
-        return existingLookup.byProductCode[productCard.productCode]
-            ?: existingLookup.byDetailPage[productCard.detailPage]
-    }
-
     @Transactional
-    internal fun saveOrUpdateLaptop(laptop: Laptop): SaveResult {
-        return saveOrUpdateResolvedLaptop(
-            laptop = laptop,
-            existingLaptop = findExistingLaptop(laptop, allowLegacyFallback = true),
-        )
-    }
-
-    @Transactional
-    internal fun saveOrUpdateLaptop(
-        laptop: Laptop,
-        existingLaptopHint: Laptop?,
-    ): SaveResult {
-        return saveOrUpdateResolvedLaptop(
-            laptop = laptop,
-            existingLaptop = existingLaptopHint,
-        )
-    }
-
-    @Transactional
-    internal fun saveListSnapshot(
-        existingLaptop: Laptop,
-        productCard: ProductCard,
-    ): SaveResult {
+    override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
+        val existingLaptop = laptopPort.findWithUsageById(existingLaptopId)
+            ?: throw IllegalArgumentException("Laptop not found: $existingLaptopId")
         val previousPrice = existingLaptop.price
         var changed = false
 
@@ -82,9 +49,18 @@ class CrawlerPersistenceService(
             return SaveResult.UNCHANGED
         }
 
-        val savedLaptop = laptopRepository.save(existingLaptop)
+        val savedLaptop = laptopPort.save(existingLaptop)
         laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice)
         return SaveResult.UPDATED
+    }
+
+    @Transactional
+    override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
+        val crawledLaptop = command.toLaptop()
+        val existingLaptop = existingLaptopId?.let(laptopPort::findWithUsageById)
+            ?: findExistingLaptop(crawledLaptop, allowLegacyFallback = existingLaptopId == null)
+
+        return saveOrUpdateResolvedLaptop(crawledLaptop, existingLaptop)
     }
 
     private fun saveOrUpdateResolvedLaptop(
@@ -92,7 +68,7 @@ class CrawlerPersistenceService(
         existingLaptop: Laptop?,
     ): SaveResult {
         if (existingLaptop == null) {
-            val savedLaptop = laptopRepository.save(laptop)
+            val savedLaptop = laptopPort.save(laptop)
             laptopProfileService.syncProfile(savedLaptop)
             laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice = null)
             return SaveResult.CREATED
@@ -140,7 +116,7 @@ class CrawlerPersistenceService(
         }
 
         return if (changed) {
-            val savedLaptop = laptopRepository.save(existingLaptop)
+            val savedLaptop = laptopPort.save(existingLaptop)
             laptopProfileService.syncProfile(savedLaptop)
             laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice)
             SaveResult.UPDATED
@@ -151,20 +127,40 @@ class CrawlerPersistenceService(
 
     private fun findExistingLaptop(laptop: Laptop, allowLegacyFallback: Boolean): Laptop? {
         laptop.productCode?.let { productCode ->
-            laptopRepository.findByProductCode(productCode)?.let { return it }
+            laptopPort.findByProductCode(productCode)?.let { return it }
         }
 
-        laptopRepository.findByDetailPage(laptop.detailPage)?.let { return it }
+        laptopPort.findByDetailPage(laptop.detailPage)?.let { return it }
 
         if (allowLegacyFallback) {
             laptop.productCode?.let { productCode ->
-                laptopRepository.findAllByDetailPageContaining("pcode=$productCode")
+                laptopPort.findAllByDetailPageContaining("pcode=$productCode")
                     .singleOrNull()
                     ?.let { return it }
             }
         }
 
         return null
+    }
+
+    private fun Laptop.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
+        return ExistingCrawledLaptopSnapshot(
+            id = requireNotNull(id) { "Persisted laptop id must not be null." },
+            productCode = productCode,
+            detailPage = detailPage,
+            cpuManufacturer = cpuManufacturer,
+            cpu = cpu,
+            os = os,
+            screenSize = screenSize,
+            resolution = resolution,
+            ramSize = ramSize,
+            graphicsType = graphicsType,
+            storageCapacity = storageCapacity,
+            batteryCapacity = batteryCapacity,
+            weight = weight,
+            lastDetailedCrawledAt = lastDetailedCrawledAt,
+            usageCount = laptopUsage.size,
+        )
     }
 
     private fun updateTextField(currentValue: String?, newValue: String?, updater: (String) -> Unit): Boolean {

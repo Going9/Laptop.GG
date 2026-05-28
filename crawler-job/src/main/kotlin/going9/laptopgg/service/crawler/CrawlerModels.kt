@@ -1,5 +1,8 @@
 package going9.laptopgg.service.crawler
 
+import going9.laptopgg.application.crawler.CrawledLaptopCommand
+import going9.laptopgg.application.crawler.CrawledProductCardCommand
+import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.domain.laptop.Laptop
 
 data class CrawlSummary(
@@ -154,7 +157,7 @@ internal data class CrawlSource(
 
 internal data class DetailRefreshWorkItem(
     val productCard: ProductCard,
-    val existingLaptop: Laptop?,
+    val existingLaptop: ExistingCrawledLaptopSnapshot?,
 )
 
 internal data class DetailRefreshOutcome(
@@ -171,12 +174,6 @@ internal data class ProductPageBatch(
     val nextPageHint: Int?,
 )
 
-internal enum class SaveResult {
-    CREATED,
-    UPDATED,
-    UNCHANGED,
-}
-
 internal enum class FilterProfile {
     NONE,
     CORE,
@@ -186,4 +183,47 @@ internal enum class FilterProfile {
 internal object CrawlerUrls {
     const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
     const val APPLE_MACBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=11236463"
+}
+
+internal fun ProductCard.toCommand(): CrawledProductCardCommand {
+    return CrawledProductCardCommand(
+        productCode = productCode,
+        productName = productName,
+        detailPage = detailPage,
+        imageUrl = imageUrl,
+        price = price,
+    )
+}
+
+internal fun Laptop.toCrawledCommand(): CrawledLaptopCommand {
+    return CrawledLaptopCommand(
+        name = name,
+        imageUrl = imageUrl,
+        detailPage = detailPage,
+        productCode = productCode,
+        price = price,
+        cpuManufacturer = cpuManufacturer,
+        cpu = cpu,
+        os = os,
+        screenSize = screenSize,
+        resolution = resolution,
+        brightness = brightness,
+        refreshRate = refreshRate,
+        ramSize = ramSize,
+        ramType = ramType,
+        isRamReplaceable = isRamReplaceable,
+        graphicsType = graphicsType,
+        tgp = tgp,
+        thunderboltCount = thunderboltCount,
+        usbCCount = usbCCount,
+        usbACount = usbACount,
+        sdCard = sdCard,
+        isSupportsPdCharging = isSupportsPdCharging,
+        batteryCapacity = batteryCapacity,
+        storageCapacity = storageCapacity,
+        storageSlotCount = storageSlotCount,
+        weight = weight,
+        lastDetailedCrawledAt = lastDetailedCrawledAt,
+        usages = laptopUsage.map { it.usage },
+    )
 }

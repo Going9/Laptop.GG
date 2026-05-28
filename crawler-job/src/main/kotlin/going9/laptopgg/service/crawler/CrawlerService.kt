@@ -1,12 +1,14 @@
 package going9.laptopgg.service.crawler
 
+import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.SaveResult
 import org.springframework.stereotype.Service
 import java.util.concurrent.Executors
 import org.slf4j.LoggerFactory
 
 @Service
 class CrawlerService(
-    private val crawlerPersistenceService: CrawlerPersistenceService,
+    private val saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase,
     private val listPageCrawler: ListPageCrawler,
     private val detailCrawler: DetailCrawler,
     private val laptopSnapshotMerger: LaptopSnapshotMerger,
@@ -97,14 +99,14 @@ class CrawlerService(
                         processedCount += candidateProductCards.size
                         var pagePriceOnlyUpdatedCount = 0
 
-                        val existingLookup = crawlerPersistenceService.loadExistingLookup(candidateProductCards)
+                        val existingLookup = saveCrawledLaptopUseCase.loadExistingLookup(candidateProductCards.map { it.toCommand() })
                         val detailRefreshWorkItems = mutableListOf<DetailRefreshWorkItem>()
 
                         for (productCard in candidateProductCards) {
-                            val existingLaptop = crawlerPersistenceService.findExistingLaptop(productCard, existingLookup)
+                            val existingLaptop = existingLookup.find(productCard.toCommand())
                             if (existingLaptop != null && !DetailRefreshPolicy.needsRefresh(existingLaptop)) {
                                 try {
-                                    when (crawlerPersistenceService.saveListSnapshot(existingLaptop, productCard)) {
+                                    when (saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand())) {
                                         SaveResult.UPDATED -> {
                                             updatedCount++
                                             priceOnlyUpdatedCount++
@@ -159,7 +161,7 @@ class CrawlerService(
                                         )
                                     }
 
-                                    when (crawlerPersistenceService.saveOrUpdateLaptop(buildResult.laptop, existingLaptop)) {
+                                    when (saveCrawledLaptopUseCase.saveOrUpdateLaptop(buildResult.laptop.toCrawledCommand(), existingLaptop?.id)) {
                                         SaveResult.CREATED -> createdCount++
                                         SaveResult.UPDATED -> updatedCount++
                                         SaveResult.UNCHANGED -> Unit
@@ -168,7 +170,7 @@ class CrawlerService(
                                 }
 
                                 if (existingLaptop != null) {
-                                    when (crawlerPersistenceService.saveListSnapshot(existingLaptop, productCard)) {
+                                    when (saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id, productCard.toCommand())) {
                                         SaveResult.UPDATED -> {
                                             updatedCount++
                                             priceOnlyUpdatedCount++

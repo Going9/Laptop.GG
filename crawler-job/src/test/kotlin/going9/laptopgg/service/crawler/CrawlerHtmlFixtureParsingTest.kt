@@ -1,9 +1,7 @@
 package going9.laptopgg.service.crawler
 
-import going9.laptopgg.domain.repository.LaptopRepository
+import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import going9.laptopgg.service.LaptopProfileFactory
-import going9.laptopgg.service.LaptopPriceHistoryService
-import going9.laptopgg.service.LaptopProfileService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -12,11 +10,7 @@ class CrawlerHtmlFixtureParsingTest {
     private val laptopSnapshotMerger = LaptopSnapshotMerger(LaptopProfileFactory())
     private val danawaClient = DanawaClient()
     private val crawlerService = CrawlerService(
-        crawlerPersistenceService = CrawlerPersistenceService(
-            laptopRepository = mock(LaptopRepository::class.java),
-            laptopProfileService = mock(LaptopProfileService::class.java),
-            laptopPriceHistoryService = mock(LaptopPriceHistoryService::class.java),
-        ),
+        saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),
         listPageCrawler = ListPageCrawler(danawaClient),
         detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
         laptopSnapshotMerger = laptopSnapshotMerger,

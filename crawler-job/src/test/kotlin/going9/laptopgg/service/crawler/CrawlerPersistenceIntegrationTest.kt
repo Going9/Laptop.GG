@@ -1,10 +1,13 @@
 package going9.laptopgg.service.crawler
 
+import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.SaveResult
 import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.repository.LaptopProfileRepository
-import going9.laptopgg.domain.repository.LaptopPriceHistoryRepository
-import going9.laptopgg.domain.repository.LaptopRepository
-import going9.laptopgg.domain.repository.LaptopUsageRepository
+import going9.laptopgg.infrastructure.jpa.repository.LaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.LaptopPriceHistoryRepository
+import going9.laptopgg.infrastructure.jpa.repository.LaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.LaptopUsageRepository
+import going9.laptopgg.infrastructure.jpa.repository.RecommendationScoreRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class CrawlerPersistenceIntegrationTest {
     @Autowired
-    lateinit var crawlerPersistenceService: CrawlerPersistenceService
+    lateinit var saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase
 
     @Autowired
     lateinit var laptopRepository: LaptopRepository
@@ -30,8 +33,12 @@ class CrawlerPersistenceIntegrationTest {
     @Autowired
     lateinit var laptopPriceHistoryRepository: LaptopPriceHistoryRepository
 
+    @Autowired
+    lateinit var recommendationScoreRepository: RecommendationScoreRepository
+
     @BeforeEach
     fun setUp() {
+        recommendationScoreRepository.deleteAll()
         laptopPriceHistoryRepository.deleteAll()
         laptopProfileRepository.deleteAll()
         laptopUsageRepository.deleteAll()
@@ -205,14 +212,14 @@ class CrawlerPersistenceIntegrationTest {
     }
 
     private fun invokeSaveOrUpdate(laptop: Laptop): SaveResult {
-        return crawlerPersistenceService.saveOrUpdateLaptop(laptop)
+        return saveCrawledLaptopUseCase.saveOrUpdateLaptop(laptop.toCrawledCommand())
     }
 
     private fun invokeSaveListSnapshot(
         existingLaptop: Laptop,
         productCard: ProductCard,
     ): SaveResult {
-        return crawlerPersistenceService.saveListSnapshot(existingLaptop, productCard)
+        return saveCrawledLaptopUseCase.saveListSnapshot(existingLaptop.id!!, productCard.toCommand())
     }
 
     private fun laptop(
