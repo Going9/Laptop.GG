@@ -1,10 +1,16 @@
 package going9.laptopgg.application.port.out
 
-import going9.laptopgg.domain.laptop.Comment
-
 interface CommentPort {
-    fun findById(commentId: Long): Comment?
-    fun findAllByLaptopId(laptopId: Long): List<Comment>
-    fun save(comment: Comment): Comment
-    fun delete(comment: Comment)
+    fun findById(commentId: Long): CommentRecord?
+    fun findAllByLaptopId(laptopId: Long): List<CommentRecord>
+    fun add(laptopId: Long, author: String, content: String, passwordHash: String)
+    fun updateContent(commentId: Long, content: String)
+    fun deleteById(commentId: Long)
 }
+
+data class CommentRecord(
+    val id: Long?,
+    val author: String,
+    val content: String,
+    val passwordHash: String,
+)

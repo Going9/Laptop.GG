@@ -1,5 +1,4 @@
 dependencies {
-    implementation(project(":domain"))
     implementation(project(":recommendation-core"))
 
     implementation("org.springframework:spring-tx")

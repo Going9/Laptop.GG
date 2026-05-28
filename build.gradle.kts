@@ -65,12 +65,14 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "application must not depend on infrastructure or public web DTOs",
+			rule = "application must not depend on domain entities, infrastructure, or public web DTOs",
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
 			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain"""),
 				Regex("""going9\.laptopgg\.infrastructure"""),
 				Regex("""going9\.laptopgg\.application\.crawler"""),
 				Regex("""going9\.laptopgg\.dto"""),
+				Regex("""project\(":domain"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
@@ -94,6 +96,14 @@ val verifyStructure by tasks.registering {
 				Regex("""findAllByDetailPages"""),
 				Regex("""findAllByDetailPageContaining"""),
 				Regex("""findByProductCode"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web-facing application ports must not expose domain entities",
+			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/port/out"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain"""),
 			),
 		)
 

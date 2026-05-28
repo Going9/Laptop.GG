@@ -1,7 +1,6 @@
 package going9.laptopgg.application.recommendation
 
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.application.port.out.RecommendationCandidateRecord
 import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy
@@ -18,20 +17,19 @@ class RecommendationScoreCalculator(
     )
 
     fun calculateScore(
-        laptop: Laptop,
-        profile: LaptopProfile,
+        candidate: RecommendationCandidateRecord,
         request: LaptopRecommendationQuery,
     ): ScoreResult {
         val useCase = request.resolvedUseCase()
-        val budgetScore = budgetScore(laptop.price, request.budget)
-        val portabilityScore = profile.portabilityScore
-        val displayScore = profile.displayScore
-        val ramScore = profile.ramScore
-        val tgpScore = profile.tgpScore
-        val cpuPerformanceScore = profile.cpuPerformanceScore
-        val lowPowerCpuScore = profile.lowPowerCpuScore
-        val gpuScore = profile.gpuPerformanceScore
-        val creatorGpuScore = (profile.gpuPerformanceScore + profile.gpuCreatorBonus).coerceAtMost(100)
+        val budgetScore = budgetScore(candidate.price, request.budget)
+        val portabilityScore = candidate.portabilityScore
+        val displayScore = candidate.displayScore
+        val ramScore = candidate.ramScore
+        val tgpScore = candidate.tgpScore
+        val cpuPerformanceScore = candidate.cpuPerformanceScore
+        val lowPowerCpuScore = candidate.lowPowerCpuScore
+        val gpuScore = candidate.gpuPerformanceScore
+        val creatorGpuScore = (candidate.gpuPerformanceScore + candidate.gpuCreatorBonus).coerceAtMost(100)
 
         val rawScore = recommendationScoringPolicy.weightedScore(
             useCase,
@@ -45,8 +43,8 @@ class RecommendationScoreCalculator(
                 lowPowerCpuScore = lowPowerCpuScore,
                 gpuScore = gpuScore,
                 creatorGpuScore = creatorGpuScore,
-                officeScore = profile.officeScore,
-                batteryScore = profile.batteryScore,
+                officeScore = candidate.officeScore,
+                batteryScore = candidate.batteryScore,
             ),
         )
 
@@ -62,18 +60,18 @@ class RecommendationScoreCalculator(
                 cpuPerformanceScore = cpuPerformanceScore,
                 lowPowerCpuScore = lowPowerCpuScore,
                 gpuScore = gpuScore,
-                officeScore = profile.officeScore,
-                batteryScore = profile.batteryScore,
-                casualGameScore = profile.casualGameScore,
-                onlineGameScore = profile.onlineGameScore,
-                aaaGameScore = profile.aaaGameScore,
-                creatorScore = profile.creatorScore,
+                officeScore = candidate.officeScore,
+                batteryScore = candidate.batteryScore,
+                casualGameScore = candidate.casualGameScore,
+                onlineGameScore = candidate.onlineGameScore,
+                aaaGameScore = candidate.aaaGameScore,
+                creatorScore = candidate.creatorScore,
             ),
         )
     }
 
-    fun gateScore(profile: LaptopProfile, useCase: RecommendationUseCase): Int {
-        return recommendationScoringPolicy.gateScore(profile.toGateInputs(), useCase)
+    fun gateScore(candidate: RecommendationCandidateRecord, useCase: RecommendationUseCase): Int {
+        return recommendationScoringPolicy.gateScore(candidate.toGateInputs(), useCase)
     }
 
     fun gateThreshold(useCase: RecommendationUseCase): Int {
@@ -93,7 +91,7 @@ class RecommendationScoreCalculator(
         return (60.0 + (savingsRatio * 40.0)).roundToInt().coerceIn(0, 100)
     }
 
-    private fun LaptopProfile.toGateInputs(): RecommendationGateInputs {
+    private fun RecommendationCandidateRecord.toGateInputs(): RecommendationGateInputs {
         return RecommendationGateInputs(
             officeScore = officeScore,
             batteryScore = batteryScore,

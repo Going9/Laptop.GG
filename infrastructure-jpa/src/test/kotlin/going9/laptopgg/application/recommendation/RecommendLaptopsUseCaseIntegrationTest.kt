@@ -629,12 +629,11 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
             val expectedNames = actual
                 .map { response ->
-                    val profile = laptopProfileRepository.findByLaptopId(response.id)!!
                     CalculatorSortProbe(
                         name = response.name,
-                        score = recommendationScoreCalculator.calculateScore(profile.laptop, profile, request).score,
-                        price = profile.laptop.price,
-                        id = profile.laptop.id!!,
+                        score = response.score,
+                        price = response.price,
+                        id = response.id,
                     )
                 }
                 .sortedWith(

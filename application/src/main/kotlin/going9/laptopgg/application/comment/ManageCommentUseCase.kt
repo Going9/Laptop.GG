@@ -1,9 +1,9 @@
 package going9.laptopgg.application.comment
 
 import going9.laptopgg.application.port.out.CommentPort
+import going9.laptopgg.application.port.out.CommentRecord
 import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.application.port.out.PasswordHashPort
-import going9.laptopgg.domain.laptop.Comment
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -13,13 +13,15 @@ class ManageCommentUseCase(
     private val passwordHashPort: PasswordHashPort,
 ) {
     fun add(command: AddCommentCommand) {
-        val comment = Comment(
-            laptop = laptopPort.findById(command.laptopId) ?: throw IllegalArgumentException("Laptop not found: ${command.laptopId}"),
+        require(laptopPort.existsById(command.laptopId)) {
+            "Laptop not found: ${command.laptopId}"
+        }
+        commentPort.add(
+            laptopId = command.laptopId,
             author = command.author,
             content = command.content,
-            passWord = passwordHashPort.hash(command.password),
+            passwordHash = passwordHashPort.hash(command.password),
         )
-        commentPort.save(comment)
     }
 
     @Transactional(readOnly = true)
@@ -36,17 +38,17 @@ class ManageCommentUseCase(
     fun update(commentId: Long, command: UpdateCommentCommand) {
         val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
         validatePassword(comment, command.password)
-        comment.updateComment(command.content)
+        commentPort.updateContent(commentId, command.content)
     }
 
     fun delete(commentId: Long, command: DeleteCommentCommand) {
         val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
         validatePassword(comment, command.password)
-        commentPort.delete(comment)
+        commentPort.deleteById(commentId)
     }
 
-    private fun validatePassword(comment: Comment, password: String) {
-        require(passwordHashPort.matches(password, comment.passWord)) {
+    private fun validatePassword(comment: CommentRecord, password: String) {
+        require(passwordHashPort.matches(password, comment.passwordHash)) {
             "비밀번호가 일치하지 않습니다."
         }
     }

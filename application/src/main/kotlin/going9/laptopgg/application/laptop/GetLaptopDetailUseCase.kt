@@ -1,7 +1,7 @@
 package going9.laptopgg.application.laptop
 
+import going9.laptopgg.application.port.out.LaptopDetailRecord
 import going9.laptopgg.application.port.out.LaptopPort
-import going9.laptopgg.domain.laptop.Laptop
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional(readOnly = true)
@@ -9,13 +9,13 @@ class GetLaptopDetailUseCase(
     private val laptopPort: LaptopPort,
 ) {
     fun get(laptopId: Long): LaptopDetailResult {
-        val laptop = laptopPort.findWithUsageById(laptopId) ?: throw IllegalArgumentException("Laptop not found: $laptopId")
-        return laptop.toDetailResult()
+        val laptop = laptopPort.findDetailById(laptopId) ?: throw IllegalArgumentException("Laptop not found: $laptopId")
+        return laptop.toResult()
     }
 
-    private fun Laptop.toDetailResult(): LaptopDetailResult {
+    private fun LaptopDetailRecord.toResult(): LaptopDetailResult {
         return LaptopDetailResult(
-            id = requireNotNull(id) { "Persisted laptop id must not be null." },
+            id = id,
             name = name,
             imageUrl = imageUrl,
             manufacturer = name.substringBefore(" "),
@@ -42,7 +42,7 @@ class GetLaptopDetailUseCase(
             storageCapacity = storageCapacity,
             storageSlotCount = storageSlotCount,
             weight = weight,
-            usage = laptopUsage.map { it.usage },
+            usage = usage,
         )
     }
 

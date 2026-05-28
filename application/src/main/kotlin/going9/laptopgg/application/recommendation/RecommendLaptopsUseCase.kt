@@ -5,8 +5,7 @@ import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.port.out.RecommendationCandidateFilter
 import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.application.port.out.RecommendationCandidateRecord
 import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.ceil
 
@@ -23,7 +22,7 @@ class RecommendLaptopsUseCase(
             findCandidatePage(request, candidateFilter, useCase, sortMode, pageQuery)
         } else {
             val candidates = findCandidates(candidateFilter)
-                .map { profile -> scoreCandidate(profile.laptop, profile, request, useCase) }
+                .map { candidate -> scoreCandidate(candidate, request, useCase) }
 
             val sortedCandidates = sortCandidates(candidates, pageQuery)
             val pageContent = paginate(sortedCandidates, pageQuery)
@@ -37,7 +36,7 @@ class RecommendLaptopsUseCase(
         }
 
         val pageContent = candidatePage.content.map { profile ->
-            scoreCandidate(profile.laptop, profile, request, useCase)
+            scoreCandidate(profile, request, useCase)
         }
 
         return PagedResult(
@@ -50,15 +49,14 @@ class RecommendLaptopsUseCase(
     }
 
     private fun scoreCandidate(
-        laptop: Laptop,
-        profile: LaptopProfile,
+        candidate: RecommendationCandidateRecord,
         request: LaptopRecommendationQuery,
         useCase: RecommendationUseCase,
     ): ScoredLaptop {
-        val scoreResult = recommendationScoreCalculator.calculateScore(laptop, profile, request)
+        val scoreResult = recommendationScoreCalculator.calculateScore(candidate, request)
         return ScoredLaptop(
-            laptop = laptop,
-            gateScore = recommendationScoreCalculator.gateScore(profile, useCase),
+            candidate = candidate,
+            gateScore = recommendationScoreCalculator.gateScore(candidate, useCase),
             score = scoreResult.score,
             reasons = scoreResult.reasons,
         )
@@ -66,17 +64,17 @@ class RecommendLaptopsUseCase(
 
     private fun toResponse(candidate: ScoredLaptop): LaptopRecommendationResult {
         return LaptopRecommendationResult(
-            id = candidate.laptop.id!!,
+            id = candidate.candidate.id,
             score = candidate.score,
-            imgLink = candidate.laptop.imageUrl,
-            price = candidate.laptop.price!!,
-            name = candidate.laptop.name,
-            manufacturer = manufacturerName(candidate.laptop.name),
-            weight = candidate.laptop.weight,
-            screenSize = candidate.laptop.screenSize,
-            cpu = candidate.laptop.cpu,
-            gpu = candidate.laptop.graphicsType,
-            resolutionLabel = resolutionLabel(candidate.laptop.resolution),
+            imgLink = candidate.candidate.imageUrl,
+            price = candidate.candidate.price,
+            name = candidate.candidate.name,
+            manufacturer = manufacturerName(candidate.candidate.name),
+            weight = candidate.candidate.weight,
+            screenSize = candidate.candidate.screenSize,
+            cpu = candidate.candidate.cpu,
+            gpu = candidate.candidate.graphicsType,
+            resolutionLabel = resolutionLabel(candidate.candidate.resolution),
             reasons = candidate.reasons,
         )
     }
@@ -155,8 +153,8 @@ class RecommendLaptopsUseCase(
         if (pageQuery.sort.isEmpty()) {
             return candidates.sortedWith(
                 compareByDescending<ScoredLaptop> { it.score }
-                    .thenBy { it.laptop.price ?: Int.MAX_VALUE }
-                    .thenBy { it.laptop.id ?: Long.MAX_VALUE },
+                    .thenBy { it.candidate.price }
+                    .thenBy { it.candidate.id },
             )
         }
 
@@ -164,8 +162,8 @@ class RecommendLaptopsUseCase(
         return candidates.sortedWith(Comparator { left, right ->
             for (order in orders) {
                 val comparison = when (order.property) {
-                    "price" -> compareValues(left.laptop.price, right.laptop.price)
-                    "weight" -> compareWeight(left.laptop.weight, right.laptop.weight, order.isAscending)
+                    "price" -> compareValues(left.candidate.price, right.candidate.price)
+                    "weight" -> compareWeight(left.candidate.weight, right.candidate.weight, order.isAscending)
                     "recommended" -> right.score.compareTo(left.score)
                     else -> 0
                 }
@@ -188,7 +186,7 @@ class RecommendLaptopsUseCase(
                 return@Comparator gateComparison
             }
 
-            compareValues(left.laptop.id, right.laptop.id)
+            compareValues(left.candidate.id, right.candidate.id)
         })
     }
 
@@ -247,7 +245,7 @@ class RecommendLaptopsUseCase(
     }
 
     private data class ScoredLaptop(
-        val laptop: Laptop,
+        val candidate: RecommendationCandidateRecord,
         val gateScore: Int,
         val score: Double,
         val reasons: List<String>,

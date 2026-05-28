@@ -1,8 +1,36 @@
 package going9.laptopgg.application.port.out
 
-import going9.laptopgg.domain.laptop.Laptop
-
 interface LaptopPort {
-    fun findById(laptopId: Long): Laptop?
-    fun findWithUsageById(laptopId: Long): Laptop?
+    fun existsById(laptopId: Long): Boolean
+    fun findDetailById(laptopId: Long): LaptopDetailRecord?
 }
+
+data class LaptopDetailRecord(
+    val id: Long,
+    val name: String,
+    val imageUrl: String,
+    val detailPage: String,
+    val price: Int?,
+    val cpuManufacturer: String?,
+    val cpu: String?,
+    val os: String?,
+    val screenSize: Int?,
+    val resolution: String?,
+    val brightness: Int?,
+    val refreshRate: Int?,
+    val ramSize: Int?,
+    val ramType: String?,
+    val isRamReplaceable: Boolean?,
+    val graphicsType: String?,
+    val tgp: Int?,
+    val thunderboltCount: Int?,
+    val usbCCount: Int?,
+    val usbACount: Int?,
+    val sdCard: String?,
+    val isSupportsPdCharging: Boolean?,
+    val batteryCapacity: Double?,
+    val storageCapacity: Int?,
+    val storageSlotCount: Int?,
+    val weight: Double?,
+    val usage: List<String>,
+)
