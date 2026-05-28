@@ -4,25 +4,20 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
-import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
-import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
-import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
-import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import going9.laptopgg.application.recommendation.ScreenSizeMode
-import going9.laptopgg.persistence.model.laptop.Laptop
-import going9.laptopgg.persistence.model.laptop.LaptopUsage
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
+import going9.laptopgg.integration.recommendation.support.RecommendationIntegrationFixtures
+import going9.laptopgg.recommendation.RecommendationUseCase
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.CpuClass
 import going9.laptopgg.taxonomy.GpuClass
 import going9.laptopgg.taxonomy.PortabilityTier
-import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
-import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
-import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
-import going9.laptopgg.recommendation.RecommendationUseCase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -46,24 +41,29 @@ class RecommendLaptopsUseCaseIntegrationTest {
     lateinit var laptopProfileService: LaptopProfileService
 
     @Autowired
-    lateinit var recommendationScoreCalculator: RecommendationScoreCalculator
-
-    @Autowired
     lateinit var recommendationScoreService: RecommendationScoreService
 
     @Autowired
     lateinit var recommendationScoreRepository: RecommendationScoreRepository
+
+    private lateinit var fixtures: RecommendationIntegrationFixtures
 
     @BeforeEach
     fun setUp() {
         recommendationScoreRepository.deleteAll()
         laptopProfileRepository.deleteAll()
         laptopRepository.deleteAll()
+        fixtures = RecommendationIntegrationFixtures(
+            laptopRepository = laptopRepository,
+            laptopProfileRepository = laptopProfileRepository,
+            laptopProfileService = laptopProfileService,
+            recommendationScoreService = recommendationScoreService,
+        )
     }
 
     @Test
     fun `recommendation paging keeps higher scored laptops on earlier pages`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Office Feather",
             price = 1_100_000,
             cpuManufacturer = "인텔",
@@ -73,7 +73,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.12,
             usages = listOf("사무/인강용", "휴대용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Office Standard",
             price = 1_250_000,
             cpuManufacturer = "인텔",
@@ -83,7 +83,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.55,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Office Heavy",
             price = 1_300_000,
             cpuManufacturer = "AMD",
@@ -109,7 +109,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `battery first includes high battery modern h and 300 series cpus`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Battery 255H",
             price = 1_950_000,
             cpuManufacturer = "인텔",
@@ -119,7 +119,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.45,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Battery 350",
             price = 1_850_000,
             cpuManufacturer = "인텔",
@@ -129,7 +129,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.38,
             usages = listOf("사무/인강용", "휴대용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Battery 340",
             price = 1_650_000,
             cpuManufacturer = "AMD",
@@ -155,7 +155,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `casual game includes arc radeon and intel integrated graphics families`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Arc Casual",
             price = 1_700_000,
             cpuManufacturer = "인텔",
@@ -165,7 +165,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.34,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Radeon Casual",
             price = 1_600_000,
             cpuManufacturer = "AMD",
@@ -175,7 +175,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.35,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Intel Casual",
             price = 1_300_000,
             cpuManufacturer = "인텔",
@@ -201,7 +201,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `online and aaa gaming recognize latest rtx 50 series`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "RTX 5060 Online",
             price = 1_900_000,
             cpuManufacturer = "인텔",
@@ -213,7 +213,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             ramSize = 16,
             usages = listOf("게임용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "RTX 5070 Ti Online",
             price = 2_500_000,
             cpuManufacturer = "인텔",
@@ -225,7 +225,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             ramSize = 32,
             usages = listOf("게임용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "RTX 5090 AAA",
             price = 4_800_000,
             cpuManufacturer = "인텔",
@@ -260,7 +260,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `screen size mode supports select any and not sure flows`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Compact 14",
             price = 1_200_000,
             cpuManufacturer = "인텔",
@@ -271,7 +271,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             screenSize = 14,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Large 17",
             price = 1_300_000,
             cpuManufacturer = "인텔",
@@ -282,7 +282,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             screenSize = 17,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Unknown Screen",
             price = 1_250_000,
             cpuManufacturer = "AMD",
@@ -326,7 +326,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `recommendation list includes cpu gpu and friendly resolution label`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Display Friendly",
             price = 1_550_000,
             cpuManufacturer = "인텔",
@@ -354,7 +354,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `office recommendation excludes profiles below gate threshold at query stage`() {
-        val officeLaptop = persistLaptop(
+        val officeLaptop = fixtures.persistLaptop(
             name = "Office Strong",
             price = 1_450_000,
             cpuManufacturer = "인텔",
@@ -364,7 +364,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.28,
             usages = listOf("사무/인강용"),
         )
-        val weakOfficeLaptop = persistLaptop(
+        val weakOfficeLaptop = fixtures.persistLaptop(
             name = "Office Weak",
             price = 1_350_000,
             cpuManufacturer = "인텔",
@@ -386,7 +386,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             onlineGameScore = 22
             aaaGameScore = 10
             creatorScore = 38
-        }?.let(::saveProfileAndScores)
+        }?.let(fixtures::saveProfileAndScores)
 
         laptopProfileRepository.findByLaptopId(weakOfficeLaptop.id!!)?.apply {
             cpuClass = CpuClass.PERFORMANCE
@@ -399,7 +399,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             onlineGameScore = 84
             aaaGameScore = 72
             creatorScore = 66
-        }?.let(::saveProfileAndScores)
+        }?.let(fixtures::saveProfileAndScores)
 
         val request = LaptopRecommendationQuery(
             budget = 2_000_000,
@@ -416,7 +416,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `not sure recommendation keeps rounded average boundary candidate`() {
-        val borderlineLaptop = persistLaptop(
+        val borderlineLaptop = fixtures.persistLaptop(
             name = "Not Sure Borderline",
             price = 1_380_000,
             cpuManufacturer = "AMD",
@@ -426,7 +426,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.35,
             usages = listOf("사무/인강용"),
         )
-        val filteredLaptop = persistLaptop(
+        val filteredLaptop = fixtures.persistLaptop(
             name = "Not Sure Below Boundary",
             price = 1_340_000,
             cpuManufacturer = "인텔",
@@ -441,13 +441,13 @@ class RecommendLaptopsUseCaseIntegrationTest {
             officeScore = 46
             batteryScore = 44
             casualGameScore = 44
-        }?.let(::saveProfileAndScores)
+        }?.let(fixtures::saveProfileAndScores)
 
         laptopProfileRepository.findByLaptopId(filteredLaptop.id!!)?.apply {
             officeScore = 45
             batteryScore = 44
             casualGameScore = 44
-        }?.let(::saveProfileAndScores)
+        }?.let(fixtures::saveProfileAndScores)
 
         val request = LaptopRecommendationQuery(
             budget = 2_000_000,
@@ -464,7 +464,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `unknown weight laptops are not excluded from recommendation candidates`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Known Weight",
             price = 1_300_000,
             cpuManufacturer = "인텔",
@@ -474,7 +474,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.35,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Unknown Weight",
             price = 1_250_000,
             cpuManufacturer = "AMD",
@@ -499,7 +499,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `weight descending keeps unknown weight at the end`() {
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Weight 1.8",
             price = 1_350_000,
             cpuManufacturer = "인텔",
@@ -509,7 +509,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.8,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Weight 1.3",
             price = 1_250_000,
             cpuManufacturer = "AMD",
@@ -519,7 +519,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             weight = 1.3,
             usages = listOf("사무/인강용"),
         )
-        persistLaptop(
+        fixtures.persistLaptop(
             name = "Weight Unknown",
             price = 1_150_000,
             cpuManufacturer = "인텔",
@@ -547,8 +547,8 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `recommended database pages match calculator order for every use case`() {
-        val laptops = persistSortProbeLaptops()
-        overrideProfileScores(
+        val laptops = fixtures.persistSortProbeLaptops()
+        fixtures.overrideProfileScores(
             laptop = laptops[0],
             officeScore = 95,
             batteryScore = 85,
@@ -565,7 +565,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             ramScore = 75,
             tgpScore = 70,
         )
-        overrideProfileScores(
+        fixtures.overrideProfileScores(
             laptop = laptops[1],
             officeScore = 75,
             batteryScore = 70,
@@ -582,7 +582,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             ramScore = 90,
             tgpScore = 98,
         )
-        overrideProfileScores(
+        fixtures.overrideProfileScores(
             laptop = laptops[2],
             officeScore = 85,
             batteryScore = 80,
@@ -599,7 +599,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
             ramScore = 100,
             tgpScore = 80,
         )
-        overrideProfileScores(
+        fixtures.overrideProfileScores(
             laptop = laptops[3],
             officeScore = 88,
             batteryScore = 90,
@@ -653,8 +653,8 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
     @Test
     fun `price and weight database pages keep requested order`() {
-        persistSortProbeLaptops().forEach { laptop ->
-            overrideProfileScores(
+        fixtures.persistSortProbeLaptops().forEach { laptop ->
+            fixtures.overrideProfileScores(
                 laptop = laptop,
                 officeScore = 85,
                 batteryScore = 85,
@@ -690,116 +690,6 @@ class RecommendLaptopsUseCaseIntegrationTest {
             .isEqualTo(listOf("Gaming Power", "Creator Slim", "Balanced Value", "Budget Light"))
     }
 
-    private fun persistSortProbeLaptops(): List<Laptop> {
-        return listOf(
-            persistLaptop(
-                name = "Balanced Value",
-                price = 1_000_000,
-                cpuManufacturer = "인텔",
-                cpu = "225U",
-                graphicsType = "Intel Graphics",
-                batteryCapacity = 70.0,
-                weight = 1.2,
-                usages = listOf("사무/인강용"),
-            ),
-            persistLaptop(
-                name = "Gaming Power",
-                price = 1_600_000,
-                cpuManufacturer = "인텔",
-                cpu = "275HX",
-                graphicsType = "RTX5070",
-                batteryCapacity = 82.0,
-                weight = 2.0,
-                tgp = 140,
-                usages = listOf("게임용"),
-            ),
-            persistLaptop(
-                name = "Creator Slim",
-                price = 1_400_000,
-                cpuManufacturer = "AMD",
-                cpu = "370",
-                graphicsType = "Radeon 890M",
-                batteryCapacity = 78.0,
-                weight = 1.4,
-                usages = listOf("그래픽작업용"),
-            ),
-            persistLaptop(
-                name = "Budget Light",
-                price = 800_000,
-                cpuManufacturer = "AMD",
-                cpu = "340",
-                graphicsType = "Radeon 840M",
-                batteryCapacity = 76.0,
-                weight = 1.1,
-                usages = listOf("휴대용"),
-            ),
-        )
-    }
-
-    private fun overrideProfileScores(
-        laptop: Laptop,
-        officeScore: Int,
-        batteryScore: Int,
-        casualGameScore: Int,
-        onlineGameScore: Int,
-        aaaGameScore: Int,
-        creatorScore: Int,
-        cpuPerformanceScore: Int,
-        lowPowerCpuScore: Int,
-        gpuPerformanceScore: Int,
-        gpuCreatorBonus: Int,
-        portabilityScore: Int,
-        displayScore: Int,
-        ramScore: Int,
-        tgpScore: Int,
-    ) {
-        laptopProfileRepository.findByLaptopId(laptop.id!!)?.apply {
-            this.officeScore = officeScore
-            this.batteryScore = batteryScore
-            this.casualGameScore = casualGameScore
-            this.onlineGameScore = onlineGameScore
-            this.aaaGameScore = aaaGameScore
-            this.creatorScore = creatorScore
-            this.cpuPerformanceScore = cpuPerformanceScore
-            this.lowPowerCpuScore = lowPowerCpuScore
-            this.gpuPerformanceScore = gpuPerformanceScore
-            this.gpuCreatorBonus = gpuCreatorBonus
-            this.portabilityScore = portabilityScore
-            this.displayScore = displayScore
-            this.ramScore = ramScore
-            this.tgpScore = tgpScore
-        }?.let(::saveProfileAndScores)
-    }
-
-    private fun saveProfileAndScores(profile: going9.laptopgg.persistence.model.laptop.LaptopProfile) {
-        val savedProfile = laptopProfileRepository.save(profile)
-        recommendationScoreService.refreshScores(
-            CrawledLaptopProfileState(
-                laptopId = requireNotNull(savedProfile.laptop.id),
-                profile = LaptopProfileSnapshot(
-                    cpuClass = savedProfile.cpuClass,
-                    gpuClass = savedProfile.gpuClass,
-                    batteryTier = savedProfile.batteryTier,
-                    portabilityTier = savedProfile.portabilityTier,
-                    officeScore = savedProfile.officeScore,
-                    batteryScore = savedProfile.batteryScore,
-                    casualGameScore = savedProfile.casualGameScore,
-                    onlineGameScore = savedProfile.onlineGameScore,
-                    aaaGameScore = savedProfile.aaaGameScore,
-                    creatorScore = savedProfile.creatorScore,
-                    cpuPerformanceScore = savedProfile.cpuPerformanceScore,
-                    lowPowerCpuScore = savedProfile.lowPowerCpuScore,
-                    gpuPerformanceScore = savedProfile.gpuPerformanceScore,
-                    gpuCreatorBonus = savedProfile.gpuCreatorBonus,
-                    portabilityScore = savedProfile.portabilityScore,
-                    displayScore = savedProfile.displayScore,
-                    ramScore = savedProfile.ramScore,
-                    tgpScore = savedProfile.tgpScore,
-                ),
-            ),
-        )
-    }
-
     private fun pagedNames(
         request: LaptopRecommendationQuery,
         order: SortOrder,
@@ -832,89 +722,4 @@ class RecommendLaptopsUseCaseIntegrationTest {
         val id: Long,
     )
 
-    private fun persistLaptop(
-        name: String,
-        price: Int,
-        cpuManufacturer: String,
-        cpu: String,
-        graphicsType: String,
-        batteryCapacity: Double,
-        weight: Double?,
-        screenSize: Int? = 16,
-        tgp: Int = 0,
-        ramSize: Int = 16,
-        usages: List<String>,
-    ): Laptop {
-        val laptop = Laptop(
-            name = name,
-            imageUrl = "https://example.com/${name.hashCode()}.jpg",
-            detailPage = "https://example.com/${name.hashCode()}",
-            productCode = name.hashCode().toString(),
-            price = price,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = "윈도우11홈",
-            screenSize = screenSize,
-            resolution = "2560x1600(WQXGA)",
-            brightness = 400,
-            refreshRate = 165,
-            ramSize = ramSize,
-            ramType = "LPDDR5X",
-            isRamReplaceable = false,
-            graphicsType = graphicsType,
-            tgp = tgp,
-            thunderboltCount = 1,
-            usbCCount = 2,
-            usbACount = 2,
-            sdCard = null,
-            isSupportsPdCharging = true,
-            batteryCapacity = batteryCapacity,
-            storageCapacity = 1024,
-            storageSlotCount = 1,
-            weight = weight,
-            laptopUsage = mutableListOf(),
-        )
-
-        laptop.laptopUsage = usages
-            .map { usage -> LaptopUsage(usage = usage, laptop = laptop) }
-            .toMutableList()
-
-        val savedLaptop = laptopRepository.save(laptop)
-        laptopProfileService.syncProfile(savedLaptop.toCrawledSnapshot())
-        return savedLaptop
-    }
-
-    private fun Laptop.toCrawledSnapshot(): PersistedCrawledLaptopSnapshot {
-        return PersistedCrawledLaptopSnapshot(
-            id = requireNotNull(id),
-            name = name,
-            imageUrl = imageUrl,
-            detailPage = detailPage,
-            productCode = productCode,
-            price = price,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            brightness = brightness,
-            refreshRate = refreshRate,
-            ramSize = ramSize,
-            ramType = ramType,
-            isRamReplaceable = isRamReplaceable,
-            graphicsType = graphicsType,
-            tgp = tgp,
-            thunderboltCount = thunderboltCount,
-            usbCCount = usbCCount,
-            usbACount = usbACount,
-            sdCard = sdCard,
-            isSupportsPdCharging = isSupportsPdCharging,
-            batteryCapacity = batteryCapacity,
-            storageCapacity = storageCapacity,
-            storageSlotCount = storageSlotCount,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usages = laptopUsage.map { usage -> usage.usage },
-        )
-    }
 }

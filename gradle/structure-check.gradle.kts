@@ -827,6 +827,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "recommendation integration scenario tests must keep persistence fixtures in support classes",
+			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendLaptopsUseCaseIntegrationTest.kt"),
+			patterns = listOf(
+				Regex("""fun\s+(persistLaptop|persistSortProbeLaptops|overrideProfileScores|saveProfileAndScores)\b"""),
+				Regex("""fun\s+Laptop\.toCrawledSnapshot"""),
+				Regex("""LaptopUsage\("""),
+				Regex("""PersistedCrawledLaptopSnapshot"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "integration test application must compose use case configs instead of owning beans",
 			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/InfrastructureJpaTestApplication.kt"),
 			patterns = listOf(
