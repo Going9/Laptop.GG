@@ -2,12 +2,12 @@ package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
-import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
+import going9.laptopgg.infrastructure.jpa.repository.crawler.ExistingCrawledLaptopLookupRepository
 import org.springframework.stereotype.Component
 
 @Component
 internal class ExistingCrawledLaptopLookupJpaAdapter(
-    private val laptopRepository: CrawlerLaptopRepository,
+    private val laptopRepository: ExistingCrawledLaptopLookupRepository,
 ) : ExistingCrawledLaptopLookupPort {
     override fun findExistingByProductCodes(productCodes: Collection<String>): List<ExistingCrawledLaptopSnapshot> {
         if (productCodes.isEmpty()) {

@@ -1,8 +1,8 @@
 package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
 import going9.laptopgg.application.crawler.common.CrawlerInvalidStateException
-import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.ExistingCrawledLaptopProjection
+import going9.laptopgg.infrastructure.jpa.repository.crawler.ExistingCrawledLaptopLookupRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 class ExistingCrawledLaptopLookupJpaAdapterTest {
     @Test
     fun `findExistingByProductCodes maps lookup projection without loading full laptop graph`() {
-        val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
+        val repository = Mockito.mock(ExistingCrawledLaptopLookupRepository::class.java)
         val detailedAt = LocalDateTime.of(2026, 5, 29, 12, 0)
         Mockito.`when`(repository.findExistingByProductCodeIn(listOf("P10")))
             .thenReturn(
@@ -43,7 +43,7 @@ class ExistingCrawledLaptopLookupJpaAdapterTest {
 
     @Test
     fun `findExistingByProductCodes rejects projection without generated id with explicit state error`() {
-        val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
+        val repository = Mockito.mock(ExistingCrawledLaptopLookupRepository::class.java)
         Mockito.`when`(repository.findExistingByProductCodeIn(listOf("P10")))
             .thenReturn(listOf(existingProjection(id = null, productCode = "P10")))
         val adapter = ExistingCrawledLaptopLookupJpaAdapter(repository)

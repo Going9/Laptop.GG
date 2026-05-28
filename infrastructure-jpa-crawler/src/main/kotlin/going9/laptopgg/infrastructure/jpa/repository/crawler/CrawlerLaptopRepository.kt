@@ -1,7 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.repository.crawler
 
 import going9.laptopgg.persistence.model.laptop.Laptop
-import going9.laptopgg.persistence.model.laptop.LaptopUsage
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -22,52 +21,6 @@ interface CrawlerLaptopRepository : JpaRepository<Laptop, Long> {
         """,
     )
     fun findListSnapshotById(@Param("id") id: Long): CrawledListSnapshotProjection?
-
-    @Query(
-        """
-        select l.id as id,
-               l.productCode as productCode,
-               l.detailPage as detailPage,
-               l.cpuManufacturer as cpuManufacturer,
-               l.cpu as cpu,
-               l.os as os,
-               l.screenSize as screenSize,
-               l.resolution as resolution,
-               l.ramSize as ramSize,
-               l.graphicsType as graphicsType,
-               l.storageCapacity as storageCapacity,
-               l.batteryCapacity as batteryCapacity,
-               l.weight as weight,
-               l.lastDetailedCrawledAt as lastDetailedCrawledAt,
-               (select count(lu.id) from LaptopUsage lu where lu.laptop = l) as usageCount
-        from Laptop l
-        where l.productCode in :productCodes
-        """,
-    )
-    fun findExistingByProductCodeIn(@Param("productCodes") productCodes: Collection<String>): List<ExistingCrawledLaptopProjection>
-
-    @Query(
-        """
-        select l.id as id,
-               l.productCode as productCode,
-               l.detailPage as detailPage,
-               l.cpuManufacturer as cpuManufacturer,
-               l.cpu as cpu,
-               l.os as os,
-               l.screenSize as screenSize,
-               l.resolution as resolution,
-               l.ramSize as ramSize,
-               l.graphicsType as graphicsType,
-               l.storageCapacity as storageCapacity,
-               l.batteryCapacity as batteryCapacity,
-               l.weight as weight,
-               l.lastDetailedCrawledAt as lastDetailedCrawledAt,
-               (select count(lu.id) from LaptopUsage lu where lu.laptop = l) as usageCount
-        from Laptop l
-        where l.detailPage in :detailPages
-        """,
-    )
-    fun findExistingByDetailPageIn(@Param("detailPages") detailPages: Collection<String>): List<ExistingCrawledLaptopProjection>
 
     @Query(
         """
@@ -186,12 +139,6 @@ interface CrawlerLaptopRepository : JpaRepository<Laptop, Long> {
     ): Int
 }
 
-interface CrawlerLaptopUsageRepository : JpaRepository<LaptopUsage, Long> {
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("delete from LaptopUsage lu where lu.laptop.id = :laptopId")
-    fun deleteByLaptopId(@Param("laptopId") laptopId: Long): Int
-}
-
 interface CrawledListSnapshotProjection {
     val id: Long?
     val name: String
@@ -199,22 +146,4 @@ interface CrawledListSnapshotProjection {
     val detailPage: String
     val productCode: String?
     val price: Int?
-}
-
-interface ExistingCrawledLaptopProjection {
-    val id: Long?
-    val productCode: String?
-    val detailPage: String
-    val cpuManufacturer: String?
-    val cpu: String?
-    val os: String?
-    val screenSize: Int?
-    val resolution: String?
-    val ramSize: Int?
-    val graphicsType: String?
-    val storageCapacity: Int?
-    val batteryCapacity: Double?
-    val weight: Double?
-    val lastDetailedCrawledAt: java.time.LocalDateTime?
-    val usageCount: Long?
 }
