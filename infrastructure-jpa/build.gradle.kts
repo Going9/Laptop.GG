@@ -1,9 +1,8 @@
 dependencies {
+    implementation(project(":infrastructure-jpa-core"))
     implementation(project(":domain"))
     implementation(project(":application"))
 
-    implementation("org.flywaydb:flyway-core")
-    runtimeOnly("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
@@ -12,6 +11,7 @@ dependencies {
     testImplementation(project(":application-crawler"))
     testImplementation(project(":infrastructure-jpa-crawler"))
     testImplementation(project(":recommendation-core"))
+    testImplementation("org.flywaydb:flyway-core")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")

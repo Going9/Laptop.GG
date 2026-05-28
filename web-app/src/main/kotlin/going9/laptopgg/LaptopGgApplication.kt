@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 @SpringBootApplication(
 	scanBasePackages = [
-		"going9.laptopgg.infrastructure.jpa.adapter.shared",
 		"going9.laptopgg.infrastructure.jpa.adapter.web",
 		"going9.laptopgg.infrastructure.security",
 		"going9.laptopgg.web",

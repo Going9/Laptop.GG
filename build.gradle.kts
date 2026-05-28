@@ -110,7 +110,7 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "infrastructure-jpa shared module must stay free of crawler persistence adapters",
+			rule = "infrastructure-jpa web adapter module must stay free of crawler persistence adapters",
 			paths = listOf("infrastructure-jpa/src/main", "infrastructure-jpa/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.application\.crawler"""),
@@ -125,11 +125,28 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "infrastructure-jpa-core must stay free of application ports and runtime adapters",
+			paths = listOf("infrastructure-jpa-core/src/main", "infrastructure-jpa-core/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.application"""),
+				Regex("""going9\.laptopgg\.web"""),
+				Regex("""infrastructure\.jpa\.adapter"""),
+				Regex("""org\.springframework\.stereotype"""),
+				Regex("""@Component"""),
+				Regex("""project\(":application"\)"""),
+				Regex("""project\(":application-crawler"\)"""),
+				Regex("""project\(":infrastructure-jpa"\)"""),
+				Regex("""project\(":infrastructure-jpa-crawler"\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "infrastructure-jpa-crawler must implement crawler ports without direct web application contracts",
 			paths = listOf("infrastructure-jpa-crawler/src/main", "infrastructure-jpa-crawler/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
 				Regex("""project\(":application"\)"""),
+				Regex("""project\(":infrastructure-jpa"\)"""),
 			),
 		)
 
@@ -318,6 +335,7 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.service"""),
 				Regex("""project\(":domain"\)"""),
 				Regex("""project\(":application"\)"""),
+				Regex("""project\(":infrastructure-jpa"\)"""),
 			),
 		)
 	}

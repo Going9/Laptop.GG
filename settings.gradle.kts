@@ -5,6 +5,7 @@ include(
     "recommendation-core",
     "application",
     "application-crawler",
+    "infrastructure-jpa-core",
     "infrastructure-jpa",
     "infrastructure-jpa-crawler",
     "infrastructure-security",
