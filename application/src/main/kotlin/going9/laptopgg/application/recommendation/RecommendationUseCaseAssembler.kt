@@ -1,0 +1,18 @@
+package going9.laptopgg.application.recommendation
+
+import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
+
+object RecommendationUseCaseAssembler {
+    fun createRecommendLaptopsUseCase(
+        recommendationCandidatePort: RecommendationCandidatePort,
+    ): RecommendLaptopsUseCase {
+        val recommendationReasonBuilder = RecommendationReasonBuilder()
+        return RecommendLaptopsUseCase(
+            recommendationCandidatePort = recommendationCandidatePort,
+            recommendationScoreCalculator = RecommendationScoreCalculator(recommendationReasonBuilder),
+            candidateFilterFactory = RecommendationCandidateFilterFactory(),
+            sortModeResolver = RecommendationSortModeResolver(),
+            resultMapper = LaptopRecommendationResultMapper(),
+        )
+    }
+}

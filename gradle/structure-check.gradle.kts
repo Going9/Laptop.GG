@@ -1235,6 +1235,21 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "runtime configs must delegate recommendation use case assembly",
+			paths = listOf(
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/config/IntegrationWebUseCaseConfig.kt",
+			),
+			patterns = listOf(
+				Regex("""RecommendationReasonBuilder\("""),
+				Regex("""RecommendationScoreCalculator\("""),
+				Regex("""RecommendationCandidateFilterFactory\("""),
+				Regex("""RecommendationSortModeResolver\("""),
+				Regex("""LaptopRecommendationResultMapper\("""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "recommendation page presentation must be split by use case screen size and preset responsibility",
 			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/view/RecommendationPagePresentation.kt"),
