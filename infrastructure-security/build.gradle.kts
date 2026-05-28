@@ -1,6 +1,7 @@
 dependencies {
     implementation(project(":application"))
 
+    implementation("org.springframework.boot:spring-boot")
     implementation("org.springframework:spring-context")
     implementation("org.springframework.security:spring-security-crypto")
 

@@ -145,6 +145,7 @@ SPRING_PROFILES_ACTIVE=postgres,deploy
 SPRING_DATASOURCE_URL=jdbc:postgresql://<db-private-ip>:5432/laptopgg
 SPRING_DATASOURCE_USERNAME=<db-user>
 SPRING_DATASOURCE_PASSWORD=<db-password>
+APP_SECURITY_PASSWORD_BCRYPT_STRENGTH=10
 JAVA_OPTS=-Xms128m -Xmx384m -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul
 ```
 

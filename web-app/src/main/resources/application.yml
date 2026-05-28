@@ -3,6 +3,11 @@ logging:
     org.hibernate.SQL: OFF
     org.hibernate.type.descriptor.sql.BasicBinder: OFF
 
+app:
+  security:
+    password:
+      bcrypt-strength: ${APP_SECURITY_PASSWORD_BCRYPT_STRENGTH:10}
+
 spring:
   config:
     import: classpath:/laptopgg-persistence.yml

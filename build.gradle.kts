@@ -319,6 +319,14 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "infrastructure-security must not hardcode bcrypt strength",
+			paths = listOf("infrastructure-security/src/main"),
+			patterns = listOf(
+				Regex("""BCryptPasswordEncoder\(\s*\d+"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime modules must import shared persistence config instead of owning datasource or JPA settings",
 			paths = listOf("web-app/src/main/resources/application.yml", "crawler-job/src/main/resources/application.yml"),
 			patterns = listOf(

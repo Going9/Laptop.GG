@@ -5,8 +5,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
 
 @Component
-class BcryptPasswordHashAdapter : PasswordHashPort {
-    private val encoder = BCryptPasswordEncoder(4)
+class BcryptPasswordHashAdapter(
+    properties: PasswordHashProperties,
+) : PasswordHashPort {
+    private val encoder = BCryptPasswordEncoder(properties.normalizedBcryptStrength())
 
     override fun hash(rawPassword: String): String {
         return encoder.encode(rawPassword)
