@@ -1,0 +1,64 @@
+package going9.laptopgg.application.crawler.persistence
+
+class CrawledLaptopFieldChangePolicy {
+    fun changedText(currentValue: String?, newValue: String?): String? {
+        val normalizedValue = newValue?.trim()?.takeIf { it.isNotBlank() } ?: return null
+        if (currentValue?.trim() == normalizedValue) {
+            return null
+        }
+        return normalizedValue
+    }
+
+    fun <T : Any> changedPresent(currentValue: T?, newValue: T?): T? {
+        val normalizedValue = newValue ?: return null
+        if (currentValue == normalizedValue) {
+            return null
+        }
+        return normalizedValue
+    }
+
+    fun changedUsages(currentUsages: List<String>, newUsages: List<String>): List<String>? {
+        val normalizedUsages = newUsages
+            .map { usage -> usage.trim() }
+            .filter { usage -> usage.isNotBlank() }
+            .distinct()
+        if (normalizedUsages.isEmpty() || currentUsages.sorted() == normalizedUsages.sorted()) {
+            return null
+        }
+
+        return normalizedUsages
+    }
+
+    fun hasChanges(updateCommand: UpdateCrawledLaptopCommand): Boolean {
+        return listOf(
+            updateCommand.name,
+            updateCommand.imageUrl,
+            updateCommand.detailPage,
+            updateCommand.productCode,
+            updateCommand.price,
+            updateCommand.cpuManufacturer,
+            updateCommand.cpu,
+            updateCommand.os,
+            updateCommand.screenSize,
+            updateCommand.resolution,
+            updateCommand.brightness,
+            updateCommand.refreshRate,
+            updateCommand.ramSize,
+            updateCommand.ramType,
+            updateCommand.isRamReplaceable,
+            updateCommand.graphicsType,
+            updateCommand.tgp,
+            updateCommand.thunderboltCount,
+            updateCommand.usbCCount,
+            updateCommand.usbACount,
+            updateCommand.sdCard,
+            updateCommand.isSupportsPdCharging,
+            updateCommand.batteryCapacity,
+            updateCommand.storageCapacity,
+            updateCommand.storageSlotCount,
+            updateCommand.weight,
+            updateCommand.lastDetailedCrawledAt,
+            updateCommand.usages,
+        ).any { value -> value != null }
+    }
+}

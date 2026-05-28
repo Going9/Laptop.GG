@@ -428,6 +428,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler laptop change detector must delegate field-level change policy",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt"),
+			patterns = listOf(
+				Regex("""fun\s+changed(Text|Present|Usages)\b"""),
+				Regex("""newValue\?\.trim\(\)"""),
+				Regex("""currentUsages\.sorted\(\)"""),
+				Regex("""listOf\(\s*$"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler save use case must avoid nested transactional service entrypoints",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt"),
 			patterns = listOf(
