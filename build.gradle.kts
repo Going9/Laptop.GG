@@ -246,6 +246,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application pagination contracts must not expose raw sort strings",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/common/PageQuery.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/port/out/LaptopProfilePort.kt",
+			),
+			patterns = listOf(
+				Regex("""val property: String"""),
+				Regex("""val sortMode: String"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application recommendation contracts must not carry legacy public request aliases",
 			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/recommendation"),
 			patterns = listOf(

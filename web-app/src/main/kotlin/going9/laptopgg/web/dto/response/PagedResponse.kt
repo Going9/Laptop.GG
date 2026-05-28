@@ -37,7 +37,7 @@ data class SortOrderResponse(
     companion object {
         fun from(order: SortOrder): SortOrderResponse {
             return SortOrderResponse(
-                property = order.property,
+                property = order.property.externalName,
                 direction = order.direction,
             )
         }

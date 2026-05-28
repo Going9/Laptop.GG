@@ -54,7 +54,7 @@ class PageController(
         model.addAttribute("recommendedLaptops", recommendedLaptops.content)
         model.addAttribute("totalCount", recommendedLaptops.totalElements)
         model.addAttribute("totalPages", recommendedLaptops.totalPages)
-        model.addAttribute("currentSort", sort?.firstOrNull()?.takeIf { it.isNotBlank() } ?: "recommended")
+        model.addAttribute("currentSort", pageQuery.sort.firstOrNull()?.toQueryParameter() ?: "recommended")
         model.addAttribute("currentPage", recommendedLaptops.page + 1)
         model.addAttribute("totalPage", recommendedLaptops.totalPages)
         model.addAttribute("resolvedUseCase", resolvedUseCase)

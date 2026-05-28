@@ -3,6 +3,7 @@ package going9.laptopgg.application.recommendation
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
+import going9.laptopgg.application.common.SortProperty
 import going9.laptopgg.application.crawler.LaptopProfileService
 import going9.laptopgg.application.crawler.RecommendationScoreService
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
@@ -532,7 +533,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
 
         val result = recommendLaptopsUseCase.recommend(
             request,
-            page(0, 10, sortOrder("weight", SortDirection.DESC)),
+            page(0, 10, sortOrder(SortProperty.WEIGHT, SortDirection.DESC)),
         )
 
         assertThat(result.content.map { it.name }).endsWith("Weight Unknown")
@@ -673,13 +674,13 @@ class RecommendLaptopsUseCaseIntegrationTest {
             useCase = RecommendationUseCase.NOT_SURE,
         )
 
-        assertThat(pagedNames(request, sortOrder("price", SortDirection.ASC)))
+        assertThat(pagedNames(request, sortOrder(SortProperty.PRICE, SortDirection.ASC)))
             .isEqualTo(listOf("Budget Light", "Balanced Value", "Creator Slim", "Gaming Power"))
-        assertThat(pagedNames(request, sortOrder("price", SortDirection.DESC)))
+        assertThat(pagedNames(request, sortOrder(SortProperty.PRICE, SortDirection.DESC)))
             .isEqualTo(listOf("Gaming Power", "Creator Slim", "Balanced Value", "Budget Light"))
-        assertThat(pagedNames(request, sortOrder("weight", SortDirection.ASC)))
+        assertThat(pagedNames(request, sortOrder(SortProperty.WEIGHT, SortDirection.ASC)))
             .isEqualTo(listOf("Budget Light", "Balanced Value", "Creator Slim", "Gaming Power"))
-        assertThat(pagedNames(request, sortOrder("weight", SortDirection.DESC)))
+        assertThat(pagedNames(request, sortOrder(SortProperty.WEIGHT, SortDirection.DESC)))
             .isEqualTo(listOf("Gaming Power", "Creator Slim", "Balanced Value", "Budget Light"))
     }
 
@@ -787,7 +788,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
         )
     }
 
-    private fun sortOrder(property: String, direction: SortDirection): SortOrder {
+    private fun sortOrder(property: SortProperty, direction: SortDirection): SortOrder {
         return SortOrder(
             property = property,
             direction = direction,

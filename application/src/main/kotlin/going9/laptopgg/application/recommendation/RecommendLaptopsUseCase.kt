@@ -2,9 +2,11 @@ package going9.laptopgg.application.recommendation
 
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.application.common.SortProperty
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.port.out.RecommendationCandidateFilter
 import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
+import going9.laptopgg.application.port.out.RecommendationCandidateSortMode
 import going9.laptopgg.application.port.out.RecommendationCandidateRecord
 import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.ceil
@@ -18,23 +20,7 @@ class RecommendLaptopsUseCase(
         val candidateFilter = buildCandidateFilter(request, useCase)
         val sortMode = resolveSortMode(pageQuery)
 
-        val candidatePage = if (sortMode != null) {
-            findCandidatePage(request, candidateFilter, useCase, sortMode, pageQuery)
-        } else {
-            val candidates = findCandidates(candidateFilter)
-                .map { candidate -> scoreCandidate(candidate, request, useCase) }
-
-            val sortedCandidates = sortCandidates(candidates, pageQuery)
-            val pageContent = paginate(sortedCandidates, pageQuery)
-            return PagedResult(
-                content = pageContent.map(::toResponse),
-                page = pageQuery.page,
-                size = pageQuery.size,
-                totalElements = candidates.size.toLong(),
-                sort = pageQuery.sort,
-            )
-        }
-
+        val candidatePage = findCandidatePage(request, candidateFilter, useCase, sortMode, pageQuery)
         val pageContent = candidatePage.content.map { profile ->
             scoreCandidate(profile, request, useCase)
         }
@@ -79,15 +65,11 @@ class RecommendLaptopsUseCase(
         )
     }
 
-    private fun findCandidates(
-        candidateFilter: RecommendationCandidateFilter,
-    ) = laptopProfilePort.findRecommendationCandidates(candidateFilter)
-
     private fun findCandidatePage(
         request: LaptopRecommendationQuery,
         candidateFilter: RecommendationCandidateFilter,
         useCase: RecommendationUseCase,
-        sortMode: String,
+        sortMode: RecommendationCandidateSortMode,
         pageQuery: PageQuery,
     ) = laptopProfilePort.findRecommendationCandidatePage(
         RecommendationCandidatePageQuery(
@@ -146,70 +128,6 @@ class RecommendLaptopsUseCase(
         }
     }
 
-    private fun sortCandidates(
-        candidates: List<ScoredLaptop>,
-        pageQuery: PageQuery,
-    ): List<ScoredLaptop> {
-        if (pageQuery.sort.isEmpty()) {
-            return candidates.sortedWith(
-                compareByDescending<ScoredLaptop> { it.score }
-                    .thenBy { it.candidate.price }
-                    .thenBy { it.candidate.id },
-            )
-        }
-
-        val orders = pageQuery.sort
-        return candidates.sortedWith(Comparator { left, right ->
-            for (order in orders) {
-                val comparison = when (order.property) {
-                    "price" -> compareValues(left.candidate.price, right.candidate.price)
-                    "weight" -> compareWeight(left.candidate.weight, right.candidate.weight, order.isAscending)
-                    "recommended" -> right.score.compareTo(left.score)
-                    else -> 0
-                }
-
-                if (comparison != 0) {
-                    return@Comparator when (order.property) {
-                        "weight", "recommended" -> comparison
-                        else -> if (order.isAscending) comparison else -comparison
-                    }
-                }
-            }
-
-            val scoreComparison = right.score.compareTo(left.score)
-            if (scoreComparison != 0) {
-                return@Comparator scoreComparison
-            }
-
-            val gateComparison = right.gateScore.compareTo(left.gateScore)
-            if (gateComparison != 0) {
-                return@Comparator gateComparison
-            }
-
-            compareValues(left.candidate.id, right.candidate.id)
-        })
-    }
-
-    private fun paginate(candidates: List<ScoredLaptop>, pageQuery: PageQuery): List<ScoredLaptop> {
-        val startIndex = pageQuery.offset.coerceAtMost(candidates.size)
-        val endIndex = (startIndex + pageQuery.size).coerceAtMost(candidates.size)
-        if (startIndex >= endIndex) {
-            return emptyList()
-        }
-
-        return candidates.subList(startIndex, endIndex)
-    }
-
-    private fun compareWeight(left: Double?, right: Double?, ascending: Boolean): Int {
-        return when {
-            left == null && right == null -> 0
-            left == null -> 1
-            right == null -> -1
-            ascending -> left.compareTo(right)
-            else -> right.compareTo(left)
-        }
-    }
-
     private fun manufacturerName(name: String): String {
         return name.trim()
             .split(Regex("\\s+"))
@@ -259,17 +177,24 @@ class RecommendLaptopsUseCase(
             return ceil((threshold - 0.5) * componentCount).toInt()
         }
 
-        private fun resolveSortMode(pageQuery: PageQuery): String? {
+        private fun resolveSortMode(pageQuery: PageQuery): RecommendationCandidateSortMode {
             if (pageQuery.sort.isEmpty()) {
-                return "recommended"
+                return RecommendationCandidateSortMode.RECOMMENDED
             }
 
-            val firstOrder = pageQuery.sort.firstOrNull() ?: return "recommended"
+            val firstOrder = pageQuery.sort.firstOrNull() ?: return RecommendationCandidateSortMode.RECOMMENDED
             return when (firstOrder.property) {
-                "recommended" -> "recommended"
-                "price" -> if (firstOrder.isAscending) "price_asc" else "price_desc"
-                "weight" -> if (firstOrder.isAscending) "weight_asc" else "weight_desc"
-                else -> null
+                SortProperty.RECOMMENDED -> RecommendationCandidateSortMode.RECOMMENDED
+                SortProperty.PRICE -> if (firstOrder.isAscending) {
+                    RecommendationCandidateSortMode.PRICE_ASC
+                } else {
+                    RecommendationCandidateSortMode.PRICE_DESC
+                }
+                SortProperty.WEIGHT -> if (firstOrder.isAscending) {
+                    RecommendationCandidateSortMode.WEIGHT_ASC
+                } else {
+                    RecommendationCandidateSortMode.WEIGHT_DESC
+                }
             }
         }
     }

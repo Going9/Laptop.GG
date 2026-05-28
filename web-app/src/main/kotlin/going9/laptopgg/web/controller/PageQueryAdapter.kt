@@ -3,10 +3,10 @@ package going9.laptopgg.web.controller
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
+import going9.laptopgg.application.common.SortProperty
 
 private const val DEFAULT_PAGE_SIZE = 10
 private const val MAX_PAGE_SIZE = 2_000
-private val SUPPORTED_SORT_PROPERTIES = setOf("recommended", "price", "weight")
 
 fun pageQueryFrom(
     page: Int?,
@@ -29,8 +29,8 @@ private fun parseSortOrder(rawSort: String): SortOrder {
 
     return SortOrder(
         property = parts.firstOrNull()
-            ?.takeIf(SUPPORTED_SORT_PROPERTIES::contains)
-            ?: "recommended",
+            ?.let(SortProperty::fromExternalName)
+            ?: SortProperty.RECOMMENDED,
         direction = when (parts.getOrNull(1)?.lowercase()) {
             "desc", "descending" -> SortDirection.DESC
             else -> SortDirection.ASC

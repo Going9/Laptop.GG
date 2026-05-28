@@ -3,7 +3,6 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.application.port.out.RecommendationCandidateRecord
-import going9.laptopgg.application.port.out.RecommendationCandidateFilter
 import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopProfileRepository
@@ -14,23 +13,6 @@ import org.springframework.stereotype.Component
 class LaptopProfileJpaAdapter(
     private val laptopProfileRepository: WebLaptopProfileRepository,
 ) : LaptopProfilePort {
-    override fun findRecommendationCandidates(filter: RecommendationCandidateFilter): List<RecommendationCandidateRecord> {
-        return laptopProfileRepository.findRecommendationCandidates(
-            maxPrice = filter.maxPrice,
-            maxWeight = filter.maxWeight,
-            screenSizes = filter.screenSizes,
-            screenFilterEnabled = filter.screenFilterEnabled,
-            includeUnknownScreen = filter.includeUnknownScreen,
-            minOfficeScore = filter.minOfficeScore,
-            minBatteryScore = filter.minBatteryScore,
-            minCasualGameScore = filter.minCasualGameScore,
-            minOnlineGameScore = filter.minOnlineGameScore,
-            minAaaGameScore = filter.minAaaGameScore,
-            minCreatorScore = filter.minCreatorScore,
-            minNotSureGateTotal = filter.minNotSureGateTotal,
-        ).map { it.toRecommendationCandidateRecord() }
-    }
-
     override fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord> {
         val page = laptopProfileRepository.findRecommendationCandidatePage(
             maxPrice = query.filter.maxPrice,
@@ -41,7 +23,7 @@ class LaptopProfileJpaAdapter(
             gateThreshold = query.gateThreshold,
             budget = query.budget,
             useCase = query.useCase,
-            sortMode = query.sortMode,
+            sortMode = query.sortMode.queryValue,
             pageable = PageRequest.of(query.pageQuery.page, query.pageQuery.size),
         )
 

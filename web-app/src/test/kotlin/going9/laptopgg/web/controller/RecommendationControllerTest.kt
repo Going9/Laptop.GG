@@ -1,12 +1,16 @@
 package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.common.PagedResult
+import going9.laptopgg.application.common.SortDirection
+import going9.laptopgg.application.common.SortOrder
+import going9.laptopgg.application.common.SortProperty
 import going9.laptopgg.application.recommendation.LaptopRecommendationResult
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.recommendation.RecommendationUseCase
 import going9.laptopgg.web.dto.request.LegacyRecommendationPurpose
 import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import going9.laptopgg.web.dto.response.LaptopRecommendationListResponse
+import going9.laptopgg.web.dto.response.PagedResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -64,7 +68,7 @@ class RecommendationControllerTest {
 
         assertThat(pageQuery.page).isEqualTo(1)
         assertThat(pageQuery.size).isEqualTo(25)
-        assertThat(pageQuery.sort.single().property).isEqualTo("price")
+        assertThat(pageQuery.sort.single().property).isEqualTo(SortProperty.PRICE)
         assertThat(pageQuery.sort.single().direction.name).isEqualTo("DESC")
     }
 
@@ -72,8 +76,24 @@ class RecommendationControllerTest {
     fun `unsupported sort falls back to recommended query path`() {
         val pageQuery = pageQueryFrom(page = 0, size = 10, sort = listOf("unknown,desc"))
 
-        assertThat(pageQuery.sort.single().property).isEqualTo("recommended")
+        assertThat(pageQuery.sort.single().property).isEqualTo(SortProperty.RECOMMENDED)
         assertThat(pageQuery.sort.single().direction.name).isEqualTo("DESC")
+    }
+
+    @Test
+    fun `paged response keeps public sort property as lower case token`() {
+        val response = PagedResponse.from(
+            PagedResult(
+                content = emptyList<LaptopRecommendationListResponse>(),
+                page = 0,
+                size = 10,
+                totalElements = 0,
+                sort = listOf(SortOrder(SortProperty.PRICE, SortDirection.DESC)),
+            ),
+        )
+
+        assertThat(response.sort.single().property).isEqualTo("price")
+        assertThat(response.sort.single().direction).isEqualTo(SortDirection.DESC)
     }
 
     @Test

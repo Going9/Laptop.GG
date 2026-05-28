@@ -4,7 +4,6 @@ import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.common.PageQuery
 
 interface LaptopProfilePort {
-    fun findRecommendationCandidates(filter: RecommendationCandidateFilter): List<RecommendationCandidateRecord>
     fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord>
 }
 
@@ -54,6 +53,16 @@ data class RecommendationCandidatePageQuery(
     val gateThreshold: Int,
     val budget: Int,
     val useCase: String,
-    val sortMode: String,
+    val sortMode: RecommendationCandidateSortMode,
     val pageQuery: PageQuery,
 )
+
+enum class RecommendationCandidateSortMode(
+    val queryValue: String,
+) {
+    RECOMMENDED("recommended"),
+    PRICE_ASC("price_asc"),
+    PRICE_DESC("price_desc"),
+    WEIGHT_ASC("weight_asc"),
+    WEIGHT_DESC("weight_desc"),
+}

@@ -4,20 +4,39 @@ data class PageQuery(
     val page: Int,
     val size: Int,
     val sort: List<SortOrder> = emptyList(),
-) {
-    val offset: Int
-        get() = (page * size).coerceAtLeast(0)
-}
+)
 
 data class SortOrder(
-    val property: String,
+    val property: SortProperty,
     val direction: SortDirection,
 ) {
     val isAscending: Boolean
         get() = direction == SortDirection.ASC
+
+    fun toQueryParameter(): String {
+        if (property == SortProperty.RECOMMENDED) {
+            return property.externalName
+        }
+        return "${property.externalName},${direction.name.lowercase()}"
+    }
 }
 
 enum class SortDirection {
     ASC,
     DESC,
+}
+
+enum class SortProperty(
+    val externalName: String,
+) {
+    RECOMMENDED("recommended"),
+    PRICE("price"),
+    WEIGHT("weight"),
+    ;
+
+    companion object {
+        fun fromExternalName(value: String?): SortProperty? {
+            return entries.firstOrNull { it.externalName == value }
+        }
+    }
 }
