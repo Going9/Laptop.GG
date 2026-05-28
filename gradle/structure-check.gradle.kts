@@ -923,6 +923,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "recommendation page model factory must delegate presentation catalog",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/view/RecommendationPageModelFactory.kt"),
+			patterns = listOf(
+				Regex("""UseCaseOption\("""),
+				Regex("""ScreenSizeModeOption\("""),
+				Regex("""fun\s+(useCaseOptions|screenSizeModeOptions|useCaseLabel|useCaseHeading|screenSizeSummary|budgetPresetList|weightPresetList)\b"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler startup runner must delegate job execution",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunner.kt"),
 			patterns = listOf(

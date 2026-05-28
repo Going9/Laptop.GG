@@ -2,13 +2,16 @@ package going9.laptopgg.web.view
 
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.recommendation.LaptopRecommendationResult
+import going9.laptopgg.application.recommendation.ScreenSizeMode
+import going9.laptopgg.recommendation.RecommendationUseCase
 import going9.laptopgg.web.controller.pageQueryFrom
 import going9.laptopgg.web.dto.request.LaptopRecommendationRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class RecommendationPageModelFactoryTest {
-    private val factory = RecommendationPageModelFactory()
+    private val presentation = RecommendationPagePresentation()
+    private val factory = RecommendationPageModelFactory(presentation)
 
     @Test
     fun `form attributes contain selectable recommendation options`() {
@@ -41,6 +44,20 @@ class RecommendationPageModelFactoryTest {
         assertThat(attributes["resolvedUseCaseLabel"]).isEqualTo("두루 쓰기 좋은")
         assertThat(attributes["resolvedUseCaseHeading"]).isEqualTo("두루 쓰기 좋은 후보")
         assertThat(attributes["screenSizeSummary"]).isEqualTo("화면 크기 상관없음")
+    }
+
+    @Test
+    fun `presentation catalog keeps use case labels and screen summaries`() {
+        val request = LaptopRecommendationRequest.fixture(
+            screenSizeMode = ScreenSizeMode.SELECT,
+            screenSizes = listOf(16, 14),
+        )
+
+        assertThat(presentation.useCaseLabel(RecommendationUseCase.CREATOR))
+            .isEqualTo("사진·영상 작업")
+        assertThat(presentation.useCaseHeading(RecommendationUseCase.CREATOR))
+            .isEqualTo("사진·영상 작업에 맞는 후보")
+        assertThat(presentation.screenSizeSummary(request)).isEqualTo("화면 14형 · 16형")
     }
 
     private fun recommendationResult(): LaptopRecommendationResult {
