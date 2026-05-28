@@ -2,7 +2,7 @@ package going9.laptopgg.service
 
 import going9.laptopgg.domain.laptop.LaptopProfile
 import going9.laptopgg.domain.recommendation.RecommendationScore
-import going9.laptopgg.domain.repository.RecommendationScoreRepository
+import going9.laptopgg.application.port.out.RecommendationScorePort
 import going9.laptopgg.dto.request.RecommendationUseCase
 import java.time.LocalDateTime
 import org.springframework.stereotype.Service
@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class RecommendationScoreService(
-    private val recommendationScoreRepository: RecommendationScoreRepository,
+    private val recommendationScorePort: RecommendationScorePort,
     private val recommendationScoringPolicy: RecommendationScoringPolicy,
 ) {
     @Transactional
@@ -18,7 +18,7 @@ class RecommendationScoreService(
         val laptopId = requireNotNull(profile.laptop.id) {
             "Laptop must be persisted before refreshing recommendation scores."
         }
-        val existingScores = recommendationScoreRepository.findAllByLaptopId(laptopId)
+        val existingScores = recommendationScorePort.findAllByLaptopId(laptopId)
             .associateBy { it.useCase }
         val inputs = scoreInputs(profile)
         val now = LocalDateTime.now()
@@ -39,7 +39,7 @@ class RecommendationScoreService(
             score
         }
 
-        recommendationScoreRepository.saveAll(scores)
+        recommendationScorePort.saveAll(scores)
     }
 
     private fun scoreInputs(profile: LaptopProfile): RecommendationScoreInputs {

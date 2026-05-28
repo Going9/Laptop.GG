@@ -1,5 +1,6 @@
 dependencies {
     implementation(project(":domain"))
+    implementation(project(":application"))
 
     implementation("org.flywaydb:flyway-core")
     runtimeOnly("org.flywaydb:flyway-database-postgresql")

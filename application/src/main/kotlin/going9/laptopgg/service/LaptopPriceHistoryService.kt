@@ -1,15 +1,15 @@
 package going9.laptopgg.service
 
+import going9.laptopgg.application.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopPriceHistory
-import going9.laptopgg.domain.repository.LaptopPriceHistoryRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
 class LaptopPriceHistoryService(
-    private val laptopPriceHistoryRepository: LaptopPriceHistoryRepository,
+    private val laptopPriceHistoryPort: LaptopPriceHistoryPort,
 ) {
     @Transactional
     fun recordCurrentPrice(laptop: Laptop, previousPrice: Int?) {
@@ -20,7 +20,7 @@ class LaptopPriceHistoryService(
             return
         }
 
-        laptopPriceHistoryRepository.save(
+        laptopPriceHistoryPort.save(
             LaptopPriceHistory(
                 laptop = laptop,
                 price = currentPrice,

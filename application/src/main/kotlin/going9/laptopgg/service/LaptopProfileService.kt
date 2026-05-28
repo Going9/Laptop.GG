@@ -1,17 +1,16 @@
 package going9.laptopgg.service
 
+import going9.laptopgg.application.port.out.LaptopPort
+import going9.laptopgg.application.port.out.LaptopProfilePort
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopProfile
-import going9.laptopgg.domain.repository.LaptopProfileRepository
-import going9.laptopgg.domain.repository.LaptopRepository
-import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class LaptopProfileService(
-    private val laptopRepository: LaptopRepository,
-    private val laptopProfileRepository: LaptopProfileRepository,
+    private val laptopPort: LaptopPort,
+    private val laptopProfilePort: LaptopProfilePort,
     private val laptopProfileFactory: LaptopProfileFactory,
     private val recommendationScoreService: RecommendationScoreService,
 ) {
@@ -74,13 +73,13 @@ class LaptopProfileService(
 
     @Transactional
     fun syncMissingProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
-        val ids = laptopRepository.findIdsWithoutProfile(PageRequest.of(0, limit))
+        val ids = laptopPort.findIdsWithoutProfile(limit)
         if (ids.isEmpty()) {
             missingProfilesBackfilled = true
             return 0
         }
 
-        laptopRepository.findAllWithUsageByIdIn(ids)
+        laptopPort.findAllWithUsageByIds(ids)
             .forEach { laptop -> syncProfile(laptop) }
 
         return ids.size
@@ -88,13 +87,13 @@ class LaptopProfileService(
 
     @Transactional
     fun syncIncompleteProfilesBatch(limit: Int = PROFILE_BACKFILL_BATCH_SIZE): Int {
-        val ids = laptopProfileRepository.findLaptopIdsWithIncompleteStaticScores(PageRequest.of(0, limit))
+        val ids = laptopProfilePort.findLaptopIdsWithIncompleteStaticScores(limit)
         if (ids.isEmpty()) {
             incompleteProfilesBackfilled = true
             return 0
         }
 
-        laptopRepository.findAllWithUsageByIdIn(ids)
+        laptopPort.findAllWithUsageByIds(ids)
             .forEach { laptop -> syncProfile(laptop) }
 
         return ids.size
@@ -104,12 +103,12 @@ class LaptopProfileService(
     fun syncProfile(laptop: Laptop): LaptopProfile {
         val laptopId = requireNotNull(laptop.id) { "Laptop must be persisted before syncing a profile." }
         val snapshot = laptopProfileFactory.build(laptop)
-        val existingProfile = laptopProfileRepository.findByLaptopId(laptopId)
+        val existingProfile = laptopProfilePort.findByLaptopId(laptopId)
 
         val profile = if (existingProfile == null) {
-            laptopProfileRepository.save(newProfile(laptop, snapshot))
+            laptopProfilePort.save(newProfile(laptop, snapshot))
         } else if (existingProfile.applySnapshot(snapshot)) {
-            laptopProfileRepository.save(existingProfile)
+            laptopProfilePort.save(existingProfile)
         } else {
             existingProfile
         }
@@ -143,11 +142,11 @@ class LaptopProfileService(
     }
 
     private fun hasMissingProfiles(): Boolean {
-        return laptopRepository.findIdsWithoutProfile(PageRequest.of(0, 1)).isNotEmpty()
+        return laptopPort.findIdsWithoutProfile(1).isNotEmpty()
     }
 
     private fun hasIncompleteProfiles(): Boolean {
-        return laptopProfileRepository.findLaptopIdsWithIncompleteStaticScores(PageRequest.of(0, 1)).isNotEmpty()
+        return laptopProfilePort.findLaptopIdsWithIncompleteStaticScores(1).isNotEmpty()
     }
 
     private fun LaptopProfile.applySnapshot(snapshot: LaptopProfileFactory.Snapshot): Boolean {
