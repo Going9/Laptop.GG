@@ -1,13 +1,15 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.infrastructure.jpa.adapter.crawler
 
+import going9.laptopgg.application.crawler.port.out.CrawlerLockResult
+import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import javax.sql.DataSource
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
-class CrawlerAdvisoryLockService(
+@Component
+class CrawlerAdvisoryLockJpaAdapter(
     private val dataSource: DataSource,
-) {
-    fun <T> withCrawlerLock(block: () -> T): CrawlerLockResult<T> {
+) : CrawlerRunLockPort {
+    override fun <T> withCrawlerLock(block: () -> T): CrawlerLockResult<T> {
         dataSource.connection.use { connection ->
             val acquired = connection.prepareStatement("select pg_try_advisory_lock(?)").use { statement ->
                 statement.setLong(1, CRAWLER_LOCK_KEY)
@@ -31,12 +33,7 @@ class CrawlerAdvisoryLockService(
         }
     }
 
-    companion object {
-        private const val CRAWLER_LOCK_KEY = 9_112_758L
+    private companion object {
+        const val CRAWLER_LOCK_KEY = 9_112_758L
     }
 }
-
-data class CrawlerLockResult<T>(
-    val acquired: Boolean,
-    val value: T?,
-)

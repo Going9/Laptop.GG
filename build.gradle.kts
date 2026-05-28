@@ -438,6 +438,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
+			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
+			patterns = listOf(
+				Regex("""javax\.sql\.DataSource"""),
+				Regex("""pg_try_advisory_lock"""),
+				Regex("""pg_advisory_unlock"""),
+				Regex("""CrawlerAdvisoryLockService"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not keep legacy CPU manufacturer maps outside application-crawler classifiers",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(

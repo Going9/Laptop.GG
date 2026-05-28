@@ -4,7 +4,7 @@ import going9.laptopgg.application.crawler.CrawlerRunCompletionStatus
 import going9.laptopgg.application.crawler.CrawlerRunStatusResult
 import going9.laptopgg.application.crawler.CrawlerRunSummary
 import going9.laptopgg.application.crawler.TrackCrawlerRunUseCase
-import going9.laptopgg.job.crawler.CrawlerAdvisoryLockService
+import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import going9.laptopgg.job.crawler.CrawlerService
 import going9.laptopgg.job.crawler.CrawlSummary
 import kotlin.system.exitProcess
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component
 class CrawlerStartupRunner(
     private val applicationContext: ConfigurableApplicationContext,
     private val crawlerService: CrawlerService,
-    private val crawlerAdvisoryLockService: CrawlerAdvisoryLockService,
+    private val crawlerRunLockPort: CrawlerRunLockPort,
     private val trackCrawlerRunUseCase: TrackCrawlerRunUseCase,
     @Value("\${app.crawler.limit:}") private val defaultLimitRaw: String,
     @Value("\${app.crawler.start-page:}") private val defaultStartPageRaw: String,
@@ -52,7 +52,7 @@ class CrawlerStartupRunner(
             ?: normalizedFilterProfile(defaultFilterProfileRaw)
 
         val lockResult = runCatching {
-            crawlerAdvisoryLockService.withCrawlerLock {
+            crawlerRunLockPort.withCrawlerLock {
                 runTrackedCrawler(limit = limit, startPage = startPage, filterProfile = filterProfile)
             }
         }.getOrElse { exception ->
