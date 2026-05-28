@@ -668,6 +668,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler profile JPA adapter must delegate entity mapping and field updates",
+			paths = listOf("infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/CrawledLaptopProfileJpaAdapter.kt"),
+			patterns = listOf(
+				Regex("""LaptopProfile\("""),
+				Regex("""LaptopProfileSnapshot\("""),
+				Regex("""fun\s+LaptopProfile\.applySnapshot"""),
+				Regex("""fun\s+LaptopProfile\.toState"""),
+				Regex("""fun\s+<T>\s+updateField"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "application command and result contracts must not expose persistence models",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common",
