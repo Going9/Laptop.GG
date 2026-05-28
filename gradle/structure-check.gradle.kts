@@ -508,6 +508,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler run tracking service must delegate command creation and storage formatting",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt"),
+			patterns = listOf(
+				Regex("""CreateCrawlerRunCommand\("""),
+				Regex("""UpdateCrawlerRunCommand\("""),
+				Regex("""LocalDateTime\.now"""),
+				Regex("""fun\s+CrawlerRunCompletionStatus\.toStatusResult\b"""),
+				Regex("""fun\s+List<String>\.toStorageText\b"""),
+				Regex("""fun\s+String\.truncateForStorage\b"""),
+				Regex("""MAX_STORED_SAMPLES"""),
+				Regex("""MAX_TEXT_LENGTH"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "infrastructure-jpa-core must not define runtime repositories",
 			paths = listOf("infrastructure-jpa-core/src/main"),
 			patterns = listOf(

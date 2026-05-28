@@ -1,0 +1,79 @@
+package going9.laptopgg.application.crawler.run
+
+import java.time.LocalDateTime
+
+class CrawlerRunCommandFactory(
+    private val now: () -> LocalDateTime = { LocalDateTime.now() },
+) {
+    fun start(filterProfile: String, startPage: Int, limit: Int?): CreateCrawlerRunCommand {
+        return CreateCrawlerRunCommand(
+            filterProfile = filterProfile,
+            startPage = startPage,
+            limitCount = limit,
+        )
+    }
+
+    fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CreateCrawlerRunCommand {
+        return CreateCrawlerRunCommand(
+            filterProfile = filterProfile,
+            startPage = startPage,
+            limitCount = limit,
+            status = CrawlerRunStatusResult.SKIPPED_LOCKED,
+            endedAt = now(),
+            errorMessage = "Another crawler run already holds the PostgreSQL advisory lock.",
+        )
+    }
+
+    fun finish(
+        runId: Long,
+        summary: CrawlerRunSummary,
+        status: CrawlerRunCompletionStatus,
+        errorMessage: String?,
+    ): UpdateCrawlerRunCommand {
+        return UpdateCrawlerRunCommand(
+            runId = runId,
+            status = status.toStatusResult(),
+            processedCount = summary.processedCount,
+            createdCount = summary.createdCount,
+            updatedCount = summary.updatedCount,
+            degradedCount = summary.degradedCount,
+            failedCount = summary.failedCount,
+            failureSamples = summary.failureSamples.toStorageText(),
+            errorMessage = errorMessage?.truncateForStorage(),
+            endedAt = now(),
+        )
+    }
+
+    fun fail(runId: Long, exception: Throwable): UpdateCrawlerRunCommand {
+        return UpdateCrawlerRunCommand(
+            runId = runId,
+            status = CrawlerRunStatusResult.FAILED,
+            errorMessage = (exception.message ?: exception::class.simpleName ?: "Unknown crawler failure")
+                .truncateForStorage(),
+            endedAt = now(),
+        )
+    }
+
+    private fun CrawlerRunCompletionStatus.toStatusResult(): CrawlerRunStatusResult {
+        return when (this) {
+            CrawlerRunCompletionStatus.SUCCEEDED -> CrawlerRunStatusResult.SUCCEEDED
+            CrawlerRunCompletionStatus.FAILED -> CrawlerRunStatusResult.FAILED
+        }
+    }
+
+    private fun List<String>.toStorageText(): String? {
+        return take(MAX_STORED_SAMPLES)
+            .joinToString("\n")
+            .takeIf { it.isNotBlank() }
+            ?.truncateForStorage()
+    }
+
+    private fun String.truncateForStorage(): String {
+        return take(MAX_TEXT_LENGTH)
+    }
+
+    private companion object {
+        const val MAX_STORED_SAMPLES = 20
+        const val MAX_TEXT_LENGTH = 4_000
+    }
+}
