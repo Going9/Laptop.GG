@@ -152,7 +152,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "infrastructure-jpa web adapter module must stay free of crawler persistence adapters",
-			paths = listOf("infrastructure-jpa/src/main", "infrastructure-jpa/build.gradle.kts"),
+			paths = listOf("infrastructure-jpa/src/main", "infrastructure-jpa/src/test", "infrastructure-jpa/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.application\.crawler"""),
 				Regex("""infrastructure\.jpa\.adapter\.crawler"""),
@@ -161,7 +161,9 @@ val verifyStructure by tasks.registering {
 				Regex("""LaptopPriceHistoryRepository"""),
 				Regex("""RecommendationScoreRepository"""),
 				Regex("""(?m)^\s*implementation\(project\(":application-crawler"\)\)"""),
+				Regex("""(?m)^\s*testImplementation\(project\(":application-crawler"\)\)"""),
 				Regex("""(?m)^\s*implementation\(project\(":infrastructure-jpa-crawler"\)\)"""),
+				Regex("""(?m)^\s*testImplementation\(project\(":infrastructure-jpa-crawler"\)\)"""),
 			),
 		)
 
@@ -486,7 +488,7 @@ subprojects {
 		apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	}
 
-	if (name in setOf("application", "application-crawler", "infrastructure-jpa", "infrastructure-jpa-crawler", "infrastructure-security", "web-app", "crawler-job")) {
+	if (name in setOf("application", "application-crawler", "infrastructure-jpa", "infrastructure-jpa-crawler", "infrastructure-security", "integration-tests", "web-app", "crawler-job")) {
 		apply(plugin = "org.jetbrains.kotlin.plugin.spring")
 	}
 

@@ -41,6 +41,7 @@ flowchart LR
 - `infrastructure-jpa-core.repository.shared`, `infrastructure-jpa.repository.web`, `infrastructure-jpa-crawler.repository.crawler`: 런타임 역할별 Spring Data repository
 - `infrastructure-jpa-core/src/main/resources/laptopgg-persistence.yml`: web/crawler 공통 PostgreSQL/Flyway/JPA profile 설정
 - `infrastructure-security`: 비밀번호 해시 등 보안 adapter
+- `integration-tests`: web/crawler persistence를 함께 띄우는 cross-module 통합 테스트
 - `web-app`: `web.controller`, `web.dto`, 사용자 화면, REST API, Thymeleaf/static 리소스
 - `crawler-job`: GitHub Actions에서 실행하는 Danawa 수집 job
 - `.github/workflows/ci.yml`: 테스트
