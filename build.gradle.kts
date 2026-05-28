@@ -45,6 +45,25 @@ val verifyStructure by tasks.registering {
 			}
 		}
 
+		fun assertPathAbsent(rule: String, paths: List<String>) {
+			val violations = paths
+				.map(project::file)
+				.filter { it.exists() }
+				.map { it.relativeTo(projectDir).path }
+
+			check(violations.isEmpty()) {
+				buildString {
+					appendLine("Structure rule failed: $rule")
+					violations.forEach { appendLine(it) }
+				}
+			}
+		}
+
+		assertPathAbsent(
+			rule = "ops must be the only tracked operations config surface",
+			paths = listOf("nginx"),
+		)
+
 		assertAbsent(
 			rule = "application must not depend on infrastructure or public web DTOs",
 			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
