@@ -92,14 +92,6 @@ internal object DanawaListParser {
         return MOVE_PAGE_REGEX.find(onclick)?.groupValues?.get(1)?.toIntOrNull()
     }
 
-    fun createPageSignature(productCards: List<ProductCard>): String {
-        return productCards.joinToString("||") { it.detailPage }
-    }
-
-    fun extractQueryParam(url: String, key: String): String? {
-        return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
-    }
-
     private fun normalizeImageUrl(url: String): String {
         if (url.isBlank()) {
             return ""
@@ -123,6 +115,10 @@ internal object DanawaListParser {
     private fun normalizeDetailPage(rawDetailPage: String, productCode: String, categoryCode: String): String {
         val cate = extractQueryParam(rawDetailPage, "cate") ?: categoryCode
         return "$DANAWA_ORIGIN/info/?pcode=$productCode&cate=$cate"
+    }
+
+    private fun extractQueryParam(url: String, key: String): String? {
+        return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
     }
 
     private const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"

@@ -866,6 +866,28 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa list html parser must not own crawl page diagnostics",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListParser.kt"),
+			patterns = listOf(
+				Regex("""fun\s+createPageSignature\b"""),
+				Regex("""(?m)^\s+fun\s+extractQueryParam\b"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawl source runner must delegate page diagnostics logging",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt"),
+			patterns = listOf(
+				Regex("""페이지 진단"""),
+				Regex("""페이지 처리 시간"""),
+				Regex("""AJAX 페이지네이션"""),
+				Regex("""visiblePagesLog"""),
+				Regex("""stableHash"""),
+				Regex("""describeCard"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "recommend laptop use case must delegate filtering, sorting, and result mapping",
 			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt"),
 			patterns = listOf(

@@ -2,6 +2,7 @@ package going9.laptopgg.job.crawler.list
 
 import going9.laptopgg.job.crawler.detail.DanawaDetailParser
 import going9.laptopgg.job.crawler.orchestration.DuplicateTailStopPolicy
+import going9.laptopgg.job.crawler.orchestration.ProductPageSignature
 import going9.laptopgg.job.crawler.source.CrawlSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -186,7 +187,7 @@ class CrawlerHtmlFixtureParsingTest {
             ),
         )
 
-        assertThat(DanawaListParser.createPageSignature(cards))
+        assertThat(ProductPageSignature.create(cards))
             .isEqualTo(
                 "https://prod.danawa.com/info/?pcode=111&cate=112758||https://prod.danawa.com/info/?pcode=111&cate=112760",
             )

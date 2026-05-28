@@ -1,8 +1,6 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import going9.laptopgg.job.crawler.list.DanawaListParser
 import going9.laptopgg.job.crawler.list.ListPageCrawler
-import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.source.CrawlSource
 import java.util.concurrent.ExecutorService
 import org.slf4j.LoggerFactory
@@ -12,6 +10,7 @@ import org.springframework.stereotype.Component
 class CrawlSourceRunner(
     private val listPageCrawler: ListPageCrawler,
     private val crawlProductBatchProcessor: CrawlProductBatchProcessor,
+    private val crawlPageDiagnosticsLogger: CrawlPageDiagnosticsLogger,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -53,14 +52,22 @@ class CrawlSourceRunner(
                 break
             }
 
-            val pageSignature = DanawaListParser.createPageSignature(productCards)
+            val pageSignature = ProductPageSignature.create(productCards)
             val isRepeatedPageSignature = !seenPageSignatures.add(pageSignature)
             val freshProductCards = productCards.filter { seenDetailPages.add(it.detailPage) }
             val duplicateSkippedCount = productCards.size - freshProductCards.size
-            val visiblePagesLog = pageBatch.visiblePageNumbers
-                .takeIf { it.isNotEmpty() }
-                ?.joinToString(",")
-                ?: "없음"
+            val diagnosticContext = CrawlPageDiagnosticContext(
+                sourceKey = crawlSource.key,
+                page = currentPage,
+                pageBatch = pageBatch,
+                productCards = productCards,
+                expectedLastPage = expectedLastPage,
+                repeatedPageSignature = isRepeatedPageSignature,
+                pageSignature = pageSignature,
+                requestSortMethod = listRequestContext.sortMethod,
+                requestFilterCount = requestFilterCount,
+                requestDistinctFilterCount = requestDistinctFilterCount,
+            )
             consecutiveDuplicateOnlyPages = if (freshProductCards.isEmpty()) {
                 consecutiveDuplicateOnlyPages + 1
             } else {
@@ -83,33 +90,22 @@ class CrawlSourceRunner(
                 reachedLimit = true
             }
 
-            if (currentPage == 1 || freshProductCards.isEmpty() || isRepeatedPageSignature) {
-                logger.info(
-                    "페이지 진단: source={}, page={}, hasNextPage={}, priceCompareCount={}, expectedLastPage={}, visiblePages={}, nextPageHint={}, repeatedPageSignature={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
-                    crawlSource.key,
-                    currentPage,
-                    pageBatch.hasNextPage,
-                    pageBatch.priceCompareCount ?: "알 수 없음",
-                    expectedLastPage ?: "알 수 없음",
-                    visiblePagesLog,
-                    pageBatch.nextPageHint ?: "없음",
-                    isRepeatedPageSignature,
-                    pageSignature.stableHash(),
-                    describeCard(productCards.firstOrNull()),
-                    describeCard(productCards.lastOrNull()),
-                    currentPage,
-                    listRequestContext.sortMethod,
-                    requestFilterCount,
-                    requestDistinctFilterCount,
+            if (crawlPageDiagnosticsLogger.shouldLogPageDiagnostics(
+                    page = currentPage,
+                    freshProductCount = freshProductCards.size,
+                    repeatedPageSignature = isRepeatedPageSignature,
                 )
+            ) {
+                crawlPageDiagnosticsLogger.logPageDiagnostics(diagnosticContext)
             }
 
-            logger.info(
-                "페이지 처리 시간: ${System.currentTimeMillis() - pageStartTime}ms / source=${crawlSource.key} / page=${currentPage} / " +
-                    "수집 상품: ${productCards.size}개 / 신규 상품: ${freshProductCards.size}개 / 실제 처리: ${pageProcessingResult.processedCount}개 / " +
-                    "상세 재수집: ${pageProcessingResult.detailRefreshCount}개 / 중복 스킵: ${duplicateSkippedCount}개 / " +
-                    "가격만 갱신(페이지): ${pageProcessingResult.pagePriceOnlyUpdatedCount}개 / 가격만 갱신(누적): ${progress.priceOnlyUpdatedCount}개 / " +
-                    "누적 처리: ${progress.processedCount}개 / 누적 열화: ${progress.degradedCount}개 / 누적 실패: ${progress.failedCount}개",
+            crawlPageDiagnosticsLogger.logPageProcessing(
+                context = diagnosticContext,
+                pageDurationMillis = System.currentTimeMillis() - pageStartTime,
+                freshProductCount = freshProductCards.size,
+                pageProcessingResult = pageProcessingResult,
+                duplicateSkippedCount = duplicateSkippedCount,
+                progress = progress,
             )
 
             if (reachedLimit) {
@@ -133,25 +129,7 @@ class CrawlSourceRunner(
                     consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
                 )
             ) {
-                logger.info(
-                    "AJAX 페이지네이션에서도 새 detail 페이지가 없는 반복 목록이 이어져 크롤링을 종료합니다. source={}, page={}, repeatedPageSignature={}, consecutiveDuplicateOnlyPages={}, hasNextPage={}, visiblePages={}, nextPageHint={}, priceCompareCount={}, expectedLastPage={}, pageSignatureHash={}, firstCard={}, lastCard={}, requestPage={}, requestSortMethod={}, requestFilterCount={}, requestDistinctFilterCount={}",
-                    crawlSource.key,
-                    currentPage,
-                    isRepeatedPageSignature,
-                    consecutiveDuplicateOnlyPages,
-                    pageBatch.hasNextPage,
-                    visiblePagesLog,
-                    pageBatch.nextPageHint ?: "없음",
-                    pageBatch.priceCompareCount ?: "알 수 없음",
-                    expectedLastPage ?: "알 수 없음",
-                    pageSignature.stableHash(),
-                    describeCard(productCards.firstOrNull()),
-                    describeCard(productCards.lastOrNull()),
-                    currentPage,
-                    listRequestContext.sortMethod,
-                    requestFilterCount,
-                    requestDistinctFilterCount,
-                )
+                crawlPageDiagnosticsLogger.logDuplicateTailStop(diagnosticContext, consecutiveDuplicateOnlyPages)
                 break
             }
 
@@ -167,19 +145,6 @@ class CrawlSourceRunner(
             reachedLimit = reachedLimit,
             hitMaxListPages = currentPage > maxListPages,
         )
-    }
-
-    private fun describeCard(productCard: ProductCard?): String {
-        if (productCard == null) {
-            return "없음"
-        }
-
-        val cate = DanawaListParser.extractQueryParam(productCard.detailPage, "cate") ?: productCard.cate4
-        return "${productCard.productCode}@${cate}"
-    }
-
-    private fun String.stableHash(): String {
-        return hashCode().toUInt().toString(16)
     }
 }
 
