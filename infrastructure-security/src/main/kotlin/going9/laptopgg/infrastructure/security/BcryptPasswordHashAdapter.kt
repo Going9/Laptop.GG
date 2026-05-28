@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.security
 
-import going9.laptopgg.application.port.out.PasswordHashPort
+import going9.laptopgg.application.comment.port.PasswordHashPort
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
 

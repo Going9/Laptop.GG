@@ -1,7 +1,6 @@
-package going9.laptopgg.application.port.out
+package going9.laptopgg.application.laptop.port
 
 interface LaptopPort {
-    fun existsById(laptopId: Long): Boolean
     fun findDetailById(laptopId: Long): LaptopDetailRecord?
 }
 

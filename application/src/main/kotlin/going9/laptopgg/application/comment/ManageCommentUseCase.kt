@@ -1,14 +1,14 @@
 package going9.laptopgg.application.comment
 
-import going9.laptopgg.application.port.out.CommentPort
-import going9.laptopgg.application.port.out.CommentRecord
-import going9.laptopgg.application.port.out.ApplicationTransactionPort
-import going9.laptopgg.application.port.out.LaptopPort
-import going9.laptopgg.application.port.out.PasswordHashPort
+import going9.laptopgg.application.comment.port.CommentRecord
+import going9.laptopgg.application.comment.port.CommentLaptopPort
+import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.PasswordHashPort
+import going9.laptopgg.application.common.port.ApplicationTransactionPort
 
 class ManageCommentUseCase(
     private val commentPort: CommentPort,
-    private val laptopPort: LaptopPort,
+    private val laptopPort: CommentLaptopPort,
     private val passwordHashPort: PasswordHashPort,
     private val transactionPort: ApplicationTransactionPort,
 ) {

@@ -1,4 +1,4 @@
-package going9.laptopgg.application.port.out
+package going9.laptopgg.application.common.port
 
 interface ApplicationTransactionPort {
     fun <T> read(block: () -> T): T

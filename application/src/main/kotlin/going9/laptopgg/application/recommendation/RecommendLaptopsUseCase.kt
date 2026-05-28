@@ -3,16 +3,16 @@ package going9.laptopgg.application.recommendation
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.common.SortProperty
-import going9.laptopgg.application.port.out.LaptopProfilePort
-import going9.laptopgg.application.port.out.RecommendationCandidateFilter
-import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
-import going9.laptopgg.application.port.out.RecommendationCandidateSortMode
-import going9.laptopgg.application.port.out.RecommendationCandidateRecord
+import going9.laptopgg.application.recommendation.port.RecommendationCandidateFilter
+import going9.laptopgg.application.recommendation.port.RecommendationCandidatePageQuery
+import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
+import going9.laptopgg.application.recommendation.port.RecommendationCandidateRecord
+import going9.laptopgg.application.recommendation.port.RecommendationCandidateSortMode
 import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.ceil
 
 class RecommendLaptopsUseCase(
-    private val laptopProfilePort: LaptopProfilePort,
+    private val recommendationCandidatePort: RecommendationCandidatePort,
     private val recommendationScoreCalculator: RecommendationScoreCalculator,
 ) {
     fun recommend(request: LaptopRecommendationQuery, pageQuery: PageQuery): PagedResult<LaptopRecommendationResult> {
@@ -71,7 +71,7 @@ class RecommendLaptopsUseCase(
         useCase: RecommendationUseCase,
         sortMode: RecommendationCandidateSortMode,
         pageQuery: PageQuery,
-    ) = laptopProfilePort.findRecommendationCandidatePage(
+    ) = recommendationCandidatePort.findRecommendationCandidatePage(
         RecommendationCandidatePageQuery(
             filter = candidateFilter,
             gateThreshold = recommendationScoreCalculator.gateThreshold(useCase),

@@ -1,6 +1,6 @@
 package going9.laptopgg.application.recommendation
 
-import going9.laptopgg.application.port.out.RecommendationCandidateRecord
+import going9.laptopgg.application.recommendation.port.RecommendationCandidateRecord
 import going9.laptopgg.recommendation.RecommendationGateInputs
 import going9.laptopgg.recommendation.RecommendationScoreInputs
 import going9.laptopgg.recommendation.RecommendationScoringPolicy

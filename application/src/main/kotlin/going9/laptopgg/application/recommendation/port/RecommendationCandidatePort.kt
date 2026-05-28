@@ -1,9 +1,9 @@
-package going9.laptopgg.application.port.out
+package going9.laptopgg.application.recommendation.port
 
-import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.application.common.PageQuery
+import going9.laptopgg.application.common.PagedResult
 
-interface LaptopProfilePort {
+interface RecommendationCandidatePort {
     fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord>
 }
 

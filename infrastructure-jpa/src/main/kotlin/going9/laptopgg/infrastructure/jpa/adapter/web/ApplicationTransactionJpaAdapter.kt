@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
-import going9.laptopgg.application.port.out.ApplicationTransactionPort
+import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate

@@ -1,8 +1,8 @@
 package going9.laptopgg.application.laptop
 
-import going9.laptopgg.application.port.out.LaptopDetailRecord
-import going9.laptopgg.application.port.out.LaptopPort
-import going9.laptopgg.application.port.out.ApplicationTransactionPort
+import going9.laptopgg.application.laptop.port.LaptopDetailRecord
+import going9.laptopgg.application.laptop.port.LaptopPort
+import going9.laptopgg.application.common.port.ApplicationTransactionPort
 
 class GetLaptopDetailUseCase(
     private val laptopPort: LaptopPort,

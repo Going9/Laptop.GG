@@ -237,10 +237,15 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "web-facing application ports must not expose persistence models",
-			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/port/out"),
+			paths = listOf("application/src/main/kotlin/going9/laptopgg/application"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 			),
+		)
+
+		assertPathAbsent(
+			rule = "web-facing application ports must live under feature packages, not a generic port.out package",
+			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/port/out"),
 		)
 
 		assertAbsent(
@@ -253,6 +258,7 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.application\.recommendation"""),
 				Regex("""going9\.laptopgg\.application\.service"""),
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
+				Regex("""going9\.laptopgg\.application\.(comment|common|laptop|recommendation)\.port"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
@@ -454,6 +460,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf("infrastructure-jpa-crawler/src/main", "infrastructure-jpa-crawler/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
+				Regex("""going9\.laptopgg\.application\.(comment|common|laptop|recommendation)\.port"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 			),
@@ -501,7 +508,7 @@ val verifyStructure by tasks.registering {
 			rule = "application pagination contracts must not expose raw sort strings",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common/PageQuery.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/port/out/LaptopProfilePort.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/port/RecommendationCandidatePort.kt",
 			),
 			patterns = listOf(
 				Regex("""val property: String"""),
@@ -789,6 +796,7 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
+				Regex("""going9\.laptopgg\.application\.(comment|common|laptop|recommendation)\.port"""),
 				Regex("""going9\.laptopgg\.application\.recommendation"""),
 				Regex("""going9\.laptopgg\.application\.service"""),
 				Regex("""project\(":persistence-model"\)"""),

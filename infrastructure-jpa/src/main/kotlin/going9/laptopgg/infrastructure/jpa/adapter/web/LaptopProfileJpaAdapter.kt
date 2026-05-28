@@ -1,9 +1,9 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.common.PagedResult
-import going9.laptopgg.application.port.out.LaptopProfilePort
-import going9.laptopgg.application.port.out.RecommendationCandidateRecord
-import going9.laptopgg.application.port.out.RecommendationCandidatePageQuery
+import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
+import going9.laptopgg.application.recommendation.port.RecommendationCandidateRecord
+import going9.laptopgg.application.recommendation.port.RecommendationCandidatePageQuery
 import going9.laptopgg.persistence.model.laptop.LaptopProfile
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopProfileRepository
 import org.springframework.data.domain.PageRequest
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class LaptopProfileJpaAdapter(
     private val laptopProfileRepository: WebLaptopProfileRepository,
-) : LaptopProfilePort {
+) : RecommendationCandidatePort {
     override fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord> {
         val page = laptopProfileRepository.findRecommendationCandidatePage(
             maxPrice = query.filter.maxPrice,

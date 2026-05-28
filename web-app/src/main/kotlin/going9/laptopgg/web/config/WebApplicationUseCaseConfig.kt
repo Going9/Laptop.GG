@@ -1,14 +1,15 @@
 package going9.laptopgg.web.config
 
 import going9.laptopgg.application.comment.ManageCommentUseCase
+import going9.laptopgg.application.comment.port.CommentLaptopPort
+import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.PasswordHashPort
+import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
-import going9.laptopgg.application.port.out.ApplicationTransactionPort
-import going9.laptopgg.application.port.out.CommentPort
-import going9.laptopgg.application.port.out.LaptopPort
-import going9.laptopgg.application.port.out.LaptopProfilePort
-import going9.laptopgg.application.port.out.PasswordHashPort
+import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
+import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -17,7 +18,7 @@ class WebApplicationUseCaseConfig {
     @Bean
     fun manageCommentUseCase(
         commentPort: CommentPort,
-        laptopPort: LaptopPort,
+        laptopPort: CommentLaptopPort,
         passwordHashPort: PasswordHashPort,
         transactionPort: ApplicationTransactionPort,
     ): ManageCommentUseCase {
@@ -47,11 +48,11 @@ class WebApplicationUseCaseConfig {
 
     @Bean
     fun recommendLaptopsUseCase(
-        laptopProfilePort: LaptopProfilePort,
+        recommendationCandidatePort: RecommendationCandidatePort,
         recommendationScoreCalculator: RecommendationScoreCalculator,
     ): RecommendLaptopsUseCase {
         return RecommendLaptopsUseCase(
-            laptopProfilePort = laptopProfilePort,
+            recommendationCandidatePort = recommendationCandidatePort,
             recommendationScoreCalculator = recommendationScoreCalculator,
         )
     }

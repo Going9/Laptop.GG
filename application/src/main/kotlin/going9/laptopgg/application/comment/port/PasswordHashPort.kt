@@ -1,4 +1,4 @@
-package going9.laptopgg.application.port.out
+package going9.laptopgg.application.comment.port
 
 interface PasswordHashPort {
     fun hash(rawPassword: String): String

@@ -1,7 +1,7 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
-import going9.laptopgg.application.port.out.CommentPort
-import going9.laptopgg.application.port.out.CommentRecord
+import going9.laptopgg.application.comment.port.CommentPort
+import going9.laptopgg.application.comment.port.CommentRecord
 import going9.laptopgg.persistence.model.web.Comment
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository

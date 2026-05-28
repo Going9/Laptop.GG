@@ -17,7 +17,7 @@ import going9.laptopgg.application.crawler.port.out.CrawlerRunLockPort
 import going9.laptopgg.application.crawler.port.out.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.port.out.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.port.out.RecommendationScorePort
-import going9.laptopgg.application.port.out.LaptopProfilePort
+import going9.laptopgg.application.recommendation.port.RecommendationCandidatePort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import going9.laptopgg.infrastructure.jpa.config.CrawlerJpaRepositoryConfig
@@ -41,11 +41,11 @@ class InfrastructureJpaTestApplication {
 
     @Bean
     fun recommendLaptopsUseCase(
-        laptopProfilePort: LaptopProfilePort,
+        recommendationCandidatePort: RecommendationCandidatePort,
         recommendationScoreCalculator: RecommendationScoreCalculator,
     ): RecommendLaptopsUseCase {
         return RecommendLaptopsUseCase(
-            laptopProfilePort = laptopProfilePort,
+            recommendationCandidatePort = recommendationCandidatePort,
             recommendationScoreCalculator = recommendationScoreCalculator,
         )
     }
