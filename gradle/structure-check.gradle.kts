@@ -1030,6 +1030,8 @@ val verifyStructure by tasks.registering {
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
 			patterns = listOf(
 				Regex("""@SpringBootApplication\s*$"""),
+				Regex(""""going9\.laptopgg\.job","""),
+				Regex(""""going9\.laptopgg\.job\.crawler","""),
 			),
 		)
 
@@ -1040,6 +1042,7 @@ val verifyStructure by tasks.registering {
 				Regex("""@SpringBootApplication\s*$"""),
 				Regex(""""going9\.laptopgg\.infrastructure\.jpa","""),
 				Regex(""""going9\.laptopgg\.infrastructure\.jpa\.repository\.crawler","""),
+				Regex(""""going9\.laptopgg\.web","""),
 			),
 		)
 

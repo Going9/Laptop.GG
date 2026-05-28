@@ -10,7 +10,10 @@ import org.springframework.context.annotation.Import
 @SpringBootApplication(
     scanBasePackages = [
         "going9.laptopgg.infrastructure.jpa.adapter.crawler",
-        "going9.laptopgg.job",
+        "going9.laptopgg.job.config",
+        "going9.laptopgg.job.runner",
+        "going9.laptopgg.job.crawler.orchestration",
+        "going9.laptopgg.job.crawler.danawa",
     ],
 )
 @EnableConfigurationProperties(CrawlerJobProperties::class)

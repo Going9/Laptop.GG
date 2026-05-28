@@ -11,7 +11,9 @@ import org.springframework.context.annotation.Import
 	scanBasePackages = [
 		"going9.laptopgg.infrastructure.jpa.adapter.web",
 		"going9.laptopgg.infrastructure.security",
-		"going9.laptopgg.web",
+		"going9.laptopgg.web.config",
+		"going9.laptopgg.web.controller",
+		"going9.laptopgg.web.view",
 	],
 )
 @EnableConfigurationProperties(PasswordHashProperties::class)
