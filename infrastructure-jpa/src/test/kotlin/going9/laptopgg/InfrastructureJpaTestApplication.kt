@@ -3,4 +3,4 @@ package going9.laptopgg
 import org.springframework.boot.autoconfigure.SpringBootApplication
 
 @SpringBootApplication
-class ApplicationTestApplication
+class InfrastructureJpaTestApplication
