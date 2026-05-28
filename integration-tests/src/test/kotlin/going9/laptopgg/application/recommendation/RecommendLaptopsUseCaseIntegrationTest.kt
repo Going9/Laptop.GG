@@ -10,8 +10,8 @@ import going9.laptopgg.application.crawler.LaptopProfileService
 import going9.laptopgg.application.crawler.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.RecommendationScoreService
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopUsage
+import going9.laptopgg.persistence.model.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.LaptopUsage
 import going9.laptopgg.recommendation.BatteryTier
 import going9.laptopgg.recommendation.CpuClass
 import going9.laptopgg.recommendation.GpuClass
@@ -768,7 +768,7 @@ class RecommendLaptopsUseCaseIntegrationTest {
         }?.let(::saveProfileAndScores)
     }
 
-    private fun saveProfileAndScores(profile: going9.laptopgg.domain.laptop.LaptopProfile) {
+    private fun saveProfileAndScores(profile: going9.laptopgg.persistence.model.laptop.LaptopProfile) {
         val savedProfile = laptopProfileRepository.save(profile)
         recommendationScoreService.refreshScores(
             CrawledLaptopProfileState(

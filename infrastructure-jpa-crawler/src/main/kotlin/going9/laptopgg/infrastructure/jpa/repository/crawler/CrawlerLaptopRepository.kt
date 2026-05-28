@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.repository.crawler
 
-import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.Laptop
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository

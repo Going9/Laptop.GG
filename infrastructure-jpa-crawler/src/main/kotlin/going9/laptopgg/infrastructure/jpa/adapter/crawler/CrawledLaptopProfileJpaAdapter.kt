@@ -4,7 +4,7 @@ import going9.laptopgg.application.crawler.CrawledLaptopProfileState
 import going9.laptopgg.application.crawler.LaptopProfileSnapshot
 import going9.laptopgg.application.crawler.UpsertCrawledLaptopProfileCommand
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
-import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.persistence.model.laptop.LaptopProfile
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import org.springframework.data.domain.PageRequest

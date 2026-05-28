@@ -5,8 +5,8 @@ import going9.laptopgg.application.crawler.CrawlerRunState
 import going9.laptopgg.application.crawler.CrawlerRunStatusResult
 import going9.laptopgg.application.crawler.UpdateCrawlerRunCommand
 import going9.laptopgg.application.crawler.port.out.CrawlerRunPort
-import going9.laptopgg.domain.crawler.CrawlerRun
-import going9.laptopgg.domain.crawler.CrawlerRunStatus
+import going9.laptopgg.persistence.model.crawler.CrawlerRun
+import going9.laptopgg.persistence.model.crawler.CrawlerRunStatus
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerRunRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
@@ -21,7 +21,7 @@ class CrawlerRunJpaAdapter(
                 filterProfile = command.filterProfile,
                 startPage = command.startPage,
                 limitCount = command.limitCount,
-                status = command.status.toDomainStatus(),
+                status = command.status.toEntityStatus(),
                 endedAt = command.endedAt,
                 errorMessage = command.errorMessage,
             ),
@@ -30,7 +30,7 @@ class CrawlerRunJpaAdapter(
 
     override fun update(command: UpdateCrawlerRunCommand): CrawlerRunState? {
         val crawlerRun = crawlerRunRepository.findByIdOrNull(command.runId) ?: return null
-        crawlerRun.status = command.status.toDomainStatus()
+        crawlerRun.status = command.status.toEntityStatus()
         command.processedCount?.let { crawlerRun.processedCount = it }
         command.createdCount?.let { crawlerRun.createdCount = it }
         command.updatedCount?.let { crawlerRun.updatedCount = it }
@@ -46,7 +46,7 @@ class CrawlerRunJpaAdapter(
         return crawlerRunRepository.findByIdOrNull(runId)?.toState()
     }
 
-    private fun CrawlerRunStatusResult.toDomainStatus(): CrawlerRunStatus {
+    private fun CrawlerRunStatusResult.toEntityStatus(): CrawlerRunStatus {
         return when (this) {
             CrawlerRunStatusResult.RUNNING -> CrawlerRunStatus.RUNNING
             CrawlerRunStatusResult.SUCCEEDED -> CrawlerRunStatus.SUCCEEDED

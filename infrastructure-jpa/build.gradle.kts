@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":infrastructure-jpa-core"))
-    implementation(project(":domain"))
+    implementation(project(":persistence-model"))
     implementation(project(":application"))
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")

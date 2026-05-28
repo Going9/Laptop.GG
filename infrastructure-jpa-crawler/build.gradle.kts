@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":application-crawler"))
-    implementation(project(":domain"))
+    implementation(project(":persistence-model"))
     implementation(project(":infrastructure-jpa-core"))
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")

@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository

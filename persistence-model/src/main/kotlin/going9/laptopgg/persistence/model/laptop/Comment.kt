@@ -1,4 +1,4 @@
-package going9.laptopgg.domain.laptop
+package going9.laptopgg.persistence.model.laptop
 
 import jakarta.persistence.*
 

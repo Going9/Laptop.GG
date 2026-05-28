@@ -85,13 +85,13 @@ val verifyStructure by tasks.registering {
 		}
 
 		mapOf(
-			":domain" to emptySet(),
+			":persistence-model" to emptySet(),
 			":recommendation-core" to emptySet(),
 			":application" to setOf(":recommendation-core"),
 			":application-crawler" to setOf(":recommendation-core"),
-			":infrastructure-jpa-core" to setOf(":domain"),
-			":infrastructure-jpa" to setOf(":application", ":domain", ":infrastructure-jpa-core"),
-			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":domain", ":infrastructure-jpa-core"),
+			":infrastructure-jpa-core" to setOf(":persistence-model"),
+			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":infrastructure-jpa-core"),
+			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-security" to setOf(":application"),
 			":web-app" to setOf(":application", ":infrastructure-jpa", ":infrastructure-security", ":recommendation-core"),
 			":crawler-job" to setOf(":application-crawler", ":infrastructure-jpa-core", ":infrastructure-jpa-crawler"),
@@ -106,7 +106,7 @@ val verifyStructure by tasks.registering {
 		}
 
 		mapOf(
-			":domain" to setOf(":recommendation-core"),
+			":persistence-model" to setOf(":recommendation-core"),
 			":recommendation-core" to emptySet(),
 			":application" to emptySet(),
 			":application-crawler" to emptySet(),
@@ -133,7 +133,7 @@ val verifyStructure by tasks.registering {
 			expectedProjectPaths = setOf(
 				":application",
 				":application-crawler",
-				":domain",
+				":persistence-model",
 				":infrastructure-jpa",
 				":infrastructure-jpa-core",
 				":infrastructure-jpa-crawler",
@@ -146,15 +146,37 @@ val verifyStructure by tasks.registering {
 			paths = listOf("nginx"),
 		)
 
+		assertPathAbsent(
+			rule = "JPA entity model must live in persistence-model, not legacy domain module",
+			paths = listOf("domain"),
+		)
+
 		assertAbsent(
-			rule = "application must not depend on domain entities, infrastructure, or public web DTOs",
-			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
+			rule = "legacy domain persistence namespace must not return",
+			paths = listOf(
+				"persistence-model/src/main",
+				"infrastructure-jpa-core/src/main",
+				"infrastructure-jpa/src/main",
+				"infrastructure-jpa-crawler/src/main",
+				"integration-tests/src/test",
+				"settings.gradle.kts",
+			),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""project\(":domain"\)"""),
+				Regex(""""domain""""),
+			),
+		)
+
+		assertAbsent(
+			rule = "application must not depend on persistence models, infrastructure, or public web DTOs",
+			paths = listOf("application/src/main", "application/src/test", "application/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.infrastructure"""),
 				Regex("""going9\.laptopgg\.application\.crawler"""),
 				Regex("""going9\.laptopgg\.dto"""),
-				Regex("""project\(":domain"\)"""),
+				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 				Regex("""spring-boot-starter-data-jpa"""),
@@ -171,7 +193,7 @@ val verifyStructure by tasks.registering {
 			rule = "application must not define crawler persistence contracts",
 			paths = listOf("application/src/main", "application/build.gradle.kts"),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain\.crawler"""),
+				Regex("""going9\.laptopgg\.persistence\.model\.crawler"""),
 				Regex("""CrawlerRunPort"""),
 				Regex("""LaptopPriceHistoryPort"""),
 				Regex("""RecommendationScorePort"""),
@@ -185,10 +207,10 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "web-facing application ports must not expose domain entities",
+			rule = "web-facing application ports must not expose persistence models",
 			paths = listOf("application/src/main/kotlin/going9/laptopgg/application/port/out"),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 			),
 		)
 
@@ -233,7 +255,7 @@ val verifyStructure by tasks.registering {
 			rule = "crawler price history port must not expose JPA entities",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/LaptopPriceHistoryPort.kt"),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""fun\s+save\(.*LaptopPriceHistory"""),
 			),
 		)
@@ -242,7 +264,7 @@ val verifyStructure by tasks.registering {
 			rule = "crawler recommendation score port must not expose JPA entities",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/port/out/RecommendationScorePort.kt"),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""List<RecommendationScore>"""),
 				Regex("""Iterable<RecommendationScore>"""),
 			),
@@ -256,7 +278,7 @@ val verifyStructure by tasks.registering {
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/RecommendationScoreService.kt",
 			),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain\.laptop\.LaptopProfile"""),
+				Regex("""going9\.laptopgg\.persistence\.model\.laptop\.LaptopProfile"""),
 				Regex("""LaptopProfile\("""),
 			),
 		)
@@ -274,8 +296,8 @@ val verifyStructure by tasks.registering {
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/ProfileScorePolicy.kt",
 			),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain\.laptop\.Laptop\b"""),
-				Regex("""going9\.laptopgg\.domain\.laptop\.LaptopUsage\b"""),
+				Regex("""going9\.laptopgg\.persistence\.model\.laptop\.Laptop\b"""),
+				Regex("""going9\.laptopgg\.persistence\.model\.laptop\.LaptopUsage\b"""),
 			),
 		)
 
@@ -286,7 +308,7 @@ val verifyStructure by tasks.registering {
 				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/TrackCrawlerRunService.kt",
 			),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain\.crawler"""),
+				Regex("""going9\.laptopgg\.persistence\.model\.crawler"""),
 				Regex("""CrawlerRun\("""),
 				Regex("""CrawlerRunStatus\."""),
 			),
@@ -307,17 +329,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "recommendation-core must stay a Spring-free and domain-free shared policy module",
+			rule = "recommendation-core must stay a Spring-free and persistence-model-free shared policy module",
 			paths = listOf("recommendation-core/src/main", "recommendation-core/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.application"""),
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.infrastructure"""),
 				Regex("""going9\.laptopgg\.web"""),
 				Regex("""org\.springframework"""),
 				Regex("""spring-boot"""),
 				Regex("""spring-context"""),
-				Regex("""project\(":domain"\)"""),
+				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
 			),
@@ -388,7 +410,7 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "application command and result contracts must not expose domain models",
+			rule = "application command and result contracts must not expose persistence models",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common",
 				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
@@ -400,7 +422,7 @@ val verifyStructure by tasks.registering {
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResult.kt",
 			),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 			),
 		)
 
@@ -467,12 +489,12 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "web-app must not depend on domain models directly",
+			rule = "web-app must not depend on persistence models directly",
 			paths = listOf("web-app/src/main", "web-app/src/test", "web-app/build.gradle.kts"),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.application\.crawler"""),
-				Regex("""project\(":domain"\)"""),
+				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":application-crawler"\)"""),
 				Regex("""project\(":infrastructure-jpa-crawler"\)"""),
 			),
@@ -493,10 +515,10 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "infrastructure-security must stay free of JPA and domain persistence concerns",
+			rule = "infrastructure-security must stay free of JPA persistence concerns",
 			paths = listOf("infrastructure-security/src/main", "infrastructure-security/src/test", "infrastructure-security/build.gradle.kts"),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.infrastructure\.jpa"""),
 				Regex("""spring-boot-starter-data-jpa"""),
 				Regex("""JpaRepository"""),
@@ -683,14 +705,14 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "crawler-job must depend on application-crawler contracts, not domain models or web application contracts",
+			rule = "crawler-job must depend on application-crawler contracts, not persistence models or web application contracts",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test", "crawler-job/build.gradle.kts"),
 			patterns = listOf(
-				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.persistence\.model"""),
 				Regex("""going9\.laptopgg\.application\.port\.out"""),
 				Regex("""going9\.laptopgg\.application\.recommendation"""),
 				Regex("""going9\.laptopgg\.application\.service"""),
-				Regex("""project\(":domain"\)"""),
+				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":infrastructure-jpa"\)"""),
 			),
@@ -807,7 +829,7 @@ subprojects {
 	apply(plugin = "org.jetbrains.kotlin.jvm")
 	apply(plugin = "io.spring.dependency-management")
 
-	if (name == "domain") {
+	if (name == "persistence-model") {
 		apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
 	}
 

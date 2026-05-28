@@ -1,7 +1,7 @@
 rootProject.name = "LaptopGG"
 
 include(
-    "domain",
+    "persistence-model",
     "recommendation-core",
     "application",
     "application-crawler",

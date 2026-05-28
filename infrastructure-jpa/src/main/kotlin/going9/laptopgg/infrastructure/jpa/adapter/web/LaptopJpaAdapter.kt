@@ -2,7 +2,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.port.out.LaptopDetailRecord
 import going9.laptopgg.application.port.out.LaptopPort
-import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import org.springframework.stereotype.Component
 

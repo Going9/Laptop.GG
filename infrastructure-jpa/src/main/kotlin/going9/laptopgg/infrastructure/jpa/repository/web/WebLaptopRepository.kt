@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.repository.web
 
-import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.Laptop
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param

@@ -1,4 +1,4 @@
-package going9.laptopgg.domain.crawler
+package going9.laptopgg.persistence.model.crawler
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

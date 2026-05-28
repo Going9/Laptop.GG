@@ -1,6 +1,6 @@
-package going9.laptopgg.domain.recommendation
+package going9.laptopgg.persistence.model.recommendation
 
-import going9.laptopgg.domain.laptop.Laptop
+import going9.laptopgg.persistence.model.laptop.Laptop
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType

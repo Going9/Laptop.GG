@@ -4,5 +4,5 @@ import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration(proxyBeanMethods = false)
-@EntityScan(basePackages = ["going9.laptopgg.domain"])
+@EntityScan(basePackages = ["going9.laptopgg.persistence.model"])
 class SharedJpaConfig

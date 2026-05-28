@@ -1,6 +1,6 @@
 package going9.laptopgg.infrastructure.jpa.repository.web
 
-import going9.laptopgg.domain.laptop.LaptopProfile
+import going9.laptopgg.persistence.model.laptop.LaptopProfile
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.EntityGraph
