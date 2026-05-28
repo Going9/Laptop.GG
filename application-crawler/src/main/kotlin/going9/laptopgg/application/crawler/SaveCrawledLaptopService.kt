@@ -1,8 +1,6 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopUsage
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -32,145 +30,110 @@ class SaveCrawledLaptopService(
     override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         val existingLaptop = laptopPort.findWithUsageById(existingLaptopId)
             ?: throw IllegalArgumentException("Laptop not found: $existingLaptopId")
-        val previousPrice = existingLaptop.price
-        var changed = false
+        val updateCommand = UpdateCrawledLaptopCommand(
+            name = changedText(existingLaptop.name, productCard.productName),
+            imageUrl = changedText(existingLaptop.imageUrl, productCard.imageUrl),
+            detailPage = changedText(existingLaptop.detailPage, productCard.detailPage),
+            productCode = changedText(existingLaptop.productCode, productCard.productCode),
+            price = changedPresent(existingLaptop.price, productCard.price),
+        )
 
-        changed = updateTextField(existingLaptop.name, productCard.productName) { existingLaptop.name = it } || changed
-        changed = updateTextField(existingLaptop.imageUrl, productCard.imageUrl) { existingLaptop.imageUrl = it } || changed
-        changed = updateTextField(existingLaptop.detailPage, productCard.detailPage) { existingLaptop.detailPage = it } || changed
-        changed = updateTextField(existingLaptop.productCode, productCard.productCode) { existingLaptop.productCode = it } || changed
-        changed = updatePresentField(existingLaptop.price, productCard.price) { existingLaptop.price = it } || changed
-
-        if (!changed) {
+        if (!updateCommand.hasChanges()) {
             return SaveResult.UNCHANGED
         }
 
-        val savedLaptop = laptopPort.save(existingLaptop)
-        laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice)
+        val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
+        laptopPriceHistoryService.recordCurrentPrice(
+            laptopId = savedLaptop.id,
+            currentPrice = savedLaptop.price,
+            previousPrice = existingLaptop.price,
+        )
         return SaveResult.UPDATED
     }
 
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
-        val crawledLaptop = command.toLaptop()
         val existingLaptop = existingLaptopId?.let(laptopPort::findWithUsageById)
-            ?: findExistingLaptop(crawledLaptop)
+            ?: findExistingLaptop(command)
 
-        return saveOrUpdateResolvedLaptop(crawledLaptop, existingLaptop)
+        return saveOrUpdateResolvedLaptop(command, existingLaptop)
     }
 
     private fun saveOrUpdateResolvedLaptop(
-        laptop: Laptop,
-        existingLaptop: Laptop?,
+        command: CrawledLaptopCommand,
+        existingLaptop: PersistedCrawledLaptopSnapshot?,
     ): SaveResult {
         if (existingLaptop == null) {
-            val savedLaptop = laptopPort.save(laptop)
+            val savedLaptop = laptopPort.create(command)
             laptopProfileService.syncProfile(savedLaptop)
-            laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice = null)
+            laptopPriceHistoryService.recordCurrentPrice(
+                laptopId = savedLaptop.id,
+                currentPrice = savedLaptop.price,
+                previousPrice = null,
+            )
             return SaveResult.CREATED
         }
 
-        val previousPrice = existingLaptop.price
-        var changed = false
-
-        changed = updateTextField(existingLaptop.name, laptop.name) { existingLaptop.name = it } || changed
-        changed = updateTextField(existingLaptop.imageUrl, laptop.imageUrl) { existingLaptop.imageUrl = it } || changed
-        changed = updateTextField(existingLaptop.detailPage, laptop.detailPage) { existingLaptop.detailPage = it } || changed
-        changed = updateTextField(existingLaptop.productCode, laptop.productCode) { existingLaptop.productCode = it } || changed
-        changed = updatePresentField(existingLaptop.price, laptop.price) { existingLaptop.price = it } || changed
-        changed = updateTextField(existingLaptop.cpuManufacturer, laptop.cpuManufacturer) { existingLaptop.cpuManufacturer = it } || changed
-        changed = updateTextField(existingLaptop.cpu, laptop.cpu) { existingLaptop.cpu = it } || changed
-        changed = updateTextField(existingLaptop.os, laptop.os) { existingLaptop.os = it } || changed
-        changed = updatePresentField(existingLaptop.screenSize, laptop.screenSize) { existingLaptop.screenSize = it } || changed
-        changed = updateTextField(existingLaptop.resolution, laptop.resolution) { existingLaptop.resolution = it } || changed
-        changed = updatePresentField(existingLaptop.brightness, laptop.brightness) { existingLaptop.brightness = it } || changed
-        changed = updatePresentField(existingLaptop.refreshRate, laptop.refreshRate) { existingLaptop.refreshRate = it } || changed
-        changed = updatePresentField(existingLaptop.ramSize, laptop.ramSize) { existingLaptop.ramSize = it } || changed
-        changed = updateTextField(existingLaptop.ramType, laptop.ramType) { existingLaptop.ramType = it } || changed
-        changed = updatePresentField(existingLaptop.isRamReplaceable, laptop.isRamReplaceable) { existingLaptop.isRamReplaceable = it } || changed
-        changed = updateTextField(existingLaptop.graphicsType, laptop.graphicsType) { existingLaptop.graphicsType = it } || changed
-        changed = updatePresentField(existingLaptop.tgp, laptop.tgp) { existingLaptop.tgp = it } || changed
-        changed = updatePresentField(existingLaptop.thunderboltCount, laptop.thunderboltCount) { existingLaptop.thunderboltCount = it } || changed
-        changed = updatePresentField(existingLaptop.usbCCount, laptop.usbCCount) { existingLaptop.usbCCount = it } || changed
-        changed = updatePresentField(existingLaptop.usbACount, laptop.usbACount) { existingLaptop.usbACount = it } || changed
-        changed = updateTextField(existingLaptop.sdCard, laptop.sdCard) { existingLaptop.sdCard = it } || changed
-        changed = updatePresentField(existingLaptop.isSupportsPdCharging, laptop.isSupportsPdCharging) { existingLaptop.isSupportsPdCharging = it } || changed
-        changed = updatePresentField(existingLaptop.batteryCapacity, laptop.batteryCapacity) { existingLaptop.batteryCapacity = it } || changed
-        changed = updatePresentField(existingLaptop.storageCapacity, laptop.storageCapacity) { existingLaptop.storageCapacity = it } || changed
-        changed = updatePresentField(existingLaptop.storageSlotCount, laptop.storageSlotCount) { existingLaptop.storageSlotCount = it } || changed
-        changed = updatePresentField(existingLaptop.weight, laptop.weight) { existingLaptop.weight = it } || changed
-        changed = updatePresentField(existingLaptop.lastDetailedCrawledAt, laptop.lastDetailedCrawledAt) { existingLaptop.lastDetailedCrawledAt = it } || changed
-
-        val existingUsages = existingLaptop.laptopUsage.map { it.usage }.sorted()
-        val newUsages = laptop.laptopUsage.map { it.usage }.sorted()
-        if (newUsages.isNotEmpty() && existingUsages != newUsages) {
-            existingLaptop.laptopUsage.clear()
-            laptop.laptopUsage.forEach { usage ->
-                existingLaptop.laptopUsage.add(LaptopUsage(usage = usage.usage, laptop = existingLaptop))
-            }
-            changed = true
+        val updateCommand = existingLaptop.toUpdateCommand(command)
+        if (!updateCommand.hasChanges()) {
+            return SaveResult.UNCHANGED
         }
 
-        return if (changed) {
-            val savedLaptop = laptopPort.save(existingLaptop)
-            laptopProfileService.syncProfile(savedLaptop)
-            laptopPriceHistoryService.recordCurrentPrice(savedLaptop, previousPrice)
-            SaveResult.UPDATED
-        } else {
-            SaveResult.UNCHANGED
-        }
+        val savedLaptop = laptopPort.update(existingLaptop.id, updateCommand)
+        laptopProfileService.syncProfile(savedLaptop)
+        laptopPriceHistoryService.recordCurrentPrice(
+            laptopId = savedLaptop.id,
+            currentPrice = savedLaptop.price,
+            previousPrice = existingLaptop.price,
+        )
+        return SaveResult.UPDATED
     }
 
-    private fun findExistingLaptop(laptop: Laptop): Laptop? {
-        laptop.productCode?.let { productCode ->
+    private fun findExistingLaptop(command: CrawledLaptopCommand): PersistedCrawledLaptopSnapshot? {
+        command.productCode?.let { productCode ->
             laptopPort.findByProductCode(productCode)?.let { return it }
         }
 
-        laptopPort.findByDetailPage(laptop.detailPage)?.let { return it }
+        laptopPort.findByDetailPage(command.detailPage)?.let { return it }
 
         return null
     }
 
-    private fun CrawledLaptopCommand.toLaptop(): Laptop {
-        val laptop = Laptop(
-            name = name,
-            imageUrl = imageUrl,
-            detailPage = detailPage,
-            productCode = productCode,
-            price = price,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            brightness = brightness,
-            refreshRate = refreshRate,
-            ramSize = ramSize,
-            ramType = ramType,
-            isRamReplaceable = isRamReplaceable,
-            graphicsType = graphicsType,
-            tgp = tgp,
-            thunderboltCount = thunderboltCount,
-            usbCCount = usbCCount,
-            usbACount = usbACount,
-            sdCard = sdCard,
-            isSupportsPdCharging = isSupportsPdCharging,
-            batteryCapacity = batteryCapacity,
-            storageCapacity = storageCapacity,
-            storageSlotCount = storageSlotCount,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            laptopUsage = mutableListOf(),
+    private fun PersistedCrawledLaptopSnapshot.toUpdateCommand(command: CrawledLaptopCommand): UpdateCrawledLaptopCommand {
+        return UpdateCrawledLaptopCommand(
+            name = changedText(name, command.name),
+            imageUrl = changedText(imageUrl, command.imageUrl),
+            detailPage = changedText(detailPage, command.detailPage),
+            productCode = changedText(productCode, command.productCode),
+            price = changedPresent(price, command.price),
+            cpuManufacturer = changedText(cpuManufacturer, command.cpuManufacturer),
+            cpu = changedText(cpu, command.cpu),
+            os = changedText(os, command.os),
+            screenSize = changedPresent(screenSize, command.screenSize),
+            resolution = changedText(resolution, command.resolution),
+            brightness = changedPresent(brightness, command.brightness),
+            refreshRate = changedPresent(refreshRate, command.refreshRate),
+            ramSize = changedPresent(ramSize, command.ramSize),
+            ramType = changedText(ramType, command.ramType),
+            isRamReplaceable = changedPresent(isRamReplaceable, command.isRamReplaceable),
+            graphicsType = changedText(graphicsType, command.graphicsType),
+            tgp = changedPresent(tgp, command.tgp),
+            thunderboltCount = changedPresent(thunderboltCount, command.thunderboltCount),
+            usbCCount = changedPresent(usbCCount, command.usbCCount),
+            usbACount = changedPresent(usbACount, command.usbACount),
+            sdCard = changedText(sdCard, command.sdCard),
+            isSupportsPdCharging = changedPresent(isSupportsPdCharging, command.isSupportsPdCharging),
+            batteryCapacity = changedPresent(batteryCapacity, command.batteryCapacity),
+            storageCapacity = changedPresent(storageCapacity, command.storageCapacity),
+            storageSlotCount = changedPresent(storageSlotCount, command.storageSlotCount),
+            weight = changedPresent(weight, command.weight),
+            lastDetailedCrawledAt = changedPresent(lastDetailedCrawledAt, command.lastDetailedCrawledAt),
+            usages = changedUsages(usages, command.usages),
         )
-        laptop.laptopUsage = usages
-            .distinct()
-            .map { usage -> LaptopUsage(usage = usage, laptop = laptop) }
-            .toMutableList()
-        return laptop
     }
 
-    private fun Laptop.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
+    private fun PersistedCrawledLaptopSnapshot.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
         return ExistingCrawledLaptopSnapshot(
-            id = requireNotNull(id) { "Persisted laptop id must not be null." },
+            id = id,
             productCode = productCode,
             detailPage = detailPage,
             cpuManufacturer = cpuManufacturer,
@@ -184,25 +147,68 @@ class SaveCrawledLaptopService(
             batteryCapacity = batteryCapacity,
             weight = weight,
             lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usageCount = laptopUsage.size,
+            usageCount = usages.size,
         )
     }
 
-    private fun updateTextField(currentValue: String?, newValue: String?, updater: (String) -> Unit): Boolean {
-        val normalizedValue = newValue?.trim()?.takeIf { it.isNotBlank() } ?: return false
+    private fun changedText(currentValue: String?, newValue: String?): String? {
+        val normalizedValue = newValue?.trim()?.takeIf { it.isNotBlank() } ?: return null
         if (currentValue?.trim() == normalizedValue) {
-            return false
+            return null
         }
-        updater(normalizedValue)
-        return true
+        return normalizedValue
     }
 
-    private fun <T : Any> updatePresentField(currentValue: T?, newValue: T?, updater: (T) -> Unit): Boolean {
-        val normalizedValue = newValue ?: return false
+    private fun <T : Any> changedPresent(currentValue: T?, newValue: T?): T? {
+        val normalizedValue = newValue ?: return null
         if (currentValue == normalizedValue) {
-            return false
+            return null
         }
-        updater(normalizedValue)
-        return true
+        return normalizedValue
+    }
+
+    private fun changedUsages(currentUsages: List<String>, newUsages: List<String>): List<String>? {
+        val normalizedUsages = newUsages
+            .map { usage -> usage.trim() }
+            .filter { usage -> usage.isNotBlank() }
+            .distinct()
+        if (normalizedUsages.isEmpty() || currentUsages.sorted() == normalizedUsages.sorted()) {
+            return null
+        }
+
+        return normalizedUsages
+    }
+
+    private fun UpdateCrawledLaptopCommand.hasChanges(): Boolean {
+        return listOf(
+            name,
+            imageUrl,
+            detailPage,
+            productCode,
+            price,
+            cpuManufacturer,
+            cpu,
+            os,
+            screenSize,
+            resolution,
+            brightness,
+            refreshRate,
+            ramSize,
+            ramType,
+            isRamReplaceable,
+            graphicsType,
+            tgp,
+            thunderboltCount,
+            usbCCount,
+            usbACount,
+            sdCard,
+            isSupportsPdCharging,
+            batteryCapacity,
+            storageCapacity,
+            storageSlotCount,
+            weight,
+            lastDetailedCrawledAt,
+            usages,
+        ).any { value -> value != null }
     }
 }

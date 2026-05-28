@@ -7,6 +7,7 @@ import going9.laptopgg.application.common.SortProperty
 import going9.laptopgg.application.crawler.CrawledLaptopProfileState
 import going9.laptopgg.application.crawler.LaptopProfileSnapshot
 import going9.laptopgg.application.crawler.LaptopProfileService
+import going9.laptopgg.application.crawler.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.RecommendationScoreService
 import going9.laptopgg.application.recommendation.RecommendationScoreCalculator
 import going9.laptopgg.domain.laptop.Laptop
@@ -876,7 +877,41 @@ class RecommendLaptopsUseCaseIntegrationTest {
             .toMutableList()
 
         val savedLaptop = laptopRepository.save(laptop)
-        laptopProfileService.syncProfile(savedLaptop)
+        laptopProfileService.syncProfile(savedLaptop.toCrawledSnapshot())
         return savedLaptop
+    }
+
+    private fun Laptop.toCrawledSnapshot(): PersistedCrawledLaptopSnapshot {
+        return PersistedCrawledLaptopSnapshot(
+            id = requireNotNull(id),
+            name = name,
+            imageUrl = imageUrl,
+            detailPage = detailPage,
+            productCode = productCode,
+            price = price,
+            cpuManufacturer = cpuManufacturer,
+            cpu = cpu,
+            os = os,
+            screenSize = screenSize,
+            resolution = resolution,
+            brightness = brightness,
+            refreshRate = refreshRate,
+            ramSize = ramSize,
+            ramType = ramType,
+            isRamReplaceable = isRamReplaceable,
+            graphicsType = graphicsType,
+            tgp = tgp,
+            thunderboltCount = thunderboltCount,
+            usbCCount = usbCCount,
+            usbACount = usbACount,
+            sdCard = sdCard,
+            isSupportsPdCharging = isSupportsPdCharging,
+            batteryCapacity = batteryCapacity,
+            storageCapacity = storageCapacity,
+            storageSlotCount = storageSlotCount,
+            weight = weight,
+            lastDetailedCrawledAt = lastDetailedCrawledAt,
+            usages = laptopUsage.map { usage -> usage.usage },
+        )
     }
 }

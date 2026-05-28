@@ -1,7 +1,6 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.GpuClass
-import going9.laptopgg.domain.laptop.Laptop
 
 data class GpuInsights(
     val normalizedGpu: String?,
@@ -12,7 +11,7 @@ data class GpuInsights(
 )
 
 class GpuClassifier {
-    fun classify(laptop: Laptop): GpuInsights {
+    fun classify(laptop: PersistedCrawledLaptopSnapshot): GpuInsights {
         return classifyGraphics(laptop.graphicsType)
     }
 

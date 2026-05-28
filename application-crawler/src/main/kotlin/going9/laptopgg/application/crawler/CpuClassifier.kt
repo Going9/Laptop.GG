@@ -1,7 +1,6 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.CpuClass
-import going9.laptopgg.domain.laptop.Laptop
 import kotlin.math.roundToInt
 
 data class CpuInsights(
@@ -12,7 +11,7 @@ data class CpuInsights(
 )
 
 class CpuClassifier {
-    fun classify(laptop: Laptop): CpuInsights {
+    fun classify(laptop: PersistedCrawledLaptopSnapshot): CpuInsights {
         val resolvedCpu = resolveCpuToken(laptop.cpu, laptop.cpuManufacturer, laptop.name)
         val normalized = normalizeCpuToken(resolvedCpu)
 

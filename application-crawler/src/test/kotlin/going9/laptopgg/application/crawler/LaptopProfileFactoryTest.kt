@@ -1,8 +1,6 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.GpuClass
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopUsage
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -61,8 +59,9 @@ class LaptopProfileFactoryTest {
         tgp: Int,
         weight: Double,
         usages: List<String>,
-    ): Laptop {
-        val laptop = Laptop(
+    ): PersistedCrawledLaptopSnapshot {
+        return PersistedCrawledLaptopSnapshot(
+            id = name.hashCode().toLong(),
             name = name,
             imageUrl = "https://example.com/${name.hashCode()}.jpg",
             detailPage = "https://example.com/${name.hashCode()}",
@@ -89,13 +88,8 @@ class LaptopProfileFactoryTest {
             storageCapacity = 1024,
             storageSlotCount = 1,
             weight = weight,
-            laptopUsage = mutableListOf(),
+            lastDetailedCrawledAt = null,
+            usages = usages,
         )
-
-        laptop.laptopUsage = usages
-            .map { usage -> LaptopUsage(usage = usage, laptop = laptop) }
-            .toMutableList()
-
-        return laptop
     }
 }

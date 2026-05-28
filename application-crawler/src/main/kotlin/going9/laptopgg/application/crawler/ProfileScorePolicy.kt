@@ -1,7 +1,6 @@
 package going9.laptopgg.application.crawler
 
 import going9.laptopgg.domain.laptop.BatteryTier
-import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.PortabilityTier
 import kotlin.math.roundToInt
 
@@ -21,7 +20,7 @@ data class ProfileScores(
 )
 
 class ProfileScorePolicy {
-    fun calculate(laptop: Laptop, cpu: CpuInsights, gpu: GpuInsights): ProfileScores {
+    fun calculate(laptop: PersistedCrawledLaptopSnapshot, cpu: CpuInsights, gpu: GpuInsights): ProfileScores {
         val portabilityScore = portabilityScore(laptop.weight)
         val batteryCapacityScore = batteryCapacityScore(laptop.batteryCapacity)
         val ramScore = ramScore(laptop.ramSize)
@@ -159,7 +158,7 @@ class ProfileScorePolicy {
         }
     }
 
-    fun displayScore(laptop: Laptop): Int {
+    fun displayScore(laptop: PersistedCrawledLaptopSnapshot): Int {
         val resolution = laptop.resolution.orEmpty()
         val resolutionMatch = RESOLUTION_REGEX.find(resolution)
         val pixelScore = if (resolutionMatch != null) {
@@ -200,8 +199,8 @@ class ProfileScorePolicy {
         }
     }
 
-    private fun usageSet(laptop: Laptop): UsageBoosts {
-        val usages = laptop.laptopUsage.map { it.usage.trim() }.toSet()
+    private fun usageSet(laptop: PersistedCrawledLaptopSnapshot): UsageBoosts {
+        val usages = laptop.usages.map { it.trim() }.toSet()
         return UsageBoosts(
             officeBoost = if ("사무/인강용" in usages) 8 else 0,
             portableBoost = if ("휴대용" in usages) 8 else 0,

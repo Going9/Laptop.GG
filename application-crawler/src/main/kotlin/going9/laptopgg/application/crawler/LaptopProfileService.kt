@@ -2,7 +2,6 @@ package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopPort
 import going9.laptopgg.application.crawler.port.out.CrawledLaptopProfilePort
-import going9.laptopgg.domain.laptop.Laptop
 import org.springframework.transaction.annotation.Transactional
 
 @Transactional
@@ -91,8 +90,8 @@ class LaptopProfileService(
         return ids.size
     }
 
-    fun syncProfile(laptop: Laptop): CrawledLaptopProfileState {
-        val laptopId = requireNotNull(laptop.id) { "Laptop must be persisted before syncing a profile." }
+    fun syncProfile(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
+        val laptopId = laptop.id
         val snapshot = laptopProfileFactory.build(laptop)
         val profile = laptopProfilePort.upsert(
             UpsertCrawledLaptopProfileCommand(

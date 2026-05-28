@@ -1,13 +1,11 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.domain.laptop.Laptop
-
 class LaptopProfileFactory(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),
     private val gpuClassifier: GpuClassifier = GpuClassifier(),
     private val profileScorePolicy: ProfileScorePolicy = ProfileScorePolicy(),
 ) {
-    fun build(laptop: Laptop): LaptopProfileSnapshot {
+    fun build(laptop: PersistedCrawledLaptopSnapshot): LaptopProfileSnapshot {
         val cpu = cpuClassifier.classify(laptop)
         val gpu = gpuClassifier.classify(laptop)
         val scores = profileScorePolicy.calculate(laptop, cpu, gpu)
@@ -34,11 +32,11 @@ class LaptopProfileFactory(
         )
     }
 
-    fun resolveCpuInsights(laptop: Laptop): CpuInsights {
+    fun resolveCpuInsights(laptop: PersistedCrawledLaptopSnapshot): CpuInsights {
         return cpuClassifier.classify(laptop)
     }
 
-    fun resolveGpuInsights(laptop: Laptop): GpuInsights {
+    fun resolveGpuInsights(laptop: PersistedCrawledLaptopSnapshot): GpuInsights {
         return gpuClassifier.classify(laptop)
     }
 }
