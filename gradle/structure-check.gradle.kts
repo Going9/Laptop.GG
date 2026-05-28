@@ -1298,6 +1298,38 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler recommendation score persistence must update directly before insert",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/RecommendationScoreRepository.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/RecommendationScoreJpaAdapter.kt",
+				"infrastructure-jpa-crawler/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/RecommendationScoreJpaAdapterTest.kt",
+			),
+			patterns = listOf(
+				Regex("""@Modifying\(flushAutomatically = true\)"""),
+				Regex("""fun updateByLaptopIdAndUseCase\("""),
+				Regex("""update RecommendationScore rs"""),
+				Regex("""recommendationScoreRepository\.updateByLaptopIdAndUseCase\("""),
+				Regex("""if \(updatedRows == 0\)"""),
+				Regex("""entityManager\.getReference\(Laptop::class\.java, laptopId\)"""),
+				Regex("""without loading score entities"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler recommendation score persistence must not load score entities before mutation",
+			paths = listOf(
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/crawler/RecommendationScoreRepository.kt",
+				"infrastructure-jpa-crawler/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/crawler/RecommendationScoreJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""findAllByLaptopId"""),
+				Regex("""existingScores"""),
+				Regex("""crawlerLaptopRepository"""),
+				Regex("""recommendationScoreRepository\.saveAll"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "crawler profile port must not expose JPA entities",
 			paths = listOf(
