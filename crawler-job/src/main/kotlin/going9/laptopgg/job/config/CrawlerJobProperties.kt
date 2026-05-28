@@ -39,10 +39,17 @@ internal data class CrawlerJobProperties(
         internal const val MAX_DETAIL_FETCH_CONCURRENCY = 12
 
         internal fun normalizedFilterProfile(rawValue: String?): String {
-            return rawValue
+            return when (rawValue
                 ?.trim()
                 ?.takeIf { it.isNotBlank() }
-                ?: DEFAULT_FILTER_PROFILE
+                ?.lowercase()
+            ) {
+                null -> DEFAULT_FILTER_PROFILE
+                DEFAULT_FILTER_PROFILE -> DEFAULT_FILTER_PROFILE
+                "extended" -> "extended"
+                "none", "all" -> "none"
+                else -> DEFAULT_FILTER_PROFILE
+            }
         }
     }
 }

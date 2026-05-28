@@ -18,6 +18,12 @@ class CrawlerStartupRunnerTest {
     }
 
     @Test
+    fun `filter profile is canonicalized before run tracking`() {
+        assertThat(CrawlerJobProperties.normalizedFilterProfile(" all ")).isEqualTo("none")
+        assertThat(CrawlerJobProperties.normalizedFilterProfile("weird-profile")).isEqualTo("core")
+    }
+
+    @Test
     fun `non positive limit and start page are ignored`() {
         val properties = CrawlerJobProperties(limit = 0, startPage = -1)
 

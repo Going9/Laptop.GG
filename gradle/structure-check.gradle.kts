@@ -345,6 +345,19 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler filter profile must be canonicalized before run tracking",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerJobProperties.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/runner/CrawlerStartupRunnerTest.kt",
+			),
+			patterns = listOf(
+				Regex(""""none", "all" -> "none""""),
+				Regex("""else -> DEFAULT_FILTER_PROFILE"""),
+				Regex("""filter profile is canonicalized before run tracking"""),
+			),
+		)
+
+		assertPresent(
 			rule = "crawler service orchestration must be covered without disabled live smoke tests",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",
