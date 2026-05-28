@@ -2,9 +2,9 @@ package going9.laptopgg.integration.recommendation.support
 
 import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
 import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
-import going9.laptopgg.application.crawler.profile.LaptopProfileService
+import going9.laptopgg.application.crawler.profile.SyncCrawledLaptopProfileUseCase
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
+import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
@@ -14,8 +14,8 @@ import going9.laptopgg.persistence.model.laptop.LaptopUsage
 class RecommendationIntegrationFixtures(
     private val laptopRepository: CrawlerLaptopRepository,
     private val laptopProfileRepository: CrawlerLaptopProfileRepository,
-    private val laptopProfileService: LaptopProfileService,
-    private val recommendationScoreService: RecommendationScoreService,
+    private val laptopProfileService: SyncCrawledLaptopProfileUseCase,
+    private val recommendationScoreService: RefreshRecommendationScoreUseCase,
 ) {
     fun persistSortProbeLaptops(): List<Laptop> {
         return listOf(

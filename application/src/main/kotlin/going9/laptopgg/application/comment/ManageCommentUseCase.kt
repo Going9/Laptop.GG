@@ -6,19 +6,26 @@ import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 
-class ManageCommentUseCase(
+interface ManageCommentUseCase {
+    fun add(command: AddCommentCommand)
+    fun listByLaptop(laptopId: Long): List<CommentResult>
+    fun update(commentId: Long, command: UpdateCommentCommand)
+    fun delete(commentId: Long, command: DeleteCommentCommand)
+}
+
+internal class DefaultManageCommentUseCase(
     private val commentPort: CommentPort,
     private val laptopPort: CommentLaptopPort,
     private val passwordHashPort: PasswordHashPort,
     private val transactionPort: ApplicationTransactionPort,
-) {
-    fun add(command: AddCommentCommand) {
+) : ManageCommentUseCase {
+    override fun add(command: AddCommentCommand) {
         transactionPort.write {
             addInTransaction(command)
         }
     }
 
-    fun listByLaptop(laptopId: Long): List<CommentResult> {
+    override fun listByLaptop(laptopId: Long): List<CommentResult> {
         return transactionPort.read {
             commentPort.findAllByLaptopId(laptopId).map { comment ->
                 CommentResult(
@@ -30,7 +37,7 @@ class ManageCommentUseCase(
         }
     }
 
-    fun update(commentId: Long, command: UpdateCommentCommand) {
+    override fun update(commentId: Long, command: UpdateCommentCommand) {
         transactionPort.write {
             val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
             validatePassword(comment, command.password)
@@ -38,7 +45,7 @@ class ManageCommentUseCase(
         }
     }
 
-    fun delete(commentId: Long, command: DeleteCommentCommand) {
+    override fun delete(commentId: Long, command: DeleteCommentCommand) {
         transactionPort.write {
             val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
             validatePassword(comment, command.password)

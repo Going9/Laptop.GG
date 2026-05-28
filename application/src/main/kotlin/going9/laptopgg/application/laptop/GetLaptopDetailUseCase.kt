@@ -4,11 +4,15 @@ import going9.laptopgg.application.laptop.port.LaptopDetailRecord
 import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 
-class GetLaptopDetailUseCase(
+interface GetLaptopDetailUseCase {
+    fun get(laptopId: Long): LaptopDetailResult
+}
+
+internal class DefaultGetLaptopDetailUseCase(
     private val laptopPort: LaptopPort,
     private val transactionPort: ApplicationTransactionPort,
-) {
-    fun get(laptopId: Long): LaptopDetailResult {
+) : GetLaptopDetailUseCase {
+    override fun get(laptopId: Long): LaptopDetailResult {
         return transactionPort.read {
             val laptop = laptopPort.findDetailById(laptopId) ?: throw IllegalArgumentException("Laptop not found: $laptopId")
             laptop.toResult()

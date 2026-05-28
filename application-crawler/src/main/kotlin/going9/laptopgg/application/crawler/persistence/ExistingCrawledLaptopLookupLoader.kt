@@ -2,7 +2,7 @@ package going9.laptopgg.application.crawler.persistence
 
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 
-class ExistingCrawledLaptopLookupLoader(
+internal class ExistingCrawledLaptopLookupLoader(
     private val laptopPort: CrawledLaptopPersistencePort,
 ) {
     fun load(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {

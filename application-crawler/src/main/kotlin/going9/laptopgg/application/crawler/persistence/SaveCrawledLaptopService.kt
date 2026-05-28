@@ -3,7 +3,7 @@ package going9.laptopgg.application.crawler.persistence
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
 
-class SaveCrawledLaptopService(
+internal class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPersistencePort,
     private val existingLookupLoader: ExistingCrawledLaptopLookupLoader,
     private val postSaveSynchronizer: CrawledLaptopPostSaveSynchronizer,

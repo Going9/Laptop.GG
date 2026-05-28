@@ -7,7 +7,7 @@ import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.round
 import kotlin.math.roundToInt
 
-class RecommendationScoreCalculator(
+internal class RecommendationScoreCalculator(
     private val recommendationReasonBuilder: RecommendationReasonBuilder,
     private val recommendationScoringPolicy: RecommendationScoringPolicy = RecommendationScoringPolicy(),
 ) {

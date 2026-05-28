@@ -2,7 +2,7 @@ package going9.laptopgg.application.crawler.profile
 
 import kotlin.math.roundToInt
 
-data class ProfileUseCaseScores(
+internal data class ProfileUseCaseScores(
     val officeScore: Int,
     val batteryScore: Int,
     val casualGameScore: Int,
@@ -11,7 +11,7 @@ data class ProfileUseCaseScores(
     val creatorScore: Int,
 )
 
-class ProfileUseCaseScorePolicy {
+internal class ProfileUseCaseScorePolicy {
     fun calculate(cpu: CpuInsights, gpu: GpuInsights, metrics: ProfileMetrics): ProfileUseCaseScores {
         val usageBoosts = metrics.usageBoosts
 

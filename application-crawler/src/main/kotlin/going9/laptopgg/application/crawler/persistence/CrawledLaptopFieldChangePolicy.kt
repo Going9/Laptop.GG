@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler.persistence
 
-class CrawledLaptopFieldChangePolicy {
+internal class CrawledLaptopFieldChangePolicy {
     fun changedText(currentValue: String?, newValue: String?): String? {
         val normalizedValue = newValue?.trim()?.takeIf { it.isNotBlank() } ?: return null
         if (currentValue?.trim() == normalizedValue) {

@@ -4,7 +4,7 @@ import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSna
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.PortabilityTier
 
-data class ProfileScores(
+internal data class ProfileScores(
     val batteryTier: BatteryTier,
     val portabilityTier: PortabilityTier,
     val officeScore: Int,
@@ -19,7 +19,7 @@ data class ProfileScores(
     val tgpScore: Int,
 )
 
-class ProfileScorePolicy(
+internal class ProfileScorePolicy(
     private val profileMetricPolicy: ProfileMetricPolicy = ProfileMetricPolicy(),
     private val profileUseCaseScorePolicy: ProfileUseCaseScorePolicy = ProfileUseCaseScorePolicy(),
 ) {

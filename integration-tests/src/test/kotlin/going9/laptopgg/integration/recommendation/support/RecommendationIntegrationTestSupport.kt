@@ -4,8 +4,8 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
-import going9.laptopgg.application.crawler.profile.LaptopProfileService
-import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
+import going9.laptopgg.application.crawler.profile.SyncCrawledLaptopProfileUseCase
+import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
@@ -28,10 +28,10 @@ abstract class RecommendationIntegrationTestSupport {
     protected lateinit var laptopProfileRepository: CrawlerLaptopProfileRepository
 
     @Autowired
-    protected lateinit var laptopProfileService: LaptopProfileService
+    protected lateinit var laptopProfileService: SyncCrawledLaptopProfileUseCase
 
     @Autowired
-    protected lateinit var recommendationScoreService: RecommendationScoreService
+    protected lateinit var recommendationScoreService: RefreshRecommendationScoreUseCase
 
     @Autowired
     protected lateinit var recommendationScoreRepository: RecommendationScoreRepository

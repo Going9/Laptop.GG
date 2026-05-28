@@ -8,14 +8,18 @@ import going9.laptopgg.application.recommendation.port.RecommendationCandidatePo
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateSortMode
 import going9.laptopgg.recommendation.RecommendationUseCase
 
-class RecommendLaptopsUseCase(
+interface RecommendLaptopsUseCase {
+    fun recommend(request: LaptopRecommendationQuery, pageQuery: PageQuery): PagedResult<LaptopRecommendationResult>
+}
+
+internal class DefaultRecommendLaptopsUseCase(
     private val recommendationCandidatePort: RecommendationCandidatePort,
     private val recommendationScoreCalculator: RecommendationScoreCalculator,
     private val candidateFilterFactory: RecommendationCandidateFilterFactory,
     private val sortModeResolver: RecommendationSortModeResolver,
     private val resultMapper: LaptopRecommendationResultMapper,
-) {
-    fun recommend(request: LaptopRecommendationQuery, pageQuery: PageQuery): PagedResult<LaptopRecommendationResult> {
+) : RecommendLaptopsUseCase {
+    override fun recommend(request: LaptopRecommendationQuery, pageQuery: PageQuery): PagedResult<LaptopRecommendationResult> {
         val useCase = request.resolvedUseCase()
         val gateThreshold = recommendationScoreCalculator.gateThreshold(useCase)
         val candidateFilter = candidateFilterFactory.create(request, useCase, gateThreshold)

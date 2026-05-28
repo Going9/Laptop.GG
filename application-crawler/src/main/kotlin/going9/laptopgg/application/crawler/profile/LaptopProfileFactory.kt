@@ -2,7 +2,7 @@ package going9.laptopgg.application.crawler.profile
 
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 
-class LaptopProfileFactory(
+internal class LaptopProfileFactory(
     private val cpuClassifier: CpuClassifier = CpuClassifier(),
     private val gpuClassifier: GpuClassifier = GpuClassifier(),
     private val profileScorePolicy: ProfileScorePolicy = ProfileScorePolicy(),

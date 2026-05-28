@@ -3,7 +3,7 @@ package going9.laptopgg.application.crawler.run
 import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 
-class TrackCrawlerRunService(
+internal class TrackCrawlerRunService(
     private val crawlerRunPort: CrawlerRunPort,
     private val transactionPort: CrawlerTransactionPort,
     private val commandFactory: CrawlerRunCommandFactory = CrawlerRunCommandFactory(),

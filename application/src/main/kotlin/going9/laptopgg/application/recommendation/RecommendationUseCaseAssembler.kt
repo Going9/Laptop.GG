@@ -7,7 +7,7 @@ object RecommendationUseCaseAssembler {
         recommendationCandidatePort: RecommendationCandidatePort,
     ): RecommendLaptopsUseCase {
         val recommendationReasonBuilder = RecommendationReasonBuilder()
-        return RecommendLaptopsUseCase(
+        return DefaultRecommendLaptopsUseCase(
             recommendationCandidatePort = recommendationCandidatePort,
             recommendationScoreCalculator = RecommendationScoreCalculator(recommendationReasonBuilder),
             candidateFilterFactory = RecommendationCandidateFilterFactory(),

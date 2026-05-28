@@ -4,7 +4,7 @@ import going9.laptopgg.application.recommendation.port.RecommendationCandidateRe
 import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.roundToInt
 
-class RecommendationReasonBuilder {
+internal class RecommendationReasonBuilder {
     fun build(
         useCase: RecommendationUseCase,
         candidate: RecommendationCandidateRecord,

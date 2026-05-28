@@ -1,11 +1,13 @@
 package going9.laptopgg.web.config
 
+import going9.laptopgg.application.comment.CommentUseCaseAssembler
 import going9.laptopgg.application.comment.ManageCommentUseCase
 import going9.laptopgg.application.comment.port.CommentLaptopPort
 import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
+import going9.laptopgg.application.laptop.LaptopUseCaseAssembler
 import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.application.recommendation.RecommendationUseCaseAssembler
@@ -22,7 +24,7 @@ internal class WebApplicationUseCaseConfig {
         passwordHashPort: PasswordHashPort,
         transactionPort: ApplicationTransactionPort,
     ): ManageCommentUseCase {
-        return ManageCommentUseCase(
+        return CommentUseCaseAssembler.createManageCommentUseCase(
             commentPort = commentPort,
             laptopPort = laptopPort,
             passwordHashPort = passwordHashPort,
@@ -35,7 +37,7 @@ internal class WebApplicationUseCaseConfig {
         laptopPort: LaptopPort,
         transactionPort: ApplicationTransactionPort,
     ): GetLaptopDetailUseCase {
-        return GetLaptopDetailUseCase(
+        return LaptopUseCaseAssembler.createGetLaptopDetailUseCase(
             laptopPort = laptopPort,
             transactionPort = transactionPort,
         )

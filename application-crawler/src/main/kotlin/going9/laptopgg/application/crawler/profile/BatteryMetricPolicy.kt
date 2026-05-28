@@ -2,7 +2,7 @@ package going9.laptopgg.application.crawler.profile
 
 import going9.laptopgg.taxonomy.BatteryTier
 
-class BatteryMetricPolicy {
+internal class BatteryMetricPolicy {
     fun batteryCapacityScore(batteryCapacity: Double?): Int {
         val value = batteryCapacity ?: return 35
         return when {

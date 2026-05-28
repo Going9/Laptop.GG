@@ -6,7 +6,7 @@ interface CrawlerRunLockUseCase {
     fun <T> runLocked(block: () -> T): CrawlerLockResult<T>
 }
 
-class CrawlerRunLockService(
+internal class CrawlerRunLockService(
     private val crawlerRunLockPort: CrawlerRunLockPort,
 ) : CrawlerRunLockUseCase {
     override fun <T> runLocked(block: () -> T): CrawlerLockResult<T> {

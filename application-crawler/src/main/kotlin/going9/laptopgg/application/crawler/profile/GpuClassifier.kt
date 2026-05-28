@@ -3,7 +3,7 @@ package going9.laptopgg.application.crawler.profile
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.taxonomy.GpuClass
 
-data class GpuInsights(
+internal data class GpuInsights(
     val normalizedGpu: String?,
     val gpuClass: GpuClass,
     val performanceScore: Int,
@@ -11,7 +11,7 @@ data class GpuInsights(
     val isIntegrated: Boolean,
 )
 
-class GpuClassifier {
+internal class GpuClassifier {
     fun classify(laptop: PersistedCrawledLaptopSnapshot): GpuInsights {
         return classifyGraphics(laptop.graphicsType)
     }

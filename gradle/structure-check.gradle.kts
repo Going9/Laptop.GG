@@ -1043,15 +1043,24 @@ val verifyStructure by tasks.registering {
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerApplicationUseCaseConfig.kt"),
 		)
 
+		assertPathAbsent(
+			rule = "crawler profile resolver config must not be named as a use case config",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerProfileUseCaseConfig.kt"),
+		)
+
 		assertAbsent(
 			rule = "runtime configs must delegate crawler application object assembly",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerProfileUseCaseConfig.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerProfileResolverConfig.kt",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerPersistenceUseCaseConfig.kt",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/config/CrawlerRunUseCaseConfig.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/config/IntegrationCrawlerUseCaseConfig.kt",
 			),
 			patterns = listOf(
+				Regex("""application\.crawler\.price\.LaptopPriceHistoryService"""),
+				Regex("""application\.crawler\.profile\.LaptopProfileService"""),
+				Regex("""application\.crawler\.recommendation\.RecommendationScoreService"""),
 				Regex("""return\s+CpuTokenResolver\("""),
 				Regex("""return\s+CpuClassifier\("""),
 				Regex("""return\s+GpuClassifier\("""),
@@ -1074,6 +1083,61 @@ val verifyStructure by tasks.registering {
 		assertPathAbsent(
 			rule = "crawler application object assemblers must be split by feature responsibility",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/assembly/CrawlerUseCaseAssembler.kt"),
+		)
+
+		assertAbsent(
+			rule = "crawler application persistence implementations must stay behind use case contracts",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/SaveCrawledLaptopService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopPostSaveSynchronizer.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/ExistingCrawledLaptopLookupLoader.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopChangeDetector.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawledLaptopFieldChangePolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/price/LaptopPriceHistoryService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
+			),
+			patterns = listOf(
+				Regex("""^(data\s+)?class\s+"""),
+				Regex("""^object\s+"""),
+				Regex("""^enum\s+class\s+"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler run implementations must stay behind use case contracts",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/TrackCrawlerRunService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunLockUseCase.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/run/CrawlerRunCommandFactory.kt",
+			),
+			patterns = listOf(
+				Regex("""^(data\s+)?class\s+"""),
+				Regex("""^object\s+"""),
+				Regex("""^enum\s+class\s+"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler profile scoring implementations must stay inside application-crawler",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/BatteryMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/CpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/CpuTokenResolver.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/DisplayMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/GpuClassifier.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/LaptopProfileFactory.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/MobilityMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileMetricPolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileScorePolicy.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/ProfileUseCaseScorePolicy.kt",
+			),
+			patterns = listOf(
+				Regex("""^(data\s+)?class\s+"""),
+				Regex("""^object\s+"""),
+				Regex("""^interface\s+"""),
+				Regex("""^enum\s+class\s+"""),
+			),
 		)
 
 		assertAbsent(
@@ -1493,6 +1557,64 @@ val verifyStructure by tasks.registering {
 				Regex("""RecommendationCandidateFilterFactory\("""),
 				Regex("""RecommendationSortModeResolver\("""),
 				Regex("""LaptopRecommendationResultMapper\("""),
+			),
+		)
+
+		assertAbsent(
+			rule = "runtime configs must delegate web application use case assembly",
+			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt"),
+			patterns = listOf(
+				Regex("""return\s+ManageCommentUseCase\("""),
+				Regex("""return\s+GetLaptopDetailUseCase\("""),
+				Regex("""return\s+RecommendLaptopsUseCase\("""),
+			),
+		)
+
+		assertAbsent(
+			rule = "application use case constructors must stay hidden behind assemblers",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
+			),
+			patterns = listOf(
+				Regex("""^class\s+DefaultManageCommentUseCase\("""),
+				Regex("""^class\s+DefaultGetLaptopDetailUseCase\("""),
+				Regex("""^class\s+DefaultRecommendLaptopsUseCase\("""),
+			),
+		)
+
+		assertPresent(
+			rule = "application use case contracts must be public interfaces with internal implementations",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
+			),
+			patterns = listOf(
+				Regex("""interface\s+ManageCommentUseCase"""),
+				Regex("""internal\s+class\s+DefaultManageCommentUseCase"""),
+				Regex("""interface\s+GetLaptopDetailUseCase"""),
+				Regex("""internal\s+class\s+DefaultGetLaptopDetailUseCase"""),
+				Regex("""interface\s+RecommendLaptopsUseCase"""),
+				Regex("""internal\s+class\s+DefaultRecommendLaptopsUseCase"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "recommendation application implementation classes must not expose public Kotlin declarations",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationCandidateFilterFactory.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationReasonBuilder.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationScoreCalculator.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationSortModeResolver.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResultMapper.kt",
+			),
+			patterns = listOf(
+				Regex("""^(data\s+)?class\s+"""),
+				Regex("""^object\s+"""),
+				Regex("""^interface\s+"""),
+				Regex("""^enum\s+class\s+"""),
 			),
 		)
 

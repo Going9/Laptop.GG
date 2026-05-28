@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler.profile
 
-class CpuTokenResolver {
+internal class CpuTokenResolver {
     fun resolve(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
         rawCpu?.trim()?.takeIf { it.isNotBlank() }?.let { return it }
 

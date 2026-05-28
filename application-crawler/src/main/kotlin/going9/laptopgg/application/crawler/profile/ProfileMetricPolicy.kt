@@ -4,7 +4,7 @@ import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSna
 import going9.laptopgg.taxonomy.BatteryTier
 import going9.laptopgg.taxonomy.PortabilityTier
 
-data class ProfileMetrics(
+internal data class ProfileMetrics(
     val batteryTier: BatteryTier,
     val portabilityTier: PortabilityTier,
     val batteryCapacityScore: Int,
@@ -15,14 +15,14 @@ data class ProfileMetrics(
     val usageBoosts: UsageBoosts,
 )
 
-data class UsageBoosts(
+internal data class UsageBoosts(
     val officeBoost: Int,
     val portableBoost: Int,
     val creatorBoost: Int,
     val gameBoost: Int,
 )
 
-class ProfileMetricPolicy(
+internal class ProfileMetricPolicy(
     private val batteryMetricPolicy: BatteryMetricPolicy = BatteryMetricPolicy(),
     private val mobilityMetricPolicy: MobilityMetricPolicy = MobilityMetricPolicy(),
     private val displayMetricPolicy: DisplayMetricPolicy = DisplayMetricPolicy(),

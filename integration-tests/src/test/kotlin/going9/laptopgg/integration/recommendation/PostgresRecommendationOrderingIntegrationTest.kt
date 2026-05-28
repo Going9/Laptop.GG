@@ -5,8 +5,8 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.application.recommendation.ScreenSizeMode
-import going9.laptopgg.application.crawler.profile.LaptopProfileService
-import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
+import going9.laptopgg.application.crawler.profile.SyncCrawledLaptopProfileUseCase
+import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.integration.recommendation.support.RecommendationIntegrationFixtures
@@ -46,10 +46,10 @@ class PostgresRecommendationOrderingIntegrationTest {
     lateinit var laptopProfileRepository: CrawlerLaptopProfileRepository
 
     @Autowired
-    lateinit var laptopProfileService: LaptopProfileService
+    lateinit var laptopProfileService: SyncCrawledLaptopProfileUseCase
 
     @Autowired
-    lateinit var recommendationScoreService: RecommendationScoreService
+    lateinit var recommendationScoreService: RefreshRecommendationScoreUseCase
 
     private lateinit var fixtures: RecommendationIntegrationFixtures
 

@@ -2,7 +2,7 @@ package going9.laptopgg.application.crawler.run
 
 import java.time.LocalDateTime
 
-class CrawlerRunCommandFactory(
+internal class CrawlerRunCommandFactory(
     private val now: () -> LocalDateTime = { LocalDateTime.now() },
 ) {
     fun start(filterProfile: String, startPage: Int, limit: Int?): CreateCrawlerRunCommand {

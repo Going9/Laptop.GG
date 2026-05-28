@@ -1,11 +1,11 @@
 package going9.laptopgg.application.crawler.persistence
 
-import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
-import going9.laptopgg.application.crawler.profile.LaptopProfileService
+import going9.laptopgg.application.crawler.price.LaptopPriceHistoryRecorder
+import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileSynchronizer
 
-class CrawledLaptopPostSaveSynchronizer(
-    private val laptopProfileService: LaptopProfileService,
-    private val laptopPriceHistoryService: LaptopPriceHistoryService,
+internal class CrawledLaptopPostSaveSynchronizer(
+    private val laptopProfileSynchronizer: CrawledLaptopProfileSynchronizer,
+    private val laptopPriceHistoryRecorder: LaptopPriceHistoryRecorder,
 ) {
     internal fun afterListSnapshot(
         savedLaptop: PersistedCrawledLaptopSnapshot,
@@ -18,7 +18,7 @@ class CrawledLaptopPostSaveSynchronizer(
         savedLaptop: PersistedCrawledLaptopSnapshot,
         previousPrice: Int?,
     ) {
-        laptopProfileService.syncProfileInTransaction(savedLaptop)
+        laptopProfileSynchronizer.syncProfileInTransaction(savedLaptop)
         recordPriceHistory(savedLaptop, previousPrice)
     }
 
@@ -26,7 +26,7 @@ class CrawledLaptopPostSaveSynchronizer(
         savedLaptop: PersistedCrawledLaptopSnapshot,
         previousPrice: Int?,
     ) {
-        laptopPriceHistoryService.recordCurrentPriceInTransaction(
+        laptopPriceHistoryRecorder.recordCurrentPriceInTransaction(
             laptopId = savedLaptop.id,
             currentPrice = savedLaptop.price,
             previousPrice = previousPrice,

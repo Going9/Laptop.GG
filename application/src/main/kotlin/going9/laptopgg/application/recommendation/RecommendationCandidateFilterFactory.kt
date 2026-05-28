@@ -4,7 +4,7 @@ import going9.laptopgg.application.recommendation.port.RecommendationCandidateFi
 import going9.laptopgg.recommendation.RecommendationUseCase
 import kotlin.math.ceil
 
-class RecommendationCandidateFilterFactory {
+internal class RecommendationCandidateFilterFactory {
     fun create(
         request: LaptopRecommendationQuery,
         useCase: RecommendationUseCase,

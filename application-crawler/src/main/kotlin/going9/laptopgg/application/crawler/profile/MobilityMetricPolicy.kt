@@ -2,7 +2,7 @@ package going9.laptopgg.application.crawler.profile
 
 import going9.laptopgg.taxonomy.PortabilityTier
 
-class MobilityMetricPolicy {
+internal class MobilityMetricPolicy {
     fun portabilityScore(weight: Double?): Int {
         val value = weight ?: return 40
         return when {

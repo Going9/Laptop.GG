@@ -4,12 +4,8 @@ import going9.laptopgg.application.crawler.assembly.CrawlerPersistenceAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
-import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
-import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
-import going9.laptopgg.application.crawler.profile.LaptopProfileService
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
-import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,53 +13,18 @@ import org.springframework.context.annotation.Configuration
 @Configuration(proxyBeanMethods = false)
 internal class CrawlerPersistenceUseCaseConfig {
     @Bean
-    fun recommendationScoreService(
-        recommendationScorePort: RecommendationScorePort,
-        transactionPort: CrawlerTransactionPort,
-    ): RecommendationScoreService {
-        return CrawlerPersistenceAssembler.createRecommendationScoreService(
-            recommendationScorePort = recommendationScorePort,
-            transactionPort = transactionPort,
-        )
-    }
-
-    @Bean
-    fun laptopProfileService(
-        laptopProfilePort: CrawledLaptopProfilePort,
-        laptopProfileFactory: LaptopProfileFactory,
-        recommendationScoreService: RecommendationScoreService,
-        transactionPort: CrawlerTransactionPort,
-    ): LaptopProfileService {
-        return CrawlerPersistenceAssembler.createLaptopProfileService(
-            laptopProfilePort = laptopProfilePort,
-            laptopProfileFactory = laptopProfileFactory,
-            recommendationScoreService = recommendationScoreService,
-            transactionPort = transactionPort,
-        )
-    }
-
-    @Bean
-    fun laptopPriceHistoryService(
-        laptopPriceHistoryPort: LaptopPriceHistoryPort,
-        transactionPort: CrawlerTransactionPort,
-    ): LaptopPriceHistoryService {
-        return CrawlerPersistenceAssembler.createLaptopPriceHistoryService(
-            laptopPriceHistoryPort = laptopPriceHistoryPort,
-            transactionPort = transactionPort,
-        )
-    }
-
-    @Bean
     fun saveCrawledLaptopService(
         laptopPort: CrawledLaptopPersistencePort,
-        laptopProfileService: LaptopProfileService,
-        laptopPriceHistoryService: LaptopPriceHistoryService,
+        laptopProfilePort: CrawledLaptopProfilePort,
+        laptopPriceHistoryPort: LaptopPriceHistoryPort,
+        recommendationScorePort: RecommendationScorePort,
         transactionPort: CrawlerTransactionPort,
     ): SaveCrawledLaptopUseCase {
         return CrawlerPersistenceAssembler.createSaveCrawledLaptopUseCase(
             laptopPort = laptopPort,
-            laptopProfileService = laptopProfileService,
-            laptopPriceHistoryService = laptopPriceHistoryService,
+            laptopProfilePort = laptopProfilePort,
+            laptopPriceHistoryPort = laptopPriceHistoryPort,
+            recommendationScorePort = recommendationScorePort,
             transactionPort = transactionPort,
         )
     }

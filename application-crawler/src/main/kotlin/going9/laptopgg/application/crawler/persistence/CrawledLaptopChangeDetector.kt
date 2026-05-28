@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler.persistence
 
-class CrawledLaptopChangeDetector(
+internal class CrawledLaptopChangeDetector(
     private val fieldChangePolicy: CrawledLaptopFieldChangePolicy = CrawledLaptopFieldChangePolicy(),
 ) {
     fun listSnapshotUpdate(

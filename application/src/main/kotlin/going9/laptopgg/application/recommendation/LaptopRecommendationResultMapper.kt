@@ -2,7 +2,7 @@ package going9.laptopgg.application.recommendation
 
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateRecord
 
-class LaptopRecommendationResultMapper {
+internal class LaptopRecommendationResultMapper {
     fun toResult(
         candidate: RecommendationCandidateRecord,
         scoreResult: RecommendationScoreCalculator.ScoreResult,

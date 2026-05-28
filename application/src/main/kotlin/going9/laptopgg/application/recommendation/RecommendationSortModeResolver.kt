@@ -4,7 +4,7 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortProperty
 import going9.laptopgg.application.recommendation.port.RecommendationCandidateSortMode
 
-class RecommendationSortModeResolver {
+internal class RecommendationSortModeResolver {
     fun resolve(pageQuery: PageQuery): RecommendationCandidateSortMode {
         val firstOrder = pageQuery.sort.firstOrNull() ?: return RecommendationCandidateSortMode.RECOMMENDED
 

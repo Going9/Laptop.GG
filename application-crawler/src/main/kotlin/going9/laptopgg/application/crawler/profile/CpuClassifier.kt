@@ -4,14 +4,14 @@ import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSna
 import going9.laptopgg.taxonomy.CpuClass
 import kotlin.math.roundToInt
 
-data class CpuInsights(
+internal data class CpuInsights(
     val normalizedCpu: String?,
     val cpuClass: CpuClass,
     val performanceScore: Int,
     val lowPowerScore: Int,
 )
 
-class CpuClassifier(
+internal class CpuClassifier(
     private val cpuTokenResolver: CpuTokenResolver = CpuTokenResolver(),
 ) {
     fun classify(laptop: PersistedCrawledLaptopSnapshot): CpuInsights {

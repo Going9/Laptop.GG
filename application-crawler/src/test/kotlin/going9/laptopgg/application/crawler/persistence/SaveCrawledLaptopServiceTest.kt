@@ -38,15 +38,15 @@ class SaveCrawledLaptopServiceTest {
             gpuClassifier = GpuClassifier(),
             profileScorePolicy = ProfileScorePolicy(),
         ),
-        recommendationScoreService = recommendationScoreService,
+        recommendationScoreRefresher = recommendationScoreService,
         transactionPort = transactionPort,
     )
     private val service = SaveCrawledLaptopService(
         laptopPort = laptopPort,
         existingLookupLoader = ExistingCrawledLaptopLookupLoader(laptopPort),
         postSaveSynchronizer = CrawledLaptopPostSaveSynchronizer(
-            laptopProfileService = laptopProfileService,
-            laptopPriceHistoryService = LaptopPriceHistoryService(
+            laptopProfileSynchronizer = laptopProfileService,
+            laptopPriceHistoryRecorder = LaptopPriceHistoryService(
                 laptopPriceHistoryPort = priceHistoryPort,
                 transactionPort = transactionPort,
             ),

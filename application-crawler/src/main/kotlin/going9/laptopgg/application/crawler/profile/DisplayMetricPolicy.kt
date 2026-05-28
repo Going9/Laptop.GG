@@ -3,7 +3,7 @@ package going9.laptopgg.application.crawler.profile
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import kotlin.math.roundToInt
 
-class DisplayMetricPolicy {
+internal class DisplayMetricPolicy {
     fun displayScore(laptop: PersistedCrawledLaptopSnapshot): Int {
         val pixelScore = pixelScore(laptop.resolution)
         val brightnessScore = brightnessScore(laptop.brightness)
