@@ -30,6 +30,18 @@ class CrawlerJobApplicationTests {
     }
 
     @Test
+    fun `crawler context does not load user flow use cases`() {
+        val beanNames = beanFactory.beanDefinitionNames.toSet()
+
+        assertThat(beanNames).doesNotContain(
+            "getLaptopDetailUseCase",
+            "manageCommentUseCase",
+            "recommendLaptopsUseCase",
+            "scoreCalculatorService",
+        )
+    }
+
+    @Test
     fun `crawler context loads crawler application beans`() {
         val beanNames = beanFactory.beanDefinitionNames.toSet()
 

@@ -3,8 +3,8 @@ package going9.laptopgg.application.recommendation
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
-import going9.laptopgg.application.service.LaptopProfileService
-import going9.laptopgg.application.service.RecommendationScoreService
+import going9.laptopgg.application.crawler.LaptopProfileService
+import going9.laptopgg.application.crawler.RecommendationScoreService
 import going9.laptopgg.application.service.ScoreCalculatorService
 import going9.laptopgg.domain.laptop.Laptop
 import going9.laptopgg.domain.laptop.LaptopUsage

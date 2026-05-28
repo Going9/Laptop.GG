@@ -139,8 +139,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler-job must not use root package default component scan",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/CrawlerJobApplication.kt"),
+			patterns = listOf(
+				Regex("""@SpringBootApplication\s*$"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job tests must not reach into JPA repositories directly",
-			paths = listOf("crawler-job/src/main", "crawler-job/src/test", "crawler-job/build.gradle.kts"),
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job",
+				"crawler-job/src/main/kotlin/going9/laptopgg/runner",
+				"crawler-job/src/test",
+				"crawler-job/build.gradle.kts",
+			),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.infrastructure\.jpa"""),
 				Regex("""spring-boot-starter-data-jpa"""),

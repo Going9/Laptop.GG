@@ -1,4 +1,4 @@
-package going9.laptopgg.application.service
+package going9.laptopgg.application.crawler
 
 import going9.laptopgg.application.port.out.LaptopPort
 import going9.laptopgg.application.port.out.LaptopProfilePort
