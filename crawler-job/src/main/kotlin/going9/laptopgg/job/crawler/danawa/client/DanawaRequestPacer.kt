@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom
 import org.springframework.stereotype.Component
 
 @Component
-class DanawaRequestPacer {
+internal class DanawaRequestPacer {
     private val requestPacingLock = Any()
 
     @Volatile

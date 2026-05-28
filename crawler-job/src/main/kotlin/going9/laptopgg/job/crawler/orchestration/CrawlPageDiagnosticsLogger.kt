@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlPageDiagnosticsLogger(
+internal class CrawlPageDiagnosticsLogger(
     private val formatter: CrawlPageDiagnosticFormatter,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

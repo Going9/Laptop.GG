@@ -3,7 +3,7 @@ package going9.laptopgg.job.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app.crawler")
-data class CrawlerJobProperties(
+internal data class CrawlerJobProperties(
     val runOnStartup: Boolean = false,
     val limit: Int? = null,
     val startPage: Int? = null,

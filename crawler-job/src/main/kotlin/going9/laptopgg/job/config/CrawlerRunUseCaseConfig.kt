@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration(proxyBeanMethods = false)
-class CrawlerRunUseCaseConfig {
+internal class CrawlerRunUseCaseConfig {
     @Bean
     fun trackCrawlerRunService(
         crawlerRunPort: CrawlerRunPort,

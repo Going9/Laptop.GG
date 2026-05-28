@@ -89,7 +89,7 @@ internal class CrawlerJobExecutor(
     }
 }
 
-data class CrawlerJobRequest(
+internal data class CrawlerJobRequest(
     val limit: Int?,
     val startPage: Int,
     val filterProfile: String,

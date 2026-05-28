@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlerJobSummaryLogger {
+internal class CrawlerJobSummaryLogger {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun logLockFailure(exception: Throwable) {

@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class DetailRefreshOutcomeHandler(
+internal class DetailRefreshOutcomeHandler(
     private val snapshotSaver: CrawlProductSnapshotSaver,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

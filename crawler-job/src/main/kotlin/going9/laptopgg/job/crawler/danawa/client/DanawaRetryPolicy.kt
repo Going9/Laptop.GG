@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom
 import org.springframework.stereotype.Component
 
 @Component
-class DanawaRetryPolicy {
+internal class DanawaRetryPolicy {
     internal val maxAttempts: Int = 3
 
     internal fun shouldRetry(statusCode: Int, attempt: Int): Boolean {

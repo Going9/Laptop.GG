@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlSourceStopDecisionLogger(
+internal class CrawlSourceStopDecisionLogger(
     private val crawlPageDiagnosticsLogger: CrawlPageDiagnosticsLogger,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlProductSnapshotSaver(
+internal class CrawlProductSnapshotSaver(
     private val saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

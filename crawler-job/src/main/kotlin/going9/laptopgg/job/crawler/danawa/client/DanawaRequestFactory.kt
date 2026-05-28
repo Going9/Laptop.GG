@@ -12,7 +12,7 @@ import java.time.Duration
 import org.springframework.stereotype.Component
 
 @Component
-class DanawaRequestFactory {
+internal class DanawaRequestFactory {
     internal fun initialListPage(listUrl: String): HttpRequest {
         return HttpRequest.newBuilder(URI.create(listUrl))
             .timeout(REQUEST_TIMEOUT)

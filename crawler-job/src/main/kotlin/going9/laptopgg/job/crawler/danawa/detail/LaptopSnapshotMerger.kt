@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 
 @Component
-class LaptopSnapshotMerger(
+internal class LaptopSnapshotMerger(
     private val crawledCpuManufacturerResolver: CrawledCpuManufacturerResolver,
     private val crawledCpuModelResolver: CrawledCpuModelResolver,
     private val crawledGraphicsModelResolver: CrawledGraphicsModelResolver,

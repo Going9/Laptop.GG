@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class DanawaHttpClient(
+internal class DanawaHttpClient(
     private val requestPacer: DanawaRequestPacer,
     private val retryPolicy: DanawaRetryPolicy,
 ) {

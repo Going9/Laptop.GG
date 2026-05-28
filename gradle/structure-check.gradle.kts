@@ -1594,6 +1594,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler-job implementation packages must not expose public Kotlin declarations",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job"),
+			patterns = listOf(
+				Regex("""^(data\s+)?class\s+"""),
+				Regex("""^object\s+"""),
+				Regex("""^interface\s+"""),
+				Regex("""^enum\s+class\s+"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler orchestration must not own filter profile source mapping",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(

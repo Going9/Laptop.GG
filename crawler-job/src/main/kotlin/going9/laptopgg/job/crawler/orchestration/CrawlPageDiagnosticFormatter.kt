@@ -4,7 +4,7 @@ import going9.laptopgg.job.crawler.list.ProductCard
 import org.springframework.stereotype.Component
 
 @Component
-class CrawlPageDiagnosticFormatter {
+internal class CrawlPageDiagnosticFormatter {
     internal fun format(context: CrawlPageDiagnosticContext): FormattedCrawlPageDiagnostics {
         return FormattedCrawlPageDiagnostics(
             visiblePages = visiblePages(context),

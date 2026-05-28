@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration(proxyBeanMethods = false)
-class CrawlerProfileUseCaseConfig {
+internal class CrawlerProfileUseCaseConfig {
     @Bean
     fun cpuTokenResolver(): CpuTokenResolver {
         return CrawlerProfileAssembler.createCpuTokenResolver()
