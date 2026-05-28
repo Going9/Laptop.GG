@@ -1,22 +1,30 @@
 package going9.laptopgg.integration.recommendation.support
 
-import going9.laptopgg.application.crawler.profile.CrawledLaptopProfileState
-import going9.laptopgg.application.crawler.profile.LaptopProfileSnapshot
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.SaveResult
-import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
+import going9.laptopgg.application.crawler.recommendation.UpsertRecommendationScoreCommand
+import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.laptop.LaptopProfile
+import going9.laptopgg.recommendation.RecommendationGateInputs
+import going9.laptopgg.recommendation.RecommendationScoreInputs
+import going9.laptopgg.recommendation.RecommendationScoringPolicy
+import going9.laptopgg.recommendation.RecommendationUseCase
+import java.time.LocalDateTime
 
 class RecommendationIntegrationFixtures(
     private val laptopRepository: CrawlerLaptopRepository,
     private val laptopProfileRepository: CrawlerLaptopProfileRepository,
     private val saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase,
-    private val recommendationScoreService: RefreshRecommendationScoreUseCase,
+    private val recommendationScorePort: RecommendationScorePort,
+    private val crawlerTransactionPort: CrawlerTransactionPort,
 ) {
+    private val recommendationScoringPolicy = RecommendationScoringPolicy()
+
     fun persistSortProbeLaptops(): List<Laptop> {
         return listOf(
             persistLaptop(
@@ -173,31 +181,10 @@ class RecommendationIntegrationFixtures(
 
     fun saveProfileAndScores(profile: LaptopProfile) {
         val savedProfile = laptopProfileRepository.save(profile)
-        recommendationScoreService.refreshScores(
-            CrawledLaptopProfileState(
-                laptopId = requireNotNull(savedProfile.laptop.id),
-                profile = LaptopProfileSnapshot(
-                    cpuClass = savedProfile.cpuClass,
-                    gpuClass = savedProfile.gpuClass,
-                    batteryTier = savedProfile.batteryTier,
-                    portabilityTier = savedProfile.portabilityTier,
-                    officeScore = savedProfile.officeScore,
-                    batteryScore = savedProfile.batteryScore,
-                    casualGameScore = savedProfile.casualGameScore,
-                    onlineGameScore = savedProfile.onlineGameScore,
-                    aaaGameScore = savedProfile.aaaGameScore,
-                    creatorScore = savedProfile.creatorScore,
-                    cpuPerformanceScore = savedProfile.cpuPerformanceScore,
-                    lowPowerCpuScore = savedProfile.lowPowerCpuScore,
-                    gpuPerformanceScore = savedProfile.gpuPerformanceScore,
-                    gpuCreatorBonus = savedProfile.gpuCreatorBonus,
-                    portabilityScore = savedProfile.portabilityScore,
-                    displayScore = savedProfile.displayScore,
-                    ramScore = savedProfile.ramScore,
-                    tgpScore = savedProfile.tgpScore,
-                ),
-            ),
-        )
+        val laptopId = requireNotNull(savedProfile.laptop.id)
+        crawlerTransactionPort.write {
+            recommendationScorePort.saveAll(scoreCommands(laptopId, savedProfile))
+        }
     }
 
     fun persistLaptop(
@@ -256,5 +243,44 @@ class RecommendationIntegrationFixtures(
 
     private companion object {
         const val SORT_PROBE_COUNT = 4
+    }
+
+    private fun scoreCommands(
+        laptopId: Long,
+        profile: LaptopProfile,
+    ): List<UpsertRecommendationScoreCommand> {
+        val scoreInputs = RecommendationScoreInputs(
+            budgetScore = 0,
+            portabilityScore = profile.portabilityScore,
+            displayScore = profile.displayScore,
+            ramScore = profile.ramScore,
+            tgpScore = profile.tgpScore,
+            cpuPerformanceScore = profile.cpuPerformanceScore,
+            lowPowerCpuScore = profile.lowPowerCpuScore,
+            gpuScore = profile.gpuPerformanceScore,
+            creatorGpuScore = (profile.gpuPerformanceScore + profile.gpuCreatorBonus).coerceAtMost(100),
+            officeScore = profile.officeScore,
+            batteryScore = profile.batteryScore,
+        )
+        val gateInputs = RecommendationGateInputs(
+            officeScore = profile.officeScore,
+            batteryScore = profile.batteryScore,
+            casualGameScore = profile.casualGameScore,
+            onlineGameScore = profile.onlineGameScore,
+            aaaGameScore = profile.aaaGameScore,
+            creatorScore = profile.creatorScore,
+        )
+        val updatedAt = LocalDateTime.now()
+
+        return RecommendationUseCase.entries.map { useCase ->
+            UpsertRecommendationScoreCommand(
+                laptopId = laptopId,
+                useCase = useCase,
+                gateScore = recommendationScoringPolicy.gateScore(gateInputs, useCase),
+                staticScore = recommendationScoringPolicy.staticScore(useCase, scoreInputs),
+                budgetWeight = recommendationScoringPolicy.budgetWeight(useCase),
+                updatedAt = updatedAt,
+            )
+        }
     }
 }

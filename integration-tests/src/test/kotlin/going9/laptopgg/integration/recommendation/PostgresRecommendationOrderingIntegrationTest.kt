@@ -2,11 +2,12 @@ package going9.laptopgg.integration.recommendation
 
 import going9.laptopgg.InfrastructureJpaTestApplication
 import going9.laptopgg.application.common.PageQuery
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import going9.laptopgg.application.recommendation.LaptopRecommendationQuery
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.application.recommendation.ScreenSizeMode
-import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.integration.recommendation.support.RecommendationIntegrationFixtures
@@ -49,7 +50,10 @@ class PostgresRecommendationOrderingIntegrationTest {
     lateinit var saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase
 
     @Autowired
-    lateinit var recommendationScoreService: RefreshRecommendationScoreUseCase
+    lateinit var recommendationScorePort: RecommendationScorePort
+
+    @Autowired
+    lateinit var crawlerTransactionPort: CrawlerTransactionPort
 
     private lateinit var fixtures: RecommendationIntegrationFixtures
 
@@ -61,7 +65,8 @@ class PostgresRecommendationOrderingIntegrationTest {
             laptopRepository = laptopRepository,
             laptopProfileRepository = laptopProfileRepository,
             saveCrawledLaptopUseCase = saveCrawledLaptopUseCase,
-            recommendationScoreService = recommendationScoreService,
+            recommendationScorePort = recommendationScorePort,
+            crawlerTransactionPort = crawlerTransactionPort,
         )
     }
 

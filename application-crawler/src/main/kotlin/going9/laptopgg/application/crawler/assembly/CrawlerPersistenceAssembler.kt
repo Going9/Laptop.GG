@@ -11,18 +11,10 @@ import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
-import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 
 object CrawlerPersistenceAssembler {
-    fun createRefreshRecommendationScoreUseCase(
-        recommendationScorePort: RecommendationScorePort,
-        transactionPort: CrawlerTransactionPort,
-    ): RefreshRecommendationScoreUseCase {
-        return createRecommendationScoreService(recommendationScorePort, transactionPort)
-    }
-
     fun createSaveCrawledLaptopUseCase(
         laptopPort: CrawledLaptopPersistencePort,
         laptopProfilePort: CrawledLaptopProfilePort,

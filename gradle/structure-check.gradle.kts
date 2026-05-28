@@ -1300,6 +1300,18 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "crawler recommendation score refresh must stay internal to save use case flow",
+			paths = listOf(
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/recommendation/RecommendationScoreService.kt",
+				"application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/assembly/CrawlerPersistenceAssembler.kt",
+			),
+			patterns = listOf(
+				Regex("""RefreshRecommendationScoreUseCase"""),
+				Regex("""createRefreshRecommendationScoreUseCase"""),
+			),
+		)
+
 		assertPresent(
 			rule = "crawler recommendation score persistence must update directly before insert",
 			paths = listOf(

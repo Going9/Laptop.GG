@@ -4,8 +4,9 @@ import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.SortDirection
 import going9.laptopgg.application.common.SortOrder
 import going9.laptopgg.application.common.SortProperty
+import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
-import going9.laptopgg.application.crawler.recommendation.RefreshRecommendationScoreUseCase
+import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
@@ -31,7 +32,10 @@ abstract class RecommendationIntegrationTestSupport {
     protected lateinit var saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase
 
     @Autowired
-    protected lateinit var recommendationScoreService: RefreshRecommendationScoreUseCase
+    protected lateinit var recommendationScorePort: RecommendationScorePort
+
+    @Autowired
+    protected lateinit var crawlerTransactionPort: CrawlerTransactionPort
 
     @Autowired
     protected lateinit var recommendationScoreRepository: RecommendationScoreRepository
@@ -47,7 +51,8 @@ abstract class RecommendationIntegrationTestSupport {
             laptopRepository = laptopRepository,
             laptopProfileRepository = laptopProfileRepository,
             saveCrawledLaptopUseCase = saveCrawledLaptopUseCase,
-            recommendationScoreService = recommendationScoreService,
+            recommendationScorePort = recommendationScorePort,
+            crawlerTransactionPort = crawlerTransactionPort,
         )
     }
 

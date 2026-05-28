@@ -10,10 +10,6 @@ import going9.laptopgg.recommendation.RecommendationScoringPolicy
 import going9.laptopgg.recommendation.RecommendationUseCase
 import java.time.LocalDateTime
 
-interface RefreshRecommendationScoreUseCase {
-    fun refreshScores(profileState: CrawledLaptopProfileState)
-}
-
 internal interface RecommendationScoreRefresher {
     fun refreshScoresInTransaction(profileState: CrawledLaptopProfileState)
 }
@@ -22,10 +18,10 @@ internal class RecommendationScoreService(
     private val recommendationScorePort: RecommendationScorePort,
     private val transactionPort: CrawlerTransactionPort,
     private val now: () -> LocalDateTime = LocalDateTime::now,
-) : RefreshRecommendationScoreUseCase, RecommendationScoreRefresher {
+) : RecommendationScoreRefresher {
     private val recommendationScoringPolicy = RecommendationScoringPolicy()
 
-    override fun refreshScores(profileState: CrawledLaptopProfileState) {
+    fun refreshScores(profileState: CrawledLaptopProfileState) {
         transactionPort.write {
             refreshScoresInTransaction(profileState)
         }
