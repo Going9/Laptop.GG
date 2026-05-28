@@ -35,6 +35,7 @@ internal class LaptopSnapshotMerger(
         val gpuKind = spec["GPU 종류"] ?: summaryFallback.graphicsKind
         val gpuModel = spec["GPU 칩셋"] ?: summaryFallback.graphicsModel ?: gpuKind
         val usages = parsedSpecTable.usages.ifEmpty { summaryFallback.usages }
+        val powerSpec = spec["전원"]
 
         return CrawledLaptopCommand(
             name = productCard.productName,
@@ -60,10 +61,7 @@ internal class LaptopSnapshotMerger(
             usbCCount = DanawaSpecValueParser.parseUsbCCount(spec),
             usbACount = DanawaSpecValueParser.parseCountValue(spec["USB-A"]),
             sdCard = DanawaSpecValueParser.parseSdCard(spec),
-            isSupportsPdCharging = when {
-                spec["전원"] != null -> spec["전원"]!!.contains("USB-PD", ignoreCase = true)
-                else -> summaryFallback.isSupportsPdCharging
-            },
+            isSupportsPdCharging = powerSpec?.contains("USB-PD", ignoreCase = true) ?: summaryFallback.isSupportsPdCharging,
             batteryCapacity = DanawaSpecValueParser.parseDoubleValue(spec["배터리"]) ?: summaryFallback.batteryCapacity,
             storageCapacity = DanawaSpecValueParser.parseCapacityInGb(spec["용량"]) ?: summaryFallback.storageCapacity,
             storageSlotCount = DanawaSpecValueParser.parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,

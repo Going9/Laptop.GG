@@ -40,7 +40,7 @@ internal object DanawaDetailParser {
             }
 
             if (children.size == 1 && children.first()?.tagName() == "th" && row.select("td").isEmpty()) {
-                currentSection = children.first()!!.text().trim()
+                currentSection = children.first()?.text()?.trim()
                 return@forEach
             }
 

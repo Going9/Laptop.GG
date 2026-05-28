@@ -1686,6 +1686,19 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa detail parsing and snapshot merging must not use generic null assertions",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailParser.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaSummaryFallbackParser.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/LaptopSnapshotMerger.kt",
+			),
+			patterns = listOf(
+				Regex("""!!"""),
+				Regex("""requireNotNull"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "Danawa scalar value parser must not instantiate application profile policies",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaSpecValueParser.kt"),
 			patterns = listOf(

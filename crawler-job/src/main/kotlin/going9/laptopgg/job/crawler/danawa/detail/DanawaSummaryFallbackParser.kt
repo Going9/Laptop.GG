@@ -59,8 +59,6 @@ internal class DanawaSummaryFallbackParser(
     }
 
     private fun normalizeCpuManufacturer(rawManufacturer: String): String {
-        return requireNotNull(cpuManufacturerResolver.normalize(rawManufacturer)) {
-            "rawManufacturer must not be blank."
-        }
+        return cpuManufacturerResolver.normalize(rawManufacturer) ?: rawManufacturer.trim()
     }
 }

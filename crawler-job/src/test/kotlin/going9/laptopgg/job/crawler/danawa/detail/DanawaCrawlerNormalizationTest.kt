@@ -95,6 +95,36 @@ class DanawaCrawlerNormalizationTest {
     }
 
     @Test
+    fun `pd charging is detected from power spec when present`() {
+        val command = laptopSnapshotMerger.createCommand(
+            productCard(),
+            ParsedSpecTable(
+                values = mapOf(
+                    "전원" to "USB-PD 지원",
+                ),
+                usages = emptyList(),
+            ),
+            SummaryFallback(isSupportsPdCharging = false),
+        )
+
+        assertThat(command.isSupportsPdCharging).isTrue()
+    }
+
+    @Test
+    fun `pd charging falls back to summary when power spec is absent`() {
+        val command = laptopSnapshotMerger.createCommand(
+            productCard(),
+            ParsedSpecTable(
+                values = emptyMap(),
+                usages = emptyList(),
+            ),
+            SummaryFallback(isSupportsPdCharging = true),
+        )
+
+        assertThat(command.isSupportsPdCharging).isTrue()
+    }
+
+    @Test
     fun `list parser stores canonical detail url by product code`() {
         val html = """
             <ul>
