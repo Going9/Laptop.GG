@@ -736,6 +736,9 @@ val verifyStructure by tasks.registering {
 				Regex("""class CrawlerInvalidCommandException"""),
 				Regex("""class CrawlerInvalidStateException"""),
 				Regex("""saveListSnapshot rejects missing existing laptop with explicit crawler error"""),
+				Regex("""loadExistingLookup rejects invalid product card before persistence"""),
+				Regex("""saveListSnapshot rejects invalid command before persistence"""),
+				Regex("""saveOrUpdate rejects invalid laptop command before persistence"""),
 				Regex("""finish rejects missing crawler run with explicit crawler error"""),
 			),
 		)

@@ -1,5 +1,6 @@
 package going9.laptopgg.application.crawler.persistence
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
@@ -12,20 +13,56 @@ internal class SaveCrawledLaptopService(
     private val changeDetector: CrawledLaptopChangeDetector = CrawledLaptopChangeDetector(),
 ) : SaveCrawledLaptopUseCase {
     override fun loadExistingLookup(productCards: List<CrawledProductCardCommand>): ExistingCrawledLaptopLookup {
+        productCards.forEach(::validateProductCard)
         return transactionPort.read {
             existingLookupLoader.load(productCards)
         }
     }
 
     override fun saveListSnapshot(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
+        validateExistingLaptopId(existingLaptopId)
+        validateProductCard(productCard)
         return transactionPort.write {
             saveListSnapshotInTransaction(existingLaptopId, productCard)
         }
     }
 
     override fun saveOrUpdateLaptop(command: CrawledLaptopCommand, existingLaptopId: Long?): SaveResult {
+        existingLaptopId?.let(::validateExistingLaptopId)
+        validateLaptopCommand(command)
         return transactionPort.write {
             saveOrUpdateLaptopInTransaction(command, existingLaptopId)
+        }
+    }
+
+    private fun validateExistingLaptopId(existingLaptopId: Long) {
+        if (existingLaptopId <= 0) {
+            throw CrawlerInvalidCommandException("existingLaptopId must be positive.")
+        }
+    }
+
+    private fun validateProductCard(productCard: CrawledProductCardCommand) {
+        requireNonBlank(fieldName = "productCode", value = productCard.productCode)
+        requireNonBlank(fieldName = "productName", value = productCard.productName)
+        requireNonBlank(fieldName = "detailPage", value = productCard.detailPage)
+        requireNonBlank(fieldName = "imageUrl", value = productCard.imageUrl)
+        productCard.price?.let { requireNonNegative(fieldName = "price", value = it) }
+    }
+
+    private fun validateLaptopCommand(command: CrawledLaptopCommand) {
+        requireNonBlank(fieldName = "detailPage", value = command.detailPage)
+        command.price?.let { requireNonNegative(fieldName = "price", value = it) }
+    }
+
+    private fun requireNonBlank(fieldName: String, value: String) {
+        if (value.isBlank()) {
+            throw CrawlerInvalidCommandException("$fieldName must not be blank.")
+        }
+    }
+
+    private fun requireNonNegative(fieldName: String, value: Int) {
+        if (value < 0) {
+            throw CrawlerInvalidCommandException("$fieldName must not be negative.")
         }
     }
 

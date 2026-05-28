@@ -1,5 +1,6 @@
 package going9.laptopgg.application.crawler.persistence
 
+import going9.laptopgg.application.crawler.common.CrawlerInvalidCommandException
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
@@ -74,23 +75,67 @@ class SaveCrawledLaptopServiceTest {
         }.isInstanceOf(CrawlerResourceNotFoundException::class.java)
     }
 
-    private fun crawledProductCard(): CrawledProductCardCommand {
+    @Test
+    fun `loadExistingLookup rejects invalid product card before persistence`() {
+        assertThatThrownBy {
+            service.loadExistingLookup(listOf(crawledProductCard(productCode = "")))
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+
+        assertThat(transactionPort.readCount).isZero()
+    }
+
+    @Test
+    fun `saveListSnapshot rejects invalid command before persistence`() {
+        assertThatThrownBy {
+            service.saveListSnapshot(existingLaptopId = 0L, productCard = crawledProductCard())
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+        assertThatThrownBy {
+            service.saveListSnapshot(existingLaptopId = 1L, productCard = crawledProductCard(price = -1))
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+
+        assertThat(transactionPort.writeCount).isZero()
+    }
+
+    @Test
+    fun `saveOrUpdate rejects invalid laptop command before persistence`() {
+        assertThatThrownBy {
+            service.saveOrUpdateLaptop(crawledLaptop(detailPage = ""))
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+        assertThatThrownBy {
+            service.saveOrUpdateLaptop(crawledLaptop(price = -1))
+        }.isInstanceOf(CrawlerInvalidCommandException::class.java)
+
+        assertThat(transactionPort.writeCount).isZero()
+    }
+
+    private fun crawledProductCard(
+        productCode: String = "MISS001",
+        productName: String = "Missing Existing Laptop 14",
+        detailPage: String = "https://prod.danawa.com/info/?pcode=MISS001&cate=112758",
+        imageUrl: String = "https://example.com/missing-existing.jpg",
+        price: Int? = 1_290_000,
+    ): CrawledProductCardCommand {
         return CrawledProductCardCommand(
-            productName = "Missing Existing Laptop 14",
-            imageUrl = "https://example.com/missing-existing.jpg",
-            detailPage = "https://prod.danawa.com/info/?pcode=MISS001&cate=112758",
-            productCode = "MISS001",
-            price = 1_290_000,
+            productName = productName,
+            imageUrl = imageUrl,
+            detailPage = detailPage,
+            productCode = productCode,
+            price = price,
         )
     }
 
-    private fun crawledLaptop(): CrawledLaptopCommand {
+    private fun crawledLaptop(
+        name: String = "Transaction Boundary 14",
+        imageUrl: String = "https://example.com/transaction-boundary.jpg",
+        detailPage: String = "https://prod.danawa.com/info/?pcode=TX001&cate=112758",
+        price: Int? = 1_490_000,
+    ): CrawledLaptopCommand {
         return CrawledLaptopCommand(
-            name = "Transaction Boundary 14",
-            imageUrl = "https://example.com/transaction-boundary.jpg",
-            detailPage = "https://prod.danawa.com/info/?pcode=TX001&cate=112758",
+            name = name,
+            imageUrl = imageUrl,
+            detailPage = detailPage,
             productCode = "TX001",
-            price = 1_490_000,
+            price = price,
             cpuManufacturer = "인텔",
             cpu = "Core Ultra 5 225U",
             os = "윈도우11홈",
@@ -118,11 +163,14 @@ class SaveCrawledLaptopServiceTest {
     }
 
     private class NonNestedTransactionPort : CrawlerTransactionPort {
+        var readCount = 0
+            private set
         var writeCount = 0
             private set
         private var active = false
 
         override fun <T> read(block: () -> T): T {
+            readCount++
             return enter(block)
         }
 
