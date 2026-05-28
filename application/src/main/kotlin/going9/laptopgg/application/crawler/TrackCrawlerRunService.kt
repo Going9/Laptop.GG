@@ -12,18 +12,18 @@ class TrackCrawlerRunService(
     private val crawlerRunPort: CrawlerRunPort,
 ) : TrackCrawlerRunUseCase {
     @Transactional
-    override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRun {
+    override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
         return crawlerRunPort.save(
             CrawlerRun(
                 filterProfile = filterProfile,
                 startPage = startPage,
                 limitCount = limit,
             ),
-        )
+        ).toRecord()
     }
 
     @Transactional
-    override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRun {
+    override fun skipLocked(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
         return crawlerRunPort.save(
             CrawlerRun(
                 filterProfile = filterProfile,
@@ -33,24 +33,20 @@ class TrackCrawlerRunService(
                 endedAt = LocalDateTime.now(),
                 errorMessage = "Another crawler run already holds the PostgreSQL advisory lock.",
             ),
-        )
+        ).toRecord()
     }
 
     @Transactional
     override fun finish(
         runId: Long,
         summary: CrawlerRunSummary,
-        status: CrawlerRunStatus,
+        status: CrawlerRunCompletionStatus,
         errorMessage: String?,
-    ): CrawlerRun {
-        require(status == CrawlerRunStatus.SUCCEEDED || status == CrawlerRunStatus.FAILED) {
-            "Crawler run can only finish as SUCCEEDED or FAILED."
-        }
-
+    ): CrawlerRunRecord {
         val crawlerRun = crawlerRunPort.findById(runId)
             ?: throw IllegalArgumentException("Crawler run not found: $runId")
 
-        crawlerRun.status = status
+        crawlerRun.status = status.toDomainStatus()
         crawlerRun.processedCount = summary.processedCount
         crawlerRun.createdCount = summary.createdCount
         crawlerRun.updatedCount = summary.updatedCount
@@ -60,11 +56,11 @@ class TrackCrawlerRunService(
         crawlerRun.errorMessage = errorMessage?.truncateForStorage()
         crawlerRun.endedAt = LocalDateTime.now()
 
-        return crawlerRun
+        return crawlerRun.toRecord()
     }
 
     @Transactional
-    override fun fail(runId: Long, exception: Throwable): CrawlerRun {
+    override fun fail(runId: Long, exception: Throwable): CrawlerRunRecord {
         val crawlerRun = crawlerRunPort.findById(runId)
             ?: throw IllegalArgumentException("Crawler run not found: $runId")
 
@@ -73,7 +69,26 @@ class TrackCrawlerRunService(
             .truncateForStorage()
         crawlerRun.endedAt = LocalDateTime.now()
 
-        return crawlerRun
+        return crawlerRun.toRecord()
+    }
+
+    private fun CrawlerRunCompletionStatus.toDomainStatus(): CrawlerRunStatus {
+        return when (this) {
+            CrawlerRunCompletionStatus.SUCCEEDED -> CrawlerRunStatus.SUCCEEDED
+            CrawlerRunCompletionStatus.FAILED -> CrawlerRunStatus.FAILED
+        }
+    }
+
+    private fun CrawlerRun.toRecord(): CrawlerRunRecord {
+        return CrawlerRunRecord(
+            id = id,
+            status = when (status) {
+                CrawlerRunStatus.RUNNING -> CrawlerRunStatusResult.RUNNING
+                CrawlerRunStatus.SUCCEEDED -> CrawlerRunStatusResult.SUCCEEDED
+                CrawlerRunStatus.FAILED -> CrawlerRunStatusResult.FAILED
+                CrawlerRunStatus.SKIPPED_LOCKED -> CrawlerRunStatusResult.SKIPPED_LOCKED
+            },
+        )
     }
 
     private fun List<String>.toStorageText(): String? {

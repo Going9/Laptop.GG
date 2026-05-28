@@ -1,7 +1,5 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopUsage
 import java.time.LocalDateTime
 
 data class CrawledProductCardCommand(
@@ -41,45 +39,7 @@ data class CrawledLaptopCommand(
     val weight: Double?,
     val lastDetailedCrawledAt: LocalDateTime?,
     val usages: List<String>,
-) {
-    fun toLaptop(): Laptop {
-        val laptop = Laptop(
-            name = name,
-            imageUrl = imageUrl,
-            detailPage = detailPage,
-            productCode = productCode,
-            price = price,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            brightness = brightness,
-            refreshRate = refreshRate,
-            ramSize = ramSize,
-            ramType = ramType,
-            isRamReplaceable = isRamReplaceable,
-            graphicsType = graphicsType,
-            tgp = tgp,
-            thunderboltCount = thunderboltCount,
-            usbCCount = usbCCount,
-            usbACount = usbACount,
-            sdCard = sdCard,
-            isSupportsPdCharging = isSupportsPdCharging,
-            batteryCapacity = batteryCapacity,
-            storageCapacity = storageCapacity,
-            storageSlotCount = storageSlotCount,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            laptopUsage = mutableListOf(),
-        )
-        laptop.laptopUsage = usages
-            .distinct()
-            .map { usage -> LaptopUsage(usage = usage, laptop = laptop) }
-            .toMutableList()
-        return laptop
-    }
-}
+)
 
 data class ExistingCrawledLaptopSnapshot(
     val id: Long,

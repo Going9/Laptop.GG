@@ -3,7 +3,6 @@ package going9.laptopgg.job.crawler
 import going9.laptopgg.application.crawler.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.CrawledProductCardCommand
 import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
-import going9.laptopgg.domain.laptop.Laptop
 
 data class CrawlSummary(
     val processedCount: Int,
@@ -16,7 +15,7 @@ data class CrawlSummary(
 )
 
 internal data class BuildLaptopResult(
-    val laptop: Laptop,
+    val command: CrawledLaptopCommand,
     val degradationReasons: List<String>,
 ) {
     val isDegraded: Boolean
@@ -192,38 +191,5 @@ internal fun ProductCard.toCommand(): CrawledProductCardCommand {
         detailPage = detailPage,
         imageUrl = imageUrl,
         price = price,
-    )
-}
-
-internal fun Laptop.toCrawledCommand(): CrawledLaptopCommand {
-    return CrawledLaptopCommand(
-        name = name,
-        imageUrl = imageUrl,
-        detailPage = detailPage,
-        productCode = productCode,
-        price = price,
-        cpuManufacturer = cpuManufacturer,
-        cpu = cpu,
-        os = os,
-        screenSize = screenSize,
-        resolution = resolution,
-        brightness = brightness,
-        refreshRate = refreshRate,
-        ramSize = ramSize,
-        ramType = ramType,
-        isRamReplaceable = isRamReplaceable,
-        graphicsType = graphicsType,
-        tgp = tgp,
-        thunderboltCount = thunderboltCount,
-        usbCCount = usbCCount,
-        usbACount = usbACount,
-        sdCard = sdCard,
-        isSupportsPdCharging = isSupportsPdCharging,
-        batteryCapacity = batteryCapacity,
-        storageCapacity = storageCapacity,
-        storageSlotCount = storageSlotCount,
-        weight = weight,
-        lastDetailedCrawledAt = lastDetailedCrawledAt,
-        usages = laptopUsage.map { it.usage },
     )
 }

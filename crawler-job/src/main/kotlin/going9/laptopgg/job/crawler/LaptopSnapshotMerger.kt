@@ -1,20 +1,19 @@
 package going9.laptopgg.job.crawler
 
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopUsage
-import going9.laptopgg.application.service.LaptopProfileFactory
+import going9.laptopgg.application.crawler.CrawledCpuModelResolver
+import going9.laptopgg.application.crawler.CrawledLaptopCommand
 import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 
 @Component
 class LaptopSnapshotMerger(
-    private val laptopProfileFactory: LaptopProfileFactory,
+    private val crawledCpuModelResolver: CrawledCpuModelResolver,
 ) {
-    internal fun createLaptop(
+    internal fun createCommand(
         productCard: ProductCard,
         parsedSpecTable: ParsedSpecTable,
         summaryFallback: SummaryFallback,
-    ): Laptop {
+    ): CrawledLaptopCommand {
         val spec = parsedSpecTable.values
         val rawCpu = spec["CPU 넘버"]?.substringBefore(" (") ?: summaryFallback.cpu
         val cpuManufacturer = resolveCpuManufacturer(
@@ -31,7 +30,7 @@ class LaptopSnapshotMerger(
         val gpuModel = spec["GPU 칩셋"] ?: summaryFallback.graphicsModel ?: gpuKind
         val usages = parsedSpecTable.usages.ifEmpty { summaryFallback.usages }
 
-        val laptop = Laptop(
+        return CrawledLaptopCommand(
             name = productCard.productName,
             imageUrl = productCard.imageUrl,
             detailPage = productCard.detailPage,
@@ -64,20 +63,12 @@ class LaptopSnapshotMerger(
             storageSlotCount = DanawaDetailParser.parseCountValue(spec["저장 슬롯"]) ?: summaryFallback.storageSlotCount,
             weight = DanawaDetailParser.parseWeightValue(spec["무게"]) ?: summaryFallback.weight,
             lastDetailedCrawledAt = LocalDateTime.now(),
-            laptopUsage = mutableListOf(),
+            usages = usages.distinct(),
         )
-
-        laptop.laptopUsage = usages
-            .distinct()
-            .map { usage -> LaptopUsage(usage = usage, laptop = laptop) }
-            .toMutableList()
-
-        return laptop
     }
 
     internal fun resolveCpuModel(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
-        return laptopProfileFactory.resolveCpuToken(rawCpu, cpuManufacturer, productName)
-            ?: rawCpu?.trim()?.takeIf { it.isNotBlank() }
+        return crawledCpuModelResolver.resolve(rawCpu, cpuManufacturer, productName)
     }
 
     private fun resolveCpuManufacturer(rawManufacturer: String?, productName: String, rawCpu: String?): String? {

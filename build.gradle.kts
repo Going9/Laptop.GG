@@ -118,6 +118,16 @@ val verifyStructure by tasks.registering {
 				Regex("""spring-boot-starter-data-jpa"""),
 			),
 		)
+
+		assertAbsent(
+			rule = "crawler-job must depend on application contracts, not domain models or internal application services",
+			paths = listOf("crawler-job/src/main", "crawler-job/src/test", "crawler-job/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain"""),
+				Regex("""going9\.laptopgg\.application\.service"""),
+				Regex("""project\(":domain"\)"""),
+			),
+		)
 	}
 }
 

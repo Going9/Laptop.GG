@@ -143,6 +143,44 @@ class SaveCrawledLaptopService(
         return null
     }
 
+    private fun CrawledLaptopCommand.toLaptop(): Laptop {
+        val laptop = Laptop(
+            name = name,
+            imageUrl = imageUrl,
+            detailPage = detailPage,
+            productCode = productCode,
+            price = price,
+            cpuManufacturer = cpuManufacturer,
+            cpu = cpu,
+            os = os,
+            screenSize = screenSize,
+            resolution = resolution,
+            brightness = brightness,
+            refreshRate = refreshRate,
+            ramSize = ramSize,
+            ramType = ramType,
+            isRamReplaceable = isRamReplaceable,
+            graphicsType = graphicsType,
+            tgp = tgp,
+            thunderboltCount = thunderboltCount,
+            usbCCount = usbCCount,
+            usbACount = usbACount,
+            sdCard = sdCard,
+            isSupportsPdCharging = isSupportsPdCharging,
+            batteryCapacity = batteryCapacity,
+            storageCapacity = storageCapacity,
+            storageSlotCount = storageSlotCount,
+            weight = weight,
+            lastDetailedCrawledAt = lastDetailedCrawledAt,
+            laptopUsage = mutableListOf(),
+        )
+        laptop.laptopUsage = usages
+            .distinct()
+            .map { usage -> LaptopUsage(usage = usage, laptop = laptop) }
+            .toMutableList()
+        return laptop
+    }
+
     private fun Laptop.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
         return ExistingCrawledLaptopSnapshot(
             id = requireNotNull(id) { "Persisted laptop id must not be null." },

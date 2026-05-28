@@ -68,8 +68,4 @@ class LaptopProfileFactory(
     fun resolveGpuInsights(laptop: Laptop): GpuInsights {
         return gpuClassifier.classify(laptop)
     }
-
-    fun resolveCpuToken(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
-        return cpuClassifier.resolveCpuToken(rawCpu, cpuManufacturer, productName)
-    }
 }

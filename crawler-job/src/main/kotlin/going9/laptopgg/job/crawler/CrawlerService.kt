@@ -161,7 +161,7 @@ class CrawlerService(
                                         )
                                     }
 
-                                    when (saveCrawledLaptopUseCase.saveOrUpdateLaptop(buildResult.laptop.toCrawledCommand(), existingLaptop?.id)) {
+                                    when (saveCrawledLaptopUseCase.saveOrUpdateLaptop(buildResult.command, existingLaptop?.id)) {
                                         SaveResult.CREATED -> createdCount++
                                         SaveResult.UPDATED -> updatedCount++
                                         SaveResult.UNCHANGED -> Unit

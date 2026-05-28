@@ -63,6 +63,7 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 ```
 
 웹 앱은 사용자 화면과 추천/상세/댓글 API만 실행합니다. 크롤링은 아래 `crawler-job` 명령으로 별도 실행합니다.
+`crawler-job`은 Danawa 수집과 application command 변환만 담당하며, domain entity 조립과 저장 트랜잭션은 application use case가 처리합니다.
 
 주의:
 - `postgres` 프로필에서는 Flyway가 먼저 스키마를 맞춘 뒤 앱이 기동합니다.

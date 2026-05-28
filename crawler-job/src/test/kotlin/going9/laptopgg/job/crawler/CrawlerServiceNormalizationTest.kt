@@ -1,10 +1,8 @@
 package going9.laptopgg.job.crawler
 
+import going9.laptopgg.application.crawler.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
-import going9.laptopgg.domain.laptop.Laptop
-import going9.laptopgg.domain.laptop.LaptopUsage
-import going9.laptopgg.application.service.LaptopProfileFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
@@ -12,7 +10,7 @@ import org.mockito.Mockito.mock
 import java.time.LocalDateTime
 
 class CrawlerServiceNormalizationTest {
-    private val laptopSnapshotMerger = LaptopSnapshotMerger(LaptopProfileFactory())
+    private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver())
     private val danawaClient = DanawaClient()
     private val crawlerService = CrawlerService(
         saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),
@@ -135,9 +133,9 @@ class CrawlerServiceNormalizationTest {
     @Test
     fun `detail refresh is skipped for complete recently crawled laptop`() {
         val now = LocalDateTime.parse("2026-05-27T10:00:00")
-        val laptop = sampleLaptop(lastDetailedCrawledAt = now.minusDays(5))
+        val existingLaptop = sampleExistingLaptop(lastDetailedCrawledAt = now.minusDays(5))
 
-        val result = DetailRefreshPolicy.needsRefresh(laptop.toExistingSnapshot(), now)
+        val result = DetailRefreshPolicy.needsRefresh(existingLaptop, now)
 
         assertThat(result).isFalse()
     }
@@ -145,65 +143,30 @@ class CrawlerServiceNormalizationTest {
     @Test
     fun `detail refresh is required for stale laptop even when specs exist`() {
         val now = LocalDateTime.parse("2026-05-27T10:00:00")
-        val laptop = sampleLaptop(lastDetailedCrawledAt = now.minusDays(45))
+        val existingLaptop = sampleExistingLaptop(lastDetailedCrawledAt = now.minusDays(45))
 
-        val result = DetailRefreshPolicy.needsRefresh(laptop.toExistingSnapshot(), now)
+        val result = DetailRefreshPolicy.needsRefresh(existingLaptop, now)
 
         assertThat(result).isTrue()
     }
 
-    private fun sampleLaptop(lastDetailedCrawledAt: LocalDateTime?): Laptop {
-        val laptop = Laptop(
-            name = "테스트 노트북",
-            imageUrl = "https://example.com/test.jpg",
-            detailPage = "https://prod.danawa.com/info/?pcode=1&cate=112758",
+    private fun sampleExistingLaptop(lastDetailedCrawledAt: LocalDateTime?): ExistingCrawledLaptopSnapshot {
+        return ExistingCrawledLaptopSnapshot(
+            id = 1L,
             productCode = "1",
-            price = 1_000_000,
+            detailPage = "https://prod.danawa.com/info/?pcode=1&cate=112758",
             cpuManufacturer = "AMD",
             cpu = "7535HS",
             os = "윈도우11홈",
             screenSize = 15,
             resolution = "1920x1200(WUXGA)",
-            brightness = 300,
-            refreshRate = 60,
             ramSize = 16,
-            ramType = "LPDDR5X",
-            isRamReplaceable = false,
             graphicsType = "Radeon 660M",
-            tgp = 0,
-            thunderboltCount = null,
-            usbCCount = 2,
-            usbACount = 2,
-            sdCard = null,
-            isSupportsPdCharging = true,
             batteryCapacity = 60.0,
             storageCapacity = 512,
-            storageSlotCount = 1,
             weight = 1.49,
             lastDetailedCrawledAt = lastDetailedCrawledAt,
-            laptopUsage = mutableListOf(),
-        )
-        laptop.laptopUsage.add(LaptopUsage(usage = "사무/인강용", laptop = laptop))
-        return laptop
-    }
-
-    private fun Laptop.toExistingSnapshot(): ExistingCrawledLaptopSnapshot {
-        return ExistingCrawledLaptopSnapshot(
-            id = id ?: 1L,
-            productCode = productCode,
-            detailPage = detailPage,
-            cpuManufacturer = cpuManufacturer,
-            cpu = cpu,
-            os = os,
-            screenSize = screenSize,
-            resolution = resolution,
-            ramSize = ramSize,
-            graphicsType = graphicsType,
-            storageCapacity = storageCapacity,
-            batteryCapacity = batteryCapacity,
-            weight = weight,
-            lastDetailedCrawledAt = lastDetailedCrawledAt,
-            usageCount = laptopUsage.size,
+            usageCount = 1,
         )
     }
 }

@@ -1,8 +1,9 @@
 package going9.laptopgg.runner
 
+import going9.laptopgg.application.crawler.CrawlerRunCompletionStatus
+import going9.laptopgg.application.crawler.CrawlerRunStatusResult
 import going9.laptopgg.application.crawler.CrawlerRunSummary
 import going9.laptopgg.application.crawler.TrackCrawlerRunUseCase
-import going9.laptopgg.domain.crawler.CrawlerRunStatus
 import going9.laptopgg.job.crawler.CrawlerAdvisoryLockService
 import going9.laptopgg.job.crawler.CrawlerService
 import going9.laptopgg.job.crawler.CrawlSummary
@@ -92,9 +93,9 @@ class CrawlerStartupRunner(
         return runCatching {
             val summary = crawlerService.crawlAll(limit = limit, startPage = startPage, filterProfileRaw = filterProfile)
             val finishedStatus = if (summary.failedCount == 0) {
-                CrawlerRunStatus.SUCCEEDED
+                CrawlerRunCompletionStatus.SUCCEEDED
             } else {
-                CrawlerRunStatus.FAILED
+                CrawlerRunCompletionStatus.FAILED
             }
             val errorMessage = if (summary.failedCount == 0) {
                 null
@@ -121,7 +122,7 @@ class CrawlerStartupRunner(
             logger.error(
                 "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 degradedCount=0 failedCount=1",
                 runId,
-                CrawlerRunStatus.FAILED,
+                CrawlerRunStatusResult.FAILED,
                 filterProfile,
                 startPage,
                 limit ?: "ALL",
@@ -132,7 +133,7 @@ class CrawlerStartupRunner(
 
     private fun logCrawlerSummary(
         runId: Long,
-        status: CrawlerRunStatus,
+        status: CrawlerRunCompletionStatus,
         filterProfile: String,
         startPage: Int,
         limit: Int?,

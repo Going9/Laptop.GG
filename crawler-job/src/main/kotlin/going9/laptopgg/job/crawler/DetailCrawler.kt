@@ -59,7 +59,7 @@ class DetailCrawler(
         }
 
         return BuildLaptopResult(
-            laptop = laptopSnapshotMerger.createLaptop(productCard, parsedSpecTable, summaryFallback),
+            command = laptopSnapshotMerger.createCommand(productCard, parsedSpecTable, summaryFallback),
             degradationReasons = degradationReasons.distinct(),
         )
     }
