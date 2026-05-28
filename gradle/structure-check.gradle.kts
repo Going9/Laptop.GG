@@ -397,6 +397,17 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "gpu model catalog must delegate rule model and integrated discrete keyword lookup",
+			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/GpuModelCatalog.kt"),
+			patterns = listOf(
+				Regex("""data class GpuClassificationRule"""),
+				Regex("""DISCRETE_GPU_KEYWORDS"""),
+				Regex("""INTEGRATED_GPU_KEYWORDS"""),
+				Regex("""fun\s+is(Discrete|Integrated)Model\b"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "cpu classifier must delegate token resolution",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/profile/CpuClassifier.kt"),
 			patterns = listOf(

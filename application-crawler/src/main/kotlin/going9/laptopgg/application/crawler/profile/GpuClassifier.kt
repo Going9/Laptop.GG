@@ -39,10 +39,10 @@ class GpuClassifier {
             return true
         }
 
-        if (GpuModelCatalog.isDiscreteModel(normalizedModel)) {
+        if (GpuModelKeywordCatalog.isDiscreteModel(normalizedModel)) {
             return false
         }
-        if (GpuModelCatalog.isIntegratedModel(normalizedModel)) {
+        if (GpuModelKeywordCatalog.isIntegratedModel(normalizedModel)) {
             return true
         }
 

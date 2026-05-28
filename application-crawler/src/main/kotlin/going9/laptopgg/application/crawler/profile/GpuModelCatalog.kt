@@ -15,36 +15,6 @@ internal object GpuModelCatalog {
             ).toInsights(rawGpu)
     }
 
-    fun isDiscreteModel(normalizedModel: String): Boolean {
-        return DISCRETE_GPU_KEYWORDS.any { normalizedModel.contains(it) }
-    }
-
-    fun isIntegratedModel(normalizedModel: String): Boolean {
-        return INTEGRATED_GPU_KEYWORDS.any { normalizedModel.contains(it) }
-    }
-
-    private data class GpuClassificationRule(
-        val tokens: List<String>,
-        val performanceScore: Int,
-        val gpuClass: GpuClass,
-        val creatorBonus: Int = 0,
-        val integrated: Boolean? = null,
-    ) {
-        fun matches(normalizedGpu: String): Boolean {
-            return tokens.all(normalizedGpu::contains)
-        }
-
-        fun toInsights(rawGpu: String): GpuInsights {
-            return GpuInsights(
-                normalizedGpu = rawGpu,
-                gpuClass = gpuClass,
-                performanceScore = performanceScore,
-                creatorBonus = creatorBonus,
-                isIntegrated = integrated ?: gpuClass.name.startsWith("INTEGRATED"),
-            )
-        }
-    }
-
     private fun rule(
         token: String,
         performanceScore: Int,
@@ -142,37 +112,5 @@ internal object GpuModelCatalog {
         rule("ADRENO", 45, GpuClass.INTEGRATED_MAINSTREAM),
     )
 
-    private val DISCRETE_GPU_KEYWORDS = listOf(
-        "RTX",
-        "GTX",
-        "GEFORCE",
-        "RTX PRO",
-        "RTX A",
-        "ARC B",
-        "ARC A",
-        "RADEON RX",
-    )
-    private val INTEGRATED_GPU_KEYWORDS = listOf(
-        "INTEL GRAPHICS",
-        "IRIS",
-        "UHD",
-        "HD GRAPHICS",
-        "ARC 130T",
-        "ARC 140T",
-        "RADEON 890M",
-        "RADEON 880M",
-        "RADEON 860M",
-        "RADEON 840M",
-        "RADEON 820M",
-        "RADEON 8060S",
-        "RADEON 780M",
-        "RADEON 760M",
-        "RADEON 740M",
-        "RADEON 680M",
-        "RADEON 660M",
-        "RADEON 610M",
-        "RADEON GRAPHICS",
-        "ADRENO",
-    )
     private const val UNKNOWN_TOKEN = "<UNKNOWN>"
 }
