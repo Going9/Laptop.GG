@@ -854,6 +854,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa list html parser must delegate request context extraction",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list/DanawaListParser.kt"),
+			patterns = listOf(
+				Regex("""fun\s+extractListRequestContext\b"""),
+				Regex("""fun\s+extractJsScalar\b"""),
+				Regex("""ListRequestContext\("""),
+				Regex("""nPriceCompareListCount"""),
+				Regex("""sPriceCompareListType"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "runtime applications must not own JPA repository scanning",
 			paths = listOf(
 				"web-app/src/main",

@@ -11,7 +11,7 @@ class CrawlerHtmlFixtureParsingTest {
     fun `list fixture keeps context and canonical product card fields`() {
         val html = readFixture("/fixtures/danawa/list-page.html")
 
-        val requestContext = DanawaListParser.extractListRequestContext(
+        val requestContext = DanawaListRequestContextParser.extractListRequestContext(
             html,
             CrawlSource(
                 key = "fixture",

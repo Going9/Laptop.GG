@@ -10,7 +10,7 @@ class ListPageCrawler(
 ) {
     internal fun createListRequestContext(crawlSource: CrawlSource): ListRequestContext {
         val initialListHtml = danawaClient.fetchInitialListPage(crawlSource.listUrl)
-        return DanawaListParser.extractListRequestContext(initialListHtml, crawlSource)
+        return DanawaListRequestContextParser.extractListRequestContext(initialListHtml, crawlSource)
             .copy(sortMethod = LIST_SORT_METHOD)
     }
 

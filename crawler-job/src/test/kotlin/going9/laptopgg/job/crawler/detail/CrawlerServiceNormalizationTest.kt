@@ -4,6 +4,7 @@ import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.job.crawler.list.DanawaListParser
+import going9.laptopgg.job.crawler.list.DanawaListRequestContextParser
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.source.CrawlSource
 import org.assertj.core.api.Assertions.assertThat
@@ -152,7 +153,7 @@ class CrawlerServiceNormalizationTest {
             </script>
         """.trimIndent()
 
-        val result = DanawaListParser.extractListRequestContext(
+        val result = DanawaListRequestContextParser.extractListRequestContext(
             html,
             CrawlSource(
                 key = "fixture",
