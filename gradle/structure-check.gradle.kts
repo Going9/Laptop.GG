@@ -976,6 +976,22 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa endpoint client must delegate HTTP request construction",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client/DanawaClient.kt"),
+			patterns = listOf(
+				Regex("""java\.net\.URI"""),
+				Regex("""java\.net\.http\.HttpRequest"""),
+				Regex("""URLEncoder"""),
+				Regex("""BodyPublishers"""),
+				Regex("""USER_AGENT"""),
+				Regex("""LIST_AJAX_URL"""),
+				Regex("""PRODUCT_DESCRIPTION_URL"""),
+				Regex("""FORM_URLENCODED"""),
+				Regex("""fun\s+buildFormData"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "Danawa HTTP transport must delegate retry policy and request pacing",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client/DanawaHttpClient.kt"),
 			patterns = listOf(
