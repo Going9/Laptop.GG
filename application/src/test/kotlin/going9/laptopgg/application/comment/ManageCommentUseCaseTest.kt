@@ -16,11 +16,12 @@ class ManageCommentUseCaseTest {
     private val commentPort = InMemoryCommentPort()
     private val laptopPort = InMemoryCommentLaptopPort(existingIds = setOf(1L))
     private val passwordHashPort = PlainPasswordHashPort()
+    private val transactionPort = RecordingApplicationTransactionPort()
     private val useCase = CommentUseCaseAssembler.createManageCommentUseCase(
         commentPort = commentPort,
         laptopPort = laptopPort,
         passwordHashPort = passwordHashPort,
-        transactionPort = DirectApplicationTransactionPort,
+        transactionPort = transactionPort,
     )
 
     @Test
@@ -30,6 +31,7 @@ class ManageCommentUseCaseTest {
         }.isInstanceOf(InvalidCommandException::class.java)
 
         assertThat(commentPort.records).isEmpty()
+        assertThat(transactionPort.writeCalls).isZero()
     }
 
     @Test
@@ -55,6 +57,7 @@ class ManageCommentUseCaseTest {
         }.isInstanceOf(InvalidCommandException::class.java)
 
         assertThat(commentPort.findAllByLaptopCalls).isZero()
+        assertThat(transactionPort.readCalls).isZero()
     }
 
     @Test
@@ -71,13 +74,36 @@ class ManageCommentUseCaseTest {
         }.isInstanceOf(AuthenticationFailedException::class.java)
     }
 
+    @Test
+    fun `update rejects invalid comment id before reading comment`() {
+        assertThatThrownBy {
+            useCase.update(0L, UpdateCommentCommand(password = "pw", content = "수정"))
+        }.isInstanceOf(InvalidCommandException::class.java)
+
+        assertThat(commentPort.findByIdCalls).isZero()
+        assertThat(transactionPort.writeCalls).isZero()
+    }
+
+    @Test
+    fun `delete rejects invalid comment id before reading comment`() {
+        assertThatThrownBy {
+            useCase.delete(0L, DeleteCommentCommand(password = "pw"))
+        }.isInstanceOf(InvalidCommandException::class.java)
+
+        assertThat(commentPort.findByIdCalls).isZero()
+        assertThat(transactionPort.writeCalls).isZero()
+    }
+
     private class InMemoryCommentPort : CommentPort {
         val records = mutableMapOf<Long, CommentRecord>()
         var findAllByLaptopCalls = 0
             private set
+        var findByIdCalls = 0
+            private set
         private var nextId = 1L
 
         override fun findById(commentId: Long): CommentRecord? {
+            findByIdCalls++
             return records[commentId]
         }
 
@@ -119,12 +145,19 @@ class ManageCommentUseCaseTest {
         }
     }
 
-    private object DirectApplicationTransactionPort : ApplicationTransactionPort {
+    private class RecordingApplicationTransactionPort : ApplicationTransactionPort {
+        var readCalls = 0
+            private set
+        var writeCalls = 0
+            private set
+
         override fun <T> read(block: () -> T): T {
+            readCalls++
             return block()
         }
 
         override fun <T> write(block: () -> T): T {
+            writeCalls++
             return block()
         }
     }

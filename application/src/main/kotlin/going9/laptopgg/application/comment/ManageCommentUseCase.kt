@@ -23,12 +23,14 @@ internal class DefaultManageCommentUseCase(
     private val transactionPort: ApplicationTransactionPort,
 ) : ManageCommentUseCase {
     override fun add(command: AddCommentCommand) {
+        validateAdd(command)
         transactionPort.write {
             addInTransaction(command)
         }
     }
 
     override fun listByLaptop(laptopId: Long): List<CommentResult> {
+        validateLaptopId(laptopId)
         return transactionPort.read {
             validateLaptopExists(laptopId)
             commentPort.findAllByLaptopId(laptopId).map { comment ->
@@ -42,8 +44,9 @@ internal class DefaultManageCommentUseCase(
     }
 
     override fun update(commentId: Long, command: UpdateCommentCommand) {
+        validateCommentId(commentId)
+        validateUpdate(command)
         transactionPort.write {
-            validateUpdate(command)
             val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
             validatePassword(comment, command.password)
             commentPort.updateContent(commentId, command.content)
@@ -51,8 +54,9 @@ internal class DefaultManageCommentUseCase(
     }
 
     override fun delete(commentId: Long, command: DeleteCommentCommand) {
+        validateCommentId(commentId)
+        validateDelete(command)
         transactionPort.write {
-            validateDelete(command)
             val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
             validatePassword(comment, command.password)
             commentPort.deleteById(commentId)
@@ -60,7 +64,6 @@ internal class DefaultManageCommentUseCase(
     }
 
     private fun addInTransaction(command: AddCommentCommand) {
-        validateAdd(command)
         validateLaptopExists(command.laptopId)
         commentPort.add(
             laptopId = command.laptopId,
@@ -78,10 +81,17 @@ internal class DefaultManageCommentUseCase(
     }
 
     private fun validateLaptopExists(laptopId: Long) {
-        requirePositiveId(fieldName = "laptopId", value = laptopId)
         if (!laptopPort.existsById(laptopId)) {
             throw ResourceNotFoundException("Laptop", laptopId)
         }
+    }
+
+    private fun validateLaptopId(laptopId: Long) {
+        requirePositiveId(fieldName = "laptopId", value = laptopId)
+    }
+
+    private fun validateCommentId(commentId: Long) {
+        requirePositiveId(fieldName = "commentId", value = commentId)
     }
 
     private fun validateUpdate(command: UpdateCommentCommand) {

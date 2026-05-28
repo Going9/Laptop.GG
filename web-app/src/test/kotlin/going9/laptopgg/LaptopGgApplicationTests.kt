@@ -151,6 +151,14 @@ class LaptopGgApplicationTests {
 	}
 
 	@Test
+	fun `web api maps invalid laptop detail id to 400 response`() {
+		mockMvc.perform(get("/api/laptops").param("id", "0"))
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
 	fun `web page maps missing application resources to html error page`() {
 		val html = mockMvc.perform(get("/laptops/999999"))
 			.andExpect(status().isNotFound)
