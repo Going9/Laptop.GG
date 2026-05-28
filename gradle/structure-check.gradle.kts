@@ -959,6 +959,20 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa HTTP transport must delegate retry policy and request pacing",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client/DanawaHttpClient.kt"),
+			patterns = listOf(
+				Regex("""ThreadLocalRandom"""),
+				Regex("""requestPacingLock"""),
+				Regex("""nextAllowedRequestAtMillis"""),
+				Regex("""globalCooldownUntilMillis"""),
+				Regex("""RETRYABLE_STATUS_CODES"""),
+				Regex("""MAX_HTTP_RETRIES"""),
+				Regex("""fun\s+(awaitRequestSlot|extendGlobalCooldown|retryDelayMillis|randomJitterMillis)\b"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "CrawlerService must delegate source page traversal",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
