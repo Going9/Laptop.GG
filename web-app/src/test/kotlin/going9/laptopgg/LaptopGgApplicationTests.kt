@@ -131,6 +131,14 @@ class LaptopGgApplicationTests {
 	}
 
 	@Test
+	fun `web api maps missing comment laptop resources to 404 response`() {
+		mockMvc.perform(get("/api/comments").param("laptopId", "999999"))
+			.andExpect(status().isNotFound)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("not_found"))
+	}
+
+	@Test
 	fun `web api maps invalid application commands to 400 response`() {
 		mockMvc.perform(
 			post("/api/comments")

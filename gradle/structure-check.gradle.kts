@@ -605,10 +605,13 @@ val verifyStructure by tasks.registering {
 				Regex("""ModelAndView"""),
 				Regex("""error/application-error"""),
 				Regex("""web api maps missing application resources to 404 response"""),
+				Regex("""web api maps missing comment laptop resources to 404 response"""),
 				Regex("""web api maps invalid application commands to 400 response"""),
 				Regex("""web api maps invalid application state to 500 response"""),
 				Regex("""web page maps missing application resources to html error page"""),
 				Regex("""add rejects blank comment fields before persistence"""),
+				Regex("""list rejects missing laptop before reading comments"""),
+				Regex("""list rejects invalid laptop id before reading comments"""),
 			),
 		)
 

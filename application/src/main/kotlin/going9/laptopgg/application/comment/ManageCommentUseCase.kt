@@ -30,6 +30,7 @@ internal class DefaultManageCommentUseCase(
 
     override fun listByLaptop(laptopId: Long): List<CommentResult> {
         return transactionPort.read {
+            validateLaptopExists(laptopId)
             commentPort.findAllByLaptopId(laptopId).map { comment ->
                 CommentResult(
                     id = comment.id,
@@ -60,9 +61,7 @@ internal class DefaultManageCommentUseCase(
 
     private fun addInTransaction(command: AddCommentCommand) {
         validateAdd(command)
-        if (!laptopPort.existsById(command.laptopId)) {
-            throw ResourceNotFoundException("Laptop", command.laptopId)
-        }
+        validateLaptopExists(command.laptopId)
         commentPort.add(
             laptopId = command.laptopId,
             author = command.author,
@@ -76,6 +75,13 @@ internal class DefaultManageCommentUseCase(
         requireNonBlank(fieldName = "author", value = command.author)
         requireNonBlank(fieldName = "content", value = command.content)
         requireNonBlank(fieldName = "password", value = command.password)
+    }
+
+    private fun validateLaptopExists(laptopId: Long) {
+        requirePositiveId(fieldName = "laptopId", value = laptopId)
+        if (!laptopPort.existsById(laptopId)) {
+            throw ResourceNotFoundException("Laptop", laptopId)
+        }
     }
 
     private fun validateUpdate(command: UpdateCommentCommand) {

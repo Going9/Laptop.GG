@@ -40,6 +40,24 @@ class ManageCommentUseCaseTest {
     }
 
     @Test
+    fun `list rejects missing laptop before reading comments`() {
+        assertThatThrownBy {
+            useCase.listByLaptop(99L)
+        }.isInstanceOf(ResourceNotFoundException::class.java)
+
+        assertThat(commentPort.findAllByLaptopCalls).isZero()
+    }
+
+    @Test
+    fun `list rejects invalid laptop id before reading comments`() {
+        assertThatThrownBy {
+            useCase.listByLaptop(0L)
+        }.isInstanceOf(InvalidCommandException::class.java)
+
+        assertThat(commentPort.findAllByLaptopCalls).isZero()
+    }
+
+    @Test
     fun `update rejects password mismatch with explicit authentication error`() {
         commentPort.records[7L] = CommentRecord(
             id = 7L,
@@ -55,6 +73,8 @@ class ManageCommentUseCaseTest {
 
     private class InMemoryCommentPort : CommentPort {
         val records = mutableMapOf<Long, CommentRecord>()
+        var findAllByLaptopCalls = 0
+            private set
         private var nextId = 1L
 
         override fun findById(commentId: Long): CommentRecord? {
@@ -62,6 +82,7 @@ class ManageCommentUseCaseTest {
         }
 
         override fun findAllByLaptopId(laptopId: Long): List<CommentRecord> {
+            findAllByLaptopCalls++
             return records.values.toList()
         }
 
