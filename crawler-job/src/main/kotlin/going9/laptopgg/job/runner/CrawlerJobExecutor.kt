@@ -70,10 +70,14 @@ internal class CrawlerJobExecutor(
             )
             crawlerJobSummaryLogger.logCompleted(runId, finishedStatus, request, summary)
             if (summary.failedCount == 0) 0 else 1
-        } catch (exception: Exception) {
-            trackCrawlerRunUseCase.fail(runId, exception)
-            crawlerJobSummaryLogger.logRunFailure(runId, request, exception)
-            1
+        } catch (failure: Throwable) {
+            trackCrawlerRunUseCase.fail(runId, failure)
+            crawlerJobSummaryLogger.logRunFailure(runId, request, failure)
+            if (failure is Exception) {
+                1
+            } else {
+                throw failure
+            }
         }
     }
 

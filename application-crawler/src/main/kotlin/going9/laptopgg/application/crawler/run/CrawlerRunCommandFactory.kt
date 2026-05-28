@@ -49,11 +49,11 @@ internal class CrawlerRunCommandFactory(
         )
     }
 
-    fun fail(runId: Long, exception: Exception): UpdateCrawlerRunCommand {
+    fun fail(runId: Long, failure: Throwable): UpdateCrawlerRunCommand {
         return UpdateCrawlerRunCommand(
             runId = runId,
             status = CrawlerRunStatusResult.FAILED,
-            errorMessage = (exception.message ?: exception::class.simpleName ?: "Unknown crawler failure")
+            errorMessage = (failure.message ?: failure::class.simpleName ?: "Unknown crawler failure")
                 .truncateForStorage(),
             endedAt = now(),
         )

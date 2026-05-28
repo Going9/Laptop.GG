@@ -93,11 +93,11 @@ class CrawlerJobExecutorTest {
         val exitCode = executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "core"))
 
         assertThat(exitCode).isEqualTo(1)
-        assertThat(trackUseCase.failedException).isSameAs(exception)
+        assertThat(trackUseCase.failedFailure).isSameAs(exception)
     }
 
     @Test
-    fun `crawler fatal error is propagated without failed run tracking`() {
+    fun `crawler fatal error is recorded and propagated`() {
         val crawlerService = Mockito.mock(CrawlerService::class.java)
         val error = NoClassDefFoundError("crawler linkage")
         Mockito.`when`(crawlerService.crawlAll(null, 1, "core")).thenThrow(error)
@@ -112,7 +112,7 @@ class CrawlerJobExecutorTest {
         assertThatThrownBy {
             executor.execute(CrawlerJobRequest(limit = null, startPage = 1, filterProfile = "core"))
         }.isSameAs(error)
-        assertThat(trackUseCase.failedException).isNull()
+        assertThat(trackUseCase.failedFailure).isSameAs(error)
     }
 
     private fun crawlSummary(
@@ -152,7 +152,7 @@ class CrawlerJobExecutorTest {
             private set
         var finishedErrorMessage: String? = null
             private set
-        var failedException: Exception? = null
+        var failedFailure: Throwable? = null
             private set
 
         override fun start(filterProfile: String, startPage: Int, limit: Int?): CrawlerRunRecord {
@@ -183,8 +183,8 @@ class CrawlerJobExecutorTest {
             )
         }
 
-        override fun fail(runId: Long, exception: Exception): CrawlerRunRecord {
-            failedException = exception
+        override fun fail(runId: Long, failure: Throwable): CrawlerRunRecord {
+            failedFailure = failure
             return CrawlerRunRecord(id = runId, status = CrawlerRunStatusResult.FAILED)
         }
 

@@ -295,7 +295,7 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
-			rule = "crawler job runner must record recoverable exceptions without swallowing fatal errors",
+			rule = "crawler job runner must record fatal failures without swallowing fatal errors",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobSummaryLogger.kt",
@@ -304,14 +304,17 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""catch \(exception: Exception\)"""),
-				Regex("""fun fail\(runId: Long, exception: Exception\)"""),
-				Regex("""fun logRunFailure\(runId: Long, request: CrawlerJobRequest, exception: Exception\)"""),
-				Regex("""crawler fatal error is propagated without failed run tracking"""),
+				Regex("""catch \(failure: Throwable\)"""),
+				Regex("""fun fail\(runId: Long, failure: Throwable\)"""),
+				Regex("""fun logRunFailure\(runId: Long, request: CrawlerJobRequest, failure: Throwable\)"""),
+				Regex("""if \(failure is Exception\)"""),
+				Regex("""throw failure"""),
+				Regex("""crawler fatal error is recorded and propagated"""),
 			),
 		)
 
 		assertAbsent(
-			rule = "crawler job runner must not use runCatching or Throwable for recoverable job failures",
+			rule = "crawler job runner must not use runCatching for recoverable job failures",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobExecutor.kt",
 				"crawler-job/src/main/kotlin/going9/laptopgg/job/runner/CrawlerJobSummaryLogger.kt",
@@ -321,7 +324,6 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""runCatching"""),
-				Regex("""Throwable"""),
 			),
 		)
 

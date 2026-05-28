@@ -56,8 +56,8 @@ internal class CrawlerJobSummaryLogger {
         }
     }
 
-    fun logRunFailure(runId: Long, request: CrawlerJobRequest, exception: Exception) {
-        logger.error("Crawler run failed. runId={}", runId, exception)
+    fun logRunFailure(runId: Long, request: CrawlerJobRequest, failure: Throwable) {
+        logger.error("Crawler run failed. runId={}", runId, failure)
         logger.error(
             "CRAWLER_SUMMARY runId={} status={} filterProfile={} startPage={} limit={} processedCount=0 createdCount=0 updatedCount=0 detailRefreshCount=0 priceOnlyUpdatedCount=0 degradedCount=0 failedCount=1",
             runId,

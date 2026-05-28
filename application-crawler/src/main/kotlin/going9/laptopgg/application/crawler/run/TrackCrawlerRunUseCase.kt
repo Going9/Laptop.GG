@@ -9,5 +9,5 @@ interface TrackCrawlerRunUseCase {
         status: CrawlerRunCompletionStatus,
         errorMessage: String? = null,
     ): CrawlerRunRecord
-    fun fail(runId: Long, exception: Exception): CrawlerRunRecord
+    fun fail(runId: Long, failure: Throwable): CrawlerRunRecord
 }
