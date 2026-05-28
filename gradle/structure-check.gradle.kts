@@ -176,6 +176,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "deploy workflow must serialize releases so rollback can finish",
+			paths = listOf(".github/workflows/deploy-web.yml", "docs/architecture.md", "ops/RUNBOOK.md"),
+			patterns = listOf(
+				Regex("""cancel-in-progress:\s+false"""),
+				Regex("""Web deploy workflow runs are serialized"""),
+				Regex("""Deploy workflow runs are serialized"""),
+			),
+		)
+
+		assertPresent(
 			rule = "PostgreSQL integration tests must cover recommendation ordering",
 			paths = listOf("integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/PostgresRecommendationOrderingIntegrationTest.kt"),
 			patterns = listOf(

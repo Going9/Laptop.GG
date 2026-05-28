@@ -32,6 +32,8 @@ GitHub Actions deploy runs:
 6. check `/actuator/health/readiness`
 7. rollback symlink to the previous jar if health fails
 
+Deploy workflow runs are serialized. Do not cancel an in-progress deploy unless you are ready to check the remote symlink and service status manually.
+
 Manual rollback:
 
 ```bash
