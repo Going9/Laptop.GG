@@ -1555,6 +1555,41 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "Danawa pacing and retry policies must expose deterministic timing seams",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaTiming.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaRequestPacer.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaRetryPolicy.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaRequestPacerTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaRetryPolicyTest.kt",
+			),
+			patterns = listOf(
+				Regex("""internal fun interface DanawaClock"""),
+				Regex("""internal fun interface DanawaSleeper"""),
+				Regex("""internal fun interface DanawaJitterSource"""),
+				Regex("""clock\.currentTimeMillis\(\)"""),
+				Regex("""sleeper\.sleep\(waitMillis\)"""),
+				Regex("""jitterSource\.nextLong"""),
+				Regex("""awaitRequestSlot sleeps until the next paced request slot"""),
+				Regex("""uses status-specific bounded retry delay"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "Danawa pacing and retry policies must not call system time sleep or random directly",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaRequestPacer.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/client/DanawaRetryPolicy.kt",
+			),
+			patterns = listOf(
+				Regex("""System\.currentTimeMillis"""),
+				Regex("""Thread\.sleep"""),
+				Regex("""ThreadLocalRandom"""),
+				Regex("""fun\s+randomJitterMillis"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "CrawlerService must delegate source page traversal",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),

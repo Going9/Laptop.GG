@@ -1,10 +1,13 @@
 package going9.laptopgg.job.crawler.danawa.client
 
-import java.util.concurrent.ThreadLocalRandom
 import org.springframework.stereotype.Component
 
 @Component
-internal class DanawaRequestPacer {
+internal class DanawaRequestPacer(
+    private val clock: DanawaClock = SystemDanawaClock(),
+    private val sleeper: DanawaSleeper = ThreadDanawaSleeper(),
+    private val jitterSource: DanawaJitterSource = ThreadLocalDanawaJitterSource(),
+) {
     private val requestPacingLock = Any()
 
     @Volatile
@@ -16,10 +19,10 @@ internal class DanawaRequestPacer {
     internal fun awaitRequestSlot() {
         while (true) {
             val waitMillis = synchronized(requestPacingLock) {
-                val now = System.currentTimeMillis()
+                val now = clock.currentTimeMillis()
                 val allowedAt = maxOf(now, nextAllowedRequestAtMillis, globalCooldownUntilMillis)
                 if (allowedAt <= now) {
-                    nextAllowedRequestAtMillis = now + MIN_REQUEST_INTERVAL_MILLIS + randomJitterMillis(REQUEST_JITTER_MILLIS)
+                    nextAllowedRequestAtMillis = now + MIN_REQUEST_INTERVAL_MILLIS + jitterSource.nextLong(REQUEST_JITTER_MILLIS)
                     0L
                 } else {
                     allowedAt - now
@@ -30,7 +33,7 @@ internal class DanawaRequestPacer {
                 return
             }
 
-            Thread.sleep(waitMillis)
+            sleeper.sleep(waitMillis)
         }
     }
 
@@ -40,19 +43,11 @@ internal class DanawaRequestPacer {
         }
 
         synchronized(requestPacingLock) {
-            val candidate = System.currentTimeMillis() + delayMillis
+            val candidate = clock.currentTimeMillis() + delayMillis
             if (candidate > globalCooldownUntilMillis) {
                 globalCooldownUntilMillis = candidate
             }
         }
-    }
-
-    private fun randomJitterMillis(maxJitterMillis: Long): Long {
-        if (maxJitterMillis <= 0L) {
-            return 0L
-        }
-
-        return ThreadLocalRandom.current().nextLong(maxJitterMillis + 1)
     }
 
     private companion object {

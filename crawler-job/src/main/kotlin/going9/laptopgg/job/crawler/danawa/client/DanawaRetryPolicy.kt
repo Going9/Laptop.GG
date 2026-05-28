@@ -1,10 +1,11 @@
 package going9.laptopgg.job.crawler.danawa.client
 
-import java.util.concurrent.ThreadLocalRandom
 import org.springframework.stereotype.Component
 
 @Component
-internal class DanawaRetryPolicy {
+internal class DanawaRetryPolicy(
+    private val jitterSource: DanawaJitterSource = ThreadLocalDanawaJitterSource(),
+) {
     internal val maxAttempts: Int = 3
 
     internal fun shouldRetry(statusCode: Int, attempt: Int): Boolean {
@@ -19,15 +20,7 @@ internal class DanawaRetryPolicy {
             else -> RETRY_DELAY_MILLIS
         }
         val exponential = baseDelay * (1L shl attempt.coerceAtMost(4))
-        return minOf(MAX_RETRY_DELAY_MILLIS, exponential) + randomJitterMillis(RETRY_JITTER_MILLIS)
-    }
-
-    private fun randomJitterMillis(maxJitterMillis: Long): Long {
-        if (maxJitterMillis <= 0L) {
-            return 0L
-        }
-
-        return ThreadLocalRandom.current().nextLong(maxJitterMillis + 1)
+        return minOf(MAX_RETRY_DELAY_MILLIS, exponential) + jitterSource.nextLong(RETRY_JITTER_MILLIS)
     }
 
     private companion object {
