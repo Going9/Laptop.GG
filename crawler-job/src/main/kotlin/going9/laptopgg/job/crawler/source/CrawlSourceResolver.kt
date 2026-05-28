@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.source
 
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -24,20 +25,20 @@ class CrawlSourceResolver {
             FilterProfile.NONE -> {
                 CrawlSource(
                     key = "notebook-all",
-                    listUrl = CrawlerUrls.NOTEBOOK_LIST_URL,
+                    listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
                 )
             }
             FilterProfile.CORE -> {
                 CrawlSource(
                     key = "notebook-core-codename",
-                    listUrl = CrawlerUrls.NOTEBOOK_LIST_URL,
+                    listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
                     attributeFilters = CrawlerFilterSets.coreCpuCodenames,
                 )
             }
             FilterProfile.EXTENDED -> {
                 CrawlSource(
                     key = "notebook-extended-codename",
-                    listUrl = CrawlerUrls.NOTEBOOK_LIST_URL,
+                    listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
                     attributeFilters = CrawlerFilterSets.extendedCpuCodenames,
                 )
             }
@@ -47,7 +48,7 @@ class CrawlSourceResolver {
             mainSource,
             CrawlSource(
                 key = "apple-macbook",
-                listUrl = CrawlerUrls.APPLE_MACBOOK_LIST_URL,
+                listUrl = DanawaEndpoints.APPLE_MACBOOK_LIST_URL,
             ),
         )
     }

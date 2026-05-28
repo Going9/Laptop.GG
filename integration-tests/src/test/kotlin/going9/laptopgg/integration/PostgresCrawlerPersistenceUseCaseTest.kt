@@ -90,7 +90,7 @@ class PostgresCrawlerPersistenceUseCaseTest {
         assertThat(recommendationScoreRepository.findAll()).hasSize(RecommendationUseCase.entries.size)
 
         val recommendations = recommendLaptopsUseCase.recommend(
-            LaptopRecommendationQuery.fixture(
+            LaptopRecommendationQuery(
                 budget = 2_000_000,
                 maxWeightKg = 2.0,
                 useCase = RecommendationUseCase.OFFICE_STUDY,

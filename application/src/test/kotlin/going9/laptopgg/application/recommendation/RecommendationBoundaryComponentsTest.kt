@@ -18,7 +18,7 @@ class RecommendationBoundaryComponentsTest {
 
     @Test
     fun `candidate filter keeps selected screen policy and use case gate`() {
-        val query = LaptopRecommendationQuery.fixture(
+        val query = LaptopRecommendationQuery(
             budget = 2_000_000,
             maxWeightKg = 1.4,
             screenSizes = listOf(16, 14, 14),
@@ -38,7 +38,7 @@ class RecommendationBoundaryComponentsTest {
 
     @Test
     fun `not sure filter converts average gate threshold to total score`() {
-        val query = LaptopRecommendationQuery.fixture(
+        val query = LaptopRecommendationQuery(
             screenSizeMode = ScreenSizeMode.NOT_SURE,
             useCase = RecommendationUseCase.NOT_SURE,
         )

@@ -1,10 +1,11 @@
 package going9.laptopgg.job.crawler.list
 
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.jsoup.Jsoup
 
 internal object DanawaProductCardParser {
     fun parse(html: String): List<ProductCard> {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
+        val document = Jsoup.parse(html, DanawaEndpoints.NOTEBOOK_LIST_URL)
 
         return document.select("li.prod_item")
             .mapNotNull { productItem ->
@@ -65,13 +66,11 @@ internal object DanawaProductCardParser {
 
     private fun normalizeDetailPage(rawDetailPage: String, productCode: String, categoryCode: String): String {
         val cate = extractQueryParam(rawDetailPage, "cate") ?: categoryCode
-        return "$DANAWA_ORIGIN/info/?pcode=$productCode&cate=$cate"
+        return DanawaEndpoints.productDetailUrl(productCode, cate)
     }
 
     private fun extractQueryParam(url: String, key: String): String? {
         return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
     }
 
-    private const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
-    private const val DANAWA_ORIGIN = "https://prod.danawa.com"
 }

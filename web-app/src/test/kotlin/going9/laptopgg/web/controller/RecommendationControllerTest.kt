@@ -21,7 +21,7 @@ class RecommendationControllerTest {
 
     @Test
     fun `recommend api returns explicit paged response schema`() {
-        val request = LaptopRecommendationRequest.fixture()
+        val request = LaptopRecommendationRequest()
         val query = request.toQuery()
         val pageQuery = pageQueryFrom(page = 0, size = 10, sort = null)
         val laptop = LaptopRecommendationResult(

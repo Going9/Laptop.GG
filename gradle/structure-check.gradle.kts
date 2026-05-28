@@ -748,6 +748,27 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertAbsent(
+			rule = "production source sets must not expose test fixture factories",
+			paths = listOf(
+				"application/src/main",
+				"application-crawler/src/main",
+				"recommendation-contract/src/main",
+				"recommendation-core/src/main",
+				"laptop-taxonomy/src/main",
+				"persistence-model/src/main",
+				"infrastructure-jpa/src/main",
+				"infrastructure-jpa-crawler/src/main",
+				"infrastructure-jpa-core/src/main",
+				"infrastructure-security/src/main",
+				"web-app/src/main",
+				"crawler-job/src/main",
+			),
+			patterns = listOf(
+				Regex("""fun\s+fixture\s*\("""),
+			),
+		)
+
 		assertPathAbsent(
 			rule = "crawler persistence contracts must be split by command snapshot lookup and result",
 			paths = listOf("application-crawler/src/main/kotlin/going9/laptopgg/application/crawler/persistence/CrawlerPersistenceModels.kt"),
@@ -1069,6 +1090,21 @@ val verifyStructure by tasks.registering {
 				Regex("""PRODUCT_DESCRIPTION_URL"""),
 				Regex("""FORM_URLENCODED"""),
 				Regex("""fun\s+buildFormData"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "Danawa URL constants must stay centralized in the endpoint catalog",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/client",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/detail",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/list",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/source",
+			),
+			patterns = listOf(
+				Regex("""https://prod\.danawa\.com"""),
+				Regex("""getProductList\.ajax\.php"""),
+				Regex("""getProductDescription\.ajax\.php"""),
 			),
 		)
 

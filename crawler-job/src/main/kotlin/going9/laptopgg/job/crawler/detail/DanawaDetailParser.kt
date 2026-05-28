@@ -1,6 +1,7 @@
 package going9.laptopgg.job.crawler.detail
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.jsoup.Jsoup
 
 internal object DanawaDetailParser {
@@ -24,7 +25,7 @@ internal object DanawaDetailParser {
     }
 
     fun parseSpecTable(html: String): ParsedSpecTable {
-        val document = Jsoup.parse(html, DANAWA_ORIGIN)
+        val document = Jsoup.parse(html, DanawaEndpoints.ORIGIN)
         val specTable = document.selectFirst("table.spec_tbl")
             ?: return ParsedSpecTable(emptyMap(), emptyList())
 
@@ -71,7 +72,6 @@ internal object DanawaDetailParser {
         )
     }
 
-    private const val DANAWA_ORIGIN = "https://prod.danawa.com"
     private val PRODUCT_DESCRIPTION_INFO_REGEX = Regex(
         """var\s+oProductDescriptionInfo\s*=\s*(\{.*?});""",
         setOf(RegexOption.DOT_MATCHES_ALL),

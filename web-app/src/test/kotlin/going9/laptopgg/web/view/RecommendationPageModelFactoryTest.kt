@@ -32,7 +32,7 @@ class RecommendationPageModelFactoryTest {
 
     @Test
     fun `result attributes map page metadata and presentation labels`() {
-        val request = LaptopRecommendationRequest.fixture()
+        val request = LaptopRecommendationRequest()
         val pageQuery = pageQueryFrom(page = 0, size = 10, sort = listOf("price,asc"))
         val recommendations = PagedResult(
             content = listOf(recommendationResult()),
@@ -53,7 +53,7 @@ class RecommendationPageModelFactoryTest {
 
     @Test
     fun `presentation catalog keeps use case labels and screen summaries`() {
-        val request = LaptopRecommendationRequest.fixture(
+        val request = LaptopRecommendationRequest(
             screenSizeMode = ScreenSizeMode.SELECT,
             screenSizes = listOf(16, 14),
         )

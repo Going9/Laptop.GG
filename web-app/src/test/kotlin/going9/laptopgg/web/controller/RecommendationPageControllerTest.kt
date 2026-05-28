@@ -40,7 +40,7 @@ class RecommendationPageControllerTest {
 
     @Test
     fun `recommendation result delegates to service and keeps list model attributes`() {
-        val request = LaptopRecommendationRequest.fixture()
+        val request = LaptopRecommendationRequest()
         val query = request.toQuery()
         val pageQuery = pageQueryFrom(page = 0, size = 10, sort = listOf("price,asc"))
         val recommendedLaptop = LaptopRecommendationResult(

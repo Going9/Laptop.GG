@@ -1,10 +1,11 @@
 package going9.laptopgg.job.crawler.detail
 
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.jsoup.Jsoup
 
 internal object DanawaSummaryFallbackParser {
     fun extractSummaryText(detailPageHtml: String): String {
-        return Jsoup.parse(detailPageHtml, DANAWA_ORIGIN)
+        return Jsoup.parse(detailPageHtml, DanawaEndpoints.ORIGIN)
             .selectFirst(".summary_info .spec_list")
             ?.text()
             .orEmpty()
@@ -52,5 +53,4 @@ internal object DanawaSummaryFallbackParser {
         return regex.find(text)?.groupValues?.getOrNull(1)?.trim()
     }
 
-    private const val DANAWA_ORIGIN = "https://prod.danawa.com"
 }

@@ -1,12 +1,13 @@
 package going9.laptopgg.job.crawler.list
 
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 internal object DanawaListPageMetadataParser {
     fun parse(html: String, currentPage: Int): ListPageMetadata {
-        val document = Jsoup.parse(html, NOTEBOOK_LIST_URL)
+        val document = Jsoup.parse(html, DanawaEndpoints.NOTEBOOK_LIST_URL)
         return ListPageMetadata(
             hasNextPage = hasNextPage(document.selectFirst(".num_nav_wrap")?.let(::PageNavigation), currentPage),
             priceCompareCount = extractPriceCompareCount(document),
@@ -68,7 +69,6 @@ internal object DanawaListPageMetadataParser {
             get() = element.selectFirst(".edge_nav.nav_next") != null
     }
 
-    private const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
     private val PRICE_COMPARE_COUNT_REGEX = Regex("""\(([\d,]+)\)""")
     private val MOVE_PAGE_REGEX = Regex("""movePage\((\d+)\)""")
 }

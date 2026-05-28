@@ -1,7 +1,7 @@
 package going9.laptopgg.job.crawler.list
 
 import going9.laptopgg.application.crawler.persistence.CrawledProductCardCommand
-import going9.laptopgg.job.crawler.source.CrawlerUrls
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 
 internal data class ProductCard(
     val productCode: String,
@@ -16,7 +16,7 @@ internal data class ProductCard(
 )
 
 internal data class ListRequestContext(
-    val listUrl: String = CrawlerUrls.NOTEBOOK_LIST_URL,
+    val listUrl: String = DanawaEndpoints.NOTEBOOK_LIST_URL,
     val listCategoryCode: String = "758",
     val categoryCode: String = "758",
     val physicsCate1: String = "860",

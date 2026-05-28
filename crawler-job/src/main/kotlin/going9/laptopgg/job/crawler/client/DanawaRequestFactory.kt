@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.client
 
+import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import going9.laptopgg.job.crawler.detail.DetailRequestContext
 import going9.laptopgg.job.crawler.list.ListRequestContext
 import going9.laptopgg.job.crawler.list.ProductCard
@@ -21,11 +22,11 @@ class DanawaRequestFactory {
     }
 
     internal fun listPage(page: Int, listRequestContext: ListRequestContext): HttpRequest {
-        return HttpRequest.newBuilder(URI.create(LIST_AJAX_URL))
+        return HttpRequest.newBuilder(URI.create(DanawaEndpoints.LIST_AJAX_URL))
             .timeout(REQUEST_TIMEOUT)
             .header("User-Agent", USER_AGENT)
             .header("Content-Type", FORM_URLENCODED)
-            .header("Origin", DANAWA_ORIGIN)
+            .header("Origin", DanawaEndpoints.ORIGIN)
             .header("Referer", listRequestContext.listUrl)
             .header("X-Requested-With", "XMLHttpRequest")
             .POST(HttpRequest.BodyPublishers.ofString(buildFormData(DanawaListRequestFormData.from(listRequestContext, page))))
@@ -56,11 +57,11 @@ class DanawaRequestFactory {
             "prodType" to context.prodType,
         )
 
-        return HttpRequest.newBuilder(URI.create(PRODUCT_DESCRIPTION_URL))
+        return HttpRequest.newBuilder(URI.create(DanawaEndpoints.PRODUCT_DESCRIPTION_URL))
             .timeout(REQUEST_TIMEOUT)
             .header("User-Agent", USER_AGENT)
             .header("Content-Type", FORM_URLENCODED)
-            .header("Origin", DANAWA_ORIGIN)
+            .header("Origin", DanawaEndpoints.ORIGIN)
             .header("Referer", productCard.detailPage)
             .header("X-Requested-With", "XMLHttpRequest")
             .POST(HttpRequest.BodyPublishers.ofString(buildFormData(formData)))
@@ -91,9 +92,6 @@ class DanawaRequestFactory {
 
     private companion object {
         const val USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
-        const val LIST_AJAX_URL = "https://prod.danawa.com/list/ajax/getProductList.ajax.php"
-        const val DANAWA_ORIGIN = "https://prod.danawa.com"
-        const val PRODUCT_DESCRIPTION_URL = "https://prod.danawa.com/info/ajax/getProductDescription.ajax.php"
         const val FORM_URLENCODED = "application/x-www-form-urlencoded; charset=UTF-8"
         val REQUEST_TIMEOUT: Duration = Duration.ofSeconds(20)
     }

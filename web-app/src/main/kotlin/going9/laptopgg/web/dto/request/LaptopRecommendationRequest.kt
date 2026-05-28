@@ -37,22 +37,6 @@ class LaptopRecommendationRequest(
     companion object {
         val COMMON_SCREEN_SIZES = LaptopRecommendationQuery.COMMON_SCREEN_SIZES
         val ALL_SELECTABLE_SCREEN_SIZES = LaptopRecommendationQuery.ALL_SELECTABLE_SCREEN_SIZES
-
-        fun fixture(
-            budget: Int = 1_500_000,
-            maxWeightKg: Double = 1.5,
-            screenSizes: List<Int> = emptyList(),
-            screenSizeMode: ScreenSizeMode = ScreenSizeMode.ANY,
-            useCase: RecommendationUseCase = RecommendationUseCase.NOT_SURE,
-        ): LaptopRecommendationRequest {
-            return LaptopRecommendationRequest(
-                budget = budget,
-                maxWeightKg = maxWeightKg,
-                screenSizes = screenSizes,
-                screenSizeMode = screenSizeMode,
-                useCase = useCase,
-            )
-        }
     }
 }
 

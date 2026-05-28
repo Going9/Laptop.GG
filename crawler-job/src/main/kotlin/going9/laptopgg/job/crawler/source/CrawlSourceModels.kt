@@ -11,8 +11,3 @@ internal enum class FilterProfile {
     CORE,
     EXTENDED,
 }
-
-internal object CrawlerUrls {
-    const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
-    const val APPLE_MACBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=11236463"
-}

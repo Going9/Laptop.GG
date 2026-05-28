@@ -15,7 +15,7 @@ class RecommendationPageModelFactory(
 ) {
     fun formAttributes(): Map<String, Any> {
         return mapOf(
-            "laptopRecommendationRequest" to LaptopRecommendationRequest.fixture(),
+            "laptopRecommendationRequest" to LaptopRecommendationRequest(),
             "screenSizeList" to LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES,
             "screenSizeModeOptions" to screenSizePresentation.options(),
             "useCaseOptions" to useCasePresentation.options(),
