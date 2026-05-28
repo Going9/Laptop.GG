@@ -45,6 +45,20 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: laptopgg_test
+          POSTGRES_USER: laptopgg
+          POSTGRES_PASSWORD: laptopgg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U laptopgg -d laptopgg_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     timeout-minutes: 360
     env:
       SPRING_PROFILES_ACTIVE: postgres,crawler
@@ -99,7 +113,15 @@ jobs:
           pg_isready -h 127.0.0.1 -p 5433 -U "${SPRING_DATASOURCE_USERNAME}" -d "${{ secrets.CRAWLER_DB_NAME }}"
 
       - name: Test and build crawler jar
-        run: ./gradlew --no-daemon verifyStructure :application-crawler:test :crawler-job:test :crawler-job:bootJar
+        env:
+          POSTGRES_INTEGRATION_TESTS: "true"
+          POSTGRES_INTEGRATION_JDBC_URL: jdbc:postgresql://127.0.0.1:5432/laptopgg_test
+          POSTGRES_INTEGRATION_USERNAME: laptopgg
+          POSTGRES_INTEGRATION_PASSWORD: laptopgg
+        run: |
+          ./gradlew --no-daemon verifyStructure :application-crawler:test :crawler-job:test
+          ./gradlew --no-daemon :integration-tests:test --tests '*Postgres*'
+          ./gradlew --no-daemon :crawler-job:bootJar
 
       - name: Run crawler
         run: |

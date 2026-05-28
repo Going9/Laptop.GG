@@ -23,6 +23,7 @@ flowchart LR
 - 목록 크롤링은 Danawa HTTP/AJAX 요청 기반이라 Chrome/Selenium 설치가 필요 없습니다.
 - 운영 PostgreSQL 스키마는 Flyway 마이그레이션으로 관리합니다.
 - 스키마 변경은 web deploy 경로가 소유하고, crawler job은 운영 DB에서 Flyway migration을 실행하지 않습니다.
+- 크롤러 워크플로는 운영 DB 쓰기 전에 로컬 PostgreSQL 16 service DB로 PostgreSQL 통합 테스트를 먼저 실행합니다.
 - 크롤러는 기존 상품의 가격/이미지/링크를 빠르게 갱신하고, 상세 스펙이 비었거나 오래된 상품만 다시 자세히 수집합니다.
 - 가격 변동 이력은 `laptop_price_history` 테이블에 저장합니다.
 - 크롤러 실행 이력은 `crawler_run` 테이블에 저장하고 PostgreSQL advisory lock으로 중복 실행을 차단합니다.
@@ -193,15 +194,16 @@ JAVA_OPTS=-Xms128m -Xmx384m -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul
 - `CRAWLER_TUNNEL_TARGET_PORT`
 
 동작 방식:
-1. GitHub Actions가 DB 서버로 SSH 접속합니다.
-2. SSH 터널로 PostgreSQL에 연결합니다.
-3. 목록은 HTTP/AJAX로, 상세는 HTTP 요청으로 수집합니다.
-4. 기본값 `core`에서는 다나와 `CPU 코드명` 필터를 목록 단계에서 적용하고, Apple 맥북은 별도 카테고리로 수집합니다.
-5. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
-6. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
-7. `postgres,crawler` 프로필로 크롤러를 실행합니다.
-8. advisory lock을 획득한 실행만 크롤링 결과를 DB에 직접 적재합니다.
-9. 실행 상태와 처리 건수는 `crawler_run`에 남기고 GitHub Actions summary에도 표시합니다.
+1. GitHub Actions가 로컬 PostgreSQL 16 service DB로 PostgreSQL 통합 테스트를 실행합니다.
+2. GitHub Actions가 DB 서버로 SSH 접속합니다.
+3. SSH 터널로 PostgreSQL에 연결합니다.
+4. 목록은 HTTP/AJAX로, 상세는 HTTP 요청으로 수집합니다.
+5. 기본값 `core`에서는 다나와 `CPU 코드명` 필터를 목록 단계에서 적용하고, Apple 맥북은 별도 카테고리로 수집합니다.
+6. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
+7. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
+8. `postgres,crawler` 프로필로 크롤러를 실행합니다.
+9. advisory lock을 획득한 실행만 크롤링 결과를 DB에 직접 적재합니다.
+10. 실행 상태와 처리 건수는 `crawler_run`에 남기고 GitHub Actions summary에도 표시합니다.
 
 ## nginx와 도메인
 

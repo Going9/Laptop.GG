@@ -176,6 +176,20 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler workflow must run PostgreSQL integration tests before production crawl",
+			paths = listOf(".github/workflows/crawler.yml", "README.md", "docs/architecture.md", "ops/RUNBOOK.md"),
+			patterns = listOf(
+				Regex("""services:\s+postgres:"""),
+				Regex("""POSTGRES_INTEGRATION_TESTS:\s+"true""""),
+				Regex("""POSTGRES_INTEGRATION_JDBC_URL:\s+jdbc:postgresql://127\.0\.0\.1:5432/laptopgg_test"""),
+				Regex(""":integration-tests:test --tests '\*Postgres\*'"""),
+				Regex("""runs PostgreSQL integration tests against a local PostgreSQL service before opening the production write path"""),
+				Regex("""크롤러 워크플로는 운영 DB 쓰기 전에 로컬 PostgreSQL 16 service DB로 PostgreSQL 통합 테스트를 먼저 실행합니다"""),
+				Regex("""Crawler workflow validates the persistence path against a local PostgreSQL service before the production crawl"""),
+			),
+		)
+
+		assertPresent(
 			rule = "deploy workflow must serialize releases so rollback can finish",
 			paths = listOf(".github/workflows/deploy-web.yml", "docs/architecture.md", "ops/RUNBOOK.md"),
 			patterns = listOf(
