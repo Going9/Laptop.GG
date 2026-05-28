@@ -1,6 +1,7 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.common.ApplicationInvalidStateException
+import going9.laptopgg.infrastructure.jpa.repository.web.CommentListProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
@@ -19,17 +20,33 @@ class CommentJpaAdapterStateTest {
             commentRepository = commentRepository,
             laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
         )
-        Mockito.`when`(commentRepository.findAllByLaptop_IdOrderByIdAsc(3L)).thenReturn(
+        Mockito.`when`(commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(3L)).thenReturn(
             listOf(
-                commentFixture(id = 1L, laptopId = 3L),
-                commentFixture(id = 2L, laptopId = 3L),
+                commentListProjection(id = 1L),
+                commentListProjection(id = 2L),
             ),
         )
 
         val records = adapter.findAllByLaptopId(3L)
 
         assertThat(records.map { it.id }).containsExactly(1L, 2L)
-        Mockito.verify(commentRepository).findAllByLaptop_IdOrderByIdAsc(3L)
+        Mockito.verify(commentRepository).findAllProjectedByLaptop_IdOrderByIdAsc(3L)
+    }
+
+    @Test
+    fun `findAllByLaptopId rejects projected comment without generated id with explicit application error`() {
+        val commentRepository = Mockito.mock(CommentRepository::class.java)
+        val adapter = CommentJpaAdapter(
+            commentRepository = commentRepository,
+            laptopRepository = Mockito.mock(WebLaptopRepository::class.java),
+        )
+        Mockito.`when`(commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(3L)).thenReturn(
+            listOf(commentListProjection(id = null)),
+        )
+
+        assertThatThrownBy {
+            adapter.findAllByLaptopId(3L)
+        }.isInstanceOf(ApplicationInvalidStateException::class.java)
     }
 
     @Test
@@ -87,6 +104,14 @@ class CommentJpaAdapterStateTest {
             passWord = "hashed:pw",
             id = id,
         )
+    }
+
+    private fun commentListProjection(id: Long?): CommentListProjection {
+        return object : CommentListProjection {
+            override val id: Long? = id
+            override val author: String = "iggy"
+            override val content: String = "좋아요"
+        }
     }
 
     private fun laptopFixture(id: Long? = null): Laptop {

@@ -666,13 +666,16 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""data class CommentResult\(\s+val id: Long,"""),
+				Regex("""data class CommentListRecord\(\s+val id: Long,"""),
 				Regex("""data class CommentRecord\(\s+val id: Long,"""),
 				Regex("""data class CommentRecord\(\s+val id: Long,\s+val laptopId: Long,"""),
 				Regex("""data class CommentResponse\(\s+val id: Long,"""),
+				Regex("""interface CommentListProjection"""),
 				Regex("""Persisted comment id must not be null"""),
 				Regex("""Persisted comment laptop id must not be null"""),
-				Regex("""findAllByLaptop_IdOrderByIdAsc"""),
+				Regex("""findAllProjectedByLaptop_IdOrderByIdAsc"""),
 				Regex("""findAllByLaptopId reads comments in persisted id order"""),
+				Regex("""findAllByLaptopId rejects projected comment without generated id with explicit application error"""),
 				Regex("""findById rejects persisted comment without generated id with explicit application error"""),
 				Regex("""findById rejects persisted comment without owning laptop id with explicit application error"""),
 			),
@@ -716,6 +719,23 @@ val verifyStructure by tasks.registering {
 			),
 			patterns = listOf(
 				Regex("""val id: Long\?"""),
+			),
+		)
+
+		assertPresent(
+			rule = "comment list reads must not load password hashes",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/port/CommentPort.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/CommentRepository.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+				"infrastructure-jpa/src/test/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapterStateTest.kt",
+			),
+			patterns = listOf(
+				Regex("""data class CommentListRecord\("""),
+				Regex("""fun findAllByLaptopId\(laptopId: Long\): List<CommentListRecord>"""),
+				Regex("""interface CommentListProjection"""),
+				Regex("""findAllProjectedByLaptop_IdOrderByIdAsc"""),
+				Regex("""fun CommentListProjection\.toListRecord\(\): CommentListRecord"""),
 			),
 		)
 
@@ -812,7 +832,7 @@ val verifyStructure by tasks.registering {
 			rule = "web-facing laptop display text policy must be centralized",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/common/LaptopDisplayTextPolicy.kt",
-				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopDetailRecordMapper.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResultMapper.kt",
 				"application/src/test/kotlin/going9/laptopgg/application/common/LaptopDisplayTextPolicyTest.kt",
 			),
@@ -832,6 +852,8 @@ val verifyStructure by tasks.registering {
 			rule = "web-facing result mappers must not duplicate display text parsing",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopDetailRecordMapper.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResultMapper.kt",
 			),
 			patterns = listOf(
@@ -846,6 +868,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationCandidateFilterFactory.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
@@ -1882,6 +1905,25 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "laptop detail page must use a single application read use case",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopUseCaseAssembler.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/LaptopPageController.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCaseTest.kt",
+			),
+			patterns = listOf(
+				Regex("""interface\s+GetLaptopDetailPageUseCase"""),
+				Regex("""commentPort\.findAllByLaptopId\(laptopId\)"""),
+				Regex("""transactionPort\.read"""),
+				Regex("""createGetLaptopDetailPageUseCase"""),
+				Regex("""private val getLaptopDetailPageUseCase: GetLaptopDetailPageUseCase"""),
+				Regex("""detail page query reads laptop and comments in one read transaction"""),
+			),
+		)
+
+		assertPresent(
 			rule = "laptop detail page must render nullable price safely",
 			paths = listOf(
 				"web-app/src/main/resources/templates/laptop-detail.html",
@@ -2686,6 +2728,7 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""return\s+ManageCommentUseCase\("""),
 				Regex("""return\s+GetLaptopDetailUseCase\("""),
+				Regex("""return\s+GetLaptopDetailPageUseCase\("""),
 				Regex("""return\s+RecommendLaptopsUseCase\("""),
 			),
 		)
@@ -2695,11 +2738,13 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 			),
 			patterns = listOf(
 				Regex("""^class\s+DefaultManageCommentUseCase\("""),
 				Regex("""^class\s+DefaultGetLaptopDetailUseCase\("""),
+				Regex("""^class\s+DefaultGetLaptopDetailPageUseCase\("""),
 				Regex("""^class\s+DefaultRecommendLaptopsUseCase\("""),
 			),
 		)
@@ -2709,6 +2754,7 @@ val verifyStructure by tasks.registering {
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailPageUseCase.kt",
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
 			),
 			patterns = listOf(
@@ -2716,6 +2762,8 @@ val verifyStructure by tasks.registering {
 				Regex("""internal\s+class\s+DefaultManageCommentUseCase"""),
 				Regex("""interface\s+GetLaptopDetailUseCase"""),
 				Regex("""internal\s+class\s+DefaultGetLaptopDetailUseCase"""),
+				Regex("""interface\s+GetLaptopDetailPageUseCase"""),
+				Regex("""internal\s+class\s+DefaultGetLaptopDetailPageUseCase"""),
 				Regex("""interface\s+RecommendLaptopsUseCase"""),
 				Regex("""internal\s+class\s+DefaultRecommendLaptopsUseCase"""),
 			),

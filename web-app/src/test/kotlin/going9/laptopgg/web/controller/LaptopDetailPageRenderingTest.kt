@@ -1,8 +1,8 @@
 package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.comment.CommentResult
-import going9.laptopgg.application.comment.ManageCommentUseCase
-import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
+import going9.laptopgg.application.laptop.GetLaptopDetailPageUseCase
+import going9.laptopgg.application.laptop.LaptopDetailPageResult
 import going9.laptopgg.application.laptop.LaptopDetailResult
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -24,17 +24,17 @@ class LaptopDetailPageRenderingTest {
     lateinit var mockMvc: MockMvc
 
     @MockitoBean
-    lateinit var getLaptopDetailUseCase: GetLaptopDetailUseCase
-
-    @MockitoBean
-    lateinit var manageCommentUseCase: ManageCommentUseCase
+    lateinit var getLaptopDetailPageUseCase: GetLaptopDetailPageUseCase
 
     @Test
     fun `laptop detail page renders comment create list edit and delete surface`() {
-        Mockito.`when`(getLaptopDetailUseCase.get(10L)).thenReturn(laptopDetailResult(id = 10L))
-        Mockito.`when`(manageCommentUseCase.listByLaptop(10L)).thenReturn(
-            listOf(CommentResult(id = 1L, author = "iggy", content = "좋아요")),
-        )
+        Mockito.`when`(getLaptopDetailPageUseCase.get(10L))
+            .thenReturn(
+                LaptopDetailPageResult(
+                    laptopDetail = laptopDetailResult(id = 10L),
+                    comments = listOf(CommentResult(id = 1L, author = "iggy", content = "좋아요")),
+                ),
+            )
 
         val html = mockMvc.perform(get("/laptops/10"))
             .andExpect(status().isOk)
@@ -54,8 +54,13 @@ class LaptopDetailPageRenderingTest {
 
     @Test
     fun `laptop detail page renders unknown price fallback`() {
-        Mockito.`when`(getLaptopDetailUseCase.get(11L)).thenReturn(laptopDetailResult(id = 11L, price = null))
-        Mockito.`when`(manageCommentUseCase.listByLaptop(11L)).thenReturn(emptyList())
+        Mockito.`when`(getLaptopDetailPageUseCase.get(11L))
+            .thenReturn(
+                LaptopDetailPageResult(
+                    laptopDetail = laptopDetailResult(id = 11L, price = null),
+                    comments = emptyList(),
+                ),
+            )
 
         val html = mockMvc.perform(get("/laptops/11"))
             .andExpect(status().isOk)

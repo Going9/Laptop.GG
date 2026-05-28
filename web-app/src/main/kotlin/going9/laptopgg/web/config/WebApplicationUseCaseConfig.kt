@@ -7,6 +7,7 @@ import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
+import going9.laptopgg.application.laptop.GetLaptopDetailPageUseCase
 import going9.laptopgg.application.laptop.LaptopUseCaseAssembler
 import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.application.recommendation.RecommendLaptopsUseCase
@@ -39,6 +40,19 @@ internal class WebApplicationUseCaseConfig {
     ): GetLaptopDetailUseCase {
         return LaptopUseCaseAssembler.createGetLaptopDetailUseCase(
             laptopPort = laptopPort,
+            transactionPort = transactionPort,
+        )
+    }
+
+    @Bean
+    fun getLaptopDetailPageUseCase(
+        laptopPort: LaptopPort,
+        commentPort: CommentPort,
+        transactionPort: ApplicationTransactionPort,
+    ): GetLaptopDetailPageUseCase {
+        return LaptopUseCaseAssembler.createGetLaptopDetailPageUseCase(
+            laptopPort = laptopPort,
+            commentPort = commentPort,
             transactionPort = transactionPort,
         )
     }

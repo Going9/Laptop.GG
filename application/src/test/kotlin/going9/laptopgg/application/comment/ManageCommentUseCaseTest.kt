@@ -1,6 +1,7 @@
 package going9.laptopgg.application.comment
 
 import going9.laptopgg.application.comment.port.CommentLaptopPort
+import going9.laptopgg.application.comment.port.CommentListRecord
 import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.CommentRecord
 import going9.laptopgg.application.comment.port.PasswordHashPort
@@ -164,9 +165,15 @@ class ManageCommentUseCaseTest {
             return records[commentId]
         }
 
-        override fun findAllByLaptopId(laptopId: Long): List<CommentRecord> {
+        override fun findAllByLaptopId(laptopId: Long): List<CommentListRecord> {
             findAllByLaptopCalls++
-            return records.values.toList()
+            return records.values.map { record ->
+                CommentListRecord(
+                    id = record.id,
+                    author = record.author,
+                    content = record.content,
+                )
+            }
         }
 
         override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {

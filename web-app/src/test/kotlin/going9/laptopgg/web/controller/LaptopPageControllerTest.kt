@@ -1,8 +1,8 @@
 package going9.laptopgg.web.controller
 
 import going9.laptopgg.application.comment.CommentResult
-import going9.laptopgg.application.comment.ManageCommentUseCase
-import going9.laptopgg.application.laptop.GetLaptopDetailUseCase
+import going9.laptopgg.application.laptop.GetLaptopDetailPageUseCase
+import going9.laptopgg.application.laptop.LaptopDetailPageResult
 import going9.laptopgg.application.laptop.LaptopDetailResult
 import going9.laptopgg.web.dto.request.CommentRequest
 import going9.laptopgg.web.dto.response.CommentResponse
@@ -13,19 +13,17 @@ import org.mockito.Mockito
 import org.springframework.ui.ExtendedModelMap
 
 class LaptopPageControllerTest {
-    private val getLaptopDetailUseCase = Mockito.mock(GetLaptopDetailUseCase::class.java)
-    private val manageCommentUseCase = Mockito.mock(ManageCommentUseCase::class.java)
+    private val getLaptopDetailPageUseCase = Mockito.mock(GetLaptopDetailPageUseCase::class.java)
     private val controller = LaptopPageController(
-        getLaptopDetailUseCase = getLaptopDetailUseCase,
-        manageCommentUseCase = manageCommentUseCase,
+        getLaptopDetailPageUseCase = getLaptopDetailPageUseCase,
     )
 
     @Test
     fun `laptop detail delegates to services and keeps model attributes`() {
         val laptopDetail = laptopDetailResponse(id = 10L)
         val comments = listOf(CommentResult(id = 1L, author = "iggy", content = "좋아요"))
-        Mockito.`when`(getLaptopDetailUseCase.get(10L)).thenReturn(laptopDetail)
-        Mockito.`when`(manageCommentUseCase.listByLaptop(10L)).thenReturn(comments)
+        Mockito.`when`(getLaptopDetailPageUseCase.get(10L))
+            .thenReturn(LaptopDetailPageResult(laptopDetail = laptopDetail, comments = comments))
         val model = ExtendedModelMap()
 
         val viewName = controller.showLaptopDetail(10L, model)

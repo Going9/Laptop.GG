@@ -1,5 +1,6 @@
 package going9.laptopgg.application.laptop
 
+import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 import going9.laptopgg.application.laptop.port.LaptopPort
 
@@ -10,6 +11,18 @@ object LaptopUseCaseAssembler {
     ): GetLaptopDetailUseCase {
         return DefaultGetLaptopDetailUseCase(
             laptopPort = laptopPort,
+            transactionPort = transactionPort,
+        )
+    }
+
+    fun createGetLaptopDetailPageUseCase(
+        laptopPort: LaptopPort,
+        commentPort: CommentPort,
+        transactionPort: ApplicationTransactionPort,
+    ): GetLaptopDetailPageUseCase {
+        return DefaultGetLaptopDetailPageUseCase(
+            laptopPort = laptopPort,
+            commentPort = commentPort,
             transactionPort = transactionPort,
         )
     }

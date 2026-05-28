@@ -1,12 +1,14 @@
 package going9.laptopgg.infrastructure.jpa.adapter.web
 
+import going9.laptopgg.application.comment.port.CommentListRecord
 import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.CommentRecord
 import going9.laptopgg.application.common.ApplicationInvalidStateException
 import going9.laptopgg.application.common.ResourceNotFoundException
-import going9.laptopgg.persistence.model.web.Comment
+import going9.laptopgg.infrastructure.jpa.repository.web.CommentListProjection
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
+import going9.laptopgg.persistence.model.web.Comment
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
@@ -19,8 +21,8 @@ internal class CommentJpaAdapter(
         return commentRepository.findByIdOrNull(commentId)?.toRecord()
     }
 
-    override fun findAllByLaptopId(laptopId: Long): List<CommentRecord> {
-        return commentRepository.findAllByLaptop_IdOrderByIdAsc(laptopId).map { it.toRecord() }
+    override fun findAllByLaptopId(laptopId: Long): List<CommentListRecord> {
+        return commentRepository.findAllProjectedByLaptop_IdOrderByIdAsc(laptopId).map { it.toListRecord() }
     }
 
     override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {
@@ -57,6 +59,14 @@ internal class CommentJpaAdapter(
             author = author,
             content = content,
             passwordHash = passWord,
+        )
+    }
+
+    private fun CommentListProjection.toListRecord(): CommentListRecord {
+        return CommentListRecord(
+            id = id ?: throw ApplicationInvalidStateException("Persisted comment id must not be null."),
+            author = author,
+            content = content,
         )
     }
 }
