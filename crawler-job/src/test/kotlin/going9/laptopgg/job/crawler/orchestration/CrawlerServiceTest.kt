@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.orchestration
 
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

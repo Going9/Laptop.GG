@@ -1,6 +1,13 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
+import going9.laptopgg.job.crawler.detail.BuildLaptopResult
+import going9.laptopgg.job.crawler.detail.DetailCrawler
+import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
+import going9.laptopgg.job.crawler.detail.DetailRefreshPolicy
+import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
+import going9.laptopgg.job.crawler.list.ProductCard
+import going9.laptopgg.job.crawler.list.toCommand
 import java.util.concurrent.ExecutorService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

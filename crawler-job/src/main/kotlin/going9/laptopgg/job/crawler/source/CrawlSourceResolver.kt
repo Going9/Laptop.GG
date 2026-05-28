@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.source
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

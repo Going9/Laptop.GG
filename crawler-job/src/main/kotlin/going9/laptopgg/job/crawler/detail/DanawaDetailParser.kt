@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.detail
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.jsoup.Jsoup

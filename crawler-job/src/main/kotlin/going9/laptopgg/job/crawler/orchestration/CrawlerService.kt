@@ -1,8 +1,12 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.orchestration
 
-import org.springframework.stereotype.Service
+import going9.laptopgg.job.crawler.list.DanawaListParser
+import going9.laptopgg.job.crawler.list.ListPageCrawler
+import going9.laptopgg.job.crawler.list.ProductCard
+import going9.laptopgg.job.crawler.source.CrawlSourceResolver
 import java.util.concurrent.Executors
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
 @Service
 class CrawlerService(

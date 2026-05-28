@@ -1,8 +1,9 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.detail
 
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
+import going9.laptopgg.job.crawler.list.ProductCard
 import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 

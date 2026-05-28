@@ -1,5 +1,7 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.list
 
+import going9.laptopgg.job.crawler.client.DanawaClient
+import going9.laptopgg.job.crawler.source.CrawlSource
 import org.springframework.stereotype.Component
 
 @Component

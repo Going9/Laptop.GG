@@ -1,5 +1,7 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.detail
 
+import going9.laptopgg.job.crawler.client.DanawaClient
+import going9.laptopgg.job.crawler.list.ProductCard
 import java.util.concurrent.ExecutorService
 import org.springframework.stereotype.Component
 

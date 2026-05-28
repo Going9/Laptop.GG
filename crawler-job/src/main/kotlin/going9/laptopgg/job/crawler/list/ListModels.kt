@@ -1,26 +1,7 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.list
 
-import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.CrawledProductCardCommand
-import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
-
-data class CrawlSummary(
-    val processedCount: Int,
-    val createdCount: Int,
-    val updatedCount: Int,
-    val degradedCount: Int,
-    val degradedSamples: List<String>,
-    val failedCount: Int,
-    val failureSamples: List<String>,
-)
-
-internal data class BuildLaptopResult(
-    val command: CrawledLaptopCommand,
-    val degradationReasons: List<String>,
-) {
-    val isDegraded: Boolean
-        get() = degradationReasons.isNotEmpty()
-}
+import going9.laptopgg.job.crawler.source.CrawlerUrls
 
 internal data class ProductCard(
     val productCode: String,
@@ -32,39 +13,6 @@ internal data class ProductCard(
     val cate2: String,
     val cate3: String,
     val cate4: String,
-)
-
-internal data class DetailRequestContext(
-    val makerName: String?,
-    val productName: String?,
-    val prodType: String?,
-)
-
-internal data class ParsedSpecTable(
-    val values: Map<String, String>,
-    val usages: List<String>,
-)
-
-internal data class SummaryFallback(
-    val cpuManufacturer: String? = null,
-    val cpu: String? = null,
-    val os: String? = null,
-    val screenSize: Int? = null,
-    val resolution: String? = null,
-    val brightness: Int? = null,
-    val refreshRate: Int? = null,
-    val ramSize: Int? = null,
-    val ramType: String? = null,
-    val isRamReplaceable: Boolean? = null,
-    val graphicsKind: String? = null,
-    val graphicsModel: String? = null,
-    val tgp: Int? = null,
-    val isSupportsPdCharging: Boolean? = null,
-    val batteryCapacity: Double? = null,
-    val storageCapacity: Int? = null,
-    val storageSlotCount: Int? = null,
-    val weight: Double? = null,
-    val usages: List<String> = emptyList(),
 )
 
 internal data class ListRequestContext(
@@ -148,23 +96,6 @@ internal data class ListRequestContext(
     }
 }
 
-internal data class CrawlSource(
-    val key: String,
-    val listUrl: String,
-    val attributeFilters: List<CrawlerAttributeFilter> = emptyList(),
-)
-
-internal data class DetailRefreshWorkItem(
-    val productCard: ProductCard,
-    val existingLaptop: ExistingCrawledLaptopSnapshot?,
-)
-
-internal data class DetailRefreshOutcome(
-    val workItem: DetailRefreshWorkItem,
-    val buildResult: BuildLaptopResult? = null,
-    val error: Exception? = null,
-)
-
 internal data class ProductPageBatch(
     val productCards: List<ProductCard>,
     val hasNextPage: Boolean,
@@ -172,17 +103,6 @@ internal data class ProductPageBatch(
     val visiblePageNumbers: List<Int>,
     val nextPageHint: Int?,
 )
-
-internal enum class FilterProfile {
-    NONE,
-    CORE,
-    EXTENDED,
-}
-
-internal object CrawlerUrls {
-    const val NOTEBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=112758"
-    const val APPLE_MACBOOK_LIST_URL = "https://prod.danawa.com/list/?cate=11236463"
-}
 
 internal fun ProductCard.toCommand(): CrawledProductCardCommand {
     return CrawledProductCardCommand(

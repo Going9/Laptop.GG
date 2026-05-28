@@ -802,8 +802,16 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler-job crawler code must live in role packages, not the flat crawler package",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler", "crawler-job/src/test/kotlin/going9/laptopgg/job/crawler"),
+			patterns = listOf(
+				Regex("""^package going9\.laptopgg\.job\.crawler$"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler orchestration must not own filter profile source mapping",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
 				Regex("""fun\s+resolveFilterProfile"""),
 				Regex("""fun\s+resolveCrawlSources"""),
@@ -814,7 +822,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "crawler orchestration must not own progress counters and samples",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
 				Regex("""var\s+(processedCount|createdCount|updatedCount|degradedCount|priceOnlyUpdatedCount|detailRefreshCount|failedCount)"""),
 				Regex("""degradedSamples"""),
@@ -825,7 +833,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "crawler orchestration must not expose parser or merger test delegates",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
 				Regex("""LaptopSnapshotMerger"""),
 				Regex("""resolveCpuModel"""),
@@ -834,7 +842,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "crawler orchestration must not own product batch persistence flow",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
 				Regex("""SaveCrawledLaptopUseCase"""),
 				Regex("""DetailCrawler"""),
@@ -848,7 +856,7 @@ val verifyStructure by tasks.registering {
 
 		assertAbsent(
 			rule = "crawler orchestration must not expose duplicate-tail stop policy",
-			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt"),
 			patterns = listOf(
 				Regex("""shouldStopAtDuplicateTail"""),
 				Regex("""MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES"""),

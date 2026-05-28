@@ -1,5 +1,8 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.client
 
+import going9.laptopgg.job.crawler.detail.DetailRequestContext
+import going9.laptopgg.job.crawler.list.ListRequestContext
+import going9.laptopgg.job.crawler.list.ProductCard
 import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder

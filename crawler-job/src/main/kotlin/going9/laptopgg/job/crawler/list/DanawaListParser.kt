@@ -1,5 +1,6 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.list
 
+import going9.laptopgg.job.crawler.source.CrawlSource
 import org.jsoup.Jsoup
 
 internal object DanawaListParser {

@@ -1,10 +1,16 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.orchestration
 
 import going9.laptopgg.application.crawler.persistence.CrawledLaptopCommand
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopLookup
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.SaveResult
+import going9.laptopgg.job.crawler.detail.BuildLaptopResult
+import going9.laptopgg.job.crawler.detail.DetailCrawler
+import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
+import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
+import going9.laptopgg.job.crawler.list.ProductCard
+import going9.laptopgg.job.crawler.list.toCommand
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import org.assertj.core.api.Assertions.assertThat

@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.orchestration
 
 internal object DuplicateTailStopPolicy {
     fun shouldStop(

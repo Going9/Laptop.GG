@@ -5,8 +5,8 @@ import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
 import going9.laptopgg.application.crawler.run.CrawlerRunStatusResult
 import going9.laptopgg.application.crawler.run.CrawlerRunSummary
 import going9.laptopgg.application.crawler.run.TrackCrawlerRunUseCase
-import going9.laptopgg.job.crawler.CrawlerService
-import going9.laptopgg.job.crawler.CrawlSummary
+import going9.laptopgg.job.crawler.orchestration.CrawlerService
+import going9.laptopgg.job.crawler.orchestration.CrawlSummary
 import going9.laptopgg.job.config.CrawlerJobProperties
 import kotlin.system.exitProcess
 import org.slf4j.LoggerFactory

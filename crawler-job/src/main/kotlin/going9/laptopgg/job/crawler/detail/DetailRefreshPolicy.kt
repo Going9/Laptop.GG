@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.detail
 
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
 import java.time.LocalDateTime

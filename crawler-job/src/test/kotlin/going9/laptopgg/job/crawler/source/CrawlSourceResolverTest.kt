@@ -1,4 +1,4 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.source
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

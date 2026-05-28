@@ -1,8 +1,11 @@
-package going9.laptopgg.job.crawler
+package going9.laptopgg.job.crawler.detail
 
 import going9.laptopgg.application.crawler.profile.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.profile.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.persistence.ExistingCrawledLaptopSnapshot
+import going9.laptopgg.job.crawler.list.DanawaListParser
+import going9.laptopgg.job.crawler.list.ProductCard
+import going9.laptopgg.job.crawler.source.CrawlSource
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
