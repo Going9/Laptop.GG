@@ -595,6 +595,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "crawler orchestration must not expose duplicate-tail stop policy",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/CrawlerService.kt"),
+			patterns = listOf(
+				Regex("""shouldStopAtDuplicateTail"""),
+				Regex("""MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job must not implement PostgreSQL lock infrastructure directly",
 			paths = listOf("crawler-job/src/main", "crawler-job/src/test"),
 			patterns = listOf(

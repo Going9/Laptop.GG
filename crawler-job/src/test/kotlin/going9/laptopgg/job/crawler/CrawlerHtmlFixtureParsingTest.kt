@@ -2,17 +2,8 @@ package going9.laptopgg.job.crawler
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
 
 class CrawlerHtmlFixtureParsingTest {
-    private val danawaClient = DanawaClient()
-    private val crawlSourceResolver = CrawlSourceResolver()
-    private val crawlerService = CrawlerService(
-        listPageCrawler = ListPageCrawler(danawaClient),
-        crawlProductBatchProcessor = mock(CrawlProductBatchProcessor::class.java),
-        crawlSourceResolver = crawlSourceResolver,
-    )
-
     @Test
     fun `list fixture keeps context and canonical product card fields`() {
         val html = readFixture("/fixtures/danawa/list-page.html")
@@ -144,21 +135,21 @@ class CrawlerHtmlFixtureParsingTest {
     @Test
     fun `duplicate tail stops only after repeated signature or sustained duplicate pages`() {
         assertThat(
-            crawlerService.shouldStopAtDuplicateTail(
+            DuplicateTailStopPolicy.shouldStop(
                 freshProductCount = 1,
                 consecutiveDuplicateOnlyPages = 3,
             ),
         ).isFalse()
 
         assertThat(
-            crawlerService.shouldStopAtDuplicateTail(
+            DuplicateTailStopPolicy.shouldStop(
                 freshProductCount = 0,
                 consecutiveDuplicateOnlyPages = 1,
             ),
         ).isFalse()
 
         assertThat(
-            crawlerService.shouldStopAtDuplicateTail(
+            DuplicateTailStopPolicy.shouldStop(
                 freshProductCount = 0,
                 consecutiveDuplicateOnlyPages = 5,
             ),

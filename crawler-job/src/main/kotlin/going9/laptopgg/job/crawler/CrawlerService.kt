@@ -140,7 +140,7 @@ class CrawlerService(
                             break
                         }
 
-                        if (shouldStopAtDuplicateTail(
+                        if (DuplicateTailStopPolicy.shouldStop(
                                 freshProductCount = freshProductCards.size,
                                 consecutiveDuplicateOnlyPages = consecutiveDuplicateOnlyPages,
                             )
@@ -206,17 +206,6 @@ class CrawlerService(
         }
     }
 
-    internal fun shouldStopAtDuplicateTail(
-        freshProductCount: Int,
-        consecutiveDuplicateOnlyPages: Int,
-    ): Boolean {
-        if (freshProductCount > 0) {
-            return false
-        }
-
-        return consecutiveDuplicateOnlyPages >= MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES
-    }
-
     private fun describeCard(productCard: ProductCard?): String {
         if (productCard == null) {
             return "없음"
@@ -232,7 +221,6 @@ class CrawlerService(
 
     companion object {
         private const val MAX_LIST_PAGES = 5000
-        private const val MAX_CONSECUTIVE_DUPLICATE_ONLY_PAGES = 5
         private const val DETAIL_FETCH_CONCURRENCY = 6
     }
 }
