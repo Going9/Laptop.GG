@@ -46,7 +46,11 @@ internal class WebApplicationUseCaseConfig {
     @Bean
     fun recommendLaptopsUseCase(
         recommendationCandidatePort: RecommendationCandidatePort,
+        transactionPort: ApplicationTransactionPort,
     ): RecommendLaptopsUseCase {
-        return RecommendationUseCaseAssembler.createRecommendLaptopsUseCase(recommendationCandidatePort)
+        return RecommendationUseCaseAssembler.createRecommendLaptopsUseCase(
+            recommendationCandidatePort = recommendationCandidatePort,
+            transactionPort = transactionPort,
+        )
     }
 }

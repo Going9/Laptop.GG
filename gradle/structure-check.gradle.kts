@@ -2292,6 +2292,24 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "recommendation use case must own application read transaction boundary",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationUseCaseAssembler.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/config/IntegrationWebUseCaseConfig.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/recommendation/RecommendLaptopsUseCaseTransactionTest.kt",
+			),
+			patterns = listOf(
+				Regex("""private val transactionPort: ApplicationTransactionPort"""),
+				Regex("""transactionPort\.read"""),
+				Regex("""transactionPort: ApplicationTransactionPort"""),
+				Regex("""transactionPort = transactionPort"""),
+				Regex("""recommendation query runs inside application read transaction"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "runtime configs must delegate web application use case assembly",
 			paths = listOf("web-app/src/main/kotlin/going9/laptopgg/web/config/WebApplicationUseCaseConfig.kt"),
