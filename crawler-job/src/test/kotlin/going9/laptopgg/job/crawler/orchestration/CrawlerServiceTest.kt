@@ -1,14 +1,108 @@
 package going9.laptopgg.job.crawler.orchestration
 
-import org.junit.jupiter.api.Disabled
+import going9.laptopgg.job.config.CrawlerJobProperties
+import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
+import going9.laptopgg.job.crawler.source.CrawlSource
+import going9.laptopgg.job.crawler.source.CrawlSourceResolver
+import going9.laptopgg.job.crawler.source.ResolvedCrawlSources
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 
-@Disabled("실제 다나와 페이지와 브라우저가 필요한 라이브 통합 테스트입니다.")
-@SpringBootTest(properties = ["spring.profiles.active=test,crawler"])
 class CrawlerServiceTest {
+    @Test
+    fun `crawlAll traverses resolved sources with first requested page only once`() {
+        val firstSource = crawlSource("first")
+        val secondSource = crawlSource("second")
+        val sourceRunner = RecordingCrawlSourceRunUseCase(
+            results = listOf(
+                CrawlSourceRunResult(reachedLimit = false, hitMaxListPages = false),
+                CrawlSourceRunResult(reachedLimit = false, hitMaxListPages = true),
+            ),
+        )
+        val service = crawlerService(
+            sourceRunner = sourceRunner,
+            sources = listOf(firstSource, secondSource),
+            maxListPages = 7,
+        )
+
+        val summary = service.crawlAll(limit = 5, startPage = 3, filterProfileRaw = "extended")
+
+        assertThat(summary.processedCount).isEqualTo(2)
+        assertThat(sourceRunner.calls.map { it.source }).containsExactly(firstSource, secondSource)
+        assertThat(sourceRunner.calls.map { it.startPage }).containsExactly(3, 1)
+        assertThat(sourceRunner.calls.map { it.maxListPages }).containsExactly(7, 7)
+        assertThat(sourceRunner.calls.map { it.limit }).containsExactly(5, 5)
+    }
 
     @Test
-    fun `live crawling smoke test`() {
+    fun `crawlAll stops traversing sources after the limit is reached`() {
+        val sourceRunner = RecordingCrawlSourceRunUseCase(
+            results = listOf(
+                CrawlSourceRunResult(reachedLimit = true, hitMaxListPages = false),
+                CrawlSourceRunResult(reachedLimit = false, hitMaxListPages = false),
+            ),
+        )
+        val service = crawlerService(
+            sourceRunner = sourceRunner,
+            sources = listOf(crawlSource("first"), crawlSource("second")),
+            maxListPages = 7,
+        )
+
+        service.crawlAll(limit = 1, startPage = 1, filterProfileRaw = "core")
+
+        assertThat(sourceRunner.calls).hasSize(1)
     }
+
+    private fun crawlerService(
+        sourceRunner: RecordingCrawlSourceRunUseCase,
+        sources: List<CrawlSource>,
+        maxListPages: Int,
+    ): CrawlerService {
+        return CrawlerService(
+            crawlSourceRunner = sourceRunner,
+            crawlSourceResolver = object : CrawlSourceResolver {
+                override fun resolve(rawProfile: String?): ResolvedCrawlSources {
+                    return ResolvedCrawlSources(rawProfile ?: "core", sources)
+                }
+            },
+            crawlerJobProperties = CrawlerJobProperties(maxListPages = maxListPages),
+            detailFetchExecutorFactory = DetailFetchExecutorFactory {
+                DetailFetchExecutor.fixed(1)
+            },
+        )
+    }
+
+    private fun crawlSource(key: String): CrawlSource {
+        return CrawlSource(
+            key = key,
+            listUrl = "https://example.com/$key",
+        )
+    }
+
+    private class RecordingCrawlSourceRunUseCase(
+        private val results: List<CrawlSourceRunResult>,
+    ) : CrawlSourceRunUseCase {
+        val calls = mutableListOf<CrawlSourceRunCall>()
+
+        override fun runSource(
+            crawlSource: CrawlSource,
+            startPage: Int,
+            maxListPages: Int,
+            limit: Int?,
+            seenDetailPages: MutableSet<String>,
+            progress: CrawlProgress,
+            detailFetchExecutor: DetailFetchExecutor,
+        ): CrawlSourceRunResult {
+            calls += CrawlSourceRunCall(crawlSource, startPage, maxListPages, limit)
+            progress.recordProcessed(1)
+            return results[calls.lastIndex]
+        }
+    }
+
+    private data class CrawlSourceRunCall(
+        val source: CrawlSource,
+        val startPage: Int,
+        val maxListPages: Int,
+        val limit: Int?,
+    )
 }

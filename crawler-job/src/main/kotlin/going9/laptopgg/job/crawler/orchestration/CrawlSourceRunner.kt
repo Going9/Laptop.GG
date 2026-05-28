@@ -6,6 +6,18 @@ import going9.laptopgg.job.crawler.source.CrawlSource
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
+internal interface CrawlSourceRunUseCase {
+    fun runSource(
+        crawlSource: CrawlSource,
+        startPage: Int,
+        maxListPages: Int,
+        limit: Int?,
+        seenDetailPages: MutableSet<String>,
+        progress: CrawlProgress,
+        detailFetchExecutor: DetailFetchExecutor,
+    ): CrawlSourceRunResult
+}
+
 @Component
 internal class CrawlSourceRunner(
     private val listPageCrawler: ProductListPageCrawler,
@@ -13,10 +25,10 @@ internal class CrawlSourceRunner(
     private val crawlPageDiagnosticsLogger: CrawlPageDiagnosticsLogger,
     private val stopDecisionLogger: CrawlSourceStopDecisionLogger,
     private val crawlClock: CrawlClock,
-) {
+) : CrawlSourceRunUseCase {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    internal fun runSource(
+    override fun runSource(
         crawlSource: CrawlSource,
         startPage: Int,
         maxListPages: Int,

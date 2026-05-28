@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 
 @Service
 internal class CrawlerService(
-    private val crawlSourceRunner: CrawlSourceRunner,
+    private val crawlSourceRunner: CrawlSourceRunUseCase,
     private val crawlSourceResolver: CrawlSourceResolver,
     private val crawlerJobProperties: CrawlerJobProperties,
     private val detailFetchExecutorFactory: DetailFetchExecutorFactory,

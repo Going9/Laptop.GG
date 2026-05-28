@@ -302,6 +302,31 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "crawler service orchestration must be covered without disabled live smoke tests",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlSourceRunner.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerService.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration/CrawlerServiceTest.kt",
+			),
+			patterns = listOf(
+				Regex("""internal interface CrawlSourceRunUseCase"""),
+				Regex(""": CrawlSourceRunUseCase"""),
+				Regex("""private val crawlSourceRunner: CrawlSourceRunUseCase"""),
+				Regex("""crawlAll traverses resolved sources with first requested page only once"""),
+				Regex("""crawlAll stops traversing sources after the limit is reached"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "crawler tests must not keep disabled live smoke placeholders",
+			paths = listOf("crawler-job/src/test"),
+			patterns = listOf(
+				Regex("""@Disabled"""),
+				Regex("""live crawling smoke test"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "JPA entities must not be Kotlin data classes",
 			paths = listOf("persistence-model/src/main"),
