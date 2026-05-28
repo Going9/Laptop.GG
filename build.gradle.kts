@@ -385,6 +385,21 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "runtime applications must not own JPA repository scanning",
+			paths = listOf(
+				"web-app/src/main",
+				"web-app/build.gradle.kts",
+				"crawler-job/src/main",
+				"crawler-job/build.gradle.kts",
+			),
+			patterns = listOf(
+				Regex("""EnableJpaRepositories"""),
+				Regex("""org\.springframework\.data\.jpa\.repository\.config"""),
+				Regex("""compileOnly\("org\.springframework\.data:spring-data-jpa"\)"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "crawler-job tests must not reach into JPA repositories directly",
 			paths = listOf(
 				"crawler-job/src/main/kotlin/going9/laptopgg/job",

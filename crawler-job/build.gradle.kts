@@ -11,8 +11,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-    compileOnly("org.springframework.data:spring-data-jpa")
-
     runtimeOnly("org.postgresql:postgresql:42.7.5")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

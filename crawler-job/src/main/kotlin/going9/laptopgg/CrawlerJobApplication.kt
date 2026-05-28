@@ -1,8 +1,9 @@
 package going9.laptopgg
 
+import going9.laptopgg.infrastructure.jpa.config.CrawlerJpaRepositoryConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.context.annotation.Import
 
 @SpringBootApplication(
     scanBasePackages = [
@@ -10,12 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "going9.laptopgg.job",
     ],
 )
-@EnableJpaRepositories(
-    basePackages = [
-        "going9.laptopgg.infrastructure.jpa.repository.crawler",
-        "going9.laptopgg.infrastructure.jpa.repository.shared",
-    ],
-)
+@Import(CrawlerJpaRepositoryConfig::class)
 class CrawlerJobApplication
 
 fun main(args: Array<String>) {
