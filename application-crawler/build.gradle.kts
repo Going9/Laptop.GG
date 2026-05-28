@@ -1,4 +1,5 @@
 dependencies {
+    implementation(project(":laptop-taxonomy"))
     implementation(project(":recommendation-core"))
 
     testImplementation("org.junit.jupiter:junit-jupiter")

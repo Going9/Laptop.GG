@@ -5,6 +5,7 @@ dependencies {
     testImplementation(project(":infrastructure-jpa"))
     testImplementation(project(":infrastructure-jpa-core"))
     testImplementation(project(":infrastructure-jpa-crawler"))
+    testImplementation(project(":laptop-taxonomy"))
     testImplementation(project(":recommendation-core"))
 
     testImplementation("org.flywaydb:flyway-core")

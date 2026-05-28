@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":recommendation-core"))
+    api(project(":laptop-taxonomy"))
 
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
 }

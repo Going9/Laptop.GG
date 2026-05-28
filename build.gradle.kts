@@ -85,10 +85,11 @@ val verifyStructure by tasks.registering {
 		}
 
 		mapOf(
+			":laptop-taxonomy" to emptySet(),
 			":persistence-model" to emptySet(),
 			":recommendation-core" to emptySet(),
 			":application" to setOf(":recommendation-core"),
-			":application-crawler" to setOf(":recommendation-core"),
+			":application-crawler" to setOf(":laptop-taxonomy", ":recommendation-core"),
 			":infrastructure-jpa-core" to setOf(":persistence-model"),
 			":infrastructure-jpa" to setOf(":application", ":persistence-model", ":infrastructure-jpa-core"),
 			":infrastructure-jpa-crawler" to setOf(":application-crawler", ":persistence-model", ":infrastructure-jpa-core"),
@@ -106,7 +107,8 @@ val verifyStructure by tasks.registering {
 		}
 
 		mapOf(
-			":persistence-model" to setOf(":recommendation-core"),
+			":laptop-taxonomy" to emptySet(),
+			":persistence-model" to setOf(":laptop-taxonomy"),
 			":recommendation-core" to emptySet(),
 			":application" to emptySet(),
 			":application-crawler" to emptySet(),
@@ -133,6 +135,7 @@ val verifyStructure by tasks.registering {
 			expectedProjectPaths = setOf(
 				":application",
 				":application-crawler",
+				":laptop-taxonomy",
 				":persistence-model",
 				":infrastructure-jpa",
 				":infrastructure-jpa-core",
@@ -165,6 +168,32 @@ val verifyStructure by tasks.registering {
 				Regex("""going9\.laptopgg\.domain"""),
 				Regex("""project\(":domain"\)"""),
 				Regex(""""domain""""),
+			),
+		)
+
+		assertAbsent(
+			rule = "laptop-taxonomy must stay a Spring-free shared enum module",
+			paths = listOf("laptop-taxonomy/src/main", "laptop-taxonomy/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.application"""),
+				Regex("""going9\.laptopgg\.persistence"""),
+				Regex("""going9\.laptopgg\.recommendation"""),
+				Regex("""going9\.laptopgg\.infrastructure"""),
+				Regex("""going9\.laptopgg\.web"""),
+				Regex("""org\.springframework"""),
+				Regex("""spring-boot"""),
+				Regex("""spring-context"""),
+				Regex("""project\("""),
+			),
+		)
+
+		assertAbsent(
+			rule = "persistence-model must not depend on recommendation scoring policy",
+			paths = listOf("persistence-model/src/main", "persistence-model/build.gradle.kts"),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.recommendation"""),
+				Regex("""project\(":recommendation-core"\)"""),
+				Regex("""RecommendationScoringPolicy"""),
 			),
 		)
 
@@ -329,16 +358,18 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
-			rule = "recommendation-core must stay a Spring-free and persistence-model-free shared policy module",
+			rule = "recommendation-core must stay a Spring-free scoring policy module",
 			paths = listOf("recommendation-core/src/main", "recommendation-core/build.gradle.kts"),
 			patterns = listOf(
 				Regex("""going9\.laptopgg\.application"""),
 				Regex("""going9\.laptopgg\.persistence\.model"""),
+				Regex("""going9\.laptopgg\.taxonomy"""),
 				Regex("""going9\.laptopgg\.infrastructure"""),
 				Regex("""going9\.laptopgg\.web"""),
 				Regex("""org\.springframework"""),
 				Regex("""spring-boot"""),
 				Regex("""spring-context"""),
+				Regex("""project\(":laptop-taxonomy"\)"""),
 				Regex("""project\(":persistence-model"\)"""),
 				Regex("""project\(":application"\)"""),
 				Regex("""project\(":application-crawler"\)"""),

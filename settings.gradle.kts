@@ -1,6 +1,7 @@
 rootProject.name = "LaptopGG"
 
 include(
+    "laptop-taxonomy",
     "persistence-model",
     "recommendation-core",
     "application",

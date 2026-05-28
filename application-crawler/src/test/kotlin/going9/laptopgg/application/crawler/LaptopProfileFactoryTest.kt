@@ -1,6 +1,6 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.recommendation.GpuClass
+import going9.laptopgg.taxonomy.GpuClass
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

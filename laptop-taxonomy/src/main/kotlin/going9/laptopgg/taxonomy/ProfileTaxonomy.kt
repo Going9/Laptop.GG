@@ -1,4 +1,4 @@
-package going9.laptopgg.recommendation
+package going9.laptopgg.taxonomy
 
 enum class CpuClass {
     ULTRA_LOW_POWER,

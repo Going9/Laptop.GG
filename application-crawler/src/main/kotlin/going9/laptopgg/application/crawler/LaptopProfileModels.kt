@@ -1,9 +1,9 @@
 package going9.laptopgg.application.crawler
 
-import going9.laptopgg.recommendation.BatteryTier
-import going9.laptopgg.recommendation.CpuClass
-import going9.laptopgg.recommendation.GpuClass
-import going9.laptopgg.recommendation.PortabilityTier
+import going9.laptopgg.taxonomy.BatteryTier
+import going9.laptopgg.taxonomy.CpuClass
+import going9.laptopgg.taxonomy.GpuClass
+import going9.laptopgg.taxonomy.PortabilityTier
 
 data class LaptopProfileSnapshot(
     val cpuClass: CpuClass,

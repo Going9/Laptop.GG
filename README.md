@@ -30,8 +30,9 @@ flowchart LR
 
 ## 저장소 구조
 
+- `laptop-taxonomy`: CPU/GPU/배터리/휴대성 분류 enum
 - `persistence-model`: JPA entity와 DB 매핑 모델
-- `recommendation-core`: web/crawler가 공유하는 persistence-model-free 추천 use-case enum과 점수 정책
+- `recommendation-core`: web/crawler가 공유하는 추천 use-case enum과 점수 정책
 - `application`: 추천/상세/댓글 use case와 port
 - `application-crawler`: crawler 저장/동기화 use case, crawler 전용 port, profile/score 정책
 - `infrastructure-jpa-core`: Flyway migration, entity scan, 공통 persistence 설정
