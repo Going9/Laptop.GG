@@ -1,6 +1,7 @@
 package going9.laptopgg.job.crawler
 
 import going9.laptopgg.application.crawler.CrawledCpuModelResolver
+import going9.laptopgg.application.crawler.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.CrawledLaptopCommand
 import java.time.LocalDateTime
 import org.springframework.stereotype.Component
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class LaptopSnapshotMerger(
     private val crawledCpuModelResolver: CrawledCpuModelResolver,
+    private val crawledGraphicsModelResolver: CrawledGraphicsModelResolver,
 ) {
     internal fun createCommand(
         productCard: ProductCard,
@@ -49,7 +51,7 @@ class LaptopSnapshotMerger(
             graphicsType = gpuModel,
             tgp = DanawaDetailParser.parseIntValue(spec["TGP"])
                 ?: summaryFallback.tgp
-                ?: if (isIntegratedGraphics(gpuKind, gpuModel)) 0 else null,
+                ?: if (crawledGraphicsModelResolver.isIntegrated(gpuKind, gpuModel)) 0 else null,
             thunderboltCount = DanawaDetailParser.parseThunderboltCount(spec),
             usbCCount = DanawaDetailParser.parseUsbCCount(spec),
             usbACount = DanawaDetailParser.parseCountValue(spec["USB-A"]),
@@ -88,60 +90,7 @@ class LaptopSnapshotMerger(
         }
     }
 
-    private fun isIntegratedGraphics(graphicsKind: String?, graphicsModel: String?): Boolean {
-        val normalizedKind = graphicsKind.orEmpty().uppercase()
-        val normalizedModel = graphicsModel.orEmpty().uppercase()
-
-        if (normalizedKind.contains("외장")) {
-            return false
-        }
-        if (normalizedKind.contains("내장")) {
-            return true
-        }
-
-        if (DISCRETE_GPU_KEYWORDS.any { normalizedModel.contains(it) }) {
-            return false
-        }
-        if (INTEGRATED_GPU_KEYWORDS.any { normalizedModel.contains(it) }) {
-            return true
-        }
-
-        return false
-    }
-
     private companion object {
         const val DEFAULT_REFRESH_RATE = 60
-        val DISCRETE_GPU_KEYWORDS = listOf(
-            "RTX",
-            "GTX",
-            "GEFORCE",
-            "RTX PRO",
-            "RTX A",
-            "ARC B",
-            "ARC A",
-            "RADEON RX",
-        )
-        val INTEGRATED_GPU_KEYWORDS = listOf(
-            "INTEL GRAPHICS",
-            "IRIS",
-            "UHD",
-            "HD GRAPHICS",
-            "ARC 130T",
-            "ARC 140T",
-            "RADEON 890M",
-            "RADEON 880M",
-            "RADEON 860M",
-            "RADEON 840M",
-            "RADEON 820M",
-            "RADEON 8060S",
-            "RADEON 780M",
-            "RADEON 760M",
-            "RADEON 740M",
-            "RADEON 680M",
-            "RADEON 660M",
-            "RADEON 610M",
-            "RADEON GRAPHICS",
-            "ADRENO",
-        )
     }
 }

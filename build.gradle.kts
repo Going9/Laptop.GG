@@ -418,6 +418,16 @@ val verifyStructure by tasks.registering {
 				Regex("""cpuModelMap"""),
 			),
 		)
+
+		assertAbsent(
+			rule = "crawler-job must not keep GPU classification keyword policy outside application-crawler classifiers",
+			paths = listOf("crawler-job/src/main"),
+			patterns = listOf(
+				Regex("""DISCRETE_GPU_KEYWORDS"""),
+				Regex("""INTEGRATED_GPU_KEYWORDS"""),
+				Regex("""isIntegratedGraphics"""),
+			),
+		)
 	}
 }
 

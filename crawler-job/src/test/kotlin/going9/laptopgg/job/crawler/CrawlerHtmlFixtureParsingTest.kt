@@ -1,13 +1,14 @@
 package going9.laptopgg.job.crawler
 
 import going9.laptopgg.application.crawler.CrawledCpuModelResolver
+import going9.laptopgg.application.crawler.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 
 class CrawlerHtmlFixtureParsingTest {
-    private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver())
+    private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver(), CrawledGraphicsModelResolver())
     private val danawaClient = DanawaClient()
     private val crawlerService = CrawlerService(
         saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),

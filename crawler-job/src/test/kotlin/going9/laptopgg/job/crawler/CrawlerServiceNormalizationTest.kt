@@ -1,6 +1,7 @@
 package going9.laptopgg.job.crawler
 
 import going9.laptopgg.application.crawler.CrawledCpuModelResolver
+import going9.laptopgg.application.crawler.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import org.assertj.core.api.Assertions.assertThat
@@ -10,7 +11,7 @@ import org.mockito.Mockito.mock
 import java.time.LocalDateTime
 
 class CrawlerServiceNormalizationTest {
-    private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver())
+    private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver(), CrawledGraphicsModelResolver())
     private val danawaClient = DanawaClient()
     private val crawlerService = CrawlerService(
         saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),
@@ -56,6 +57,40 @@ class CrawlerServiceNormalizationTest {
     }
 
     @Test
+    fun `integrated graphics defaults missing tgp to zero`() {
+        val command = laptopSnapshotMerger.createCommand(
+            productCard(),
+            ParsedSpecTable(
+                values = mapOf(
+                    "GPU 종류" to "내장그래픽",
+                    "GPU 칩셋" to "Radeon 660M",
+                ),
+                usages = emptyList(),
+            ),
+            SummaryFallback(),
+        )
+
+        assertThat(command.tgp).isEqualTo(0)
+    }
+
+    @Test
+    fun `discrete graphics keeps missing tgp unknown`() {
+        val command = laptopSnapshotMerger.createCommand(
+            productCard(),
+            ParsedSpecTable(
+                values = mapOf(
+                    "GPU 종류" to "외장그래픽",
+                    "GPU 칩셋" to "GeForce RTX4060",
+                ),
+                usages = emptyList(),
+            ),
+            SummaryFallback(),
+        )
+
+        assertThat(command.tgp).isNull()
+    }
+
+    @Test
     fun `list parser stores canonical detail url by product code`() {
         val html = """
             <ul>
@@ -75,6 +110,20 @@ class CrawlerServiceNormalizationTest {
 
         assertThat(result).hasSize(1)
         assertThat(result.first().detailPage).isEqualTo("https://prod.danawa.com/info/?pcode=123456&cate=112758")
+    }
+
+    private fun productCard(): ProductCard {
+        return ProductCard(
+            productCode = "123456",
+            productName = "테스트 노트북",
+            detailPage = "https://prod.danawa.com/info/?pcode=123456&cate=112758",
+            imageUrl = "https://img.danawa.com/sample.jpg",
+            price = 1_234_000,
+            cate1 = "112",
+            cate2 = "758",
+            cate3 = "0",
+            cate4 = "112758",
+        )
     }
 
     @Test

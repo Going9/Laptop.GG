@@ -2,6 +2,7 @@ package going9.laptopgg.job.config
 
 import going9.laptopgg.application.crawler.CpuClassifier
 import going9.laptopgg.application.crawler.CrawledCpuModelResolver
+import going9.laptopgg.application.crawler.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.GpuClassifier
 import going9.laptopgg.application.crawler.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.LaptopProfileFactory
@@ -40,6 +41,11 @@ class CrawlerApplicationUseCaseConfig {
     @Bean
     fun crawledCpuModelResolver(cpuClassifier: CpuClassifier): CrawledCpuModelResolver {
         return CrawledCpuModelResolver(cpuClassifier)
+    }
+
+    @Bean
+    fun crawledGraphicsModelResolver(gpuClassifier: GpuClassifier): CrawledGraphicsModelResolver {
+        return CrawledGraphicsModelResolver(gpuClassifier)
     }
 
     @Bean
