@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -116,5 +119,23 @@ class LaptopGgApplicationTests {
 	fun `web runtime uses graceful shutdown settings`() {
 		assertThat(environment.getProperty("server.shutdown")).isEqualTo("graceful")
 		assertThat(environment.getProperty("spring.lifecycle.timeout-per-shutdown-phase")).isEqualTo("20s")
+	}
+
+	@Test
+	fun `web api maps missing application resources to 404 response`() {
+		mockMvc.perform(get("/api/laptops").param("id", "999999"))
+			.andExpect(status().isNotFound)
+			.andExpect(jsonPath("$.code").value("not_found"))
+	}
+
+	@Test
+	fun `web api maps invalid application commands to 400 response`() {
+		mockMvc.perform(
+			post("/api/comments")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""{"laptopId":0,"author":"","content":"","passWord":""}"""),
+		)
+			.andExpect(status().isBadRequest)
+			.andExpect(jsonPath("$.code").value("bad_request"))
 	}
 }

@@ -1,5 +1,6 @@
 package going9.laptopgg.application.laptop
 
+import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.application.laptop.port.LaptopDetailRecord
 import going9.laptopgg.application.laptop.port.LaptopPort
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
@@ -14,7 +15,7 @@ internal class DefaultGetLaptopDetailUseCase(
 ) : GetLaptopDetailUseCase {
     override fun get(laptopId: Long): LaptopDetailResult {
         return transactionPort.read {
-            val laptop = laptopPort.findDetailById(laptopId) ?: throw IllegalArgumentException("Laptop not found: $laptopId")
+            val laptop = laptopPort.findDetailById(laptopId) ?: throw ResourceNotFoundException("Laptop", laptopId)
             laptop.toResult()
         }
     }

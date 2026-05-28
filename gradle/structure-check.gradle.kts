@@ -319,6 +319,43 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "web-facing application errors must be explicit and mapped at web boundary",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/common/ApplicationException.kt",
+				"web-app/src/main/kotlin/going9/laptopgg/web/controller/WebExceptionHandler.kt",
+				"web-app/src/test/kotlin/going9/laptopgg/LaptopGgApplicationTests.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/comment/ManageCommentUseCaseTest.kt",
+			),
+			patterns = listOf(
+				Regex("""sealed class ApplicationException"""),
+				Regex("""class ResourceNotFoundException"""),
+				Regex("""class InvalidCommandException"""),
+				Regex("""class AuthenticationFailedException"""),
+				Regex("""@ControllerAdvice"""),
+				Regex("""@ExceptionHandler\(ApplicationException::class\)"""),
+				Regex("""HttpStatus\.NOT_FOUND"""),
+				Regex("""HttpStatus\.BAD_REQUEST"""),
+				Regex("""HttpStatus\.FORBIDDEN"""),
+				Regex("""web api maps missing application resources to 404 response"""),
+				Regex("""web api maps invalid application commands to 400 response"""),
+				Regex("""add rejects blank comment fields before persistence"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web-facing application flows must not throw generic argument exceptions",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/comment/ManageCommentUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/adapter/web/CommentJpaAdapter.kt",
+			),
+			patterns = listOf(
+				Regex("""IllegalArgumentException"""),
+				Regex("""require\("""),
+			),
+		)
+
 		assertAbsent(
 			rule = "web-facing application ports must not expose persistence models",
 			paths = listOf("application/src/main/kotlin/going9/laptopgg/application"),

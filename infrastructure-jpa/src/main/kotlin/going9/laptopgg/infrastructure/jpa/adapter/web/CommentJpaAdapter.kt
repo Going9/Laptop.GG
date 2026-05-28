@@ -2,6 +2,7 @@ package going9.laptopgg.infrastructure.jpa.adapter.web
 
 import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.CommentRecord
+import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.persistence.model.web.Comment
 import going9.laptopgg.infrastructure.jpa.repository.web.CommentRepository
 import going9.laptopgg.infrastructure.jpa.repository.web.WebLaptopRepository
@@ -23,7 +24,7 @@ internal class CommentJpaAdapter(
 
     override fun add(laptopId: Long, author: String, content: String, passwordHash: String) {
         val laptop = laptopRepository.findByIdOrNull(laptopId)
-            ?: throw IllegalArgumentException("Laptop not found: $laptopId")
+            ?: throw ResourceNotFoundException("Laptop", laptopId)
         commentRepository.save(
             Comment(
                 laptop = laptop,
@@ -36,13 +37,13 @@ internal class CommentJpaAdapter(
 
     override fun updateContent(commentId: Long, content: String) {
         val comment = commentRepository.findByIdOrNull(commentId)
-            ?: throw IllegalArgumentException("Comment not found: $commentId")
+            ?: throw ResourceNotFoundException("Comment", commentId)
         comment.updateComment(content)
     }
 
     override fun deleteById(commentId: Long) {
         val comment = commentRepository.findByIdOrNull(commentId)
-            ?: throw IllegalArgumentException("Comment not found: $commentId")
+            ?: throw ResourceNotFoundException("Comment", commentId)
         commentRepository.delete(comment)
     }
 

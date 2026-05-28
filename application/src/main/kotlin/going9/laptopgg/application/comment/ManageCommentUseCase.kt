@@ -4,6 +4,9 @@ import going9.laptopgg.application.comment.port.CommentRecord
 import going9.laptopgg.application.comment.port.CommentLaptopPort
 import going9.laptopgg.application.comment.port.CommentPort
 import going9.laptopgg.application.comment.port.PasswordHashPort
+import going9.laptopgg.application.common.AuthenticationFailedException
+import going9.laptopgg.application.common.InvalidCommandException
+import going9.laptopgg.application.common.ResourceNotFoundException
 import going9.laptopgg.application.common.port.ApplicationTransactionPort
 
 interface ManageCommentUseCase {
@@ -39,7 +42,8 @@ internal class DefaultManageCommentUseCase(
 
     override fun update(commentId: Long, command: UpdateCommentCommand) {
         transactionPort.write {
-            val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
+            validateUpdate(command)
+            val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
             validatePassword(comment, command.password)
             commentPort.updateContent(commentId, command.content)
         }
@@ -47,15 +51,17 @@ internal class DefaultManageCommentUseCase(
 
     override fun delete(commentId: Long, command: DeleteCommentCommand) {
         transactionPort.write {
-            val comment = commentPort.findById(commentId) ?: throw IllegalArgumentException("Comment not found: $commentId")
+            validateDelete(command)
+            val comment = commentPort.findById(commentId) ?: throw ResourceNotFoundException("Comment", commentId)
             validatePassword(comment, command.password)
             commentPort.deleteById(commentId)
         }
     }
 
     private fun addInTransaction(command: AddCommentCommand) {
-        require(laptopPort.existsById(command.laptopId)) {
-            "Laptop not found: ${command.laptopId}"
+        validateAdd(command)
+        if (!laptopPort.existsById(command.laptopId)) {
+            throw ResourceNotFoundException("Laptop", command.laptopId)
         }
         commentPort.add(
             laptopId = command.laptopId,
@@ -65,9 +71,37 @@ internal class DefaultManageCommentUseCase(
         )
     }
 
+    private fun validateAdd(command: AddCommentCommand) {
+        requirePositiveId(fieldName = "laptopId", value = command.laptopId)
+        requireNonBlank(fieldName = "author", value = command.author)
+        requireNonBlank(fieldName = "content", value = command.content)
+        requireNonBlank(fieldName = "password", value = command.password)
+    }
+
+    private fun validateUpdate(command: UpdateCommentCommand) {
+        requireNonBlank(fieldName = "content", value = command.content)
+        requireNonBlank(fieldName = "password", value = command.password)
+    }
+
+    private fun validateDelete(command: DeleteCommentCommand) {
+        requireNonBlank(fieldName = "password", value = command.password)
+    }
+
+    private fun requirePositiveId(fieldName: String, value: Long) {
+        if (value <= 0) {
+            throw InvalidCommandException("$fieldName must be positive.")
+        }
+    }
+
+    private fun requireNonBlank(fieldName: String, value: String) {
+        if (value.isBlank()) {
+            throw InvalidCommandException("$fieldName must not be blank.")
+        }
+    }
+
     private fun validatePassword(comment: CommentRecord, password: String) {
-        require(passwordHashPort.matches(password, comment.passwordHash)) {
-            "비밀번호가 일치하지 않습니다."
+        if (!passwordHashPort.matches(password, comment.passwordHash)) {
+            throw AuthenticationFailedException("비밀번호가 일치하지 않습니다.")
         }
     }
 }
