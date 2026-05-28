@@ -1197,6 +1197,15 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "Danawa scalar value parser must not instantiate application profile policies",
+			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaSpecValueParser.kt"),
+			patterns = listOf(
+				Regex("""CrawledCpuManufacturerResolver"""),
+				Regex("""normalizeCpuManufacturer"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "laptop snapshot merger must delegate CPU manufacturer resolution",
 			paths = listOf("crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/LaptopSnapshotMerger.kt"),
 			patterns = listOf(

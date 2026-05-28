@@ -1,5 +1,6 @@
 package going9.laptopgg.job.crawler.danawa.list
 
+import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
 import going9.laptopgg.job.crawler.danawa.detail.DanawaDetailParser
 import going9.laptopgg.job.crawler.danawa.detail.DanawaSummaryFallbackParser
 import going9.laptopgg.job.crawler.danawa.client.DanawaListRequestFormData
@@ -11,6 +12,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class DanawaCrawlerHtmlFixtureParsingTest {
+    private val summaryFallbackParser = DanawaSummaryFallbackParser(CrawledCpuManufacturerResolver())
+
     @Test
     fun `list fixture keeps context and canonical product card fields`() {
         val html = readFixture("/fixtures/danawa/list-page.html")
@@ -39,8 +42,8 @@ class DanawaCrawlerHtmlFixtureParsingTest {
 
         val detailRequestContext = DanawaDetailParser.extractDetailRequestContext(detailPageHtml)
         val parsedSpecTable = DanawaDetailParser.parseSpecTable(detailSpecHtml)
-        val summaryFallback = DanawaSummaryFallbackParser.parseSummaryFallback(
-            DanawaSummaryFallbackParser.extractSummaryText(detailPageHtml),
+        val summaryFallback = summaryFallbackParser.parseSummaryFallback(
+            summaryFallbackParser.extractSummaryText(detailPageHtml),
         )
 
         assertThat(detailRequestContext?.makerName).isEqualTo("레노버")

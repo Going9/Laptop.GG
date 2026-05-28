@@ -1,9 +1,14 @@
 package going9.laptopgg.job.crawler.danawa.detail
 
+import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolver
 import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
 import org.jsoup.Jsoup
+import org.springframework.stereotype.Component
 
-internal object DanawaSummaryFallbackParser {
+@Component
+internal class DanawaSummaryFallbackParser(
+    private val cpuManufacturerResolver: CrawledCpuManufacturerResolver,
+) {
     fun extractSummaryText(detailPageHtml: String): String {
         return Jsoup.parse(detailPageHtml, DanawaEndpoints.ORIGIN)
             .selectFirst(".summary_info .spec_list")
@@ -21,7 +26,7 @@ internal object DanawaSummaryFallbackParser {
             cpuManufacturer = extractFirst(
                 normalizedText,
                 Regex("""\[CPU\]\s*(인텔|Intel|AMD|APPLE|Apple|퀄컴|Qualcomm)""", RegexOption.IGNORE_CASE),
-            )?.let(DanawaSpecValueParser::normalizeCpuManufacturer),
+            )?.let(::normalizeCpuManufacturer),
             cpu = extractFirst(normalizedText, Regex("""\[CPU\][^\[]*?/\s*([A-Za-z0-9\-]+)\s*\(""", RegexOption.IGNORE_CASE)),
             os = extractFirst(
                 normalizedText,
@@ -53,4 +58,9 @@ internal object DanawaSummaryFallbackParser {
         return regex.find(text)?.groupValues?.getOrNull(1)?.trim()
     }
 
+    private fun normalizeCpuManufacturer(rawManufacturer: String): String {
+        return requireNotNull(cpuManufacturerResolver.normalize(rawManufacturer)) {
+            "rawManufacturer must not be blank."
+        }
+    }
 }

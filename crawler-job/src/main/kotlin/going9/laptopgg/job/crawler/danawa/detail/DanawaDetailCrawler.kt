@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 internal class DanawaDetailCrawler(
     private val danawaClient: DanawaClient,
+    private val summaryFallbackParser: DanawaSummaryFallbackParser,
     private val laptopSnapshotMerger: LaptopSnapshotMerger,
 ) : ProductDetailCrawler {
     override fun fetchDetailRefreshOutcomes(
@@ -59,8 +60,8 @@ internal class DanawaDetailCrawler(
             degradationReasons += "상세 스펙 테이블 파싱 결과 비어 있음"
         }
 
-        val summaryFallback = DanawaSummaryFallbackParser.parseSummaryFallback(
-            DanawaSummaryFallbackParser.extractSummaryText(detailPageHtml),
+        val summaryFallback = summaryFallbackParser.parseSummaryFallback(
+            summaryFallbackParser.extractSummaryText(detailPageHtml),
         )
         if (parsedSpecTable.values.isEmpty() && summaryFallback.isEmpty()) {
             degradationReasons += "상세/요약 스펙 모두 비어 있음"
