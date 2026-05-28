@@ -807,6 +807,39 @@ val verifyStructure by tasks.registering {
 			),
 		)
 
+		assertPresent(
+			rule = "web-facing laptop display text policy must be centralized",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/common/LaptopDisplayTextPolicy.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResultMapper.kt",
+				"application/src/test/kotlin/going9/laptopgg/application/common/LaptopDisplayTextPolicyTest.kt",
+			),
+			patterns = listOf(
+				Regex("""object LaptopDisplayTextPolicy"""),
+				Regex("""fun\s+manufacturerName"""),
+				Regex("""fun\s+resolutionLabel"""),
+				Regex("""fun\s+humanizeOs"""),
+				Regex("""LaptopDisplayTextPolicy\.manufacturerName"""),
+				Regex("""LaptopDisplayTextPolicy\.resolutionLabel"""),
+				Regex("""LaptopDisplayTextPolicy\.humanizeOs"""),
+				Regex("""manufacturer name is derived consistently from trimmed display name"""),
+			),
+		)
+
+		assertAbsent(
+			rule = "web-facing result mappers must not duplicate display text parsing",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/GetLaptopDetailUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResultMapper.kt",
+			),
+			patterns = listOf(
+				Regex("""substringBefore\(" "\)"""),
+				Regex("""RESOLUTION_REGEX"""),
+				Regex("""fun\s+(manufacturerName|resolutionLabel|humanizeOs)\b"""),
+			),
+		)
+
 		assertAbsent(
 			rule = "web-facing application flows must not throw generic argument exceptions",
 			paths = listOf(
