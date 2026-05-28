@@ -58,6 +58,23 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertAbsent(
+			rule = "application command and result contracts must not expose domain models",
+			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/common",
+				"application/src/main/kotlin/going9/laptopgg/application/comment/CommentModels.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/crawler/CrawlerPersistenceModels.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/crawler/SaveCrawledLaptopUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/crawler/TrackCrawlerRunUseCase.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/laptop/LaptopDetailResult.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationQuery.kt",
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationResult.kt",
+			),
+			patterns = listOf(
+				Regex("""going9\.laptopgg\.domain"""),
+			),
+		)
+
+		assertAbsent(
 			rule = "web-app must not use Spring Data pagination types",
 			paths = listOf("web-app/src/main", "web-app/src/test", "web-app/build.gradle.kts"),
 			patterns = listOf(

@@ -27,7 +27,13 @@ class ManageCommentUseCase(
 
     @Transactional(readOnly = true)
     fun listByLaptop(laptopId: Long): List<CommentResult> {
-        return commentPort.findAllByLaptopId(laptopId).map(CommentResult::from)
+        return commentPort.findAllByLaptopId(laptopId).map { comment ->
+            CommentResult(
+                id = comment.id,
+                author = comment.author,
+                content = comment.content,
+            )
+        }
     }
 
     @Transactional
