@@ -3,27 +3,17 @@ package going9.laptopgg.job.crawler
 import going9.laptopgg.application.crawler.CrawledCpuModelResolver
 import going9.laptopgg.application.crawler.CrawledGraphicsModelResolver
 import going9.laptopgg.application.crawler.ExistingCrawledLaptopSnapshot
-import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Offset.offset
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
 import java.time.LocalDateTime
 
 class CrawlerServiceNormalizationTest {
     private val laptopSnapshotMerger = LaptopSnapshotMerger(CrawledCpuModelResolver(), CrawledGraphicsModelResolver())
-    private val danawaClient = DanawaClient()
-    private val crawlerService = CrawlerService(
-        saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),
-        listPageCrawler = ListPageCrawler(danawaClient),
-        detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
-        laptopSnapshotMerger = laptopSnapshotMerger,
-        crawlSourceResolver = CrawlSourceResolver(),
-    )
 
     @Test
     fun `apple cpu fallback is extracted from product name`() {
-        val cpu = crawlerService.resolveCpuModel(
+        val cpu = laptopSnapshotMerger.resolveCpuModel(
             rawCpu = null,
             cpuManufacturer = "애플(ARM)",
             productName = "APPLE 맥북프로16 M5프로 18코어 CPU, 20코어 GPU 블랙",
@@ -34,7 +24,7 @@ class CrawlerServiceNormalizationTest {
 
     @Test
     fun `snapdragon cpu fallback is extracted from product name`() {
-        val cpu = crawlerService.resolveCpuModel(
+        val cpu = laptopSnapshotMerger.resolveCpuModel(
             rawCpu = null,
             cpuManufacturer = "퀄컴",
             productName = "Microsoft 서피스 프로11 X Elite 5G",

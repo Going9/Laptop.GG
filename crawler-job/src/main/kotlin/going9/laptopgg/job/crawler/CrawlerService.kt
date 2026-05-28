@@ -1,7 +1,6 @@
 package going9.laptopgg.job.crawler
 
 import going9.laptopgg.application.crawler.SaveCrawledLaptopUseCase
-import going9.laptopgg.application.crawler.SaveResult
 import org.springframework.stereotype.Service
 import java.util.concurrent.Executors
 import org.slf4j.LoggerFactory
@@ -11,7 +10,6 @@ class CrawlerService(
     private val saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase,
     private val listPageCrawler: ListPageCrawler,
     private val detailCrawler: DetailCrawler,
-    private val laptopSnapshotMerger: LaptopSnapshotMerger,
     private val crawlSourceResolver: CrawlSourceResolver,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -313,10 +311,6 @@ class CrawlerService(
 
     private fun String.stableHash(): String {
         return hashCode().toUInt().toString(16)
-    }
-
-    internal fun resolveCpuModel(rawCpu: String?, cpuManufacturer: String?, productName: String): String? {
-        return laptopSnapshotMerger.resolveCpuModel(rawCpu, cpuManufacturer, productName)
     }
 
     companion object {

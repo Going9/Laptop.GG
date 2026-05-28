@@ -15,7 +15,6 @@ class CrawlerHtmlFixtureParsingTest {
         saveCrawledLaptopUseCase = mock(SaveCrawledLaptopUseCase::class.java),
         listPageCrawler = ListPageCrawler(danawaClient),
         detailCrawler = DetailCrawler(danawaClient, laptopSnapshotMerger),
-        laptopSnapshotMerger = laptopSnapshotMerger,
         crawlSourceResolver = crawlSourceResolver,
     )
 
