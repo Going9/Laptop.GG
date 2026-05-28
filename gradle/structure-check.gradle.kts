@@ -259,6 +259,30 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler workflow must preflight production crawler identities before writing",
+			paths = listOf(
+				".github/workflows/crawler.yml",
+				"ops/sql/crawler-identity-preflight.sql",
+				"ops/sql/crawler-identity-diagnostics.sql",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/PostgresCrawlerIdentityPreflightSqlTest.kt",
+				"README.md",
+				"docs/architecture.md",
+				"ops/RUNBOOK.md",
+			),
+			patterns = listOf(
+				Regex("""Run crawler DB preflight"""),
+				Regex("""ops/sql/crawler-identity-preflight\.sql"""),
+				Regex("""ops/sql/crawler-identity-diagnostics\.sql"""),
+				Regex("""duplicate product_code"""),
+				Regex("""duplicate detail_page"""),
+				Regex("""PostgresCrawlerIdentityPreflightSqlTest"""),
+				Regex("""운영 DB tunnel"""),
+				Regex("""Crawler identity preflight failure"""),
+				Regex("""Crawler workflow runs `ops/sql/crawler-identity-preflight\.sql`"""),
+			),
+		)
+
+		assertPresent(
 			rule = "deploy workflow must serialize releases so rollback can finish",
 			paths = listOf(".github/workflows/deploy-web.yml", "docs/architecture.md", "ops/RUNBOOK.md"),
 			patterns = listOf(

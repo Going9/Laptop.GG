@@ -204,8 +204,9 @@ JAVA_OPTS=-Xms128m -Xmx384m -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul
 6. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
 7. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
 8. `postgres,crawler` 프로필로 크롤러를 실행합니다.
-9. advisory lock을 획득한 실행만 크롤링 결과를 DB에 직접 적재합니다.
-10. 실행 상태와 처리 건수는 `crawler_run`에 남기고 GitHub Actions summary에도 표시합니다.
+9. 운영 DB tunnel에서 `ops/sql/crawler-identity-preflight.sql`을 실행해 중복 `product_code`와 `detail_page`를 먼저 차단합니다.
+10. advisory lock을 획득한 실행만 크롤링 결과를 DB에 직접 적재합니다.
+11. 실행 상태와 처리 건수는 `crawler_run`에 남기고 GitHub Actions summary에도 표시합니다.
 
 운영 DB datasource 환경변수는 SSH 터널 확인과 실제 crawler 실행 단계에만 주입합니다. 테스트/빌드 단계는 운영 DB env를 상속하지 않아 로컬 PostgreSQL service DB와 H2 기반 context 테스트를 먼저 검증합니다.
 

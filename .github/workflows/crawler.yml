@@ -114,6 +114,21 @@ jobs:
           sudo apt-get install -y postgresql-client
           pg_isready -h 127.0.0.1 -p 5433 -U "${SPRING_DATASOURCE_USERNAME}" -d "${{ secrets.CRAWLER_DB_NAME }}"
 
+      - name: Run crawler DB preflight
+        env:
+          PGPASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
+          CRAWLER_DB_NAME: ${{ secrets.CRAWLER_DB_NAME }}
+        run: |
+          set -o pipefail
+          psql \
+            -h 127.0.0.1 \
+            -p 5433 \
+            -U "${SPRING_DATASOURCE_USERNAME}" \
+            -d "${CRAWLER_DB_NAME}" \
+            -v ON_ERROR_STOP=1 \
+            -f ops/sql/crawler-identity-preflight.sql | tee crawler-db-preflight.log
+
       - name: Run crawler
         env:
           SPRING_PROFILES_ACTIVE: postgres,crawler
@@ -202,5 +217,12 @@ jobs:
               echo '```'
             else
               echo "Crawler log was not created."
+            fi
+            if [ -f crawler-db-preflight.log ]; then
+              echo
+              echo "### DB preflight"
+              echo '```'
+              tail -n 80 crawler-db-preflight.log
+              echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
