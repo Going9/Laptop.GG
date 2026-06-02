@@ -406,6 +406,55 @@ class RecommendationServiceIntegrationTest {
     }
 
     @Test
+    fun `recommendation excludes subscription and rental product names at query stage`() {
+        persistLaptop(
+            name = "Office Purchase Laptop",
+            price = 1_450_000,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 72.0,
+            weight = 1.28,
+            usages = listOf("사무/인강용"),
+        )
+        persistLaptop(
+            name = "Office 구독형 월 29900원",
+            price = 29_900,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 72.0,
+            weight = 1.28,
+            usages = listOf("사무/인강용"),
+        )
+        persistLaptop(
+            name = "Office rental plan",
+            price = 39_900,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 72.0,
+            weight = 1.28,
+            usages = listOf("사무/인강용"),
+        )
+
+        val request = LaptopRecommendationRequest(
+            budget = 2_000_000,
+            maxWeightKg = 2.0,
+            screenSizeMode = ScreenSizeMode.ANY,
+            useCase = RecommendationUseCase.OFFICE_STUDY,
+        )
+
+        val pagedResult = recommendationService.recommendLaptops(request, PageRequest.of(0, 10))
+        val fallbackResult = recommendationService.recommendLaptops(request, PageRequest.of(0, 10, Sort.by("unsupported")))
+
+        assertThat(pagedResult.content.map { it.name }).containsExactly("Office Purchase Laptop")
+        assertThat(pagedResult.totalElements).isEqualTo(1)
+        assertThat(fallbackResult.content.map { it.name }).containsExactly("Office Purchase Laptop")
+        assertThat(fallbackResult.totalElements).isEqualTo(1)
+    }
+
+    @Test
     fun `not sure recommendation keeps rounded average boundary candidate`() {
         val borderlineLaptop = persistLaptop(
             name = "Not Sure Borderline",
