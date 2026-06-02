@@ -20,6 +20,14 @@ on:
           - core
           - extended
           - none
+      max_list_pages:
+        description: "크롤 소스별 목록 페이지 안전 제한. 비워두면 기본값 5000을 사용합니다."
+        required: false
+        type: number
+      detail_fetch_concurrency:
+        description: "상세 페이지 동시 수집 수. 비워두면 기본값 6을 사용합니다."
+        required: false
+        type: number
       log_sql:
         description: "SQL 로그를 잠깐 켤지 여부"
         required: false
@@ -37,18 +45,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: laptopgg_test
+          POSTGRES_USER: laptopgg
+          POSTGRES_PASSWORD: laptopgg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U laptopgg -d laptopgg_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     timeout-minutes: 360
-    env:
-      SPRING_PROFILES_ACTIVE: postgres,crawler
-      SPRING_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:5433/${{ secrets.CRAWLER_DB_NAME }}
-      SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
-      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
-      CRAWLER_LIMIT: ${{ inputs.limit }}
-      CRAWLER_START_PAGE: ${{ inputs.start_page }}
-      CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile }}
-      CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
-      CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
 
     steps:
       - uses: actions/checkout@v6
@@ -63,6 +74,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Test and build crawler jar
+        env:
+          POSTGRES_INTEGRATION_TESTS: "true"
+          POSTGRES_INTEGRATION_JDBC_URL: jdbc:postgresql://127.0.0.1:5432/laptopgg_test
+          POSTGRES_INTEGRATION_USERNAME: laptopgg
+          POSTGRES_INTEGRATION_PASSWORD: laptopgg
+        run: |
+          ./gradlew --no-daemon verifyStructure :application-crawler:test :crawler-job:test
+          ./gradlew --no-daemon :integration-tests:test --tests '*Postgres*'
+          ./gradlew --no-daemon :crawler-job:bootJar
+
       - name: Prepare SSH key
         env:
           CRAWLER_SSH_PRIVATE_KEY: ${{ secrets.CRAWLER_SSH_PRIVATE_KEY }}
@@ -73,22 +95,53 @@ jobs:
           ssh-keyscan -p "${{ secrets.CRAWLER_SSH_PORT || 22 }}" -H "${{ secrets.CRAWLER_SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Open PostgreSQL tunnel
+        env:
+          CRAWLER_TUNNEL_TARGET_HOST: ${{ secrets.CRAWLER_TUNNEL_TARGET_HOST }}
+          CRAWLER_TUNNEL_TARGET_PORT: ${{ secrets.CRAWLER_TUNNEL_TARGET_PORT }}
         run: |
           ssh -f -N \
+            -o ExitOnForwardFailure=yes \
+            -o ServerAliveInterval=30 \
             -p "${{ secrets.CRAWLER_SSH_PORT || 22 }}" \
             -L 5433:${CRAWLER_TUNNEL_TARGET_HOST:-127.0.0.1}:${CRAWLER_TUNNEL_TARGET_PORT:-5432} \
             "${{ secrets.CRAWLER_SSH_USER }}@${{ secrets.CRAWLER_SSH_HOST }}"
 
       - name: Verify DB tunnel
+        env:
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
           pg_isready -h 127.0.0.1 -p 5433 -U "${SPRING_DATASOURCE_USERNAME}" -d "${{ secrets.CRAWLER_DB_NAME }}"
 
-      - name: Build crawler jar
-        run: ./gradlew --no-daemon :crawler-job:bootJar
+      - name: Run crawler DB preflight
+        env:
+          PGPASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
+          CRAWLER_DB_NAME: ${{ secrets.CRAWLER_DB_NAME }}
+        run: |
+          set -o pipefail
+          psql \
+            -h 127.0.0.1 \
+            -p 5433 \
+            -U "${SPRING_DATASOURCE_USERNAME}" \
+            -d "${CRAWLER_DB_NAME}" \
+            -v ON_ERROR_STOP=1 \
+            -f ops/sql/crawler-identity-preflight.sql | tee crawler-db-preflight.log
 
       - name: Run crawler
+        env:
+          SPRING_PROFILES_ACTIVE: postgres,crawler
+          SPRING_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:5433/${{ secrets.CRAWLER_DB_NAME }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.CRAWLER_DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.CRAWLER_DB_PASSWORD }}
+          SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 4
+          SPRING_FLYWAY_ENABLED: "false"
+          CRAWLER_LIMIT: ${{ inputs.limit || '' }}
+          CRAWLER_START_PAGE: ${{ inputs.start_page || '' }}
+          CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile || 'core' }}
+          CRAWLER_MAX_LIST_PAGES: ${{ inputs.max_list_pages || '' }}
+          CRAWLER_DETAIL_FETCH_CONCURRENCY: ${{ inputs.detail_fetch_concurrency || '' }}
         run: |
           set -o pipefail
 
@@ -96,16 +149,16 @@ jobs:
           APP_ARGS="--spring.profiles.active=${SPRING_PROFILES_ACTIVE}"
 
           if [ -n "${CRAWLER_LIMIT}" ]; then
-            if ! printf '%s' "${CRAWLER_LIMIT}" | grep -Eq '^[0-9]+$'; then
-              echo "CRAWLER_LIMIT must be a number like 100. Do not enter limit=100." >&2
+            if ! printf '%s' "${CRAWLER_LIMIT}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_LIMIT must be a positive number like 100. Do not enter limit=100." >&2
               exit 1
             fi
             APP_ARGS="${APP_ARGS} --app.crawler.limit=${CRAWLER_LIMIT}"
           fi
 
           if [ -n "${CRAWLER_START_PAGE}" ]; then
-            if ! printf '%s' "${CRAWLER_START_PAGE}" | grep -Eq '^[0-9]+$'; then
-              echo "CRAWLER_START_PAGE must be a number like 15." >&2
+            if ! printf '%s' "${CRAWLER_START_PAGE}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_START_PAGE must be a positive number like 15." >&2
               exit 1
             fi
             APP_ARGS="${APP_ARGS} --app.crawler.start-page=${CRAWLER_START_PAGE}"
@@ -120,6 +173,26 @@ jobs:
                 ;;
             esac
             APP_ARGS="${APP_ARGS} --app.crawler.filter-profile=${CRAWLER_FILTER_PROFILE}"
+          fi
+
+          if [ -n "${CRAWLER_MAX_LIST_PAGES}" ]; then
+            if ! printf '%s' "${CRAWLER_MAX_LIST_PAGES}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_MAX_LIST_PAGES must be a positive number like 5000." >&2
+              exit 1
+            fi
+            APP_ARGS="${APP_ARGS} --app.crawler.max-list-pages=${CRAWLER_MAX_LIST_PAGES}"
+          fi
+
+          if [ -n "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" ]; then
+            if ! printf '%s' "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "CRAWLER_DETAIL_FETCH_CONCURRENCY must be a positive number like 6." >&2
+              exit 1
+            fi
+            if [ "${CRAWLER_DETAIL_FETCH_CONCURRENCY}" -gt 12 ]; then
+              echo "CRAWLER_DETAIL_FETCH_CONCURRENCY must be 12 or less." >&2
+              exit 1
+            fi
+            APP_ARGS="${APP_ARGS} --app.crawler.detail-fetch-concurrency=${CRAWLER_DETAIL_FETCH_CONCURRENCY}"
           fi
 
           if [ "${{ inputs.log_sql }}" = "true" ]; then
@@ -144,5 +217,12 @@ jobs:
               echo '```'
             else
               echo "Crawler log was not created."
+            fi
+            if [ -f crawler-db-preflight.log ]; then
+              echo
+              echo "### DB preflight"
+              echo '```'
+              tail -n 80 crawler-db-preflight.log
+              echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"

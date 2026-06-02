@@ -1,0 +1,23 @@
+dependencies {
+    testImplementation(project(":application"))
+    testImplementation(project(":application-crawler"))
+    testImplementation(project(":persistence-model"))
+    testImplementation(project(":persistence-model-web"))
+    testImplementation(project(":persistence-model-crawler"))
+    testImplementation(project(":infrastructure-jpa"))
+    testImplementation(project(":infrastructure-jpa-core"))
+    testImplementation(project(":infrastructure-jpa-crawler"))
+    testImplementation(project(":laptop-taxonomy"))
+    testImplementation(project(":recommendation-contract"))
+    testImplementation(project(":recommendation-core"))
+
+    testImplementation("org.flywaydb:flyway-core")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testRuntimeOnly(project(":infrastructure-flyway"))
+    testRuntimeOnly("com.h2database:h2")
+    testRuntimeOnly("org.flywaydb:flyway-database-postgresql")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('오류')}"></head>
+<body class="app-body page-error">
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="page-shell error-shell">
+    <section class="error-panel reveal delay-010">
+        <p class="eyebrow" th:text="${statusCode}"></p>
+        <h1 class="section-title" th:text="${errorTitle}"></h1>
+        <p class="section-lead" th:text="${errorMessage}"></p>
+        <div class="detail-actions">
+            <a href="/recommends" class="primary-button">추천으로 돌아가기</a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

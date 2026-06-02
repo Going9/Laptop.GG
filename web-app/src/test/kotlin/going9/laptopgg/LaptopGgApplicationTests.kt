@@ -4,14 +4,30 @@ import org.junit.jupiter.api.Test
 import org.assertj.core.api.Assertions.assertThat
 import org.springframework.beans.factory.ListableBeanFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.core.env.Environment
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 class LaptopGgApplicationTests {
 	@Autowired
 	lateinit var beanFactory: ListableBeanFactory
+
+	@Autowired
+	lateinit var mockMvc: MockMvc
+
+	@Autowired
+	lateinit var environment: Environment
 
 	@Test
 	fun contextLoads() {
@@ -25,6 +41,167 @@ class LaptopGgApplicationTests {
 			"crawlerService",
 			"danawaClient",
 			"crawlerStartupRunner",
+			"saveCrawledLaptopService",
+			"trackCrawlerRunService",
+			"crawledCpuModelResolver",
+			"laptopProfileService",
+			"laptopPriceHistoryService",
+			"recommendationScoreService",
+			"crawledLaptopJpaAdapter",
+			"crawledLaptopPersistenceJpaAdapter",
+			"crawledLaptopProfileJpaAdapter",
+			"crawledLaptopProfileSourceJpaAdapter",
+			"crawlerAdvisoryLockJpaAdapter",
+			"crawlerRunJpaAdapter",
+			"crawlerTransactionJpaAdapter",
+			"laptopPriceHistoryJpaAdapter",
+			"recommendationScoreJpaAdapter",
+			"crawlerLaptopRepository",
+			"crawlerLaptopProfileRepository",
+			"crawlerRunRepository",
+			"laptopPriceHistoryRepository",
+			"recommendationScoreRepository",
 		)
+	}
+
+	@Test
+	fun `web context scans only web persistence entities`() {
+		val entityTypes = entitySimpleNames()
+
+		assertThat(entityTypes).contains(
+			"Laptop",
+			"LaptopProfile",
+			"LaptopUsage",
+			"RecommendationScore",
+			"Comment",
+		)
+		assertThat(entityTypes).doesNotContain(
+			"CrawlerRun",
+			"LaptopPriceHistory",
+		)
+	}
+
+	private fun entitySimpleNames(): Set<String> {
+		val entityManagerFactory = beanFactory.getBean("entityManagerFactory")
+		val metamodel = entityManagerFactory.zeroArgMethod("getMetamodel").invoke(entityManagerFactory)
+		val entities = metamodel.zeroArgMethod("getEntities").invoke(metamodel) as Collection<*>
+
+		return entities.mapNotNull { entityType ->
+			val javaType = entityType?.zeroArgMethod("getJavaType")?.invoke(entityType) as? Class<*>
+			javaType?.simpleName
+		}.toSet()
+	}
+
+	private fun Any.zeroArgMethod(name: String) = javaClass.methods.first { method ->
+		method.name == name && method.parameterCount == 0
+	}
+
+	@Test
+	fun `web context keeps crawler http api out of public surface`() {
+		mockMvc.perform(get("/api/crawl/laptops"))
+			.andExpect(status().isNotFound)
+	}
+
+	@Test
+	fun `web context keeps legacy spec form out of public surface`() {
+		mockMvc.perform(get("/spec-form"))
+			.andExpect(status().isNotFound)
+	}
+
+	@Test
+	fun `web context exposes health but not other actuator endpoints`() {
+		mockMvc.perform(get("/actuator/health/readiness"))
+			.andExpect(status().isOk)
+		mockMvc.perform(get("/actuator/env"))
+			.andExpect(status().isNotFound)
+	}
+
+	@Test
+	fun `web runtime uses graceful shutdown settings`() {
+		assertThat(environment.getProperty("server.shutdown")).isEqualTo("graceful")
+		assertThat(environment.getProperty("spring.lifecycle.timeout-per-shutdown-phase")).isEqualTo("20s")
+	}
+
+	@Test
+	fun `web api maps missing application resources to 404 response`() {
+		mockMvc.perform(get("/api/laptops").param("id", "999999"))
+			.andExpect(status().isNotFound)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("not_found"))
+	}
+
+	@Test
+	fun `web api maps missing comment laptop resources to 404 response`() {
+		mockMvc.perform(get("/api/comments").param("laptopId", "999999"))
+			.andExpect(status().isNotFound)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("not_found"))
+	}
+
+	@Test
+	fun `web api maps invalid application commands to 400 response`() {
+		mockMvc.perform(
+			post("/api/comments")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""{"laptopId":0,"author":"","content":"","passWord":""}"""),
+		)
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
+	fun `web api maps invalid laptop detail id to 400 response`() {
+		mockMvc.perform(get("/api/laptops").param("id", "0"))
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
+	fun `web api maps invalid recommendation query to 400 response`() {
+		mockMvc.perform(
+			post("/api/recommends")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""{"budget":0,"maxWeightKg":1.5,"screenSizes":[],"useCase":"NOT_SURE"}"""),
+		)
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
+	fun `web api maps malformed json to 400 response`() {
+		mockMvc.perform(
+			post("/api/recommends")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""{"budget":"""),
+		)
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
+	fun `web api maps invalid request parameter types to 400 response`() {
+		mockMvc.perform(get("/api/laptops").param("id", "not-a-number"))
+			.andExpect(status().isBadRequest)
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("bad_request"))
+	}
+
+	@Test
+	fun `web page maps missing application resources to html error page`() {
+		val html = mockMvc.perform(get("/laptops/999999"))
+			.andExpect(status().isNotFound)
+			.andReturn()
+			.response
+			.contentAsString
+
+		assertThat(html).contains(
+			"요청한 정보를 찾을 수 없습니다",
+			"추천으로 돌아가기",
+		)
+		assertThat(html).doesNotContain("\"code\"")
 	}
 }

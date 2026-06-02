@@ -44,6 +44,7 @@ out/
 .env
 
 ### Local artifacts ###
+.codex-local/
 .playwright-cli/
 output/
 LaptopGG.sqlite

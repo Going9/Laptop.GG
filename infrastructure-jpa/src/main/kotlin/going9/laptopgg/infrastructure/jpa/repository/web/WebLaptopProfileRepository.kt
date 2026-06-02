@@ -1,0 +1,155 @@
+package going9.laptopgg.infrastructure.jpa.repository.web
+
+import going9.laptopgg.persistence.model.laptop.LaptopProfile
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+
+private const val PURCHASABLE_LAPTOP_NAME_CLAUSE = """
+          and lower(l.name) not like '%구독%'
+          and lower(l.name) not like '%렌탈%'
+          and lower(l.name) not like '%임대%'
+          and lower(l.name) not like '%대여%'
+          and lower(l.name) not like '%subscription%'
+          and lower(l.name) not like '%rental%'
+          and lower(l.name) not like '%lease%'
+"""
+
+interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
+    @Query(
+        value = """
+        select l.id as laptopId,
+               l.name as name,
+               l.imageUrl as imageUrl,
+               l.price as price,
+               l.weight as weight,
+               l.screenSize as screenSize,
+               l.cpu as cpu,
+               l.graphicsType as graphicsType,
+               l.resolution as resolution,
+               p.portabilityScore as portabilityScore,
+               p.displayScore as displayScore,
+               p.ramScore as ramScore,
+               p.tgpScore as tgpScore,
+               p.cpuPerformanceScore as cpuPerformanceScore,
+               p.lowPowerCpuScore as lowPowerCpuScore,
+               p.gpuPerformanceScore as gpuPerformanceScore,
+               p.gpuCreatorBonus as gpuCreatorBonus,
+               p.officeScore as officeScore,
+               p.batteryScore as batteryScore,
+               p.casualGameScore as casualGameScore,
+               p.onlineGameScore as onlineGameScore,
+               p.aaaGameScore as aaaGameScore,
+               p.creatorScore as creatorScore
+        from LaptopProfile p
+        join p.laptop l
+        join RecommendationScore rs on rs.laptop = l
+        where rs.useCase = :useCase
+          and rs.gateScore >= :gateThreshold
+          and l.price is not null
+          and l.price <= :maxPrice
+""" + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
+          and (l.weight is null or l.weight <= :maxWeight)
+          and (
+            :screenFilterEnabled = false
+            or (
+              :includeUnknownScreen = true
+              and (l.screenSize is null or l.screenSize in :screenSizes)
+            )
+            or (
+              :includeUnknownScreen = false
+              and l.screenSize in :screenSizes
+            )
+          )
+        order by
+          case when :sortMode = 'recommended' then
+            rs.staticScore +
+            ((case
+              when l.price is null or :budget <= 0 or l.price > :budget then 0.0
+              else 60.0 + ((1.0 - ((1.0 * l.price) / :budget)) * 40.0)
+            end) * rs.budgetWeight)
+          end desc,
+          case when :sortMode = 'price_asc' then l.price end asc,
+          case when :sortMode = 'price_desc' then l.price end desc,
+          case
+            when :sortMode in ('weight_asc', 'weight_desc') and l.weight is null then 1
+            when :sortMode in ('weight_asc', 'weight_desc') then 0
+            else null
+          end asc,
+          case when :sortMode = 'weight_asc' then l.weight end asc,
+          case when :sortMode = 'weight_desc' then l.weight end desc,
+          case when :sortMode <> 'recommended' then
+            rs.staticScore +
+            ((case
+              when l.price is null or :budget <= 0 or l.price > :budget then 0.0
+              else 60.0 + ((1.0 - ((1.0 * l.price) / :budget)) * 40.0)
+            end) * rs.budgetWeight)
+          end desc,
+          l.price asc,
+          l.id asc
+        """,
+        countQuery = """
+        select count(p)
+        from LaptopProfile p
+        join p.laptop l
+        join RecommendationScore rs on rs.laptop = l
+        where rs.useCase = :useCase
+          and rs.gateScore >= :gateThreshold
+          and l.price is not null
+          and l.price <= :maxPrice
+""" + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
+          and (l.weight is null or l.weight <= :maxWeight)
+          and (
+            :screenFilterEnabled = false
+            or (
+              :includeUnknownScreen = true
+              and (l.screenSize is null or l.screenSize in :screenSizes)
+            )
+            or (
+              :includeUnknownScreen = false
+              and l.screenSize in :screenSizes
+            )
+          )
+        """,
+    )
+    fun findRecommendationCandidatePage(
+        @Param("maxPrice") maxPrice: Int,
+        @Param("maxWeight") maxWeight: Double,
+        @Param("screenSizes") screenSizes: Collection<Int>,
+        @Param("screenFilterEnabled") screenFilterEnabled: Boolean,
+        @Param("includeUnknownScreen") includeUnknownScreen: Boolean,
+        @Param("gateThreshold") gateThreshold: Int,
+        @Param("budget") budget: Int,
+        @Param("useCase") useCase: String,
+        @Param("sortMode") sortMode: String,
+        pageable: Pageable,
+    ): Page<RecommendationCandidateProjection>
+}
+
+interface RecommendationCandidateProjection {
+    val laptopId: Long?
+    val name: String
+    val imageUrl: String
+    val price: Int?
+    val weight: Double?
+    val screenSize: Int?
+    val cpu: String?
+    val graphicsType: String?
+    val resolution: String?
+    val portabilityScore: Int
+    val displayScore: Int
+    val ramScore: Int
+    val tgpScore: Int
+    val cpuPerformanceScore: Int
+    val lowPowerCpuScore: Int
+    val gpuPerformanceScore: Int
+    val gpuCreatorBonus: Int
+    val officeScore: Int
+    val batteryScore: Int
+    val casualGameScore: Int
+    val onlineGameScore: Int
+    val aaaGameScore: Int
+    val creatorScore: Int
+}

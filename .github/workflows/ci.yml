@@ -44,4 +44,4 @@ jobs:
           POSTGRES_INTEGRATION_JDBC_URL: jdbc:postgresql://127.0.0.1:5432/laptopgg_test
           POSTGRES_INTEGRATION_USERNAME: laptopgg
           POSTGRES_INTEGRATION_PASSWORD: laptopgg
-        run: ./gradlew --no-daemon test :web-app:bootJar :crawler-job:bootJar
+        run: ./gradlew --no-daemon verifyStructure test :web-app:bootJar :crawler-job:bootJar

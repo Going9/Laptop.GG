@@ -3,13 +3,11 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":domain"))
-    implementation(project(":application"))
-    implementation(project(":infrastructure-jpa"))
+    implementation(project(":application-crawler"))
+    implementation(project(":infrastructure-jpa-crawler"))
 
     implementation("org.jsoup:jsoup:1.18.3")
     implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     runtimeOnly("org.postgresql:postgresql:42.7.5")

@@ -4,20 +4,23 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: OFF
 
 app:
-  api:
-    base-url: "http://localhost:8080"
-  crawler:
-    run-on-startup: false
-    limit: ${CRAWLER_LIMIT:}
-    start-page: ${CRAWLER_START_PAGE:}
-    filter-profile: ${CRAWLER_FILTER_PROFILE:core}
+  security:
+    password:
+      bcrypt-strength: ${APP_SECURITY_PASSWORD_BCRYPT_STRENGTH:10}
 
 spring:
+  config:
+    import: classpath:/laptopgg-persistence.yml
+
+  lifecycle:
+    timeout-per-shutdown-phase: ${SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE:20s}
+
   sql:
     init:
       mode: never
 
 server:
+  shutdown: graceful
   forward-headers-strategy: framework
   tomcat:
     threads:
@@ -44,73 +47,7 @@ management:
 spring:
   config:
     activate:
-      on-profile: postgres
-
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/laptopgg}
-    driver-class-name: org.postgresql.Driver
-    username: ${SPRING_DATASOURCE_USERNAME:laptopgg}
-    password: ${SPRING_DATASOURCE_PASSWORD:laptopgg}
-    hikari:
-      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:3}
-      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:1}
-      connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
-
-  flyway:
-    enabled: true
-    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
-    baseline-version: 1
-
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        format_sql: true
-        highlight_sql: true
-        use_sql_comments: true
-        jdbc:
-          batch_size: 50
-        order_inserts: true
-        order_updates: true
-    show-sql: false
-
-app:
-  api:
-    base-url: ${APP_BASE_URL:http://localhost:8080}
-
----
-spring:
-  config:
-    activate:
-      on-profile: legacy-baseline
-
-  flyway:
-    baseline-on-migrate: true
-
----
-spring:
-  config:
-    activate:
       on-profile: deploy
 
   flyway:
     baseline-on-migrate: false
-
-app:
-  api:
-    base-url: "https://laptopgg.com"
-
----
-spring:
-  config:
-    activate:
-      on-profile: crawler
-
-  main:
-    web-application-type: none
-
-app:
-  crawler:
-    run-on-startup: true

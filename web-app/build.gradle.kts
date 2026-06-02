@@ -3,12 +3,14 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":domain"))
     implementation(project(":application"))
+    implementation(project(":recommendation-contract"))
     implementation(project(":infrastructure-jpa"))
+    implementation(project(":infrastructure-security"))
+
+    runtimeOnly(project(":infrastructure-flyway"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

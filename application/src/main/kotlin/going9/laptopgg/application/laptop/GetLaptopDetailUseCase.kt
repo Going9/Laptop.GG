@@ -1,14 +1,29 @@
 package going9.laptopgg.application.laptop
 
-import going9.laptopgg.dto.response.LaptopDetailResponse
-import going9.laptopgg.service.LaptopService
-import org.springframework.stereotype.Service
+import going9.laptopgg.application.common.InvalidCommandException
+import going9.laptopgg.application.common.ResourceNotFoundException
+import going9.laptopgg.application.common.port.ApplicationTransactionPort
+import going9.laptopgg.application.laptop.port.LaptopPort
 
-@Service
-class GetLaptopDetailUseCase(
-    private val laptopService: LaptopService,
-) {
-    fun get(laptopId: Long): LaptopDetailResponse {
-        return laptopService.findLaptopById(laptopId)
+interface GetLaptopDetailUseCase {
+    fun get(laptopId: Long): LaptopDetailResult
+}
+
+internal class DefaultGetLaptopDetailUseCase(
+    private val laptopPort: LaptopPort,
+    private val transactionPort: ApplicationTransactionPort,
+) : GetLaptopDetailUseCase {
+    override fun get(laptopId: Long): LaptopDetailResult {
+        validateLaptopId(laptopId)
+        return transactionPort.read {
+            val laptop = laptopPort.findDetailById(laptopId) ?: throw ResourceNotFoundException("Laptop", laptopId)
+            laptop.toLaptopDetailResult()
+        }
+    }
+
+    private fun validateLaptopId(laptopId: Long) {
+        if (laptopId <= 0) {
+            throw InvalidCommandException("laptopId must be positive.")
+        }
     }
 }

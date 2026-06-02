@@ -22,6 +22,8 @@ flowchart LR
 - 크롤러는 GitHub Actions에서 수동 실행하거나 스케줄 실행합니다.
 - 목록 크롤링은 Danawa HTTP/AJAX 요청 기반이라 Chrome/Selenium 설치가 필요 없습니다.
 - 운영 PostgreSQL 스키마는 Flyway 마이그레이션으로 관리합니다.
+- 스키마 변경은 web deploy 경로가 소유하고, crawler job은 Flyway migration 리소스를 싣거나 운영 DB에서 migration을 실행하지 않습니다.
+- 크롤러 워크플로는 운영 DB 쓰기 전에 로컬 PostgreSQL 16 service DB로 PostgreSQL 통합 테스트를 먼저 실행합니다.
 - 크롤러는 기존 상품의 가격/이미지/링크를 빠르게 갱신하고, 상세 스펙이 비었거나 오래된 상품만 다시 자세히 수집합니다.
 - 가격 변동 이력은 `laptop_price_history` 테이블에 저장합니다.
 - 크롤러 실행 이력은 `crawler_run` 테이블에 저장하고 PostgreSQL advisory lock으로 중복 실행을 차단합니다.
@@ -30,14 +32,35 @@ flowchart LR
 
 ## 저장소 구조
 
-- `src/main/kotlin`: 애플리케이션 코드
-- `src/main/resources`: 설정 파일과 템플릿
-- `src/main/resources/db/migration`: PostgreSQL Flyway 마이그레이션
+- `laptop-taxonomy`: CPU/GPU/배터리/휴대성 분류 enum
+- `persistence-model`: web/crawler가 공유하는 노트북/추천 JPA entity
+- `persistence-model-web`: web 전용 댓글 JPA entity
+- `persistence-model-crawler`: crawler 전용 실행 이력/가격 이력 JPA entity
+- JPA entity는 Kotlin `data class`를 쓰지 않고, to-one 연관관계는 `fetch = LAZY`를 명시합니다.
+- 댓글 테이블은 application 계약에 맞춰 laptop, author, content, password hash를 필수로 관리하고, 레거시 nullable 댓글은 `comment_invalid_legacy`에 보관합니다.
+- `recommendation-contract`: web/crawler/application이 공유하는 추천 use-case enum
+- `recommendation-core`: 추천 점수 가중치와 gate 정책
+- `application`: 추천/상세/댓글 use case와 port
+- `application-crawler`: crawler 저장/동기화 use case, feature별 crawler 전용 port, profile/score 정책
+- `application-crawler`의 공개 표면은 command/result, use case interface, out port, Danawa 정규화 resolver로 제한하고, CPU/GPU 분류기와 profile score policy 구현은 내부 조립으로 숨깁니다.
+- `infrastructure-jpa-core`: 공통 persistence 설정
+- `infrastructure-flyway`: web deploy와 migration 통합 테스트에서 사용하는 Flyway migration 리소스
+- `infrastructure-jpa`: web-facing JPA adapter
+- `infrastructure-jpa-crawler`: crawler 저장/프로필/가격 이력/추천 점수 JPA adapter와 crawler repository
+- `infrastructure-jpa.adapter.web`, `infrastructure-jpa-crawler.adapter.crawler`: 런타임 역할별 JPA adapter
+- `infrastructure-jpa.config.WebJpaAdapterConfig`, `infrastructure-jpa-crawler.config.CrawlerJpaAdapterConfig`: 런타임이 import하는 JPA adapter 설정 facade
+- `infrastructure-jpa.repository.web`, `infrastructure-jpa-crawler.repository.crawler`: web/crawler 런타임 역할별 Spring Data repository
+- `infrastructure-jpa-core/src/main/resources/laptopgg-persistence.yml`: web/crawler 공통 PostgreSQL/Flyway property/JPA profile 설정
+- `infrastructure-security`: 비밀번호 해시 등 보안 adapter와 `PasswordHashAdapterConfig`
+- `integration-tests`: web/crawler persistence를 함께 띄우는 cross-module 통합 테스트
+- `web-app`: `web.controller`, `web.dto`, 사용자 화면, REST API, Thymeleaf/static 리소스
+- `crawler-job`: GitHub Actions에서 실행하는 Danawa 수집 job
 - `.github/workflows/ci.yml`: 테스트
 - `.github/workflows/deploy-web.yml`: 웹 배포
 - `.github/workflows/crawler.yml`: 크롤러 실행
 - `ops/`: systemd, nginx, env 예시와 운영 runbook
-- `nginx/oracle-laptopgg.conf`: 기존 Oracle 서버용 nginx 설정
+- `ops/postgres/laptopgg-postgresql.conf`: 1GB PostgreSQL 서버용 관측성/커넥션 baseline
+- `gradle/structure-check.gradle.kts`: 모듈/런타임 경계 회귀를 막는 Gradle 구조 검증 규칙
 
 저장소 루트가 곧 Gradle 프로젝트 루트입니다. 별도 하위 프로젝트로 들어갈 필요가 없습니다.
 
@@ -57,10 +80,18 @@ export PATH="$JAVA_HOME/bin:$PATH"
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/laptopgg
 export SPRING_DATASOURCE_USERNAME=laptopgg
 export SPRING_DATASOURCE_PASSWORD=laptopgg
-./gradlew bootRun --args='--spring.profiles.active=postgres'
+./gradlew :web-app:bootRun --args='--spring.profiles.active=postgres'
 ```
 
-로컬에서 크롤링 HTTP 엔드포인트까지 열어야 할 때만 `postgres,local-dev`로 실행합니다.
+웹 앱은 사용자 화면과 추천/상세/댓글 API만 실행합니다. 크롤링은 아래 `crawler-job` 명령으로 별도 실행합니다.
+`application`은 JPA entity를 노출하지 않는 application record 계약만 사용하고, 실제 entity 매핑은 JPA adapter에서 처리합니다.
+`web-app`은 web use case bean을 명시적으로 조립하며, `application-crawler`와 crawler JPA adapter는 classpath에 올리지 않습니다.
+`crawler-job`은 Danawa 수집과 application-crawler command 변환만 담당하며, persistence model 조립과 저장 트랜잭션은 application-crawler use case가 처리합니다.
+`crawler-job`은 프로필 점수 계산 정책을 직접 bean으로 등록하지 않고, Danawa 파싱 정규화 resolver와 저장 use case 계약만 사용합니다.
+추천 use-case enum은 `recommendation-contract`, 점수 정책은 `recommendation-core`에 두어 web은 공개 선택지 계약만 알고 crawler 점수 projection과 web 추천 계산은 같은 정책을 공유합니다.
+크롤러 저장/이력/추천 점수/중복 실행 lock port는 `application-crawler`의 feature별 `*.port` 패키지에 있고, 구현은 `infrastructure-jpa-crawler`가 제공합니다.
+공통 persistence 설정은 `infrastructure-jpa-core`, Flyway migration 리소스는 `infrastructure-flyway`에 있고, entity scan과 Spring Data repository는 `infrastructure-jpa`와 `infrastructure-jpa-crawler`가 역할별로 소유합니다.
+런타임 앱은 인프라 adapter package를 직접 scan하지 않고, 역할별 adapter config facade만 import합니다.
 
 주의:
 - `postgres` 프로필에서는 Flyway가 먼저 스키마를 맞춘 뒤 앱이 기동합니다.
@@ -75,7 +106,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/laptopgg
 export SPRING_DATASOURCE_USERNAME=laptopgg
 export SPRING_DATASOURCE_PASSWORD=laptopgg
-./gradlew bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.limit=3 --app.crawler.start-page=1 --app.crawler.filter-profile=core'
+./gradlew :crawler-job:bootRun --args='--spring.profiles.active=postgres,crawler --app.crawler.run-on-startup=true --app.crawler.limit=3 --app.crawler.start-page=1 --app.crawler.filter-profile=core'
 ```
 
 ### 4. 확인 주소
@@ -83,11 +114,10 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 - 웹: `http://localhost:8080`
 - 추천 화면: `http://localhost:8080/recommends`
 - 상세 화면: `http://localhost:8080/laptops/{id}`
-- 로컬 크롤링 API: `GET /api/crawl/laptops?limit=3&startPage=1&filterProfile=core`
 
 주의:
-- `/api/crawl/laptops` 엔드포인트는 `local-dev` 프로필에서만 열립니다.
-- 배포 프로필에서는 GitHub Actions 크롤러만 사용합니다.
+- 웹 앱은 크롤러 HTTP API를 열지 않습니다.
+- 배포 프로필에서는 GitHub Actions 크롤러 job만 사용합니다.
 
 ## 테스트
 
@@ -95,12 +125,15 @@ export SPRING_DATASOURCE_PASSWORD=laptopgg
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 export PATH="$JAVA_HOME/bin:$PATH"
 ./gradlew --no-daemon test
+./gradlew --no-daemon verifyStructure test :web-app:bootJar :crawler-job:bootJar
 ```
 
+`verifyStructure`는 모듈 경계 회귀를 막는 Gradle 검증 태스크이며, `test` 실행 시에도 함께 실행됩니다.
+
 회귀 테스트에는 실제 Danawa 구조를 닮은 HTML fixture가 포함됩니다.
-- `src/test/resources/fixtures/danawa/list-page.html`
-- `src/test/resources/fixtures/danawa/detail-page.html`
-- `src/test/resources/fixtures/danawa/detail-spec.html`
+- `crawler-job/src/test/resources/fixtures/danawa/list-page.html`
+- `crawler-job/src/test/resources/fixtures/danawa/detail-page.html`
+- `crawler-job/src/test/resources/fixtures/danawa/detail-spec.html`
 
 CI에서는 `POSTGRES_INTEGRATION_TESTS=true`로 PostgreSQL/Flyway 마이그레이션 검증도 함께 실행합니다.
 
@@ -109,11 +142,12 @@ CI에서는 `POSTGRES_INTEGRATION_TESTS=true`로 PostgreSQL/Flyway 마이그레�
 `main` 브랜치에 push 하면 `.github/workflows/deploy-web.yml` 이 실행됩니다.
 
 배포 순서:
-1. GitHub Actions가 JDK 17로 `test`와 `bootJar`를 실행합니다.
+1. GitHub Actions가 JDK 17과 PostgreSQL 16 service DB로 `test`와 `bootJar`를 실행합니다.
 2. 생성된 jar를 `/home/ubuntu/laptopgg/releases/<sha>/`에 업로드합니다.
 3. 앱 서버에서 `/home/ubuntu/laptopgg/app.jar` symlink를 새 release로 전환합니다.
 4. `laptopgg.service`를 재시작하고 `/actuator/health/readiness`를 확인합니다.
 5. 헬스 체크가 실패하면 이전 symlink 대상으로 rollback합니다.
+6. 헬스 체크가 성공하면 active release, 이전 rollback 대상, 최신 5개 release만 남기고 오래된 release 디렉터리를 정리합니다.
 
 배포 시점 동작:
 - 신규 PostgreSQL: Flyway가 `V1`부터 최신 마이그레이션까지 적용합니다.
@@ -126,7 +160,8 @@ SPRING_PROFILES_ACTIVE=postgres,deploy
 SPRING_DATASOURCE_URL=jdbc:postgresql://<db-private-ip>:5432/laptopgg
 SPRING_DATASOURCE_USERNAME=<db-user>
 SPRING_DATASOURCE_PASSWORD=<db-password>
-JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
+APP_SECURITY_PASSWORD_BCRYPT_STRENGTH=10
+JAVA_OPTS=-Xms128m -Xmx384m -XX:TieredStopAtLevel=1 -Duser.timezone=Asia/Seoul
 ```
 
 `systemd`와 nginx 기준 설정은 `ops/` 아래 예시를 사용합니다.
@@ -147,6 +182,8 @@ JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 - 기본값 `core`는 최신 Intel/AMD/ARM CPU 코드명과 Apple 맥북 카테고리만 수집합니다.
 - `extended`는 조금 더 오래된 CPU 코드명까지 넓힙니다.
 - `none`은 CPU 코드명 필터 없이 노트북 전체 목록을 수집합니다.
+- `max_list_pages`는 크롤 소스별 목록 페이지 안전 제한이며, 비우면 `5000`을 사용합니다.
+- `detail_fetch_concurrency`는 상세 페이지 동시 수집 수이며, 비우면 `6`을 사용합니다.
 
 필요한 GitHub Secrets:
 
@@ -161,15 +198,19 @@ JAVA_OPTS=-Xms128m -Xmx384m -Duser.timezone=Asia/Seoul
 - `CRAWLER_TUNNEL_TARGET_PORT`
 
 동작 방식:
-1. GitHub Actions가 DB 서버로 SSH 접속합니다.
-2. SSH 터널로 PostgreSQL에 연결합니다.
-3. 목록은 HTTP/AJAX로, 상세는 HTTP 요청으로 수집합니다.
-4. 기본값 `core`에서는 다나와 `CPU 코드명` 필터를 목록 단계에서 적용하고, Apple 맥북은 별도 카테고리로 수집합니다.
-5. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
-6. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
-7. `postgres,crawler` 프로필로 크롤러를 실행합니다.
-8. advisory lock을 획득한 실행만 크롤링 결과를 DB에 직접 적재합니다.
-9. 실행 상태와 처리 건수는 `crawler_run`에 남기고 GitHub Actions summary에도 표시합니다.
+1. GitHub Actions가 로컬 PostgreSQL 16 service DB로 PostgreSQL 통합 테스트를 실행합니다.
+2. GitHub Actions가 DB 서버로 SSH 접속합니다.
+3. SSH 터널로 PostgreSQL에 연결합니다.
+4. 목록은 HTTP/AJAX로, 상세는 HTTP 요청으로 수집합니다.
+5. 기본값 `core`에서는 다나와 `CPU 코드명` 필터를 목록 단계에서 적용하고, Apple 맥북은 별도 카테고리로 수집합니다.
+6. 기존 상품은 가격/이미지/링크만 빠르게 갱신하고, 상세 스펙이 비었거나 30일 이상 지난 상품만 상세 재수집합니다.
+7. 가격이 실제로 변하면 `laptop_price_history`에 이력을 남깁니다.
+8. `postgres,crawler` 프로필로 크롤러를 실행합니다.
+9. 운영 DB tunnel에서 `ops/sql/crawler-identity-preflight.sql`을 실행해 정규화 후 중복되는 `product_code`와 `detail_page`를 먼저 차단합니다.
+10. advisory lock을 획득한 실행만 크롤링 결과를 DB에 직접 적재합니다.
+11. 실행 상태와 처리 건수는 `crawler_run`에 남기고 GitHub Actions summary에도 표시합니다.
+
+운영 DB datasource 환경변수는 SSH 터널 확인과 실제 crawler 실행 단계에만 주입합니다. 테스트/빌드 단계는 운영 DB env를 상속하지 않아 로컬 PostgreSQL service DB와 H2 기반 context 테스트를 먼저 검증합니다.
 
 ## nginx와 도메인
 

@@ -1,11 +1,12 @@
+plugins {
+    `java-library`
+}
+
 dependencies {
-    implementation(project(":domain"))
-    implementation(project(":infrastructure-jpa"))
+    api(project(":recommendation-contract"))
+    implementation(project(":recommendation-core"))
 
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.security:spring-security-crypto")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("com.h2database:h2")
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.assertj:assertj-core")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

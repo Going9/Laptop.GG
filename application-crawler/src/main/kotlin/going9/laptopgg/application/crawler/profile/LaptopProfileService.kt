@@ -1,0 +1,46 @@
+package going9.laptopgg.application.crawler.profile
+
+import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
+import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.recommendation.RecommendationScoreRefresher
+
+internal interface CrawledLaptopProfileSynchronizer {
+    fun syncProfileInTransaction(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState
+}
+
+internal class LaptopProfileService(
+    private val laptopProfilePort: CrawledLaptopProfilePort,
+    private val laptopProfileFactory: LaptopProfileFactory,
+    private val recommendationScoreRefresher: RecommendationScoreRefresher,
+) : CrawledLaptopProfileSynchronizer {
+    override fun syncProfileInTransaction(laptop: PersistedCrawledLaptopSnapshot): CrawledLaptopProfileState {
+        val laptopId = laptop.id
+        val snapshot = laptopProfileFactory.build(laptop.toProfileSource())
+        val profile = laptopProfilePort.upsert(
+            UpsertCrawledLaptopProfileCommand(
+                laptopId = laptopId,
+                profile = snapshot,
+            ),
+        )
+
+        recommendationScoreRefresher.refreshScoresInTransaction(profile)
+        return profile
+    }
+
+    private fun PersistedCrawledLaptopSnapshot.toProfileSource(): LaptopProfileSource {
+        return LaptopProfileSource(
+            name = name,
+            cpuManufacturer = cpuManufacturer,
+            cpu = cpu,
+            resolution = resolution,
+            brightness = brightness,
+            refreshRate = refreshRate,
+            ramSize = ramSize,
+            graphicsType = graphicsType,
+            tgp = tgp,
+            batteryCapacity = batteryCapacity,
+            weight = weight,
+            usages = usages,
+        )
+    }
+}
