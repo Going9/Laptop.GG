@@ -2483,6 +2483,22 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "recommendation candidate query must exclude subscription and rental products",
+			paths = listOf(
+				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/WebLaptopProfileRepository.kt",
+				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationCandidateFilteringIntegrationTest.kt",
+			),
+			patterns = listOf(
+				Regex("""lower\(l\.name\) not like '%구독%'"""),
+				Regex("""lower\(l\.name\) not like '%렌탈%'"""),
+				Regex("""lower\(l\.name\) not like '%rental%'"""),
+				Regex("""recommendation excludes subscription and rental product names at query stage"""),
+				Regex("""Office 구독형 월 29900원"""),
+				Regex("""Office rental plan"""),
+			),
+		)
+
+		assertPresent(
 			rule = "recommendation screen size selection must not silently broaden empty explicit selections",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationQueryValidator.kt",

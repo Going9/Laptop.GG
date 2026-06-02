@@ -7,6 +7,16 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
+private const val PURCHASABLE_LAPTOP_NAME_CLAUSE = """
+          and lower(l.name) not like '%구독%'
+          and lower(l.name) not like '%렌탈%'
+          and lower(l.name) not like '%임대%'
+          and lower(l.name) not like '%대여%'
+          and lower(l.name) not like '%subscription%'
+          and lower(l.name) not like '%rental%'
+          and lower(l.name) not like '%lease%'
+"""
+
 interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
     @Query(
         value = """
@@ -40,6 +50,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
           and rs.gateScore >= :gateThreshold
           and l.price is not null
           and l.price <= :maxPrice
+""" + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
           and (l.weight is null or l.weight <= :maxWeight)
           and (
             :screenFilterEnabled = false
@@ -88,6 +99,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
           and rs.gateScore >= :gateThreshold
           and l.price is not null
           and l.price <= :maxPrice
+""" + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
           and (l.weight is null or l.weight <= :maxWeight)
           and (
             :screenFilterEnabled = false
