@@ -72,6 +72,28 @@ class DetailRefreshOutcomeHandlerTest {
     }
 
     @Test
+    fun `skips detail outcome without list snapshot fallback or failure`() {
+        val productCard = productCard("100691504")
+        val existingLaptop = existingLaptop(id = 3L, productCode = productCard.productCode)
+        val progress = CrawlProgress()
+
+        val result = handler.handle(
+            detailRefreshOutcomes = listOf(
+                DetailRefreshOutcome(
+                    workItem = DetailRefreshWorkItem(productCard = productCard, existingLaptop = existingLaptop),
+                    skipReason = "구독/렌탈 상품",
+                ),
+            ),
+            progress = progress,
+        )
+
+        assertThat(result.pagePriceOnlyUpdatedCount).isZero()
+        assertThat(progress.toSummary().updatedCount).isZero()
+        assertThat(progress.toSummary().failedCount).isZero()
+        Mockito.verifyNoInteractions(saveCrawledLaptopUseCase)
+    }
+
+    @Test
     fun `interrupted save failure is propagated instead of recorded as product failure`() {
         val productCard = productCard("300")
         val buildResult = BuildLaptopResult(

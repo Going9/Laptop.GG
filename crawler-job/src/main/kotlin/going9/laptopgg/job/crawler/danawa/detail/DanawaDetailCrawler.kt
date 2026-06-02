@@ -5,6 +5,7 @@ import going9.laptopgg.job.crawler.detail.DetailFetchExecutor
 import going9.laptopgg.job.crawler.detail.DetailRefreshOutcome
 import going9.laptopgg.job.crawler.detail.DetailRefreshWorkItem
 import going9.laptopgg.job.crawler.detail.ProductDetailCrawler
+import going9.laptopgg.job.crawler.danawa.DanawaSubscriptionProductDetector
 import going9.laptopgg.job.crawler.danawa.client.DanawaClient
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.support.isCrawlerInterruptedFailure
@@ -22,10 +23,7 @@ internal class DanawaDetailCrawler(
     ): List<DetailRefreshOutcome> {
         return detailFetchExecutor.fetch(workItems) { workItem ->
             try {
-                DetailRefreshOutcome(
-                    workItem = workItem,
-                    buildResult = buildLaptop(workItem.productCard),
-                )
+                buildLaptopOutcome(workItem)
             } catch (exception: Exception) {
                 if (exception.isCrawlerInterruptedFailure()) {
                     throw exception
@@ -38,7 +36,8 @@ internal class DanawaDetailCrawler(
         }
     }
 
-    private fun buildLaptop(productCard: ProductCard): BuildLaptopResult {
+    private fun buildLaptopOutcome(workItem: DetailRefreshWorkItem): DetailRefreshOutcome {
+        val productCard = workItem.productCard
         val degradationReasons = mutableListOf<String>()
         val detailPageHtml = danawaClient.fetchDetailPage(productCard.detailPage)
         val detailContext = DanawaDetailParser.extractDetailRequestContext(detailPageHtml)
@@ -55,6 +54,12 @@ internal class DanawaDetailCrawler(
         if (detailSpecHtml != null && parsedSpecTable.values.isEmpty()) {
             degradationReasons += "상세 스펙 테이블 파싱 결과 비어 있음"
         }
+        if (isSubscriptionProduct(productCard, detailContext, parsedSpecTable)) {
+            return DetailRefreshOutcome(
+                workItem = workItem,
+                skipReason = "구독/렌탈 상품",
+            )
+        }
 
         val summaryFallback = summaryFallbackParser.parseSummaryFallback(
             summaryFallbackParser.extractSummaryText(detailPageHtml),
@@ -63,9 +68,26 @@ internal class DanawaDetailCrawler(
             degradationReasons += "상세/요약 스펙 모두 비어 있음"
         }
 
-        return BuildLaptopResult(
-            command = laptopSnapshotMerger.createCommand(productCard, parsedSpecTable, summaryFallback),
-            degradationReasons = degradationReasons.distinct(),
+        return DetailRefreshOutcome(
+            workItem = workItem,
+            buildResult = BuildLaptopResult(
+                command = laptopSnapshotMerger.createCommand(productCard, parsedSpecTable, summaryFallback),
+                degradationReasons = degradationReasons.distinct(),
+            ),
+        )
+    }
+
+    private fun isSubscriptionProduct(
+        productCard: ProductCard,
+        detailContext: DetailRequestContext?,
+        parsedSpecTable: ParsedSpecTable,
+    ): Boolean {
+        return DanawaSubscriptionProductDetector.containsSubscriptionMarker(
+            productCard.productName,
+            detailContext?.productName,
+            detailContext?.prodType,
+            parsedSpecTable.values.keys.joinToString(" "),
+            parsedSpecTable.values.values.joinToString(" "),
         )
     }
 }

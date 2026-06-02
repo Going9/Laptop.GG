@@ -31,6 +31,17 @@ internal class DetailRefreshOutcomeHandler(
         val existingLaptop = detailRefreshOutcome.workItem.existingLaptop
 
         return try {
+            val skipReason = detailRefreshOutcome.skipReason
+            if (skipReason != null) {
+                logger.info(
+                    "상품 상세 저장을 건너뜁니다. productCode={}, detailPage={}, reason={}",
+                    productCard.productCode,
+                    productCard.detailPage,
+                    skipReason,
+                )
+                return 0
+            }
+
             val buildResult = detailRefreshOutcome.buildResult
             if (buildResult != null) {
                 if (buildResult.isDegraded) {

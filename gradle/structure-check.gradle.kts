@@ -2499,6 +2499,29 @@ val verifyStructure by tasks.registering {
 		)
 
 		assertPresent(
+			rule = "crawler must skip Danawa subscription and rental products",
+			paths = listOf(
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/DanawaSubscriptionProductDetector.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/list/DanawaProductCardParser.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawler.kt",
+				"crawler-job/src/main/kotlin/going9/laptopgg/job/crawler/orchestration/DetailRefreshOutcomeHandler.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaDetailCrawlerFailureContractTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/danawa/detail/DanawaCrawlerNormalizationTest.kt",
+				"crawler-job/src/test/kotlin/going9/laptopgg/job/crawler/orchestration/DetailRefreshOutcomeHandlerTest.kt",
+			),
+			patterns = listOf(
+				Regex("""가전 구독"""),
+				Regex("""구독/렌탈"""),
+				Regex("""containsSubscriptionMarker"""),
+				Regex("""skipReason"""),
+				Regex("""100691504"""),
+				Regex("""list parser excludes subscription product cards when list item exposes marker"""),
+				Regex("""subscription product from detail page is returned as skip outcome"""),
+				Regex("""skips detail outcome without list snapshot fallback or failure"""),
+			),
+		)
+
+		assertPresent(
 			rule = "recommendation screen size selection must not silently broaden empty explicit selections",
 			paths = listOf(
 				"application/src/main/kotlin/going9/laptopgg/application/recommendation/LaptopRecommendationQueryValidator.kt",

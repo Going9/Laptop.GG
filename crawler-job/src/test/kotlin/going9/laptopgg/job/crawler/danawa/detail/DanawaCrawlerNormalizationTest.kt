@@ -146,6 +146,37 @@ class DanawaCrawlerNormalizationTest {
         assertThat(result.first().detailPage).isEqualTo("https://prod.danawa.com/info/?pcode=123456&cate=112758")
     }
 
+    @Test
+    fun `list parser excludes subscription product cards when list item exposes marker`() {
+        val html = """
+            <ul>
+              <li class="prod_item">
+                <a name="productName" href="https://prod.danawa.com/info/?pcode=100691504&cate=112758">LG전자 2025 그램 프로16 16Z90TS-GU7WK</a>
+                <div class="prod_pricelist" data-cate="112|758|0|112758">
+                  <span class="text__number">89,900</span>
+                </div>
+                <span>가전 구독</span>
+                <div class="thumb_image">
+                  <img src="https://img.danawa.com/subscription.jpg" />
+                </div>
+              </li>
+              <li class="prod_item">
+                <a name="productName" href="https://prod.danawa.com/info/?pcode=123456&cate=112758">정상 구매 노트북</a>
+                <div class="prod_pricelist" data-cate="112|758|0|112758">
+                  <span class="text__number">1,234,000</span>
+                </div>
+                <div class="thumb_image">
+                  <img src="https://img.danawa.com/purchase.jpg" />
+                </div>
+              </li>
+            </ul>
+        """.trimIndent()
+
+        val result = DanawaProductCardParser.parse(html)
+
+        assertThat(result.map { it.productCode }).containsExactly("123456")
+    }
+
     private fun productCard(): ProductCard {
         return ProductCard(
             productCode = "123456",

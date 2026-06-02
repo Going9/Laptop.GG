@@ -1,6 +1,7 @@
 package going9.laptopgg.job.crawler.danawa.list
 
 import going9.laptopgg.job.crawler.danawa.DanawaEndpoints
+import going9.laptopgg.job.crawler.danawa.DanawaSubscriptionProductDetector
 import going9.laptopgg.job.crawler.list.ProductCard
 import org.jsoup.Jsoup
 
@@ -29,6 +30,9 @@ internal object DanawaProductCardParser {
 
                 val priceText = productItem.selectFirst(".prod_pricelist .text__number")?.text()
                     ?: productItem.selectFirst(".price_sect a")?.text()
+                if (DanawaSubscriptionProductDetector.containsSubscriptionMarker(productItem.text())) {
+                    return@mapNotNull null
+                }
 
                 ProductCard(
                     productCode = productCode,
@@ -73,5 +77,4 @@ internal object DanawaProductCardParser {
     private fun extractQueryParam(url: String, key: String): String? {
         return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
     }
-
 }

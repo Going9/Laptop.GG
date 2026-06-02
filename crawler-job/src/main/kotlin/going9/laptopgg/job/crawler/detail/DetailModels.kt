@@ -21,4 +21,5 @@ internal data class DetailRefreshOutcome(
     val workItem: DetailRefreshWorkItem,
     val buildResult: BuildLaptopResult? = null,
     val error: Exception? = null,
+    val skipReason: String? = null,
 )

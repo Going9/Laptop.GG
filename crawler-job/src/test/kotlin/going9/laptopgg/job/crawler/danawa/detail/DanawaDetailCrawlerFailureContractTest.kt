@@ -53,6 +53,34 @@ class DanawaDetailCrawlerFailureContractTest {
         }.isSameAs(error)
     }
 
+    @Test
+    fun `subscription product from detail page is returned as skip outcome`() {
+        val workItem = detailWorkItem("100691504")
+        Mockito.`when`(danawaClient.fetchDetailPage(workItem.productCard.detailPage)).thenReturn(
+            """
+            <html>
+              <script>
+                var oProductDescriptionInfo = {
+                  "makerName": "LG전자",
+                  "productName": "LG전자 2025 그램 프로16 16Z90TS-GU7WK (가전 구독 (월))",
+                  "prodType": "NOTEBOOK"
+                };
+              </script>
+            </html>
+            """.trimIndent(),
+        )
+
+        DetailFetchExecutor.fixed(1).use { executor ->
+            val outcomes = crawler.fetchDetailRefreshOutcomes(listOf(workItem), executor)
+
+            assertThat(outcomes).hasSize(1)
+            assertThat(outcomes.first().workItem).isEqualTo(workItem)
+            assertThat(outcomes.first().skipReason).isEqualTo("구독/렌탈 상품")
+            assertThat(outcomes.first().buildResult).isNull()
+            assertThat(outcomes.first().error).isNull()
+        }
+    }
+
     private fun detailWorkItem(code: String): DetailRefreshWorkItem {
         return DetailRefreshWorkItem(
             productCard = ProductCard(
