@@ -24,6 +24,7 @@ class RecommendationCandidateJpaAdapterStateTest {
         val query = recommendationQuery()
         Mockito.`when`(
             repository.findRecommendationCandidatePage(
+                minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,
                 screenSizes = listOf(14, 16),
@@ -54,6 +55,7 @@ class RecommendationCandidateJpaAdapterStateTest {
         val query = recommendationQuery()
         Mockito.`when`(
             repository.findRecommendationCandidatePage(
+                minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,
                 screenSizes = listOf(14, 16),
@@ -80,6 +82,7 @@ class RecommendationCandidateJpaAdapterStateTest {
         val query = recommendationQuery()
         Mockito.`when`(
             repository.findRecommendationCandidatePage(
+                minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,
                 screenSizes = listOf(14, 16),
@@ -101,6 +104,7 @@ class RecommendationCandidateJpaAdapterStateTest {
     private fun recommendationQuery(): RecommendationCandidatePageQuery {
         return RecommendationCandidatePageQuery(
             filter = RecommendationCandidateFilter(
+                minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,
                 screenSizes = listOf(14, 16),

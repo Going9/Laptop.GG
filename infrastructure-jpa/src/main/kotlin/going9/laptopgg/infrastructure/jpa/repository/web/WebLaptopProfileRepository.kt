@@ -49,6 +49,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         where rs.useCase = :useCase
           and rs.gateScore >= :gateThreshold
           and l.price is not null
+          and l.price > :minPriceExclusive
           and l.price <= :maxPrice
 """ + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
           and (l.weight is null or l.weight <= :maxWeight)
@@ -98,6 +99,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         where rs.useCase = :useCase
           and rs.gateScore >= :gateThreshold
           and l.price is not null
+          and l.price > :minPriceExclusive
           and l.price <= :maxPrice
 """ + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
           and (l.weight is null or l.weight <= :maxWeight)
@@ -115,6 +117,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         """,
     )
     fun findRecommendationCandidatePage(
+        @Param("minPriceExclusive") minPriceExclusive: Int,
         @Param("maxPrice") maxPrice: Int,
         @Param("maxWeight") maxWeight: Double,
         @Param("screenSizes") screenSizes: Collection<Int>,

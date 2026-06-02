@@ -66,12 +66,12 @@ class DanawaCrawlerHtmlFixtureParsingTest {
                   <li class="prod_item">
                     <a name="productName" href="https://prod.danawa.com/info/?pcode=111&cate=112758">모델 A</a>
                     <div class="thumb_image"><img src="https://img.danawa.com/a.jpg" /></div>
-                    <div class="prod_pricelist" data-cate="112|758|0|112758"><span class="text__number">1,000</span></div>
+                    <div class="prod_pricelist" data-cate="112|758|0|112758"><span class="text__number">1,000,000</span></div>
                   </li>
                   <li class="prod_item">
                     <a name="productName" href="https://prod.danawa.com/info/?pcode=111&cate=112760">모델 A 변형</a>
                     <div class="thumb_image"><img src="https://img.danawa.com/b.jpg" /></div>
-                    <div class="prod_pricelist" data-cate="112|758|0|112760"><span class="text__number">2,000</span></div>
+                    <div class="prod_pricelist" data-cate="112|758|0|112760"><span class="text__number">2,000,000</span></div>
                   </li>
                 </ul>
               </body>

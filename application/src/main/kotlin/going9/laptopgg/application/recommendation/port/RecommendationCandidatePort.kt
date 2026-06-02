@@ -35,6 +35,7 @@ data class RecommendationCandidateRecord(
 )
 
 data class RecommendationCandidateFilter(
+    val minPriceExclusive: Int,
     val maxPrice: Int,
     val maxWeight: Double,
     val screenSizes: Collection<Int>,

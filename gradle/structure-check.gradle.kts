@@ -2485,14 +2485,18 @@ val verifyStructure by tasks.registering {
 		assertPresent(
 			rule = "recommendation candidate query must exclude subscription and rental products",
 			paths = listOf(
+				"application/src/main/kotlin/going9/laptopgg/application/recommendation/RecommendationCandidateFilterFactory.kt",
 				"infrastructure-jpa/src/main/kotlin/going9/laptopgg/infrastructure/jpa/repository/web/WebLaptopProfileRepository.kt",
 				"integration-tests/src/test/kotlin/going9/laptopgg/integration/recommendation/RecommendationCandidateFilteringIntegrationTest.kt",
 			),
 			patterns = listOf(
+				Regex("""const val MIN_PURCHASE_PRICE_EXCLUSIVE = 200_000"""),
+				Regex("""and l\.price > :minPriceExclusive"""),
 				Regex("""lower\(l\.name\) not like '%구독%'"""),
 				Regex("""lower\(l\.name\) not like '%렌탈%'"""),
 				Regex("""lower\(l\.name\) not like '%rental%'"""),
 				Regex("""recommendation excludes subscription and rental product names at query stage"""),
+				Regex("""recommendation excludes products priced at or below lower bound"""),
 				Regex("""Office 구독형 월 29900원"""),
 				Regex("""Office rental plan"""),
 			),
@@ -2512,10 +2516,12 @@ val verifyStructure by tasks.registering {
 			patterns = listOf(
 				Regex("""가전 구독"""),
 				Regex("""구독/렌탈"""),
+				Regex("""price <= MIN_PURCHASE_PRICE_EXCLUSIVE"""),
 				Regex("""containsSubscriptionMarker"""),
 				Regex("""skipReason"""),
 				Regex("""100691504"""),
 				Regex("""list parser excludes subscription product cards when list item exposes marker"""),
+				Regex("""list parser excludes products priced at or below lower bound"""),
 				Regex("""subscription product from detail page is returned as skip outcome"""),
 				Regex("""skips detail outcome without list snapshot fallback or failure"""),
 			),

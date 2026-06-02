@@ -28,6 +28,7 @@ class RecommendationBoundaryComponentsTest {
 
         val filter = filterFactory.create(query)
 
+        assertThat(filter.minPriceExclusive).isEqualTo(200_000)
         assertThat(filter.maxPrice).isEqualTo(2_000_000)
         assertThat(filter.maxWeight).isEqualTo(1.4)
         assertThat(filter.screenFilterEnabled).isTrue()

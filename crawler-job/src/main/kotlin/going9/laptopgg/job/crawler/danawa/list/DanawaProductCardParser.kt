@@ -30,6 +30,10 @@ internal object DanawaProductCardParser {
 
                 val priceText = productItem.selectFirst(".prod_pricelist .text__number")?.text()
                     ?: productItem.selectFirst(".price_sect a")?.text()
+                val price = parsePrice(priceText)
+                if (price != null && price <= MIN_PURCHASE_PRICE_EXCLUSIVE) {
+                    return@mapNotNull null
+                }
                 if (DanawaSubscriptionProductDetector.containsSubscriptionMarker(productItem.text())) {
                     return@mapNotNull null
                 }
@@ -39,7 +43,7 @@ internal object DanawaProductCardParser {
                     productName = productLink.text().trim(),
                     detailPage = normalizeDetailPage(detailPage, productCode, cateValues[3]),
                     imageUrl = imageUrl,
-                    price = parsePrice(priceText),
+                    price = price,
                     cate1 = cateValues[0],
                     cate2 = cateValues[1],
                     cate3 = cateValues[2],
@@ -77,4 +81,6 @@ internal object DanawaProductCardParser {
     private fun extractQueryParam(url: String, key: String): String? {
         return Regex("""(?:\?|&)$key=([^&#]+)""").find(url)?.groupValues?.getOrNull(1)
     }
+
+    private const val MIN_PURCHASE_PRICE_EXCLUSIVE = 200_000
 }

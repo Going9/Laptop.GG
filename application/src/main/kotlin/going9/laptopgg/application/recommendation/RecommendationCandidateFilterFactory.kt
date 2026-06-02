@@ -6,6 +6,7 @@ internal class RecommendationCandidateFilterFactory {
     fun create(request: LaptopRecommendationQuery): RecommendationCandidateFilter {
         return when (request.resolvedScreenSizeMode()) {
             ScreenSizeMode.SELECT -> RecommendationCandidateFilter(
+                minPriceExclusive = MIN_PURCHASE_PRICE_EXCLUSIVE,
                 maxPrice = request.budget,
                 maxWeight = request.maxWeightKg,
                 screenFilterEnabled = true,
@@ -13,6 +14,7 @@ internal class RecommendationCandidateFilterFactory {
                 screenSizes = request.normalizedScreenSizes(),
             )
             ScreenSizeMode.ANY -> RecommendationCandidateFilter(
+                minPriceExclusive = MIN_PURCHASE_PRICE_EXCLUSIVE,
                 maxPrice = request.budget,
                 maxWeight = request.maxWeightKg,
                 screenFilterEnabled = false,
@@ -20,6 +22,7 @@ internal class RecommendationCandidateFilterFactory {
                 screenSizes = LaptopRecommendationQuery.ALL_SELECTABLE_SCREEN_SIZES,
             )
             ScreenSizeMode.NOT_SURE -> RecommendationCandidateFilter(
+                minPriceExclusive = MIN_PURCHASE_PRICE_EXCLUSIVE,
                 maxPrice = request.budget,
                 maxWeight = request.maxWeightKg,
                 screenFilterEnabled = true,
@@ -27,5 +30,9 @@ internal class RecommendationCandidateFilterFactory {
                 screenSizes = LaptopRecommendationQuery.COMMON_SCREEN_SIZES,
             )
         }
+    }
+
+    private companion object {
+        const val MIN_PURCHASE_PRICE_EXCLUSIVE = 200_000
     }
 }

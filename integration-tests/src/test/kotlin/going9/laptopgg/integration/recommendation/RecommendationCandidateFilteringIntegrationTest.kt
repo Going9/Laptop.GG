@@ -338,6 +338,41 @@ class RecommendationCandidateFilteringIntegrationTest : RecommendationIntegratio
     }
 
     @Test
+    fun `recommendation excludes products priced at or below lower bound`() {
+        fixtures.persistLaptop(
+            name = "Office Purchase Laptop",
+            price = 450_000,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 72.0,
+            weight = 1.28,
+            usages = listOf("사무/인강용"),
+        )
+        fixtures.persistLaptop(
+            name = "Suspicious Below Bound Laptop",
+            price = 200_000,
+            cpuManufacturer = "인텔",
+            cpu = "225U",
+            graphicsType = "Intel Graphics",
+            batteryCapacity = 72.0,
+            weight = 1.28,
+            usages = listOf("사무/인강용"),
+        )
+
+        val request = LaptopRecommendationQuery(
+            budget = 2_000_000,
+            maxWeightKg = 2.0,
+            screenSizeMode = ScreenSizeMode.ANY,
+            useCase = RecommendationUseCase.OFFICE_STUDY,
+        )
+
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
+
+        assertThat(result.content.map { it.name }).containsExactly("Office Purchase Laptop")
+    }
+
+    @Test
     fun `not sure recommendation keeps rounded average boundary candidate`() {
         val borderlineLaptop = fixtures.persistLaptop(
             name = "Not Sure Borderline",
