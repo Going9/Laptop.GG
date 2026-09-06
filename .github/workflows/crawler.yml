@@ -140,8 +140,8 @@ jobs:
           CRAWLER_LIMIT: ${{ inputs.limit || '' }}
           CRAWLER_START_PAGE: ${{ inputs.start_page || '' }}
           CRAWLER_FILTER_PROFILE: ${{ inputs.filter_profile || 'core' }}
-          CRAWLER_MAX_LIST_PAGES: ${{ inputs.max_list_pages || '' }}
-          CRAWLER_DETAIL_FETCH_CONCURRENCY: ${{ inputs.detail_fetch_concurrency || '' }}
+          CRAWLER_MAX_LIST_PAGES: ${{ inputs.max_list_pages || '5000' }}
+          CRAWLER_DETAIL_FETCH_CONCURRENCY: ${{ inputs.detail_fetch_concurrency || '6' }}
         run: |
           set -o pipefail
 
