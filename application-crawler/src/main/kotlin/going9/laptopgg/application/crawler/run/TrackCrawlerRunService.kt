@@ -5,7 +5,7 @@ import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundExcepti
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.run.port.CrawlerRunPort
 
-internal class TrackCrawlerRunService(
+class TrackCrawlerRunService(
     private val crawlerRunPort: CrawlerRunPort,
     private val transactionPort: CrawlerTransactionPort,
     private val commandFactory: CrawlerRunCommandFactory = CrawlerRunCommandFactory(),

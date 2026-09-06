@@ -31,7 +31,7 @@ object CrawlerPersistenceAssembler {
         )
         val laptopProfileService = createLaptopProfileService(
             laptopProfilePort = laptopProfilePort,
-            laptopProfileFactory = CrawlerProfileAssembler.createLaptopProfileFactory(),
+            laptopProfileFactory = LaptopProfileFactory(),
             recommendationScoreService = recommendationScoreService,
         )
         val laptopPriceHistoryService = createLaptopPriceHistoryService(

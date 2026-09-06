@@ -1,7 +1,6 @@
 package going9.laptopgg.integration.config
 
 import going9.laptopgg.application.crawler.assembly.CrawlerPersistenceAssembler
-import going9.laptopgg.application.crawler.assembly.CrawlerRunAssembler
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupUseCase
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
@@ -10,6 +9,7 @@ import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLapto
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
+import going9.laptopgg.application.crawler.run.CrawlerRunLockService
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
 import going9.laptopgg.application.crawler.run.port.CrawlerRunLockPort
 import org.springframework.context.annotation.Bean
@@ -47,6 +47,6 @@ class IntegrationCrawlerUseCaseConfig {
 
     @Bean
     fun crawlerRunLockUseCase(crawlerRunLockPort: CrawlerRunLockPort): CrawlerRunLockUseCase {
-        return CrawlerRunAssembler.createCrawlerRunLockUseCase(crawlerRunLockPort)
+        return CrawlerRunLockService(crawlerRunLockPort)
     }
 }
