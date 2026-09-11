@@ -21,6 +21,25 @@ The web app uses Spring Boot graceful shutdown with a 20s shutdown phase timeout
 4. Confirm public pages are reachable.
 5. Confirm `/actuator/*` and `/api/crawl/*` are not publicly reachable.
 
+## Log Management
+
+The web application writes only to `systemd-journald`; do not add a separate Spring log file. The versioned journal policy retains logs for at most 14 days and 256MB, keeps 5GB of disk free, and rotates files daily or at 32MB.
+
+1. Copy `ops/systemd/journald.conf.d/laptopgg.conf` to `/etc/systemd/journald.conf.d/laptopgg.conf`.
+2. Run `sudo systemctl restart systemd-journald`.
+3. Reload the web unit after copying `ops/systemd/laptopgg.service`: `sudo systemctl daemon-reload && sudo systemctl restart laptopgg`.
+4. Nginx writes the site-specific files `/var/log/nginx/laptopgg.access.log` and `/var/log/nginx/laptopgg.error.log`. Ubuntu's `/etc/logrotate.d/nginx` already rotates every `/var/log/nginx/*.log` daily, keeps 14 copies, compresses old files, and reopens Nginx logs.
+
+Useful checks:
+
+```bash
+journalctl -u laptopgg -f
+journalctl -u laptopgg -p warning --since '1 hour ago'
+journalctl --disk-usage
+sudo tail -f /var/log/nginx/laptopgg.access.log
+sudo tail -f /var/log/nginx/laptopgg.error.log
+```
+
 ## Deploy Flow
 
 GitHub Actions deploy runs:

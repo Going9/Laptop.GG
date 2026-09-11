@@ -9,6 +9,9 @@ Group=ubuntu
 WorkingDirectory=/home/ubuntu/laptopgg
 EnvironmentFile=/home/ubuntu/laptopgg/laptopgg.env
 ExecStart=/bin/sh -c '/usr/bin/java $JAVA_OPTS -jar /home/ubuntu/laptopgg/app.jar --spring.profiles.active=$SPRING_PROFILES_ACTIVE'
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=laptopgg
 SuccessExitStatus=143
 Restart=always
 RestartSec=5
