@@ -14,11 +14,14 @@
             </p>
         </div>
 
-        <div class="criteria-strip reveal delay-012">
-            <span class="criteria-pill" th:text="'예산 ' + ${#numbers.formatCurrency(recommendationPage.laptopRecommendationRequest.budget)} + '원'"></span>
-            <span class="criteria-pill" th:text="'최대 ' + ${recommendationPage.laptopRecommendationRequest.maxWeightKg} + 'kg'"></span>
-            <span class="criteria-pill" th:text="${recommendationPage.screenSizeSummary}"></span>
-            <span class="criteria-pill" th:text="'사용 목적 ' + ${recommendationPage.resolvedUseCaseLabel}"></span>
+        <div class="criteria-wrap reveal delay-012">
+            <div class="criteria-strip" aria-label="현재 추천 조건">
+                <span class="criteria-pill" th:text="'예산 ' + ${#numbers.formatCurrency(recommendationPage.laptopRecommendationRequest.budget)} + '원'"></span>
+                <span class="criteria-pill" th:text="'최대 ' + ${recommendationPage.laptopRecommendationRequest.maxWeightKg} + 'kg'"></span>
+                <span class="criteria-pill" th:text="${recommendationPage.screenSizeSummary}"></span>
+                <span class="criteria-pill" th:text="'사용 목적 ' + ${recommendationPage.resolvedUseCaseLabel}"></span>
+            </div>
+            <a class="criteria-edit" href="/recommends">조건 수정</a>
         </div>
     </section>
 
@@ -73,21 +76,6 @@
 
                 <div class="reason-list">
                     <span class="reason-pill" th:each="reason : ${laptop.reasons}" th:text="${reason}"></span>
-                </div>
-
-                <div class="tile-tech-grid">
-                    <div class="tile-tech">
-                        <span class="tile-tech-label">CPU</span>
-                        <span class="tile-tech-value" th:text="${laptop.cpu ?: '확인 불가'}"></span>
-                    </div>
-                    <div class="tile-tech">
-                        <span class="tile-tech-label">GPU</span>
-                        <span class="tile-tech-value" th:text="${laptop.gpu ?: '확인 불가'}"></span>
-                    </div>
-                    <div class="tile-tech">
-                        <span class="tile-tech-label">해상도</span>
-                        <span class="tile-tech-value" th:text="${laptop.resolutionLabel ?: '확인 불가'}"></span>
-                    </div>
                 </div>
 
                 <div class="tile-specs tile-specs-primary">

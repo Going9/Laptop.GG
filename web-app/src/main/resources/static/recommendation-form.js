@@ -1,19 +1,15 @@
 (() => {
     const budgetInput = document.getElementById("budget");
-    const budgetDisplay = document.getElementById("budgetDisplay");
     const budgetToggleValue = document.getElementById("budgetToggleValue");
     const weightInput = document.getElementById("weight");
-    const weightDisplay = document.getElementById("weightDisplay");
     const weightToggleValue = document.getElementById("weightToggleValue");
     const screenSizeGrid = document.getElementById("screenSizeGrid");
     const screenSizeSelectionSummary = document.getElementById("screenSizeSelectionSummary");
 
     if (
         !budgetInput ||
-        !budgetDisplay ||
         !budgetToggleValue ||
         !weightInput ||
-        !weightDisplay ||
         !weightToggleValue ||
         !screenSizeGrid ||
         !screenSizeSelectionSummary
@@ -30,7 +26,6 @@
     function updateBudgetDisplay() {
         const formattedValue = formatBudget(budgetInput.value);
 
-        budgetDisplay.textContent = `현재 예산: ${formattedValue}`;
         budgetToggleValue.textContent = `현재 예산: ${formattedValue}`;
 
         syncPresetMenu("budgetPresetMenu", budgetInput.value);
@@ -42,7 +37,6 @@
             ? `${value}kg`
             : "0kg";
 
-        weightDisplay.textContent = `현재 무게: ${formattedValue}`;
         weightToggleValue.textContent = `현재 무게: ${formattedValue}`;
 
         syncPresetMenu("weightPresetMenu", value);
