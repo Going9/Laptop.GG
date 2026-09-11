@@ -7,6 +7,7 @@ internal object DanawaListRequestDefaults {
     fun context(
         listUrl: String = DanawaEndpoints.NOTEBOOK_LIST_URL,
         searchAttributeValues: List<String> = emptyList(),
+        searchMakerIds: List<String> = emptyList(),
     ): ListRequestContext {
         return ListRequestContext(
             listUrl = listUrl,
@@ -42,6 +43,7 @@ internal object DanawaListRequestDefaults {
             dpgZoneUiCategory = "N",
             assemblyGalleryCategory = "N",
             searchAttributeValues = searchAttributeValues,
+            searchMakerIds = searchMakerIds,
         )
     }
 }

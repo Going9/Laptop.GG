@@ -48,6 +48,7 @@ internal data class ListRequestContext(
     val dpgZoneUiCategory: String,
     val assemblyGalleryCategory: String,
     val searchAttributeValues: List<String>,
+    val searchMakerIds: List<String> = emptyList(),
 )
 
 internal data class ProductPageBatch(

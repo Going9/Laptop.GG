@@ -147,7 +147,7 @@ class DanawaCrawlerNormalizationTest {
     }
 
     @Test
-    fun `list parser excludes subscription product cards when list item exposes marker`() {
+    fun `list parser excludes non-retail product cards when list item exposes marker`() {
         val html = """
             <ul>
               <li class="prod_item">
@@ -175,6 +175,19 @@ class DanawaCrawlerNormalizationTest {
         val result = DanawaProductCardParser.parse(html)
 
         assertThat(result.map { it.productCode }).containsExactly("123456")
+    }
+
+    @Test
+    fun `list parser excludes refurbished product cards`() {
+        val html = """
+            <li class="prod_item">
+              <a name="productName" href="https://prod.danawa.com/info/?pcode=123&cate=112758">리퍼비시 노트북</a>
+              <div class="thumb_image"><img src="https://img.danawa.com/refurbished.jpg" /></div>
+              <div class="prod_pricelist" data-cate="860|869|0|112758"><span class="text__number">1,000,000</span></div>
+            </li>
+        """.trimIndent()
+
+        assertThat(DanawaProductCardParser.parse(html)).isEmpty()
     }
 
     @Test

@@ -19,6 +19,8 @@ class DanawaCrawlSourceResolverTest {
             .contains("팬서레이크", "고르곤 포인트", "오라이온")
         assertThat(crawlSources.last().key).isEqualTo("apple-macbook")
         assertThat(crawlSources.last().attributeFilters).isEmpty()
+        assertThat(crawlSources.last().listUrl).isEqualTo(DanawaEndpoints.NOTEBOOK_LIST_URL)
+        assertThat(crawlSources.last().makerIds).containsExactly("1452")
     }
 
     @Test

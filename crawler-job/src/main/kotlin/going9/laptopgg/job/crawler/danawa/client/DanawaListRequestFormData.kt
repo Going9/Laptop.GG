@@ -19,6 +19,7 @@ internal object DanawaListRequestFormData {
             add("depth" to context.depth)
             add("brandName" to "")
             add("makerName" to "")
+            context.searchMakerIds.forEach { add("searchMaker[]" to it) }
             add("searchOptionName" to "")
             context.searchAttributeValues.forEach { add("searchAttributeValue[]" to it) }
             add("sDiscountProductRate" to context.discountProductRate)

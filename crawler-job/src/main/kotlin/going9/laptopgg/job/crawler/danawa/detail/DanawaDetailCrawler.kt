@@ -54,10 +54,10 @@ internal class DanawaDetailCrawler(
         if (detailSpecHtml != null && parsedSpecTable.values.isEmpty()) {
             degradationReasons += "상세 스펙 테이블 파싱 결과 비어 있음"
         }
-        if (isSubscriptionProduct(productCard, detailContext, parsedSpecTable)) {
+        if (isExcludedProduct(productCard, detailContext, parsedSpecTable)) {
             return DetailRefreshOutcome(
                 workItem = workItem,
-                skipReason = "구독/렌탈 상품",
+                skipReason = "추천 제외 상품",
             )
         }
 
@@ -77,12 +77,12 @@ internal class DanawaDetailCrawler(
         )
     }
 
-    private fun isSubscriptionProduct(
+    private fun isExcludedProduct(
         productCard: ProductCard,
         detailContext: DetailRequestContext?,
         parsedSpecTable: ParsedSpecTable,
     ): Boolean {
-        return DanawaSubscriptionProductDetector.containsSubscriptionMarker(
+        return DanawaSubscriptionProductDetector.containsExcludedProductMarker(
             productCard.productName,
             detailContext?.productName,
             detailContext?.prodType,

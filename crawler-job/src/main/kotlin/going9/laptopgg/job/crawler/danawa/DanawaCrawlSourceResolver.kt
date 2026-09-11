@@ -43,8 +43,13 @@ internal class DanawaCrawlSourceResolver : CrawlSourceResolver {
             mainSource,
             CrawlSource(
                 key = "apple-macbook",
-                listUrl = DanawaEndpoints.APPLE_MACBOOK_LIST_URL,
+                listUrl = DanawaEndpoints.NOTEBOOK_LIST_URL,
+                makerIds = listOf(APPLE_MAKER_ID),
             ),
         )
+    }
+
+    private companion object {
+        const val APPLE_MAKER_ID = "1452"
     }
 }

@@ -54,7 +54,7 @@ class DanawaDetailCrawlerFailureContractTest {
     }
 
     @Test
-    fun `subscription product from detail page is returned as skip outcome`() {
+    fun `excluded product from detail page is returned as skip outcome`() {
         val workItem = detailWorkItem("100691504")
         Mockito.`when`(danawaClient.fetchDetailPage(workItem.productCard.detailPage)).thenReturn(
             """
@@ -75,7 +75,7 @@ class DanawaDetailCrawlerFailureContractTest {
 
             assertThat(outcomes).hasSize(1)
             assertThat(outcomes.first().workItem).isEqualTo(workItem)
-            assertThat(outcomes.first().skipReason).isEqualTo("구독/렌탈 상품")
+            assertThat(outcomes.first().skipReason).isEqualTo("추천 제외 상품")
             assertThat(outcomes.first().buildResult).isNull()
             assertThat(outcomes.first().error).isNull()
         }

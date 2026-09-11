@@ -16,13 +16,28 @@ internal object DanawaSubscriptionProductDetector {
         "lease",
     )
 
+    private val nonRetailMarkers = listOf(
+        "중고",
+        "리퍼",
+        "전시상품",
+        "반품",
+    )
+
     fun containsSubscriptionMarker(vararg texts: String?): Boolean {
+        return containsMarker(subscriptionMarkers, texts)
+    }
+
+    fun containsExcludedProductMarker(vararg texts: String?): Boolean {
+        return containsMarker(subscriptionMarkers + nonRetailMarkers, texts)
+    }
+
+    private fun containsMarker(markers: List<String>, texts: Array<out String?>): Boolean {
         val normalized = texts
             .filterNotNull()
             .joinToString(" ")
             .lowercase()
 
         return normalized.isNotBlank() &&
-            subscriptionMarkers.any { marker -> normalized.contains(marker) }
+            markers.any { marker -> normalized.contains(marker) }
     }
 }

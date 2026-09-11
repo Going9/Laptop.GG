@@ -9,6 +9,7 @@ import going9.laptopgg.job.crawler.orchestration.DuplicateTailStopPolicy
 import going9.laptopgg.job.crawler.orchestration.ProductPageSignature
 import going9.laptopgg.job.crawler.source.CrawlSource
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class DanawaCrawlerHtmlFixtureParsingTest {
@@ -214,6 +215,27 @@ class DanawaCrawlerHtmlFixtureParsingTest {
                 "searchAttributeValue[]" to "758|6492|1137658|OR",
                 "searchAttributeValue[]" to "758|6492|1137661|OR",
             )
+    }
+
+    @Test
+    fun `list request form data keeps manufacturer filters`() {
+        val formData = DanawaListRequestFormData.from(
+            DanawaListRequestDefaults.context(searchMakerIds = listOf("1452")),
+            page = 1,
+        )
+
+        assertThat(formData).contains("searchMaker[]" to "1452")
+    }
+
+    @Test
+    fun `list context rejects a page without the legacy list contract`() {
+        assertThatThrownBy {
+            DanawaListRequestContextParser.extractListRequestContext(
+                "<html><body>new list page</body></html>",
+                CrawlSource(key = "fixture", listUrl = "https://prod.danawa.com/list/?cate=112758"),
+            )
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("Danawa list page format changed")
     }
 
     private fun readFixture(path: String): String {

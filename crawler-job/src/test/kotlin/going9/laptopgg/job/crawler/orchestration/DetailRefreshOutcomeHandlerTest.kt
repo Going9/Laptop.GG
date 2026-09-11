@@ -81,7 +81,7 @@ class DetailRefreshOutcomeHandlerTest {
             detailRefreshOutcomes = listOf(
                 DetailRefreshOutcome(
                     workItem = DetailRefreshWorkItem(productCard = productCard, existingLaptop = existingLaptop),
-                    skipReason = "구독/렌탈 상품",
+                    skipReason = "추천 제외 상품",
                 ),
             ),
             progress = progress,

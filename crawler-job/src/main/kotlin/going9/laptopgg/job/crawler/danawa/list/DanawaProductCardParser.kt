@@ -34,7 +34,7 @@ internal object DanawaProductCardParser {
                 if (price != null && price <= MIN_PURCHASE_PRICE_EXCLUSIVE) {
                     return@mapNotNull null
                 }
-                if (DanawaSubscriptionProductDetector.containsSubscriptionMarker(productItem.text())) {
+                if (DanawaSubscriptionProductDetector.containsExcludedProductMarker(productItem.text())) {
                     return@mapNotNull null
                 }
 

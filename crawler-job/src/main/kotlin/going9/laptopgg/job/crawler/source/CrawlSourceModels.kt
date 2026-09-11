@@ -9,4 +9,5 @@ internal data class CrawlSource(
     val key: String,
     val listUrl: String,
     val attributeFilters: List<CrawlerAttributeFilter> = emptyList(),
+    val makerIds: List<String> = emptyList(),
 )
