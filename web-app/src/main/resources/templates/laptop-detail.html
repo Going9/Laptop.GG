@@ -21,7 +21,7 @@
             <div class="detail-price reveal delay-028" th:text="${laptopPage.laptopDetail.price != null ? #numbers.formatCurrency(laptopPage.laptopDetail.price) + '원' : '가격 확인 불가'}"></div>
 
             <div class="detail-actions reveal delay-040">
-                <a th:href="${laptopPage.laptopDetail.detailPage}" class="primary-button">다나와에서 보기</a>
+                <a th:href="${laptopPage.laptopDetail.detailPage}" class="primary-button" target="_blank" rel="noopener noreferrer">다나와에서 보기</a>
                 <a href="/recommends" class="secondary-button">추천 다시 보기</a>
             </div>
         </div>
@@ -161,19 +161,25 @@
                     <p th:text="${comment.content}"></p>
                 </div>
                 <div class="comment-actions">
-                    <form class="comment-inline-form"
-                          method="post"
-                          th:action="@{'/comments/' + ${comment.id} + '/edit'}">
-                        <textarea name="content" rows="2" maxlength="500" required th:text="${comment.content}"></textarea>
-                        <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
-                        <button type="submit" class="secondary-button">수정</button>
-                    </form>
-                    <form class="comment-delete-form"
-                          method="post"
-                          th:action="@{'/comments/' + ${comment.id} + '/delete'}">
-                        <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
-                        <button type="submit" class="ghost-button">삭제</button>
-                    </form>
+                    <details class="comment-action">
+                        <summary>수정</summary>
+                        <form class="comment-inline-form"
+                              method="post"
+                              th:action="@{'/comments/' + ${comment.id} + '/edit'}">
+                            <textarea name="content" rows="2" maxlength="500" required th:text="${comment.content}"></textarea>
+                            <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
+                            <button type="submit" class="secondary-button">수정 저장</button>
+                        </form>
+                    </details>
+                    <details class="comment-action">
+                        <summary>삭제</summary>
+                        <form class="comment-delete-form"
+                              method="post"
+                              th:action="@{'/comments/' + ${comment.id} + '/delete'}">
+                            <input type="password" name="passWord" maxlength="80" required placeholder="비밀번호">
+                            <button type="submit" class="ghost-button">삭제하기</button>
+                        </form>
+                    </details>
                 </div>
             </article>
         </div>

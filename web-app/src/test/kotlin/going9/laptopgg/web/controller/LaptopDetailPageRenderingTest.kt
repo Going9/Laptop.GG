@@ -46,6 +46,7 @@ class LaptopDetailPageRenderingTest {
             "사용자 의견",
             "댓글 남기기",
             "좋아요",
+            "comment-action",
             "/comments/1/edit",
             "/comments/1/delete",
         )

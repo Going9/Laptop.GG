@@ -1756,6 +1756,24 @@ img {
     flex-direction: column;
 }
 
+.comment-action {
+    border: 1px solid rgba(20, 33, 29, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.52);
+}
+
+.comment-action summary {
+    padding: 0.75rem 0.9rem;
+    color: rgba(20, 33, 29, 0.7);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.comment-action form {
+    padding: 0 0.75rem 0.75rem;
+}
+
 .comment-inline-form,
 .comment-delete-form {
     align-items: flex-start;
