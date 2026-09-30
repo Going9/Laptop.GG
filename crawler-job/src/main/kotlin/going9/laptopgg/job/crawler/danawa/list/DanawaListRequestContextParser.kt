@@ -8,9 +8,6 @@ internal object DanawaListRequestContextParser {
         initialListHtml: String,
         crawlSource: CrawlSource,
     ): ListRequestContext {
-        require(extractJsScalar(initialListHtml, "nListCategoryCode") != null) {
-            "Danawa list page format changed: nListCategoryCode is missing for ${crawlSource.key}."
-        }
         val defaults = DanawaListRequestDefaults.context(listUrl = crawlSource.listUrl)
 
         return defaults.copy(

@@ -4,13 +4,16 @@ import going9.laptopgg.application.crawler.profile.CrawledCpuManufacturerResolve
 import going9.laptopgg.job.crawler.danawa.detail.DanawaDetailParser
 import going9.laptopgg.job.crawler.danawa.detail.DanawaSummaryFallbackParser
 import going9.laptopgg.job.crawler.danawa.client.DanawaListRequestFormData
+import going9.laptopgg.job.crawler.danawa.client.DanawaClient
 import going9.laptopgg.job.crawler.list.ProductCard
 import going9.laptopgg.job.crawler.orchestration.DuplicateTailStopPolicy
 import going9.laptopgg.job.crawler.orchestration.ProductPageSignature
 import going9.laptopgg.job.crawler.source.CrawlSource
+import going9.laptopgg.job.crawler.source.CrawlerAttributeFilter
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 
 class DanawaCrawlerHtmlFixtureParsingTest {
     private val summaryFallbackParser = DanawaSummaryFallbackParser(CrawledCpuManufacturerResolver())
@@ -228,14 +231,47 @@ class DanawaCrawlerHtmlFixtureParsingTest {
     }
 
     @Test
-    fun `list context rejects a page without the legacy list contract`() {
+    fun `list context uses notebook defaults and preserves filters on modern initial page`() {
+        val context = DanawaListRequestContextParser.extractListRequestContext(
+            """<html><script>self.__next_f.push([1, "notebook list"])</script></html>""",
+            CrawlSource(
+                key = "fixture",
+                listUrl = "https://prod.danawa.com/list/?cate=112758",
+                attributeFilters = listOf(CrawlerAttributeFilter("팬서레이크", "758|6492|1137658|OR")),
+                makerIds = listOf("1452"),
+            ),
+        )
+
+        assertThat(context.listCategoryCode).isEqualTo("758")
+        assertThat(context.categoryCode).isEqualTo("758")
+        assertThat(context.physicsCate1).isEqualTo("860")
+        assertThat(context.physicsCate2).isEqualTo("869")
+        assertThat(context.searchAttributeValues).containsExactly("758|6492|1137658|OR")
+        assertThat(context.searchMakerIds).containsExactly("1452")
+    }
+
+    @Test
+    fun `list crawler rejects unrecognized ajax response rather than succeeding with zero products`() {
+        val client = Mockito.mock(DanawaClient::class.java)
+        val context = DanawaListRequestDefaults.context()
+        Mockito.`when`(client.fetchListPage(1, context)).thenReturn("<html><body>Access denied</body></html>")
+
         assertThatThrownBy {
-            DanawaListRequestContextParser.extractListRequestContext(
-                "<html><body>new list page</body></html>",
-                CrawlSource(key = "fixture", listUrl = "https://prod.danawa.com/list/?cate=112758"),
-            )
+            DanawaListPageCrawler(client).fetchProductPageBatch(1, context)
         }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("Danawa list page format changed")
+            .hasMessageContaining("no recognizable products or product count")
+    }
+
+    @Test
+    fun `list crawler accepts valid empty ajax response at end of list`() {
+        val client = Mockito.mock(DanawaClient::class.java)
+        val context = DanawaListRequestDefaults.context()
+        Mockito.`when`(client.fetchListPage(1, context)).thenReturn("""<input id="totalProductCount" value="0">""")
+
+        val result = DanawaListPageCrawler(client).fetchProductPageBatch(1, context)
+
+        assertThat(result.productCards).isEmpty()
+        assertThat(result.priceCompareCount).isZero()
     }
 
     private fun readFixture(path: String): String {

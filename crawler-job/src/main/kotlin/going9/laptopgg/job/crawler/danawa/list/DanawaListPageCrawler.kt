@@ -20,8 +20,12 @@ internal class DanawaListPageCrawler(
     override fun fetchProductPageBatch(page: Int, listRequestContext: ListRequestContext): ProductPageBatch {
         val html = danawaClient.fetchListPage(page, listRequestContext)
         val metadata = DanawaListPageMetadataParser.parse(html, currentPage = page)
+        val productCards = DanawaProductCardParser.parse(html)
+        require(productCards.isNotEmpty() || metadata.priceCompareCount != null) {
+            "Danawa list response has no recognizable products or product count. page=$page"
+        }
         return ProductPageBatch(
-            productCards = DanawaProductCardParser.parse(html),
+            productCards = productCards,
             hasNextPage = metadata.hasNextPage,
             priceCompareCount = metadata.priceCompareCount,
             visiblePageNumbers = metadata.visiblePageNumbers,
