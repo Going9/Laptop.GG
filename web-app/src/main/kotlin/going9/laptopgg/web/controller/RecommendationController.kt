@@ -7,6 +7,7 @@ import going9.laptopgg.web.dto.response.PagedResponse
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
@@ -21,10 +22,10 @@ internal class RecommendationController(
         @RequestBody request: LaptopRecommendationRequest,
         @RequestParam(defaultValue = "0") page: Int?,
         @RequestParam(defaultValue = "10") size: Int?,
-        @RequestParam(required = false) sort: List<String>?,
+        @RequestParam parameters: MultiValueMap<String, String>,
     ): PagedResponse<LaptopRecommendationListResponse> {
         val result = recommendLaptopsUseCase
-            .recommend(request.toQuery(), pageQueryFrom(page, size, sort))
+            .recommend(request.toQuery(), pageQueryFrom(page, size, parameters["sort"]))
             .map(LaptopRecommendationListResponse::from)
         return PagedResponse.from(result)
     }

@@ -10,7 +10,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ui:
+    name: UI Full
+    uses: ./.github/workflows/ui.yml
+    permissions:
+      contents: read
+
   deploy:
+    needs: ui
     runs-on: ubuntu-latest
     permissions:
       contents: read

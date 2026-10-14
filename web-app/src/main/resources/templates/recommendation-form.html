@@ -1,159 +1,70 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('LaptopGG')}"></head>
+<head th:replace="~{fragments/layout :: head('LaptopGG · 노트북 추천')}"></head>
 <body class="app-body page-recommend-form">
 <header th:replace="~{fragments/layout :: siteHeader}"></header>
-
-<main class="page-shell recommend-shell">
-    <section class="hero-layout">
-        <section class="hero-copy">
-            <p class="eyebrow reveal delay-005">나에게 맞는 노트북 찾기</p>
-            <h1 class="hero-title reveal delay-012">
-                원하는 조건으로<br>
-                노트북을 골라보세요.
-            </h1>
-            <p class="hero-lead reveal delay-020">
-                복잡한 사양은 몰라도 괜찮아요.
-                예산과 사용 목적만 고르면 바로 시작할 수 있어요.
-            </p>
-
-            <div class="hero-marquee reveal delay-028">
-                <span>예산부터 시작</span>
-                <span>필요한 항목만 선택</span>
+<main id="main-content" tabindex="-1" class="page-shell recommend-shell">
+    <section class="hero-copy">
+        <p class="eyebrow">나에게 맞는 노트북 찾기</p>
+        <h1 class="hero-title">어떤 노트북을 찾으세요?</h1>
+        <p class="hero-lead">예산과 사용 목적을 알려주세요. 복잡한 사양은 함께 살펴볼게요.</p>
+    </section>
+    <section class="curation-panel" aria-label="추천 조건 입력">
+        <form th:action="@{/recommends}" th:object="${laptopRecommendationRequest}" method="post" class="curation-form">
+            <div class="input-grid">
+                <div class="field-block">
+                    <label for="budget" class="field-label">예산 <span class="field-unit">원</span></label>
+                    <p class="field-hint" id="budgetHint">직접 입력하거나 빠르게 선택하세요.</p>
+                    <input type="number" class="form-control" min="1" max="10000000" step="1" id="budget" th:field="*{budget}" required aria-describedby="budgetHint budgetToggleValue" inputmode="numeric">
+                    <div class="preset-dropdown-pills" id="budgetPresetMenu" aria-label="예산 빠른 선택">
+                        <button type="button" class="preset-dropdown-pill" th:each="preset : ${recommendationPage.budgetPresetList}" th:attr="data-value=${preset}" th:text="${#numbers.formatInteger(preset / 10000, 1, 'COMMA') + '만원'}"></button>
+                    </div>
+                    <p class="field-note" id="budgetToggleValue" aria-live="polite"></p>
+                </div>
+                <div class="field-block">
+                    <label for="weight" class="field-label">최대 무게 <span class="field-unit">kg</span></label>
+                    <p class="field-hint" id="weightHint">가지고 다닐 무게를 고려해 주세요.</p>
+                    <input type="number" class="form-control" min="0.1" max="10" step="0.1" id="weight" th:field="*{maxWeightKg}" required aria-describedby="weightHint weightToggleValue" inputmode="decimal">
+                    <div class="preset-dropdown-pills" id="weightPresetMenu" aria-label="무게 빠른 선택">
+                        <button type="button" class="preset-dropdown-pill" th:each="preset : ${recommendationPage.weightPresetList}" th:attr="data-value=${preset}" th:text="${#numbers.formatDecimal(preset, 1, 1) + 'kg'}"></button>
+                    </div>
+                    <p class="field-note" id="weightToggleValue" aria-live="polite"></p>
+                </div>
             </div>
-        </section>
-
-        <section class="curation-panel reveal delay-016">
-            <p class="panel-kicker">추천 조건 입력</p>
-
-            <form th:action="@{/recommends}" th:object="${recommendationPage.laptopRecommendationRequest}" method="post" class="curation-form">
-                <div class="field-block reveal delay-022">
-                    <label for="budget" class="field-label">예산</label>
-                    <p class="field-hint">빠르게 고르거나 직접 입력할 수 있어요. 예산에 잘 맞는 제품이 더 위로 올라옵니다.</p>
-                    <div class="preset-input-block">
-                        <details class="preset-picker" id="budgetPicker">
-                            <summary class="preset-picker-toggle" aria-label="예산 선택">
-                                <span class="preset-toggle-text">
-                                    <span class="preset-toggle-label">예산</span>
-                                    <span class="preset-toggle-value" id="budgetToggleValue">현재 예산: 0원</span>
-                                </span>
-                            </summary>
-                            <div class="preset-picker-panel" id="budgetPresetMenu">
-                                <div class="preset-dropdown-group">
-                                    <span class="preset-dropdown-label">직접 입력</span>
-                                    <input type="number"
-                                           class="form-control preset-dropdown-input"
-                                           min="0"
-                                           max="10000000"
-                                           step="100000"
-                                           id="budget"
-                                           th:field="*{budget}"
-                                           placeholder="예산을 입력해 주세요">
-                                </div>
-                                <div class="preset-dropdown-group">
-                                    <span class="preset-dropdown-label">빠른 선택</span>
-                                    <div class="preset-dropdown-pills">
-                                        <button type="button"
-                                                class="preset-dropdown-pill"
-                                                th:each="budgetPreset : ${recommendationPage.budgetPresetList}"
-                                                th:attr="data-value=${budgetPreset}"
-                                                th:text="${#numbers.formatInteger(budgetPreset / 10000, 1, 'COMMA') + '만원'}"></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
+            <fieldset class="field-block">
+                <legend class="field-label">원하는 화면 크기</legend>
+                <p class="field-hint">잘 모르겠다면 그대로 두셔도 괜찮아요.</p>
+                <div class="mode-chip-grid">
+                    <label class="mode-chip" th:each="option : ${recommendationPage.screenSizeModeOptions}">
+                        <input type="radio" th:id="${'screenSizeMode_' + option.value}" name="screenSizeMode" th:value="${option.value}" th:checked="${recommendationPage.laptopRecommendationRequest.resolvedScreenSizeMode() == option.value}">
+                        <span><strong th:text="${option.label}"></strong><small th:text="${option.description}"></small></span>
+                    </label>
                 </div>
-
-                <div class="field-block reveal delay-028">
-                    <label for="weight" class="field-label">최대 무게</label>
-                    <p class="field-hint">0.5kg 단위로 바로 고르거나 직접 입력할 수 있어요.</p>
-                    <div class="preset-input-block">
-                        <details class="preset-picker" id="weightPicker">
-                            <summary class="preset-picker-toggle" aria-label="무게 선택">
-                                <span class="preset-toggle-text">
-                                    <span class="preset-toggle-label">최대 무게</span>
-                                    <span class="preset-toggle-value" id="weightToggleValue">현재 무게: 0kg</span>
-                                </span>
-                            </summary>
-                            <div class="preset-picker-panel" id="weightPresetMenu">
-                                <div class="preset-dropdown-group">
-                                    <span class="preset-dropdown-label">직접 입력</span>
-                                    <input type="number"
-                                           class="form-control preset-dropdown-input"
-                                           min="0"
-                                           max="10"
-                                           step="0.1"
-                                           id="weight"
-                                           th:field="*{maxWeightKg}"
-                                           placeholder="무게를 입력해 주세요">
-                                </div>
-                                <div class="preset-dropdown-group">
-                                    <span class="preset-dropdown-label">빠른 선택</span>
-                                    <div class="preset-dropdown-pills">
-                                        <button type="button"
-                                                class="preset-dropdown-pill"
-                                                th:each="weightPreset : ${recommendationPage.weightPresetList}"
-                                                th:attr="data-value=${weightPreset}"
-                                                th:text="${#numbers.formatDecimal(weightPreset, 1, 1) + 'kg'}"></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
+                <div class="size-chip-grid" id="screenSizeGrid">
+                    <label class="size-chip" th:each="screenSize : ${recommendationPage.screenSizeList}">
+                        <input type="checkbox" th:id="${'screenSize_' + screenSize}" th:field="*{screenSizes}" th:value="${screenSize}">
+                        <span th:text="${screenSize + '형'}"></span>
+                    </label>
                 </div>
-
-                <div class="field-block reveal delay-034">
-                    <p class="field-label">원하는 화면 크기</p>
-                    <p class="field-hint">모르는 항목은 건너뛰어도 괜찮아요. 여러 크기를 함께 선택할 수 있습니다.</p>
-
-                    <div class="mode-chip-grid">
-                        <label class="mode-chip" th:each="modeOption : ${recommendationPage.screenSizeModeOptions}">
-                            <input type="radio" th:id="${'screenSizeMode_' + modeOption.value}" th:field="*{screenSizeMode}" th:value="${modeOption.value}">
-                            <span>
-                                <strong th:text="${modeOption.label}"></strong>
-                                <small th:text="${modeOption.description}"></small>
-                            </span>
-                        </label>
-                    </div>
-
-                    <div class="size-chip-grid" id="screenSizeGrid">
-                        <label class="size-chip" th:each="screenSize : ${recommendationPage.screenSizeList}">
-                            <input type="checkbox" th:id="${'screenSize_' + screenSize}" th:field="*{screenSizes}" th:value="${screenSize}">
-                            <span th:text="${screenSize + '형'}"></span>
-                        </label>
-                    </div>
-                    <p id="screenSizeSelectionSummary" class="field-note"></p>
-                    <p class="field-note">직접 고를게요를 선택하면 여러 화면 크기를 함께 고를 수 있습니다.</p>
+                <p id="screenSizeSelectionSummary" class="field-note" aria-live="polite"></p>
+            </fieldset>
+            <fieldset class="field-block">
+                <legend class="field-label">주로 어떤 용도로 쓰시나요?</legend>
+                <p class="field-hint">가장 자주 할 작업을 하나 선택하세요.</p>
+                <div class="usecase-card-grid">
+                    <label class="usecase-card" th:each="option : ${recommendationPage.useCaseOptions}">
+                        <input type="radio" th:id="${'useCase_' + option.value}" name="useCase" th:value="${option.value}" th:checked="${recommendationPage.laptopRecommendationRequest.resolvedUseCase() == option.value}">
+                        <span><strong th:text="${option.label}"></strong><small th:text="${option.description}"></small></span>
+                    </label>
                 </div>
-
-                <div class="field-block reveal delay-040">
-                    <p class="field-label">주로 어떤 용도로 쓰시나요?</p>
-                    <p class="field-hint">잘 모르겠다면 기본 추천을 선택하셔도 괜찮아요.</p>
-                    <div class="usecase-card-grid">
-                        <label class="usecase-card" th:each="useCaseOption : ${recommendationPage.useCaseOptions}">
-                            <input type="radio" th:id="${'useCase_' + useCaseOption.value}" th:field="*{useCase}" th:value="${useCaseOption.value}">
-                            <span>
-                                <strong th:text="${useCaseOption.label}"></strong>
-                                <small th:text="${useCaseOption.description}"></small>
-                            </span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="action-row reveal delay-046">
-                    <button type="submit" class="primary-button">추천받기</button>
-                    <a href="/recommends" class="secondary-button">조건 초기화</a>
-                </div>
-
-                <p class="panel-note reveal delay-052">
-                    어려운 용어는 몰라도 괜찮아요. 예산, 무게, 사용 목적만 골라도 충분히 추천받을 수 있습니다.
-                </p>
-            </form>
-        </section>
+            </fieldset>
+            <div class="action-row">
+                <button type="submit" class="primary-button">추천받기</button>
+                <a href="/recommends" class="secondary-button">조건 초기화</a>
+            </div>
+        </form>
     </section>
 </main>
-
 <script defer th:src="@{/recommendation-form.js}"></script>
 </body>
 </html>

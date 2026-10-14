@@ -46,29 +46,20 @@
         budgetInput.value = value;
 
         updateBudgetDisplay();
-        closePresetPicker("budgetPicker");
     }
 
     function applyWeightPreset(value) {
         weightInput.value = value;
 
         updateWeightDisplay();
-        closePresetPicker("weightPicker");
     }
 
     function syncPresetMenu(menuId, value) {
         document.querySelectorAll(`#${menuId} .preset-dropdown-pill`).forEach((item) => {
-            item.classList.toggle("is-active", item.dataset.value === value);
+            const active = value !== "" && Number(item.dataset.value) === Number(value);
+            item.classList.toggle("is-active", active);
+            item.setAttribute("aria-pressed", String(active));
         });
-    }
-
-    function closePresetPicker(pickerId) {
-        const picker = document.getElementById(pickerId);
-        if (!picker) {
-            return;
-        }
-
-        picker.open = false;
     }
 
     function syncScreenSizeSelection() {
@@ -78,7 +69,6 @@
         document.querySelectorAll(".size-chip").forEach((label) => {
             const input = label.querySelector("input[type='checkbox']");
             const isChecked = input.checked;
-            label.classList.toggle("is-selected", isChecked);
             if (isChecked) {
                 checkedLabels.push(label.querySelector("span").textContent.trim());
             }
@@ -104,7 +94,6 @@
         const sizeInputs = screenSizeGrid.querySelectorAll("input[type='checkbox']");
         const isSelectMode = selectedMode === "SELECT";
 
-        screenSizeGrid.classList.toggle("is-disabled", !isSelectMode);
         sizeInputs.forEach((input) => {
             input.disabled = !isSelectMode;
         });

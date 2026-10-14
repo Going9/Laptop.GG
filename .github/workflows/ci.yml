@@ -6,6 +6,12 @@ on:
   pull_request:
 
 jobs:
+  ui:
+    name: UI Full
+    uses: ./.github/workflows/ui.yml
+    permissions:
+      contents: read
+
   test:
     runs-on: ubuntu-latest
     permissions:

@@ -42,6 +42,22 @@ class RecommendationPageControllerTest {
     }
 
     @Test
+    fun `condition editing populates the form with the submitted request`() {
+        val request = LaptopRecommendationRequest(
+            budget = 1_230_000,
+            maxWeightKg = 1.4,
+            screenSizes = listOf(14, 16),
+            screenSizeMode = going9.laptopgg.application.recommendation.ScreenSizeMode.SELECT,
+            useCase = going9.laptopgg.recommendation.RecommendationUseCase.OFFICE_STUDY,
+        )
+        val model = ExtendedModelMap()
+
+        assertThat(controller.showRecommendationForm(model, request)).isEqualTo("recommendation-form")
+        val page = model["recommendationPage"] as RecommendationFormPageModel
+        assertThat(page.laptopRecommendationRequest).isSameAs(request)
+    }
+
+    @Test
     fun `recommendation result delegates to service and keeps list model attributes`() {
         val request = LaptopRecommendationRequest()
         val query = request.toQuery()
@@ -75,7 +91,7 @@ class RecommendationPageControllerTest {
             laptopRecommendationRequest = request,
             page = 0,
             size = 10,
-            sort = listOf("price,asc"),
+            parameters = org.springframework.util.LinkedMultiValueMap<String, String>().apply { add("sort", "price,asc") },
             model = model,
         )
 

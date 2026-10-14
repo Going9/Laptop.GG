@@ -8,6 +8,7 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
@@ -16,8 +17,9 @@ internal class RecommendationPageController(
     private val recommendationPageModelFactory: RecommendationPageModelFactory,
 ) {
     @GetMapping("/recommends", "/")
-    fun showRecommendationForm(model: Model): String {
-        model.addAttribute("recommendationPage", recommendationPageModelFactory.formPage())
+    fun showRecommendationForm(model: Model, @ModelAttribute request: LaptopRecommendationRequest = LaptopRecommendationRequest()): String {
+        model.addAttribute("laptopRecommendationRequest", request)
+        model.addAttribute("recommendationPage", recommendationPageModelFactory.formPage(request))
         return "recommendation-form"
     }
 
@@ -26,12 +28,13 @@ internal class RecommendationPageController(
         @ModelAttribute laptopRecommendationRequest: LaptopRecommendationRequest,
         @RequestParam(defaultValue = "0") page: Int?,
         @RequestParam(defaultValue = "10") size: Int?,
-        @RequestParam(required = false) sort: List<String>?,
+        @RequestParam parameters: MultiValueMap<String, String>,
         model: Model,
     ): String {
-        val pageQuery = pageQueryFrom(page, size, sort)
+        val pageQuery = pageQueryFrom(page, size, parameters["sort"])
         val recommendedLaptops = recommendLaptopsUseCase
             .recommend(laptopRecommendationRequest.toQuery(), pageQuery)
+        model.addAttribute("laptopRecommendationRequest", laptopRecommendationRequest)
         model.addAttribute(
             "recommendationPage",
             recommendationPageModelFactory.resultPage(
