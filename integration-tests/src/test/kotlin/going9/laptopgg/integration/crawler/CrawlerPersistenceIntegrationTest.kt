@@ -56,6 +56,24 @@ class CrawlerPersistenceIntegrationTest {
     }
 
     @Test
+    fun `unchanged confirmed price refreshes observation while a missing price does not`() {
+        invokeSaveOrUpdate(laptop(name = "Freshness", detailPage = "https://example.com/freshness", productCode = "FRESH", price = 1_000_000))
+        val saved = laptopRepository.findAll().single()
+        val old = java.time.Instant.now().minusSeconds(3 * 86400).truncatedTo(java.time.temporal.ChronoUnit.MICROS)
+        saved.priceCheckedAt = old
+        laptopRepository.saveAndFlush(saved)
+
+        invokeSaveListSnapshot(saved, CrawledProductCardCommand("FRESH", saved.name, saved.detailPage, saved.imageUrl, null))
+        entityManager.clear()
+        assertThat(laptopRepository.findById(saved.id!!).get().priceCheckedAt).isEqualTo(old.truncatedTo(java.time.temporal.ChronoUnit.MICROS))
+
+        invokeSaveListSnapshot(saved, CrawledProductCardCommand("FRESH", saved.name, saved.detailPage, saved.imageUrl, saved.price))
+        entityManager.clear()
+        assertThat(laptopRepository.findById(saved.id!!).get().priceCheckedAt).isAfter(old.plusSeconds(86400))
+        assertThat(laptopPriceHistoryRepository.count()).isEqualTo(1)
+    }
+
+    @Test
     fun `profile rebuild repairs persisted projections without changing product or price history`() {
         invokeSaveOrUpdate(laptop(name = "Rebuild", detailPage = "https://example.com/rebuild", productCode = "REBUILD", price = 1_000_000))
         val profile = laptopProfileRepository.findAll().single()

@@ -3,6 +3,7 @@ package going9.laptopgg.application.recommendation.port
 import going9.laptopgg.application.common.PageQuery
 import going9.laptopgg.application.common.PagedResult
 import going9.laptopgg.recommendation.RecommendationUseCase
+import java.time.Instant
 
 interface RecommendationCandidatePort {
     fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord>
@@ -35,6 +36,7 @@ data class RecommendationCandidateRecord(
 )
 
 data class RecommendationCandidateFilter(
+    val minimumPriceCheckedAt: Instant,
     val minPriceExclusive: Int,
     val maxPrice: Int,
     val maxWeight: Double,

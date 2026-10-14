@@ -2,6 +2,7 @@ package going9.laptopgg.persistence.model.laptop
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import java.time.Instant
 
 @Entity
 class Laptop(
@@ -32,6 +33,8 @@ class Laptop(
     var storageSlotCount: Int?,     // 저장 장치 슬롯 수
     var weight: Double?,             // 무게 (kg)
     var lastDetailedCrawledAt: LocalDateTime? = null,
+    @Column(nullable = false)
+    var priceCheckedAt: Instant = Instant.now(),
 
     @OneToMany(mappedBy = "laptop", cascade = [CascadeType.ALL], orphanRemoval = true)
     var laptopUsage: MutableList<LaptopUsage> = mutableListOf(),
