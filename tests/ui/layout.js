@@ -2,7 +2,12 @@ const { expect } = require('@playwright/test');
 
 async function ready(page) {
   await expect(page.locator('h1')).toBeVisible();
-  await page.evaluate(() => document.fonts.ready);
+  await page.waitForLoadState('load');
+  // An error response can display its heading before CSS registers its font faces.
+  await page.evaluate(async () => {
+    await document.fonts.load('16px "LaptopGG Sans"', '노트북');
+    await document.fonts.ready;
+  });
   expect(await page.evaluate(() => document.fonts.check('16px "LaptopGG Sans"', '노트북'))).toBe(true);
   for (const image of await page.locator('[data-product-image]').all()) {
     await image.scrollIntoViewIfNeeded();

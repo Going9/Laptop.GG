@@ -198,3 +198,26 @@ Spring의 내용 기반 resource chain을 활성화하고 폰트 preload도 Thym
 - `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:full`: 108 성공, 실패·건너뜀 0; 120개 기준 이미지 SHA-256 불변.
 - `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 ./gradlew --no-daemon :web-app:test :web-app:bootJar`: web-app 39개 검사, 실패·오류·건너뜀 0; 빌드 성공.
 - 결과: `output/deploy/cache-fix-{fast,full,server}.log` 및 `cache-fix-full-report/index.html`.
+
+## 원격 댓글 오류 화면의 폰트 준비 조건
+
+캐시 수정 배포(merge `1637680be7a6937400ecd1ebb67c7f075b4cd76c`)는 UI Full 108개와
+배포·readiness가 성공했다. 공개 MCP 360×800·1440×900의 입력·상세·404 화면
+6개에서 가로 넘침 없음, 해시 CSS·로컬 폰트 적용, 44px 헤더 링크와 예산 입력을
+확인하고 스크린샷을 직접 검토했다.
+
+동시에 실행된 main CI run `38562036867`에서는 107개 성공, 1개 실패였다.
+Chromium 390 댓글 잘못된 비밀번호의 403 화면에서 즉시 `document.fonts.check`가
+false였다. 비밀번호 노출을 막기 위해 댓글 trace는 기존 설정대로 없으며,
+실패 PNG·HTML 보고서·DOM snapshot과 로그를 `output/deploy/main-ui-failed/`에
+보존하고 직접 검토했다. 오류 제목이 표시된 뒤 CSS/폰트 준비가 완료되기 전
+`document.fonts.ready`를 확인할 수 있었으므로 공통 준비 조건에 load 이벤트와
+명시적인 `document.fonts.load`를 추가했다. 원래 폰트 assertion·기준 이미지·비교
+허용치는 유지한다. 재검증과 후속 원격 결과는 `output/deploy/record.md`에 남긴다.
+
+폰트 준비 조건 수정 후 실제 재검증:
+
+- `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:fast`: 27 성공, 실패·건너뜀 0.
+- `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:full`: 108 성공, 실패·건너뜀 0.
+- 120개 기준 이미지의 SHA-256 불변. `output/deploy/font-ready-{fast,full}.log`와
+  `font-ready-full-report/index.html`에 결과 보존.
