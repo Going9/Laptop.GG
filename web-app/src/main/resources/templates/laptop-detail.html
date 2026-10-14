@@ -142,7 +142,7 @@
                 </label>
                 <label>
                     <span>비밀번호</span>
-                    <input type="password" name="passWord" maxlength="80" required>
+                    <input type="password" name="passWord" maxlength="72" required>
                 </label>
             </div>
             <label>
@@ -167,7 +167,7 @@
                               method="post"
                               th:action="@{'/comments/' + ${comment.id} + '/edit'}">
                             <label><span>수정할 내용 (최대 255자)</span><textarea name="content" rows="2" maxlength="255" required th:text="${comment.content}"></textarea></label>
-                            <label><span>댓글 비밀번호</span><input type="password" name="passWord" maxlength="80" required autocomplete="off"></label>
+                            <label><span>댓글 비밀번호</span><input type="password" name="passWord" maxlength="72" required autocomplete="off"></label>
                             <button type="submit" class="secondary-button">수정 저장</button>
                         </form>
                     </details>
@@ -176,7 +176,7 @@
                         <form class="comment-delete-form"
                               method="post"
                               th:action="@{'/comments/' + ${comment.id} + '/delete'}">
-                            <label><span>댓글 비밀번호</span><input type="password" name="passWord" maxlength="80" required autocomplete="off"></label>
+                            <label><span>댓글 비밀번호</span><input type="password" name="passWord" maxlength="72" required autocomplete="off"></label>
                             <button type="submit" class="ghost-button">삭제하기</button>
                         </form>
                     </details>

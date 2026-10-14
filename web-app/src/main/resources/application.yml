@@ -59,3 +59,6 @@ spring:
 
   flyway:
     baseline-on-migrate: false
+
+server:
+  address: 127.0.0.1

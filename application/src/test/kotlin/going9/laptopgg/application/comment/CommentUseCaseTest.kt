@@ -42,6 +42,35 @@ class CommentUseCaseTest {
     )
 
     @Test
+    fun `author and UTF8 password boundaries support creation update and deletion`() {
+        val password = "가".repeat(12) + java.util.UUID.randomUUID().toString()
+        val author = "작".repeat(40)
+        addCommentUseCase.add(AddCommentCommand(1L, author, "내용", password))
+        val id = commentPort.records.values.single().id
+        assertThat(commentPort.records.getValue(id).author).isEqualTo(author)
+        updateCommentUseCase.update(id, UpdateCommentCommand(password, "수정"))
+        deleteCommentUseCase.delete(id, DeleteCommentCommand(password))
+        assertThat(commentPort.records).isEmpty()
+    }
+
+    @Test
+    fun `oversized author password and null characters are rejected before IO or hashing`() {
+        val password = "가".repeat(12) + java.util.UUID.randomUUID().toString() + "a"
+        val requests = listOf<() -> Unit>(
+            { addCommentUseCase.add(AddCommentCommand(1L, "작".repeat(41), "내용", "pw")) },
+            { addCommentUseCase.add(AddCommentCommand(1L, "작성자", "내용", password)) },
+            { updateCommentUseCase.update(1L, UpdateCommentCommand(password, "내용")) },
+            { deleteCommentUseCase.delete(1L, DeleteCommentCommand(password)) },
+            { addCommentUseCase.add(AddCommentCommand(1L, "작성자", "내용\u0000", "pw")) },
+        )
+        requests.forEach { request -> assertThatThrownBy { request() }.isInstanceOf(InvalidCommandException::class.java) }
+        assertThat(transactionPort.readCalls).isZero()
+        assertThat(transactionPort.writeCalls).isZero()
+        assertThat(passwordHashPort.hashCalls).isZero()
+        assertThat(commentPort.findMutationByIdCalls).isZero()
+    }
+
+    @Test
     fun `add rejects blank comment fields before persistence`() {
         assertThatThrownBy {
             addCommentUseCase.add(AddCommentCommand(laptopId = 1L, author = "", content = "좋아요", password = "pw"))

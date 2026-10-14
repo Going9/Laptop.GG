@@ -1,0 +1,12 @@
+[Unit]
+Description=Retain LaptopGG backup replicas and clean interrupted uploads
+
+[Service]
+Type=oneshot
+User=laptopgg-backup
+Group=laptopgg-backup
+ExecStart=/usr/local/lib/laptopgg/prune-backup-replica.sh
+NoNewPrivileges=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/backups/laptopgg-replica/archives

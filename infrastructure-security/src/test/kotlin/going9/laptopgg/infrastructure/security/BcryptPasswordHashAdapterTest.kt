@@ -5,6 +5,15 @@ import org.junit.jupiter.api.Test
 
 class BcryptPasswordHashAdapterTest {
     @Test
+    fun `72 UTF8 byte password hashes and authenticates without truncation`() {
+        val adapter = BcryptPasswordHashAdapter(PasswordHashProperties(bcryptStrength = PasswordHashProperties.MIN_BCRYPT_STRENGTH))
+        val password = "가".repeat(12) + java.util.UUID.randomUUID().toString()
+        val hash = adapter.hash(password)
+        assertThat(adapter.matches(password, hash)).isTrue()
+        assertThat(adapter.matches(password.dropLast(1) + "!", hash)).isFalse()
+    }
+
+    @Test
     fun `hashes and verifies password with configured bcrypt strength`() {
         val adapter = BcryptPasswordHashAdapter(
             PasswordHashProperties(bcryptStrength = PasswordHashProperties.MIN_BCRYPT_STRENGTH),

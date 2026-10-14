@@ -97,7 +97,11 @@ jobs:
             }
 
             ln -sfn "$RELEASE_JAR" "$CURRENT_LINK"
-            sudo systemctl restart laptopgg
+            if ! sudo systemctl restart laptopgg; then
+              echo "Web restart failed; restoring previous release." >&2
+              rollback
+              exit 1
+            fi
             for i in {1..60}; do
               if curl -fsS http://127.0.0.1:8080/actuator/health/readiness >/dev/null; then
                 prune_old_releases || echo "Release pruning failed; deployed release remains active." >&2

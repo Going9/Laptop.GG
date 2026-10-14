@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily LaptopGG backup replica retention
+
+[Timer]
+OnCalendar=*-*-* 18:35:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
