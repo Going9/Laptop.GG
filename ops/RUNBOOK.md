@@ -167,6 +167,21 @@ sudo -u postgres psql -d laptopgg -c "select name, setting from pg_settings wher
 
 ## DB Backup
 
+Prepare the existing web VM as the second backup location before enabling the DB job:
+
+- Create a system user/group `laptopgg-backup` with home `/archives`, no password and shell `/usr/sbin/nologin`.
+- Create `/var/backups/laptopgg-replica` as root:root 0755, then its `archives` child as laptopgg-backup:laptopgg-backup 0700.
+- Install `ops/ssh/laptopgg-backup.conf` as `/etc/ssh/laptopgg-backup.conf` and include it at the **end** of `sshd_config`. Check `sshd -t` before reloading `ssh`.
+- Generate a dedicated Ed25519 key as `postgres` on the DB VM at `/var/lib/postgresql/.ssh/laptopgg_backup_ed25519`. Keep the private key there with mode 0600.
+- Put only its public key in `/etc/ssh/authorized_keys/laptopgg-backup` on the web VM, prefixed with `restrict,from="<db-private-ip>"`. Keep this file root-owned and readable, not writable, by the backup user.
+- Configure the DB user's SSH alias from `ops/postgres/backup-ssh.conf.example`. Pin the web VM's Ed25519 host public key obtained through the existing trusted admin connection. Never disable host-key checking.
+- Install `prune-backup-replica.sh` under `/usr/local/lib/laptopgg/` on the web VM with its service/timer from `ops/systemd/`, then enable `laptopgg-backup-replica-prune.timer`.
+
+The receiver permits SFTP upload/rename/metadata operations inside the chroot, with no shell,
+forwarding, file reads or remove requests. Uploads use a hidden partial name followed by an
+atomic rename. The web VM retains 30 days and always keeps the newest complete archive,
+even during a longer source outage; abandoned partial uploads expire after two days.
+
 Install the verified daily backup on the DB VM:
 
 ```bash
@@ -181,13 +196,15 @@ sudo journalctl -u laptopgg-backup.service --no-pager
 ```
 
 Each run makes a private custom-format dump, restores it into a separate temporary database,
-checks the core tables, and only then publishes the archive and removes archives older than 14 days.
+checks the core tables, and only then publishes and replicates the archive. After successful
+replication it removes local archives older than 14 days.
 Failure leaves existing backups intact. Temporary files and the verification database are cleaned up.
 The timer runs at 18:05 UTC with up to five minutes of jitter; missed runs resume on boot.
 The job uses local PostgreSQL peer authentication as `postgres` and does not store passwords.
 The journal records `LAPTOPGG_BACKUP_VERIFIED` and restored table counts, not comment contents.
-Monitor the service result and copy encrypted backups to a separately managed external destination.
-Local backup/restore verification alone does not protect against losing the DB VM and its disk.
+Monitor both service results. Transfers are encrypted and both copies are private at rest.
+The second VM protects against loss of the DB VM/disk. Both VMs are in the same cloud account/region;
+protection against loss of that account or region still requires an independently managed destination.
 
 Create backup from the DB server:
 

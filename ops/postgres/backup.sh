@@ -29,5 +29,10 @@ psql --no-psqlrc --set=ON_ERROR_STOP=1 --dbname="$verify_db" --tuples-only --no-
 
 archive="$backup_dir/laptopgg-$(date -u +%Y%m%dT%H%M%S.%NZ).dump"
 mv -- "$partial" "$archive"
+archive_name=${archive##*/}
+sftp -q -b - laptopgg-backup <<EOF
+put "$archive" "/archives/.$archive_name.partial"
+rename "/archives/.$archive_name.partial" "/archives/$archive_name"
+EOF
 find "$backup_dir" -maxdepth 1 -type f -name 'laptopgg-*.dump' -mtime +13 -delete
-echo "LAPTOPGG_BACKUP_VERIFIED archive=$archive"
+echo "LAPTOPGG_BACKUP_VERIFIED archive=$archive replica=laptopgg-backup"
