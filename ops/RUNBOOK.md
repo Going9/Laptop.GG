@@ -42,10 +42,10 @@ sudo tail -f /var/log/nginx/laptopgg.error.log
 
 ## Deploy Flow
 
-GitHub Actions deploy runs:
+CI runs UI Full and server/PostgreSQL tests in parallel. Its deploy job needs both jobs to succeed, then calls the reusable Deploy Web workflow with the tested JAR artifact from the same run. PRs cannot deploy. Manual deploy uses `gh workflow run ci.yml --ref main`.
 
-1. `test`
-2. `:web-app:bootJar`
+1. CI runs `test` and builds `:web-app:bootJar` once
+2. Deploy downloads `web-release-<sha>`; it does not repeat tests or builds
 3. upload the web jar to `/home/ubuntu/laptopgg/releases/<sha>/`
 4. switch `/home/ubuntu/laptopgg/app.jar` symlink
 5. restart `laptopgg`

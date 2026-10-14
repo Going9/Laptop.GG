@@ -50,3 +50,5 @@ UI 테스트는 `:web-app:uiServer` 테스트 클래스패스, loopback:18080, �
 내용 해시 URL을 생성한다. 공통 템플릿에 원본 정적 파일 경로를 직접 쓰지 말고,
 CSS 안의 폰트 URL과 preload URL이 같은 버전인지 검사한다. 배포 후 CDN을 거친
 공개 브라우저에서 리소스 반영도 확인한다.
+
+CI는 동일 커밋의 UI Full·서버 검사·빌드를 한 번 실행한다. 배포 job은 두 검사에 의존하고 같은 run의 검증된 JAR artifact를 사용한다. 배포에 동일 검사를 다시 추가하지 않는다. 수동 배포도 CI workflow의 main 실행을 사용한다.

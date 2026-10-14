@@ -161,16 +161,14 @@ test('stress: long reasons, URL, expanded comment forms and breakpoint edges', a
   await page.goto('/laptops/invalid-id');
   await page.locator('.section-lead').evaluate(node => node.textContent='긴 오류 안내도 끝까지 읽을 수 있어야 합니다. '.repeat(15)+'https://example.invalid/'+ 'longerror'.repeat(30));
   await layout(page);
-  await page.goto('/laptops/1');
   if (info.project.use.viewport.width===1440) {
-    for (const width of [599,600,899,900]) {
-      await page.setViewportSize({width,height:900});
-      await layout(page);
-      await page.goto('/recommends');
-      await layout(page);
-      await submit(page);
-      await layout(page);
-      await page.goto('/laptops/1');
+    for (const state of ['form','results','detail']) {
+      if (state==='results') await submit(page);
+      else await page.goto(state==='form' ? '/recommends' : '/laptops/1');
+      for (const width of [599,600,899,900]) {
+        await page.setViewportSize({width,height:900});
+        await layout(page);
+      }
     }
   }
 });
