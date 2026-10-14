@@ -18,20 +18,23 @@ npm run test:ui:server
 
 Fast/Full 명령은 서버 실행·readiness 확인·종료를 자동 처리한다. 수동 서버를 종료한 뒤 실행한다. 다른 서버를 재사용하지 않으며 18080이 이미 사용 중이면 실패한다. DB는 기동 시 생성되고 프로세스 종료 시 사라진다. 같은 작업 디렉터리에서 UI 서버 시작과 별도 Gradle 빌드를 동시에 실행하지 않는다. 서로 생성 중인 Kotlin 클래스/JAR를 읽어 컴파일 실패가 발생할 수 있다.
 
-## Fast / Full
+## 검사 선택: Fast / 대표 / Full
 
 ```bash
 npm run test:ui:fast
+npm run test:ui:check
 npm run test:ui:full
 npm run test:ui:fast -- --grep 'form:'
 npm run test:ui:full -- --grep 'results:' --project=webkit-390
 ```
 
-Fast 기본 범위는 모든 대상 화면과 상태, 주요 상호작용. Chromium 360×800, 390×844, 1440×900. 한 화면만 바꿨을 때 `--grep`으로 선택 가능하다. 공통 CSS/fragment/JS가 바뀌면 선택하지 않고 전체를 실행한다.
+Fast는 로컬 개발용 배치·상호작용 검사다. 기본 범위는 모든 대상 화면과 상태, 주요 상호작용. Chromium 360×800, 390×844, 1440×900. 한 화면만 바꿨을 때 `--grep`으로 선택 가능하다. 공통 CSS/fragment/JS 변경은 영향 화면을 확인하고 필요하면 전체 Fast를 실행한다. 문서·UI와 무관한 변경에는 로컬 UI 검사를 강제하지 않는다.
 
-Full은 Chromium/WebKit 각각 360×800, 375×812, 390×844, 430×932, 768×1024, 1440×900. 1440 프로젝트의 stress 테스트에서 599/600, 899/900 경계를 입력·결과·상세에 추가 검사한다. 전체 배치·상호작용과 검토된 기준 이미지 비교를 수행한다.
+대표 검사(`test:ui:check`)는 Chromium/WebKit의 360×800·1440×900에서 36개 배치·상호작용·시각 비교를 실행한다. 공통 UI 변경과 CI의 기본이다. `-- --grep 'form:'` 등으로 영향 시나리오를 선택할 수 있다.
 
-27개 Fast, 108개 Full 테스트를 실행한다. `--grep 'detail:|missing:'`, `'error:'`, `'empty:'`, `'comments:'`, `'stress:'`도 지원한다. DOM 준비·폰트 준비·이미지 로드·assertion과 Playwright 자동 대기를 사용하며 고정 sleep이 없다.
+Full은 대규모 개편, 브라우저 지원·폰트·레이아웃 체계 변경, 광범위한 기준 갱신 시 이유를 밝히고 선택하는 확장 검사다. 매 변경·배포마다 의무가 아니다. Chromium/WebKit 각각 360×800, 375×812, 390×844, 430×932, 768×1024, 1440×900. 1440 프로젝트의 stress 테스트에서 599/600, 899/900 경계를 입력·결과·상세에 추가 검사한다. 전체 배치·상호작용과 검토된 기준 이미지 비교를 수행한다.
+
+기본 실행은 Fast 27개, 대표 36개, Full 108개다. 기능·배치·보안 관련 assertion은 유지하며 범위만 선택한다. `--grep 'detail:|missing:'`, `'error:'`, `'empty:'`, `'comments:'`, `'stress:'`도 지원한다. DOM 준비·폰트 준비·이미지 로드·assertion과 Playwright 자동 대기를 사용하며 고정 sleep이 없다.
 
 ## 페이지·상태와 준비 조건
 
@@ -71,7 +74,7 @@ npx playwright show-trace output/ui/results/<실패한-테스트>/trace.zip
 
 `output/ui/results.json`, HTML report, 실패 screenshot, error-context, trace가 생성된다. 별도 실행 전에 보존하려면 해당 디렉터리를 `output/ui/<실행명>` 아래 복사한다. trace가 없는 댓글 실패는 screenshot/DOM 상태/서버 로그로 분석한다. 실행 기록과 이전 실패 증거의 경로는 `docs/ui-verification.md`에 있다.
 
-스크린샷과 DOM 좌표로 실제 가림/넘침 원인을 찾고, trace에서 URL·제출 파라미터·응답 상태를 확인한다. 원인을 수정한 후 영향 범위 Fast/Full을 다시 실행한다. assertions 삭제·skip·비교 허용치 증가로 실패를 숨기지 않는다. 네이티브 검증 말풍선처럼 의도된 중첩은 먼저 해당 상태를 확인한 뒤 Escape 및 Tab으로 다음 컨트롤에 초점을 옮겨 닫는다.
+스크린샷과 DOM 좌표로 실제 가림/넘침 원인을 찾고, trace에서 URL·제출 파라미터·응답 상태를 확인한다. 원인을 수정한 후 영향 검사를 먼저 다시 실행한다. 새 변경·실패·미해결 우려 없이 성공한 전체 검사를 반복하지 않는다. assertions 삭제·skip·비교 허용치 증가로 실패를 숨기지 않는다. 네이티브 검증 말풍선처럼 의도된 중첩은 먼저 해당 상태를 확인한 뒤 Escape 및 Tab으로 다음 컨트롤에 초점을 옮겨 닫는다.
 
 ## 기준 생성·갱신·검토
 
@@ -84,9 +87,10 @@ UI_LAYOUT_ONLY=1 UI_CAPTURE=1 npm run test:ui:full
 npm run test:ui:full -- --update-snapshots=all
 # 의도한 단일 화면/브라우저만 갱신할 때
 npm run test:ui:full -- --grep 'detail:' --project=webkit-390 --update-snapshots=all
-# 변경된 PNG diff 검토 후 반드시 일반 Full 재실행
+# 변경된 PNG diff 검토 후 해당 시각 비교를 갱신 없이 재실행
 git diff --stat -- tests/ui/baselines
-npm run test:ui:full
+npm run test:ui:full -- --grep 'detail:' --project=webkit-390
+# 광범위한 변경이면 전체 Full로 확대
 ```
 
 이번 초기 기준 생성에서 사용한 절차다. `UI_LAYOUT_ONLY`는 후보 검토를 위한 로컬 절차이며 완료 검사나 일반 CI 명령에 사용하지 않는다. 폰트는 `static/fonts/laptopgg-sans.woff2`로 고정하고 모든 glyph를 유지했다. 라이선스/변환 출처도 해당 디렉터리에 보관한다.
@@ -95,8 +99,8 @@ Playwright 1.64.0, Chromium 156, WebKit 27.2, Linux Ubuntu 24.04에서 기준을
 
 ## CI와 로컬 차이
 
-`.github/workflows/ui.yml`은 재사용 workflow이며 `ci.yml`이 한 번 호출한다. CI의 `deploy` job은 `needs: [ui, test]`로 UI Full과 서버 검사가 모두 성공한 뒤에만 `deploy-web.yml`을 호출한다. 배포는 같은 workflow run의 `web-release-<sha>` artifact를 내려받아 사용하며 검사·DB 준비·JAR 빌드를 반복하지 않는다. main push와 CI workflow의 수동 실행이 같은 경로를 따른다. 수동 배포는 `gh workflow run ci.yml --ref main`으로 실행한다. PR에서는 배포·운영용 artifact 업로드가 실행되지 않는다. UI는 H2라 별도 DB service가 필요 없고, 서버 단위/PostgreSQL 통합 테스트는 기존 job의 PostgreSQL 16 service DB를 사용한다. 일반 CI는 기준 갱신 인자가 없다.
+`.github/workflows/ui.yml`은 재사용 workflow이며 `ci.yml`이 한 번 호출한다. CI 기본은 대표 36개이며 수동 실행의 `full=true`로 108개 Full을 선택한다. CI의 `deploy` job은 `needs: [ui, test]`로 선택한 UI 검사와 서버 검사가 모두 성공한 뒤에만 `deploy-web.yml`을 호출한다. 배포는 같은 workflow run의 `web-release-<sha>` artifact를 내려받아 사용하며 검사·DB 준비·JAR 빌드를 반복하지 않는다. main push와 CI workflow의 수동 실행이 같은 경로를 따른다. 수동 배포는 `gh workflow run ci.yml --ref main`으로 실행한다. 넓은 위험이 있을 때는 `gh workflow run ci.yml --ref main -f full=true`를 사용한다. feature 브랜치를 `--ref`로 지정하면 검사만 수행하고 배포하지 않는다. PR에서는 배포·운영용 artifact 업로드가 실행되지 않는다. UI는 H2라 별도 DB service가 필요 없고, 서버 단위/PostgreSQL 통합 테스트는 기존 job의 PostgreSQL 16 service DB를 사용한다. 일반 CI는 기준 갱신 인자가 없다.
 
-실패 시 HTML·스크린샷·trace·JSON을 `ui-full-<run_id>` artifact에 14일 보관한다. 로컬 `output/`은 Git에 넣지 않는다. 로컬은 증거를 수동 보관하고 CI는 자동 artifact 업로드한다.
+실패 시 HTML·스크린샷·trace·JSON을 `ui-checks-<run_id>` artifact (기존 실행은 `ui-full-<run_id>`)에 14일 보관한다. 로컬 `output/`은 Git에 넣지 않는다. 로컬은 증거를 수동 보관하고 CI는 자동 artifact 업로드한다.
 
-2026-10-14 GitHub API 조회에서 main branch protection은 `Branch not protected`(404), rulesets는 `[]`였다. PR 병합 차단을 보장하지 않는다. 관리자가 이 변경으로 실행되는 `UI Full / UI Full` 체크와 기존 `test` 체크를 required로 지정하고, 우회/관리자 정책을 검토해야 한다. 실제 Actions 실행의 체크 이름을 확인한 뒤 지정한다. 후속 요청으로 원격 push·병합·배포를 실행했다. 보호 설정은 변경하지 않았다. 실행 결과는 `docs/ui-verification.md` 및 `output/deploy/record.md`에 기록한다.
+2026-10-14 GitHub API 조회에서 main branch protection은 `Branch not protected`(404), rulesets는 `[]`였다. PR 병합 차단을 보장하지 않는다. 관리자가 이 변경으로 실행되는 `UI Checks / UI Checks` 체크(새 설정의 예상 이름, 원격 실행으로 확인)와 기존 `test` 체크를 required로 지정하고, 우회/관리자 정책을 검토해야 한다. 실제 Actions 실행의 체크 이름을 확인한 뒤 지정한다. 후속 요청으로 원격 push·병합·배포를 실행했다. 보호 설정은 변경하지 않았다. 실행 결과는 `docs/ui-verification.md` 및 `output/deploy/record.md`에 기록한다.

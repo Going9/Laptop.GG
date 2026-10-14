@@ -269,3 +269,37 @@ GitHub에서 새 pipeline의 실제 검사·artifact 다운로드·배포 결과
 
 리뷰 결론: 검사를 없애기보다 중복 실행과 불필요한 브라우저 왕복을 제거한다.
 CI 두 파일은 순 23줄 감소했다. 실제 휴대폰과 운영 댓글 쓰기는 검사하지 않았다.
+
+## 검증 정책 변경: Full은 선택 실행
+
+후속 요청에 따라 최초 전체 UI 개편의 검수 기준과 일상 개발 규칙을 분리했다.
+전역 `/home/going9/.codex/AGENTS.md`에는 영향·위험에 맞는 최소 검증, 성공 검사
+중복 금지, 실패/변경 화면 우선 증거 확인, 핵심 동작·보안·접근성 보존을 추가했다.
+저장소 AGENTS.md와 실행 문서도 같은 기준을 적용한다.
+
+로컬은 UI와 무관한 변경에 UI 검사를 강제하지 않고, 단일 화면은 해당 Fast/시각
+검사, 공통 UI는 대표 모바일·데스크톱·WebKit/경계 검사를 선택한다. CI 기본은
+`npm run test:ui:check`의 36개(Chromium/WebKit 각각 360×800·1440×900,
+시각 비교 포함)다. Full 108개와 기준 이미지 120개는 보존하며 대규모 변경 때
+수동 CI의 `full=true` 또는 로컬 Full로 선택한다. `needs: [ui, test]`와 같은 run의
+검증 JAR 전달·배포는 유지한다. CI 기본 대표 검사는 PR/main에서 실행되며,
+UI 영향 없는 변경에 대한 로컬 검사 선택과는 구분된다.
+
+이번에는 검사 내용·화면·서버를 바꾸지 않았으므로 이전 성공한 브라우저/빌드를
+반복하지 않고 변경된 명령 선택과 workflow를 정적으로 검증했다.
+
+실제 실행:
+
+- `output/tools/actionlint .github/workflows/*.yml`: workflow 4개 문법/표현식 검사 성공.
+- `npm run test:ui:fast -- --list`: 27개 수집.
+- `npm run test:ui:check -- --list`: 36개 수집.
+- `npm run test:ui:full -- --list`: 108개 수집.
+- YAML assertion: 두 Full 입력의 기본 false, 대표/Full 상호 배타적 선택,
+  수동 실행만 Full 선택, deploy의 ui/test 의존성 유지 확인.
+- `git diff --check`: 성공.
+
+수집 결과는 브라우저 테스트 성공 수가 아니다. 이번 브라우저 실행 수는 0이며,
+새 서버/DB·브라우저·Full·Gradle 빌드를 시작하지 않았다.
+증거: `output/ui/policy-{fast,check,full}-list.txt`.
+원격 push·병합·배포·보호 설정은 이번 지침 변경에서 실행하지 않았다.
+전역 파일은 저장소 밖에 있으므로 Git 커밋에 포함하지 않는다.
