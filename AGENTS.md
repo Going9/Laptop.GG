@@ -45,3 +45,8 @@ UI 테스트는 `:web-app:uiServer` 테스트 클래스패스, loopback:18080, �
 ## 완료 보고
 
 변경 화면/동작·디자인 결정·주요 파일, 실제 명령·성공/실패/skip 수, 브라우저/뷰포트, 직접 시각 검토한 화면, MCP 결과/미사용 이유, 보고서/스크린샷/trace 위치, CI와 실제 배포 의존성, 미검증 사항을 보고한다. 고정 fixture 화면과 실제 DB에 제출/저장한 통합 동작을 구분한다. 실행하지 못한 검사를 성공이라고 하지 않는다. 외부 branch protection은 확인 없이 보장하지 않는다.
+
+정적 CSS·JavaScript·폰트는 Spring content resource chain과 Thymeleaf `@{...}`로
+내용 해시 URL을 생성한다. 공통 템플릿에 원본 정적 파일 경로를 직접 쓰지 말고,
+CSS 안의 폰트 URL과 preload URL이 같은 버전인지 검사한다. 배포 후 CDN을 거친
+공개 브라우저에서 리소스 반영도 확인한다.

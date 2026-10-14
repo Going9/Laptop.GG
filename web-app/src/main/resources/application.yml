@@ -12,6 +12,14 @@ spring:
   config:
     import: classpath:/laptopgg-persistence.yml
 
+  web:
+    resources:
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
+
   lifecycle:
     timeout-per-shutdown-phase: ${SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE:20s}
 
