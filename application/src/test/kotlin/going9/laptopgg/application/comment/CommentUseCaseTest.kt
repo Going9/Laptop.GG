@@ -52,6 +52,33 @@ class CommentUseCaseTest {
     }
 
     @Test
+    fun `255 character content can be created and updated`() {
+        val password = java.util.UUID.randomUUID().toString()
+        val content = "가".repeat(255)
+        addCommentUseCase.add(AddCommentCommand(1L, "UI", content, password))
+        val id = commentPort.records.values.single().id
+
+        updateCommentUseCase.update(id, UpdateCommentCommand(password, "나".repeat(255)))
+
+        assertThat(commentPort.records.getValue(id).content).isEqualTo("나".repeat(255))
+    }
+
+    @Test
+    fun `oversized create and update are rejected before database work`() {
+        val password = java.util.UUID.randomUUID().toString()
+        val content = "가".repeat(256)
+        assertThatThrownBy { addCommentUseCase.add(AddCommentCommand(1L, "UI", content, password)) }
+            .isInstanceOf(InvalidCommandException::class.java)
+        assertThatThrownBy { updateCommentUseCase.update(7L, UpdateCommentCommand(password, content)) }
+            .isInstanceOf(InvalidCommandException::class.java)
+
+        assertThat(commentPort.records).isEmpty()
+        assertThat(commentPort.findMutationByIdCalls).isZero()
+        assertThat(passwordHashPort.hashCalls).isZero()
+        assertThat(transactionPort.writeCalls).isZero()
+    }
+
+    @Test
     fun `add hashes password outside transaction and keeps database work scoped`() {
         addCommentUseCase.add(AddCommentCommand(laptopId = 1L, author = "iggy", content = "좋아요", password = "pw"))
 

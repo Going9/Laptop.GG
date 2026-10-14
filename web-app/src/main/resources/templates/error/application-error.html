@@ -4,8 +4,8 @@
 <body class="app-body page-error">
 <header th:replace="~{fragments/layout :: siteHeader}"></header>
 
-<main class="page-shell error-shell">
-    <section class="error-panel reveal delay-010">
+<main id="main-content" tabindex="-1" class="page-shell error-shell">
+    <section class="error-panel">
         <p class="eyebrow" th:text="${statusCode}"></p>
         <h1 class="section-title" th:text="${errorTitle}"></h1>
         <p class="section-lead" th:text="${errorMessage}"></p>

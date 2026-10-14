@@ -1,0 +1,9 @@
+{
+  "name": "laptopgg-ui", "private": true,
+  "scripts": {
+    "test:ui:fast": "playwright test --config=tests/ui/playwright.config.js",
+    "test:ui:full": "UI_FULL=1 playwright test --config=tests/ui/playwright.config.js",
+    "test:ui:server": "node tests/ui/server.mjs"
+  },
+  "devDependencies": { "@playwright/test": "1.64.0" }
+}

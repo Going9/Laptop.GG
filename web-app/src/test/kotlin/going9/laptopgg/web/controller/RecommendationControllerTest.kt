@@ -51,7 +51,7 @@ class RecommendationControllerTest {
                 ),
             )
 
-        val response = controller.recommendLaptops(request, page = 0, size = 10, sort = null)
+        val response = controller.recommendLaptops(request, page = 0, size = 10, parameters = org.springframework.util.LinkedMultiValueMap())
 
         assertThat(response.content).containsExactly(LaptopRecommendationListResponse.from(laptop))
         assertThat(response.page).isEqualTo(0)

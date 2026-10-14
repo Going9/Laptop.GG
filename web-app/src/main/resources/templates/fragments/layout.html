@@ -5,26 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${pageTitle}">LaptopGG</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="/fonts/laptopgg-sans.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" th:href="@{/styles.css}">
+    <script defer th:src="@{/ui.js}"></script>
 </head>
 <body>
-<header th:fragment="siteHeader" class="site-header">
+<th:block th:fragment="siteHeader">
+<a class="skip-link" href="#main-content">본문으로 건너뛰기</a>
+<header class="site-header">
     <a class="site-brand" href="/recommends">
         <span class="site-brand-mark">LaptopGG</span>
         <span class="site-brand-note">노트북 추천 가이드</span>
     </a>
     <a class="header-action" href="/recommends">추천받기</a>
 </header>
+</th:block>
 
 <th:block th:fragment="recommendationHiddenFields">
-    <input type="hidden" th:field="*{budget}">
-    <input type="hidden" th:field="*{maxWeightKg}">
+    <input type="hidden" name="budget" th:value="*{budget}">
+    <input type="hidden" name="maxWeightKg" th:value="*{maxWeightKg}">
     <input type="hidden" name="screenSizes" th:each="screenSize : *{screenSizes}" th:value="${screenSize}">
-    <input type="hidden" th:field="*{screenSizeMode}">
-    <input type="hidden" th:field="*{useCase}">
+    <input type="hidden" name="screenSizeMode" th:value="*{screenSizeMode}">
+    <input type="hidden" name="useCase" th:value="*{useCase}">
+</th:block>
+<th:block th:fragment="productImage(url, name)">
+    <img th:src="${#strings.isEmpty(url) ? '/image-placeholder.svg' : url}"
+         th:alt="${name}" data-product-image loading="lazy" decoding="async" width="640" height="400">
 </th:block>
 </body>
 </html>

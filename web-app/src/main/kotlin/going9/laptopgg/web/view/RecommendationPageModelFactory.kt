@@ -14,9 +14,9 @@ internal class RecommendationPageModelFactory(
     private val screenSizePresentation: RecommendationScreenSizePresentation,
     private val presetCatalog: RecommendationPresetCatalog,
 ) {
-    fun formPage(): RecommendationFormPageModel {
+    fun formPage(request: LaptopRecommendationRequest = LaptopRecommendationRequest()): RecommendationFormPageModel {
         return RecommendationFormPageModel(
-            laptopRecommendationRequest = LaptopRecommendationRequest(),
+            laptopRecommendationRequest = request,
             screenSizeList = LaptopRecommendationRequest.ALL_SELECTABLE_SCREEN_SIZES,
             screenSizeModeOptions = screenSizePresentation.options(),
             useCaseOptions = useCasePresentation.options(),

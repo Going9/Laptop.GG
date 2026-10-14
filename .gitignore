@@ -49,3 +49,9 @@ out/
 output/
 LaptopGG.sqlite
 docker-compose.local.yml
+
+### UI verification ###
+node_modules/
+playwright-report/
+test-results/
+.playwright-mcp/

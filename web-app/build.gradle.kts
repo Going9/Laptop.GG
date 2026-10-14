@@ -2,6 +2,14 @@ plugins {
     id("org.springframework.boot")
 }
 
+tasks.register<JavaExec>("uiServer") {
+    group = "verification"
+    description = "Run the isolated UI fixture server (test classpath only)."
+    dependsOn(tasks.named("testClasses"))
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("going9.laptopgg.ui.UiTestServerKt")
+}
+
 dependencies {
     implementation(project(":application"))
     implementation(project(":recommendation-contract"))

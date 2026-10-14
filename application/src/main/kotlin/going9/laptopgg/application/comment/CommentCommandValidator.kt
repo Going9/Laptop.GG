@@ -6,7 +6,7 @@ internal object CommentCommandValidator {
     fun validateAdd(command: AddCommentCommand) {
         requirePositiveId(fieldName = "laptopId", value = command.laptopId)
         requireNonBlank(fieldName = "author", value = command.author)
-        requireNonBlank(fieldName = "content", value = command.content)
+        requireContent(command.content)
         requireNonBlank(fieldName = "password", value = command.password)
     }
 
@@ -19,7 +19,7 @@ internal object CommentCommandValidator {
     }
 
     fun validateUpdate(command: UpdateCommentCommand) {
-        requireNonBlank(fieldName = "content", value = command.content)
+        requireContent(command.content)
         requireNonBlank(fieldName = "password", value = command.password)
     }
 
@@ -29,6 +29,13 @@ internal object CommentCommandValidator {
 
     fun normalizeDisplayText(value: String): String {
         return value.trim()
+    }
+
+    private fun requireContent(value: String) {
+        requireNonBlank(fieldName = "content", value = value)
+        if (value.length > 255) {
+            throw InvalidCommandException("content must be at most 255 characters.")
+        }
     }
 
     private fun requirePositiveId(fieldName: String, value: Long) {
