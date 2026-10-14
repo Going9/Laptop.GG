@@ -139,10 +139,10 @@ CI에서는 `POSTGRES_INTEGRATION_TESTS=true`로 PostgreSQL/Flyway 마이그레�
 
 ## 웹 배포
 
-`main` 브랜치에 push 하면 `.github/workflows/deploy-web.yml` 이 실행됩니다.
+`main` push 또는 CI workflow 수동 실행(`gh workflow run ci.yml --ref main`) 시 CI에서 검사한 뒤 `.github/workflows/deploy-web.yml`을 호출합니다.
 
 배포 순서:
-1. GitHub Actions가 JDK 17과 PostgreSQL 16 service DB로 `test`와 `bootJar`를 실행합니다.
+1. CI가 UI Full과 JDK 17·PostgreSQL 16 서버 검사를 병렬 실행하고 검증한 web JAR를 artifact로 보관합니다. 두 job이 모두 성공해야 배포가 시작됩니다. 배포 단계는 검사와 빌드를 반복하지 않습니다.
 2. 생성된 jar를 `/home/ubuntu/laptopgg/releases/<sha>/`에 업로드합니다.
 3. 앱 서버에서 `/home/ubuntu/laptopgg/app.jar` symlink를 새 release로 전환합니다.
 4. `laptopgg.service`를 재시작하고 `/actuator/health/readiness`를 확인합니다.

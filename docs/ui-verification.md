@@ -221,3 +221,51 @@ false였다. 비밀번호 노출을 막기 위해 댓글 trace는 기존 설정�
 - `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:full`: 108 성공, 실패·건너뜀 0.
 - 120개 기준 이미지의 SHA-256 불변. `output/deploy/font-ready-{fast,full}.log`와
   `font-ready-full-report/index.html`에 결과 보존.
+
+## Ponytail 리뷰: 검사 시간과 중복 제거
+
+후속 요청에 따라 UI 검사와 CI·배포 호출부를 리뷰하고 수정했다. 전제는 작은
+단일 웹 앱이며, 요청된 Fast/Full 브라우저·뷰포트·상태 범위를 유지하는 것이다.
+
+1. **수정 필요 — 동일 main 커밋 중복 검사/빌드.** CI와 독립 Deploy Web이 같은
+   Full 및 서버 테스트·빌드를 각각 실행했다. 실제 main CI의 폰트 검사가 실패한
+   동시에 별도 Deploy Web이 통과했다. CI의 배포 job이 `needs: [ui, test]`로 두
+   결과를 기다리게 하고, 같은 run의 `web-release-<sha>` JAR를 재사용하도록 했다.
+   Deploy Web은 호출 전용이며 검사·DB·JDK·빌드를 반복하지 않는다. 수동 실행도
+   `gh workflow run ci.yml --ref main`으로 같은 경로를 따른다. PR 배포는 금지된다.
+   기존 재시작·readiness·rollback·release retention은 그대로다.
+2. **수정 필요 — breakpoint 화면 재준비와 좌표 검사 왕복.** 원격 배포 전 Full
+   107 성공/1 실패에서 Chromium 1440 stress가 45초 제한을 넘겼다. 실패로 배포
+   job은 skipped였다. trace는 `waitForSelector` 1,043회/합계 16.12초,
+   `goto` 14회/합계 3.67초를 보여줬다. 같은 화면을 경계마다 다시 열고 제출하던
+   작업을 화면당 한 번으로 줄였고, 동일 이미지 비율·주요 컨트롤 hit-test·44px
+   검사를 브라우저 안에서 묶어 계산했다. 599/600·899/900의 세 화면과 모든
+   기존 assertion을 유지했다.
+
+첫 batch 검증은 21 성공/6 실패였다. 닫힌 `details` 자식은 rect가 있어도 표시되지
+않는다. 실패 스크린샷·보고서·DOM과 두 브라우저의 최소 재현으로 확인했으며,
+`checkVisibility()`와 CSS visibility로 원래 Playwright 표시 상태를 유지했다.
+실패 증거는 `output/deploy/lean-batch-failed-*`에 보존했다.
+
+수정 후 Fast 실제 명령:
+`JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:fast`
+— 27 성공, 실패·건너뜀 0; 동일 로컬 환경 전체 39.3초 → 22.9초,
+Chromium 1440 stress 15.4초 → 3.5초. JDK/의존성 캐시가 준비된 실행 비교이며
+처음 설치하거나 cold build하는 시간까지 이 수치로 보장하지 않는다.
+
+workflow 4개는 `output/tools/actionlint .github/workflows/*.yml` 통과.
+YAML graph assertion으로 deploy의 두 needs, main만 허용, 호출 전용 배포,
+중복 gradlew 없음, 동일 SHA artifact handoff를 확인했다.
+GitHub에서 새 pipeline의 실제 검사·artifact 다운로드·배포 결과는
+`output/deploy/record.md`에 이어서 기록한다.
+
+최적화 후 Full 실제 명령:
+`JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:full`
+— 108 성공, 실패·건너뜀 0; 같은 로컬 환경 1.8분 → 1.2분,
+120개 기준 이미지 SHA-256 불변. Chromium/WebKit 각 6개 뷰포트 및
+599/600·899/900 세 화면 검사는 유지했다. 증거:
+`output/deploy/lean-fast-final-report/`, `lean-full-final-report/`,
+`lean-batched-fast-final.log`, `lean-full-final.log`.
+
+리뷰 결론: 검사를 없애기보다 중복 실행과 불필요한 브라우저 왕복을 제거한다.
+CI 두 파일은 순 23줄 감소했다. 실제 휴대폰과 운영 댓글 쓰기는 검사하지 않았다.

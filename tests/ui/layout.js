@@ -41,25 +41,28 @@ async function layout(page) {
       (node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1))
       .map(node => ({text: node.textContent, width: node.clientWidth, scrollWidth: node.scrollWidth, height: node.clientHeight, scrollHeight: node.scrollHeight})));
   expect(clipped, 'Text/control clipping').toEqual([]);
-  for (const image of await page.locator('[data-product-image]').all()) {
-    await expect(image).toHaveJSProperty('complete', true);
-    expect(await image.evaluate(node => node.naturalWidth)).toBeGreaterThan(0);
-    const box = await image.boundingBox();
-    expect(box.width / box.height).toBeCloseTo(1.6, 1);
-    expect(await image.evaluate(node => getComputedStyle(node).objectFit)).toBe('contain');
+  const images = await page.locator('[data-product-image]').evaluateAll(nodes => nodes.map(node => {
+    const box = node.getBoundingClientRect();
+    return {complete: node.complete, naturalWidth: node.naturalWidth, ratio: box.width/box.height, fit: getComputedStyle(node).objectFit};
+  }));
+  for (const image of images) {
+    expect(image.complete).toBe(true);
+    expect(image.naturalWidth).toBeGreaterThan(0);
+    expect(image.ratio).toBeCloseTo(1.6, 1);
+    expect(image.fit).toBe('contain');
   }
   // Hit-test named navigation/actions, not every DOM node or intentional label/input nesting.
-  for (const control of await page.locator('button:not(:disabled), a.primary-button, a.secondary-button, a.ghost-button, a.tile-title, .header-action, summary').all()) {
-    if (!(await control.isVisible())) continue;
-    await control.scrollIntoViewIfNeeded();
-    const hit = await control.evaluate(node => {
+  const hits = await page.locator('button:not(:disabled), a.primary-button, a.secondary-button, a.ghost-button, a.tile-title, .header-action, summary').evaluateAll(nodes =>
+    nodes.filter(node => node.checkVisibility() && getComputedStyle(node).visibility === 'visible').map(node => {
+      node.scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});
       const rect = node.getBoundingClientRect();
       const target = document.elementFromPoint(rect.x + rect.width/2, rect.y + rect.height/2);
-      return {visible: node === target || node.contains(target), height: rect.height, text: node.textContent};
-    });
+      return {visible: node === target || node.contains(target), height: rect.height, text: node.textContent, title: node.classList.contains('tile-title')};
+    }));
+  for (const hit of hits) {
     expect(hit.visible, `Covered control: ${hit.text}`).toBe(true);
     // Product titles are text within a card; standalone actions must meet the touch target.
-    if (!(await control.evaluate(node => node.classList.contains('tile-title')))) expect(hit.height).toBeGreaterThanOrEqual(44);
+    if (!hit.title) expect(hit.height).toBeGreaterThanOrEqual(44);
   }
   await page.evaluate(() => window.scrollTo(0,0));
 }

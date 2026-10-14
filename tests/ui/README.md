@@ -95,8 +95,8 @@ Playwright 1.64.0, Chromium 156, WebKit 27.2, Linux Ubuntu 24.04에서 기준을
 
 ## CI와 로컬 차이
 
-`.github/workflows/ui.yml`은 재사용 workflow다. `ci.yml`과 `deploy-web.yml` 모두 호출하며 Deploy Web의 `deploy` job은 `needs: ui`로 UI Full 성공 후에만 실행된다. UI는 H2라 별도 DB service가 필요 없고, 서버 단위/PostgreSQL 통합 테스트는 기존 job의 PostgreSQL 16 service DB를 사용한다. 일반 CI는 기준 갱신 인자가 없다.
+`.github/workflows/ui.yml`은 재사용 workflow이며 `ci.yml`이 한 번 호출한다. CI의 `deploy` job은 `needs: [ui, test]`로 UI Full과 서버 검사가 모두 성공한 뒤에만 `deploy-web.yml`을 호출한다. 배포는 같은 workflow run의 `web-release-<sha>` artifact를 내려받아 사용하며 검사·DB 준비·JAR 빌드를 반복하지 않는다. main push와 CI workflow의 수동 실행이 같은 경로를 따른다. 수동 배포는 `gh workflow run ci.yml --ref main`으로 실행한다. PR에서는 배포·운영용 artifact 업로드가 실행되지 않는다. UI는 H2라 별도 DB service가 필요 없고, 서버 단위/PostgreSQL 통합 테스트는 기존 job의 PostgreSQL 16 service DB를 사용한다. 일반 CI는 기준 갱신 인자가 없다.
 
 실패 시 HTML·스크린샷·trace·JSON을 `ui-full-<run_id>` artifact에 14일 보관한다. 로컬 `output/`은 Git에 넣지 않는다. 로컬은 증거를 수동 보관하고 CI는 자동 artifact 업로드한다.
 
-2026-10-14 GitHub API 조회에서 main branch protection은 `Branch not protected`(404), rulesets는 `[]`였다. PR 병합 차단을 보장하지 않는다. 관리자가 이 변경으로 실행되는 `UI Full / UI Full` 체크와 기존 `test` 체크를 required로 지정하고, 우회/관리자 정책을 검토해야 한다. 실제 Actions 실행의 체크 이름을 확인한 뒤 지정한다. 이번 작업에서는 원격 push/병합/배포/보호 설정 변경을 실행하지 않았다.
+2026-10-14 GitHub API 조회에서 main branch protection은 `Branch not protected`(404), rulesets는 `[]`였다. PR 병합 차단을 보장하지 않는다. 관리자가 이 변경으로 실행되는 `UI Full / UI Full` 체크와 기존 `test` 체크를 required로 지정하고, 우회/관리자 정책을 검토해야 한다. 실제 Actions 실행의 체크 이름을 확인한 뒤 지정한다. 후속 요청으로 원격 push·병합·배포를 실행했다. 보호 설정은 변경하지 않았다. 실행 결과는 `docs/ui-verification.md` 및 `output/deploy/record.md`에 기록한다.

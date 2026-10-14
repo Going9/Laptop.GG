@@ -4,6 +4,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   ui:
@@ -51,3 +52,27 @@ jobs:
           POSTGRES_INTEGRATION_USERNAME: laptopgg
           POSTGRES_INTEGRATION_PASSWORD: laptopgg
         run: ./gradlew --no-daemon verifyStructure test :web-app:bootJar :crawler-job:bootJar
+
+      - name: Prepare web release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          JAR_PATH=$(find web-app/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*plain.jar' | head -n 1)
+          test -n "$JAR_PATH"
+          cp "$JAR_PATH" app-${GITHUB_SHA}.jar
+
+      - name: Preserve tested web release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v6
+        with:
+          name: web-release-${{ github.sha }}
+          path: app-${{ github.sha }}.jar
+          retention-days: 7
+          if-no-files-found: error
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [ui, test]
+    uses: ./.github/workflows/deploy-web.yml
+    permissions:
+      contents: read
+    secrets: inherit
