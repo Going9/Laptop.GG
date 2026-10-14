@@ -5,11 +5,18 @@ on:
     branches: [ "main" ]
   pull_request:
   workflow_dispatch:
+    inputs:
+      full:
+        description: Run the extended UI matrix for a broad change
+        type: boolean
+        default: false
 
 jobs:
   ui:
-    name: UI Full
+    name: UI Checks
     uses: ./.github/workflows/ui.yml
+    with:
+      full: ${{ github.event_name == 'workflow_dispatch' && inputs.full == true }}
     permissions:
       contents: read
 

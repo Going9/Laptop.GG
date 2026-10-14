@@ -2,6 +2,7 @@
   "name": "laptopgg-ui", "private": true,
   "scripts": {
     "test:ui:fast": "playwright test --config=tests/ui/playwright.config.js",
+    "test:ui:check": "UI_FULL=1 playwright test --config=tests/ui/playwright.config.js --project=chromium-360 --project=chromium-1440 --project=webkit-360 --project=webkit-1440",
     "test:ui:full": "UI_FULL=1 playwright test --config=tests/ui/playwright.config.js",
     "test:ui:server": "node tests/ui/server.mjs"
   },

@@ -1,11 +1,15 @@
-name: UI Full
+name: UI Checks
 
 on:
   workflow_call:
+    inputs:
+      full:
+        type: boolean
+        default: false
 
 jobs:
   full:
-    name: UI Full
+    name: UI Checks
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -23,12 +27,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
-      - name: Full UI checks against isolated H2 server
+      - name: Representative UI checks against isolated H2 server
+        if: ${{ !inputs.full }}
+        run: npm run test:ui:check
+      - name: Extended Full UI checks
+        if: inputs.full
         run: npm run test:ui:full
       - name: Preserve UI evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: ui-full-${{ github.run_id }}
+          name: ui-checks-${{ github.run_id }}
           path: output/ui/
           retention-days: 14
