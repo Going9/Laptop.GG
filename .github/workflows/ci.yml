@@ -60,6 +60,14 @@ jobs:
           POSTGRES_INTEGRATION_PASSWORD: laptopgg
         run: ./gradlew --no-daemon verifyStructure test :web-app:bootJar :crawler-job:bootJar
 
+      - name: Install nginx for isolated proxy checks
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y nginx
+
+      - name: Verify backup rollback and public proxy boundaries
+        run: python3 -m unittest discover -s tests/ops -v
+
       - name: Prepare web release
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |

@@ -15,11 +15,22 @@ The web app uses Spring Boot graceful shutdown with a 20s shutdown phase timeout
 
 ## Nginx Setup
 
-1. Copy `ops/nginx/laptopgg.conf` to `/etc/nginx/sites-available/laptopgg.conf`.
-2. Link it into `sites-enabled`.
-3. Run `sudo nginx -t && sudo systemctl reload nginx`.
-4. Confirm public pages are reachable.
-5. Confirm `/actuator/*` and `/api/crawl/*` are not publicly reachable.
+1. Copy `ops/nginx/laptopgg-http.conf` to `/etc/nginx/conf.d/laptopgg-http.conf` and `laptopgg-{headers,proxy}.conf` to `/etc/nginx/snippets/`.
+2. Copy `ops/nginx/laptopgg.conf` to `/etc/nginx/sites-available/laptopgg.conf` for initial setup. On existing TLS installations, retain Certbot's certificate/listen/redirect blocks and replace only the proxy blocks with the snippet includes.
+3. Link it into `sites-enabled`.
+4. Run `sudo nginx -t && sudo systemctl reload nginx`.
+5. Confirm public pages are reachable.
+6. Confirm `/actuator/*` and `/api/crawl/*` are not publicly reachable.
+
+The deploy profile binds Spring to `127.0.0.1`; external requests must pass through Nginx.
+Nginx accepts at most 16KiB request bodies and limits comment writes to 10/minute per visitor IP,
+with a burst of 10. GET requests do not consume that limit. Only Cloudflare's published networks
+may supply `CF-Connecting-IP`; other forwarding headers are overwritten or removed before proxying.
+Refresh the trusted ranges against https://www.cloudflare.com/ips/ when Cloudflare changes them.
+The proxy applies CSP, frame/content-type protections and a one-day HSTS policy. Run `nginx -t`
+before reloading and check the public site through the CDN after changes.
+
+Proxy tests use a synthetic local backend and loopback listeners; they never submit to production.
 
 ## Log Management
 
@@ -155,6 +166,28 @@ sudo -u postgres psql -d laptopgg -c "select name, setting from pg_settings wher
 ```
 
 ## DB Backup
+
+Install the verified daily backup on the DB VM:
+
+```bash
+sudo install -d -m 0755 /usr/local/lib/laptopgg
+sudo install -d -m 0700 -o postgres -g postgres /var/backups/laptopgg
+sudo install -m 0755 ops/postgres/backup.sh /usr/local/lib/laptopgg/backup.sh
+sudo install -m 0644 ops/systemd/laptopgg-backup.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now laptopgg-backup.timer
+sudo systemctl start laptopgg-backup.service
+sudo journalctl -u laptopgg-backup.service --no-pager
+```
+
+Each run makes a private custom-format dump, restores it into a separate temporary database,
+checks the core tables, and only then publishes the archive and removes archives older than 14 days.
+Failure leaves existing backups intact. Temporary files and the verification database are cleaned up.
+The timer runs at 18:05 UTC with up to five minutes of jitter; missed runs resume on boot.
+The job uses local PostgreSQL peer authentication as `postgres` and does not store passwords.
+The journal records `LAPTOPGG_BACKUP_VERIFIED` and restored table counts, not comment contents.
+Monitor the service result and copy encrypted backups to a separately managed external destination.
+Local backup/restore verification alone does not protect against losing the DB VM and its disk.
 
 Create backup from the DB server:
 
