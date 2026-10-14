@@ -7,8 +7,13 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
+import java.time.Instant
 
 interface CrawlerLaptopRepository : JpaRepository<Laptop, Long> {
+    @Modifying(flushAutomatically = true)
+    @Query("update Laptop l set l.priceCheckedAt = :checkedAt where l.id = :id")
+    fun recordPriceCheck(@Param("id") id: Long, @Param("checkedAt") checkedAt: Instant): Int
+
     @Query("select l.id from Laptop l where l.id > :afterId order by l.id")
     fun findIdsAfter(@Param("afterId") afterId: Long, pageable: Pageable): List<Long>
 

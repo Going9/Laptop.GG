@@ -22,6 +22,7 @@ internal class LaptopDetailJpaAdapter(
             imageUrl = imageUrl,
             detailPage = detailPage,
             price = price,
+            priceCheckedAt = priceCheckedAt,
             cpuManufacturer = cpuManufacturer,
             cpu = cpu,
             os = os,

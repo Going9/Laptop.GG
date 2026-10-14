@@ -10,6 +10,36 @@ import java.sql.DriverManager
 
 @EnabledIfEnvironmentVariable(named = "POSTGRES_INTEGRATION_TESTS", matches = "true")
 class PostgresFlywayMigrationTest {
+    @Test
+    fun `price freshness migration preserves known UTC observations and expires unknown prices`() {
+        val configuration = Flyway.configure()
+            .dataSource(PostgresIntegrationDatabase.jdbcUrl, PostgresIntegrationDatabase.username, PostgresIntegrationDatabase.password)
+            .locations("classpath:db/migration")
+            .cleanDisabled(false)
+        val previous = configuration.target("12").load()
+        previous.clean()
+        previous.migrate()
+        DriverManager.getConnection(PostgresIntegrationDatabase.jdbcUrl, PostgresIntegrationDatabase.username, PostgresIntegrationDatabase.password).use { connection ->
+            connection.createStatement().use { statement ->
+                statement.execute("""
+                    insert into laptop (name,image_url,detail_page,price)
+                    values ('Known','https://example.com/known.jpg','https://example.com/known',1000000),
+                           ('Unknown','https://example.com/unknown.jpg','https://example.com/unknown',1000000);
+                    insert into laptop_price_history(laptop_id,price,captured_at)
+                    select id,price,timestamp '2026-10-14 12:00:00' from laptop where name='Known';
+                """.trimIndent())
+            }
+            configuration.target("latest").load().migrate()
+            connection.createStatement().use { statement ->
+                statement.executeQuery("select name,price_checked_at from laptop order by name").use { rows ->
+                    assertThat(rows.next()).isTrue()
+                    assertThat(rows.getTimestamp(2).toInstant()).isEqualTo(java.time.Instant.parse("2026-10-14T12:00:00Z"))
+                    assertThat(rows.next()).isTrue()
+                    assertThat(rows.getTimestamp(2).toInstant()).isEqualTo(java.time.Instant.EPOCH)
+                }
+            }
+        }
+    }
 
     @Test
     fun `flyway migrations apply to an empty postgres database`() {

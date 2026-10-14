@@ -13,6 +13,22 @@ import org.junit.jupiter.api.Test
 
 class RecommendationCandidateFilteringIntegrationTest : RecommendationIntegrationTestSupport() {
     @Test
+    fun `expired prices are excluded from results and total count until confirmed again`() {
+        val fresh = fixtures.persistLaptop(name = "Fresh price", price = 1_000_000, cpuManufacturer = "인텔", cpu = "255H", graphicsType = "Arc 140T", batteryCapacity = 80.0, weight = 1.3, usages = listOf("사무/인강용"))
+        val stale = fixtures.persistLaptop(name = "Stale price", price = 900_000, cpuManufacturer = "인텔", cpu = "255H", graphicsType = "Arc 140T", batteryCapacity = 80.0, weight = 1.3, usages = listOf("사무/인강용"))
+        crawlerTransactionPort.write {
+            laptopRepository.recordPriceCheck(stale.id!!, java.time.Instant.now().minusSeconds(49 * 3600))
+        }
+        val request = LaptopRecommendationQuery(budget = 1_500_000, maxWeightKg = 1.5, screenSizeMode = ScreenSizeMode.ANY)
+        val result = recommendLaptopsUseCase.recommend(request, page(0, 10))
+        assertThat(result.content.map { it.id }).containsExactly(fresh.id)
+        assertThat(result.totalElements).isEqualTo(1)
+
+        crawlerTransactionPort.write { laptopRepository.recordPriceCheck(stale.id!!, java.time.Instant.now()) }
+        assertThat(recommendLaptopsUseCase.recommend(request, page(0, 10)).totalElements).isEqualTo(2)
+    }
+
+    @Test
     fun `battery first includes high battery modern h and 300 series cpus`() {
         fixtures.persistLaptop(
             name = "Battery 255H",

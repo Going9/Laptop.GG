@@ -138,6 +138,7 @@ class SaveCrawledLaptopServiceTest {
         assertThat(profilePort.saved.first().laptopId).isEqualTo(7L)
         assertThat(recommendationScorePort.saved).hasSize(RecommendationUseCase.entries.size)
         assertThat(priceHistoryPort.saved).isEmpty()
+        assertThat(laptopPort.priceChecks).containsKey(7L)
     }
 
     @Test
@@ -320,6 +321,12 @@ class SaveCrawledLaptopServiceTest {
     }
 
     private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
+        val priceChecks = mutableMapOf<Long, java.time.Instant>()
+        override fun recordPriceCheck(laptopId: Long, checkedAt: java.time.Instant): Boolean {
+            priceChecks[laptopId] = checkedAt
+            return true
+        }
+
         override fun findIdsAfter(laptopId: Long, limit: Int): List<Long> =
             existingByProductCode.values.map { it.id }.filter { it > laptopId }.sorted().take(limit)
 

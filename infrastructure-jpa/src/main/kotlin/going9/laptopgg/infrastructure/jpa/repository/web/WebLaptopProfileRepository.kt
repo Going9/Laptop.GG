@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.Instant
 
 private const val PURCHASABLE_LAPTOP_NAME_CLAUSE = """
           and lower(l.name) not like '%구독%'
@@ -51,6 +52,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
           and l.price is not null
           and l.price > :minPriceExclusive
           and l.price <= :maxPrice
+          and l.priceCheckedAt >= :minimumPriceCheckedAt
 """ + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
           and (l.weight is null or l.weight <= :maxWeight)
           and (
@@ -101,6 +103,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
           and l.price is not null
           and l.price > :minPriceExclusive
           and l.price <= :maxPrice
+          and l.priceCheckedAt >= :minimumPriceCheckedAt
 """ + PURCHASABLE_LAPTOP_NAME_CLAUSE + """
           and (l.weight is null or l.weight <= :maxWeight)
           and (
@@ -117,6 +120,7 @@ interface WebLaptopProfileRepository : JpaRepository<LaptopProfile, Long> {
         """,
     )
     fun findRecommendationCandidatePage(
+        @Param("minimumPriceCheckedAt") minimumPriceCheckedAt: Instant,
         @Param("minPriceExclusive") minPriceExclusive: Int,
         @Param("maxPrice") maxPrice: Int,
         @Param("maxWeight") maxWeight: Double,

@@ -13,6 +13,13 @@ import org.junit.jupiter.api.Test
 
 class GetLaptopDetailUseCaseTest {
     @Test
+    fun `stale prices are hidden in the shared page and API detail result`() {
+        val record = laptopDetailRecord(id = 1L)
+        assertThat(record.toLaptopDetailResult().price).isNotNull()
+        assertThat(record.copy(priceCheckedAt = java.time.Instant.now().minusSeconds(49 * 3600)).toLaptopDetailResult().price).isNull()
+    }
+
+    @Test
     fun `detail query rejects invalid laptop id before persistence`() {
         val laptopPort = RecordingLaptopPort()
         val transactionPort = RecordingApplicationTransactionPort()
@@ -146,6 +153,7 @@ class GetLaptopDetailUseCaseTest {
             imageUrl = "https://example.com/laptop.jpg",
             detailPage = "https://prod.danawa.com/info/?pcode=1&cate=112758",
             price = 1_490_000,
+            priceCheckedAt = java.time.Instant.now(),
             cpuManufacturer = "인텔",
             cpu = "Core Ultra",
             os = "윈도우11홈",

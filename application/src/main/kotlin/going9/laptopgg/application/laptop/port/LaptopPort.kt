@@ -1,5 +1,7 @@
 package going9.laptopgg.application.laptop.port
 
+import java.time.Instant
+
 interface LaptopPort {
     fun findDetailById(laptopId: Long): LaptopDetailRecord?
 }
@@ -10,6 +12,7 @@ data class LaptopDetailRecord(
     val imageUrl: String,
     val detailPage: String,
     val price: Int?,
+    val priceCheckedAt: Instant,
     val cpuManufacturer: String?,
     val cpu: String?,
     val os: String?,

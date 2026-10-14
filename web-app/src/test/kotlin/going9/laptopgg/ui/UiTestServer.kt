@@ -39,8 +39,8 @@ class UiFixtureConfiguration {
                 val name = if (id == 1) "테스트 노트북 긴 제품명 문서 작업과 이동을 위한 가벼운 모델 2026 한글EnglishLongProductNameWithoutSpaces" else "테스트 노트북 %02d".format(id)
                 insert(
                     """insert into laptop (id, name, image_url, detail_page, price, cpu, cpu_manufacturer,
-                        os, screen_size, resolution, ram_size, ram_type, graphics_type, weight, battery_capacity, storage_capacity)
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        os, screen_size, resolution, ram_size, ram_type, graphics_type, weight, battery_capacity, storage_capacity, price_checked_at)
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp)""",
                     id, name, if (missing) "" else "/ui/laptop.svg", "/laptops/$id",
                     if (missing) null else 800000 + id * 10000, if (missing) null else "Core Ultra 5",
                     "인텔", if (missing) null else "Windows 11", if (missing) null else 14,
