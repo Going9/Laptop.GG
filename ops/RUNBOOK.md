@@ -29,6 +29,9 @@ may supply `CF-Connecting-IP`; other forwarding headers are overwritten or remov
 Refresh the trusted ranges against https://www.cloudflare.com/ips/ when Cloudflare changes them.
 The proxy applies CSP, frame/content-type protections and a one-day HSTS policy. Run `nginx -t`
 before reloading and check the public site through the CDN after changes.
+Cloudflare injects its Web Analytics beacon at the edge. CSP explicitly allows its script and
+collection origins from https://developers.cloudflare.com/web-analytics/faq/; local fixture pages
+alone cannot expose an edge-injected script regression.
 
 Proxy tests use a synthetic local backend and loopback listeners; they never submit to production.
 

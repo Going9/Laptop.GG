@@ -79,6 +79,8 @@ http {{
                     self.assertEqual(response.status, 204)
                     self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
                     self.assertIn("frame-ancestors 'none'", response.headers['Content-Security-Policy'])
+                    self.assertIn("script-src 'self' https://static.cloudflareinsights.com;", response.headers['Content-Security-Policy'])
+                    self.assertIn("connect-src 'self' https://cloudflareinsights.com;", response.headers['Content-Security-Policy'])
                     forged = request(headers={'CF-Connecting-IP': '198.51.100.12', 'X-Forwarded-For': '198.51.100.13', 'Forwarded': 'for=198.51.100.14;host=evil.example'})
                     self.assertEqual(forged.headers['Echo-For'], '127.0.0.1')
                     self.assertEqual(forged.headers['Echo-Forwarded'], 'none')
