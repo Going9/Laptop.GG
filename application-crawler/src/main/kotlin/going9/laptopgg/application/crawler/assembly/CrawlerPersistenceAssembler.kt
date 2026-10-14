@@ -13,11 +13,27 @@ import going9.laptopgg.application.crawler.price.LaptopPriceHistoryService
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
+import going9.laptopgg.application.crawler.profile.RebuildRecommendationProfilesService
+import going9.laptopgg.application.crawler.profile.RebuildRecommendationProfilesUseCase
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 
 object CrawlerPersistenceAssembler {
+    fun createRebuildRecommendationProfilesUseCase(
+        laptopPort: CrawledLaptopPersistencePort,
+        laptopProfilePort: CrawledLaptopProfilePort,
+        recommendationScorePort: RecommendationScorePort,
+        transactionPort: CrawlerTransactionPort,
+    ): RebuildRecommendationProfilesUseCase = RebuildRecommendationProfilesService(
+        laptopPort,
+        createLaptopProfileService(
+            laptopProfilePort, LaptopProfileFactory(),
+            createRecommendationScoreService(recommendationScorePort, transactionPort),
+        ),
+        transactionPort,
+    )
+
     fun createSaveCrawledLaptopUseCase(
         laptopPort: CrawledLaptopPersistencePort,
         laptopProfilePort: CrawledLaptopProfilePort,

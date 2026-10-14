@@ -12,6 +12,7 @@ import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopUsageR
 import going9.laptopgg.persistence.model.laptop.Laptop
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Component
+import org.springframework.data.domain.PageRequest
 
 @Component
 internal class CrawledLaptopPersistenceJpaAdapter(
@@ -19,6 +20,9 @@ internal class CrawledLaptopPersistenceJpaAdapter(
     private val laptopUsageRepository: CrawlerLaptopUsageRepository,
     private val entityManager: EntityManager,
 ) : CrawledLaptopPersistencePort {
+    override fun findIdsAfter(laptopId: Long, limit: Int): List<Long> =
+        laptopRepository.findIdsAfter(laptopId, PageRequest.of(0, limit))
+
     override fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot? {
         return laptopRepository.findListSnapshotById(laptopId)?.toPersistedCrawledListSnapshot()
     }

@@ -14,6 +14,7 @@ import going9.laptopgg.application.crawler.profile.GpuClassifier
 import going9.laptopgg.application.crawler.profile.LaptopProfileFactory
 import going9.laptopgg.application.crawler.profile.LaptopProfileService
 import going9.laptopgg.application.crawler.profile.ProfileScorePolicy
+import going9.laptopgg.application.crawler.profile.RebuildRecommendationProfilesService
 import going9.laptopgg.application.crawler.profile.UpsertCrawledLaptopProfileCommand
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
 import going9.laptopgg.application.crawler.recommendation.RecommendationScoreService
@@ -54,6 +55,23 @@ class SaveCrawledLaptopServiceTest {
         ),
         transactionPort = transactionPort,
     )
+
+    @Test
+    fun `profile rebuild pages through all existing laptops without changing products or price history`() {
+        for (id in 1L..101L) {
+            laptopPort.existingByProductCode["P$id"] = crawledLaptop(productCode = "P$id").toPersistedSnapshot(id)
+        }
+        val before = laptopPort.existingByProductCode.toMap()
+        val rebuild = RebuildRecommendationProfilesService(laptopPort, laptopProfileService, transactionPort)
+
+        assertThat(rebuild.rebuild()).isEqualTo(101)
+        assertThat(profilePort.saved.map { it.laptopId }).containsExactlyElementsOf((1L..101L).toList())
+        assertThat(recommendationScorePort.saved).hasSize(101 * RecommendationUseCase.entries.size)
+        assertThat(transactionPort.writeCount).isEqualTo(101)
+        assertThat(priceHistoryPort.saved).isEmpty()
+        assertThat(laptopPort.existingByProductCode).isEqualTo(before)
+        assertThat(rebuild.rebuild()).isEqualTo(101)
+    }
 
     @Test
     fun `saveOrUpdate runs profile score and price side effects inside one write transaction`() {
@@ -302,6 +320,9 @@ class SaveCrawledLaptopServiceTest {
     }
 
     private class InMemoryCrawledLaptopPersistencePort : CrawledLaptopPersistencePort {
+        override fun findIdsAfter(laptopId: Long, limit: Int): List<Long> =
+            existingByProductCode.values.map { it.id }.filter { it > laptopId }.sorted().take(limit)
+
         val existingByProductCode = mutableMapOf<String, PersistedCrawledLaptopSnapshot>()
         val listSnapshots = mutableMapOf<Long, PersistedCrawledListSnapshot>()
         val listUpdates = mutableListOf<ListSnapshotUpdate>()
@@ -315,7 +336,7 @@ class SaveCrawledLaptopServiceTest {
 
         override fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot? {
             findWithUsageCalls++
-            return null
+            return existingByProductCode.values.find { it.id == laptopId }
         }
 
         override fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot? = existingByProductCode[productCode]

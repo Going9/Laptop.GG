@@ -76,6 +76,15 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+      - name: Preserve tested crawler release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v6
+        with:
+          name: crawler-release-${{ github.sha }}
+          path: crawler-job/build/libs/crawler-job-*.jar
+          retention-days: 7
+          if-no-files-found: error
+
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: [ui, test]

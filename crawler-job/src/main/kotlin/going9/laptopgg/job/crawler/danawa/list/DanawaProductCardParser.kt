@@ -28,8 +28,10 @@ internal object DanawaProductCardParser {
                         ?: imageElement?.attr("data-original").orEmpty(),
                 )
 
-                val priceText = productItem.selectFirst(".prod_pricelist .text__number")?.text()
-                    ?: productItem.selectFirst(".price_sect a")?.text()
+                // Match the linked SKU; shipping offers and other storage options have separate prices.
+                val priceText = productItem.selectFirst(".prod_pricelist input[id=min_price_$productCode]")?.attr("value")
+                    ?: productItem.select(".prod_pricelist .price_sect a")
+                        .firstOrNull { extractQueryParam(it.attr("href"), "pcode") == productCode }?.text()
                 val price = parsePrice(priceText)
                 if (price != null && price <= MIN_PURCHASE_PRICE_EXCLUSIVE) {
                     return@mapNotNull null

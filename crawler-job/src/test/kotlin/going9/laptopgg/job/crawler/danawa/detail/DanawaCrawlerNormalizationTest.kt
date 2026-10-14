@@ -131,7 +131,7 @@ class DanawaCrawlerNormalizationTest {
               <li class="prod_item">
                 <a name="productName" href="https://prod.danawa.com/info/?pcode=123456&cate=112758&bookmark=foo">테스트 노트북</a>
                 <div class="prod_pricelist" data-cate="112|758|0|112758">
-                  <span class="text__number">1,234,000</span>
+                  <input id="min_price_123456" value="1,234,000">
                 </div>
                 <div class="thumb_image">
                   <img src="https://img.danawa.com/sample.jpg?shrink=330:330" />
@@ -153,7 +153,7 @@ class DanawaCrawlerNormalizationTest {
               <li class="prod_item">
                 <a name="productName" href="https://prod.danawa.com/info/?pcode=100691504&cate=112758">LG전자 2025 그램 프로16 16Z90TS-GU7WK</a>
                 <div class="prod_pricelist" data-cate="112|758|0|112758">
-                  <span class="text__number">899,000</span>
+                  <input id="min_price_100691504" value="899,000">
                 </div>
                 <span>가전 구독</span>
                 <div class="thumb_image">
@@ -163,7 +163,7 @@ class DanawaCrawlerNormalizationTest {
               <li class="prod_item">
                 <a name="productName" href="https://prod.danawa.com/info/?pcode=123456&cate=112758">정상 구매 노트북</a>
                 <div class="prod_pricelist" data-cate="112|758|0|112758">
-                  <span class="text__number">1,234,000</span>
+                  <input id="min_price_123456" value="1,234,000">
                 </div>
                 <div class="thumb_image">
                   <img src="https://img.danawa.com/purchase.jpg" />
@@ -183,7 +183,7 @@ class DanawaCrawlerNormalizationTest {
             <li class="prod_item">
               <a name="productName" href="https://prod.danawa.com/info/?pcode=123&cate=112758">리퍼비시 노트북</a>
               <div class="thumb_image"><img src="https://img.danawa.com/refurbished.jpg" /></div>
-              <div class="prod_pricelist" data-cate="860|869|0|112758"><span class="text__number">1,000,000</span></div>
+              <div class="prod_pricelist" data-cate="860|869|0|112758"><input id="min_price_123" value="1,000,000"></div>
             </li>
         """.trimIndent()
 
@@ -197,7 +197,7 @@ class DanawaCrawlerNormalizationTest {
               <li class="prod_item">
                 <a name="productName" href="https://prod.danawa.com/info/?pcode=200000&cate=112758">20만원 이하 노트북</a>
                 <div class="prod_pricelist" data-cate="112|758|0|112758">
-                  <span class="text__number">200,000</span>
+                  <input id="min_price_200000" value="200,000">
                 </div>
                 <div class="thumb_image">
                   <img src="https://img.danawa.com/low.jpg" />
@@ -206,7 +206,7 @@ class DanawaCrawlerNormalizationTest {
               <li class="prod_item">
                 <a name="productName" href="https://prod.danawa.com/info/?pcode=200001&cate=112758">20만원 초과 노트북</a>
                 <div class="prod_pricelist" data-cate="112|758|0|112758">
-                  <span class="text__number">200,001</span>
+                  <input id="min_price_200001" value="200,001">
                 </div>
                 <div class="thumb_image">
                   <img src="https://img.danawa.com/normal.jpg" />
