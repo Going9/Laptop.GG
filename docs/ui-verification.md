@@ -2,7 +2,7 @@
 
 2026-10-14, 브랜치 `feat/modern-ui-validation`.
 원래 체크아웃 main: `262d7f6b77324e20f081a826773ee1e359f05551`.
-원격 push·병합·운영 배포를 실행하지 않았다. 기존 미추적 `logs_83298507218/`는 건드리지 않았다.
+최초 UI 구현 검증 단계에서는 원격 push·병합·운영 배포를 실행하지 않았다. 기존 미추적 `logs_83298507218/`는 건드리지 않았다.
 
 ## 조사와 변경 범위
 
@@ -165,10 +165,36 @@ Playwright MCP가 사용 가능하여 Chromium 152.0.7977.75로 실제 로컬 �
 2026-10-14 GitHub API에서 main 보호 설정은 404 `Branch not protected`, rulesets는 `[]`.
 현재 병합 차단을 보장하지 않는다. 관리자가 실제 실행에 표시되는 `UI Full / UI Full`과
 기존 `test` 상태를 required로 지정하고 우회 정책을 설정해야 한다. 원격 workflow 실행과
-운영 배포는 수행하지 않았으므로 그 실행 결과를 성공으로 보고하지 않는다.
+최초 검증 시점에는 운영 배포를 수행하지 않았으며, 후속 배포 기록은 아래에 추가했다.
 
 ## 남은 검증 범위
 
 실제 휴대폰, 운영 데이터/계정/DB/API, 원격 Actions 실행, 네트워크 성능 측정은 수행하지
 않았다. CI의 같은 OS/브라우저/로컬 폰트 구성은 검토했으나 원격 실행으로 확인한 것은 아니다.
 운영 크롤러, 추천 알고리즘과 DB 스키마는 변경하지 않았다.
+
+## 후속 배포와 CDN 캐시 수정
+
+사용자의 후속 요청으로 PR #1을 병합하고 merge commit
+`cece7b822a68dffce7ce369280c52d3c7fde08c8`을 기존 Deploy Web workflow로 배포했다.
+PR CI와 배포 전 Full 모두 108 성공, 실패·건너뜀 0이었다.
+
+배포 후 curl 경로에서는 새 CSS·JS·폰트가 원본과 일치했으나 Playwright MCP가
+접근한 Cloudflare 경로에서 `/styles.css` 응답은 `CF-Cache-Status: HIT`,
+`Age: 4736`인 이전 CSS였다. 새 HTML과 섞여 360px 문서 폭이 383px이 됐다.
+`output/deploy/live-form-360.png`와 브라우저 CSSOM으로 확인했다.
+
+Spring의 내용 기반 resource chain을 활성화하고 폰트 preload도 Thymeleaf URL
+식으로 변경했다. 템플릿 CSS·JS URL 및 CSS 안의 폰트 URL이 내용 해시를 포함하게
+하고, 폼 UI 검사에서 해시 URL·200 응답·CSS/preload 일치를 검증한다.
+기준 이미지나 비교 허용치를 변경하지 않는다.
+구성 근거: [Spring Boot 3.5 정적 리소스 문서](https://docs.spring.io/spring-boot/3.5/reference/web/servlet.html#web.servlet.spring-mvc.static-content).
+
+후속 배포 결과와 공개 화면 증거는 `output/deploy/record.md`에 기록한다.
+
+캐시 수정 후 실제 실행:
+
+- `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:fast`: 27 성공, 실패·건너뜀 0.
+- `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 npm run test:ui:full`: 108 성공, 실패·건너뜀 0; 120개 기준 이미지 SHA-256 불변.
+- `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 ./gradlew --no-daemon :web-app:test :web-app:bootJar`: web-app 39개 검사, 실패·오류·건너뜀 0; 빌드 성공.
+- 결과: `output/deploy/cache-fix-{fast,full,server}.log` 및 `cache-fix-full-report/index.html`.

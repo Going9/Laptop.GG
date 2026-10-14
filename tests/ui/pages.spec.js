@@ -8,6 +8,18 @@ test.beforeEach(async ({context}) => {
 
 test('form: input, presets, selections, validation, keyboard and submit', async ({page}, info) => {
   await page.goto('/recommends');
+  // Deployment must not combine new HTML with a previous CDN-cached stylesheet or script.
+  for (const [selector, pattern] of [
+    ['link[rel="stylesheet"]', /^\/styles-[a-f0-9]{32}\.css$/],
+    ['script[src^="/ui-"]', /^\/ui-[a-f0-9]{32}\.js$/],
+    ['script[src^="/recommendation-form-"]', /^\/recommendation-form-[a-f0-9]{32}\.js$/],
+  ]) await expect(page.locator(selector)).toHaveAttribute(selector.startsWith('link') ? 'href' : 'src', pattern);
+  const font = await page.locator('link[as="font"]').getAttribute('href');
+  expect(font).toMatch(/^\/fonts\/laptopgg-sans-[a-f0-9]{32}\.woff2$/);
+  const css = await page.request.get(await page.locator('link[rel="stylesheet"]').getAttribute('href'));
+  expect(css.status()).toBe(200);
+  expect(await css.text()).toContain(font);
+  expect((await page.request.get(font)).status()).toBe(200);
   await layout(page);
   await visual(page, info, 'form');
   await page.keyboard.press('Tab');
