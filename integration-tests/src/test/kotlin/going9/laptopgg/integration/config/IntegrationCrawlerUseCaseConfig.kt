@@ -8,6 +8,7 @@ import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersist
 import going9.laptopgg.application.crawler.persistence.port.ExistingCrawledLaptopLookupPort
 import going9.laptopgg.application.crawler.price.port.LaptopPriceHistoryPort
 import going9.laptopgg.application.crawler.profile.port.CrawledLaptopProfilePort
+import going9.laptopgg.application.crawler.profile.RebuildRecommendationProfilesUseCase
 import going9.laptopgg.application.crawler.recommendation.port.RecommendationScorePort
 import going9.laptopgg.application.crawler.run.CrawlerRunLockService
 import going9.laptopgg.application.crawler.run.CrawlerRunLockUseCase
@@ -17,6 +18,16 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration(proxyBeanMethods = false)
 class IntegrationCrawlerUseCaseConfig {
+    @Bean
+    fun rebuildRecommendationProfilesUseCase(
+        laptopPort: CrawledLaptopPersistencePort,
+        laptopProfilePort: CrawledLaptopProfilePort,
+        recommendationScorePort: RecommendationScorePort,
+        transactionPort: CrawlerTransactionPort,
+    ): RebuildRecommendationProfilesUseCase = CrawlerPersistenceAssembler.createRebuildRecommendationProfilesUseCase(
+        laptopPort, laptopProfilePort, recommendationScorePort, transactionPort,
+    )
+
     @Bean
     fun saveCrawledLaptopService(
         laptopPort: CrawledLaptopPersistencePort,

@@ -7,6 +7,7 @@ import going9.laptopgg.application.crawler.persistence.UpdateCrawledListSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
 
 interface CrawledLaptopPersistencePort {
+    fun findIdsAfter(laptopId: Long, limit: Int): List<Long>
     fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot?
     fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot?
     fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot?

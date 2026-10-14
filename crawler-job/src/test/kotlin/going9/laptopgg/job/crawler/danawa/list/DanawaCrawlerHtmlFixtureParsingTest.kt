@@ -19,6 +19,41 @@ class DanawaCrawlerHtmlFixtureParsingTest {
     private val summaryFallbackParser = DanawaSummaryFallbackParser(CrawledCpuManufacturerResolver())
 
     @Test
+    fun `general minimum matches linked SKU and ignores shipping offers and other options`() {
+        val html = """
+            <li class="prod_item">
+              <a name="productName" href="https://prod.danawa.com/info/?pcode=78236909&cate=112758">ASUS 젠북 S 14 UX5406SA-PZ429W</a>
+              <div class="prod_pricelist" data-cate="860|869|10584|0">
+                <ul>
+                <li class="rocket-shipping"><span class="text__number">328,990</span></li>
+                <li><input id="min_price_79114262" value="2,900,000"></li>
+                <li><input id="min_price_78236909" value="2,629,000"></li>
+                </ul>
+              </div>
+            </li>
+        """.trimIndent()
+
+        assertThat(DanawaProductCardParser.parse(html).single().price).isEqualTo(2_629_000)
+    }
+
+    @Test
+    fun `price link fallback matches exact SKU and never uses shipping or another SKU price`() {
+        val html = """
+            <li class="prod_item">
+              <a name="productName" href="https://prod.danawa.com/info/?pcode=111&cate=112758">모델 A</a>
+              <div class="prod_pricelist" data-cate="860|869|10584|0">
+                <span class="text__number">328,990</span>
+                <p class="price_sect"><a href="https://prod.danawa.com/info/?pcode=222">999,000원</a></p>
+                <p class="price_sect"><a href="https://prod.danawa.com/info/?pcode=111">1,500,000원</a></p>
+              </div>
+            </li>
+        """.trimIndent()
+
+        assertThat(DanawaProductCardParser.parse(html).single().price).isEqualTo(1_500_000)
+        assertThat(DanawaProductCardParser.parse(html.replace("pcode=111\">1,500,000", "pcode=333\">1,500,000")).single().price).isNull()
+    }
+
+    @Test
     fun `list fixture keeps context and canonical product card fields`() {
         val html = readFixture("/fixtures/danawa/list-page.html")
 
@@ -70,12 +105,12 @@ class DanawaCrawlerHtmlFixtureParsingTest {
                   <li class="prod_item">
                     <a name="productName" href="https://prod.danawa.com/info/?pcode=111&cate=112758">모델 A</a>
                     <div class="thumb_image"><img src="https://img.danawa.com/a.jpg" /></div>
-                    <div class="prod_pricelist" data-cate="112|758|0|112758"><span class="text__number">1,000,000</span></div>
+                    <div class="prod_pricelist" data-cate="112|758|0|112758"><input id="min_price_111" value="1,000,000"></div>
                   </li>
                   <li class="prod_item">
                     <a name="productName" href="https://prod.danawa.com/info/?pcode=111&cate=112760">모델 A 변형</a>
                     <div class="thumb_image"><img src="https://img.danawa.com/b.jpg" /></div>
-                    <div class="prod_pricelist" data-cate="112|758|0|112760"><span class="text__number">2,000,000</span></div>
+                    <div class="prod_pricelist" data-cate="112|758|0|112760"><input id="min_price_111" value="2,000,000"></div>
                   </li>
                 </ul>
               </body>

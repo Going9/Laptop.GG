@@ -3,6 +3,11 @@ name: Crawl Laptops
 on:
   workflow_dispatch:
     inputs:
+      rebuild_profiles:
+        description: "저장된 스펙으로 전체 추천 점수만 재계산 (외부 수집 없음)"
+        required: false
+        default: false
+        type: boolean
       limit:
         description: "테스트용 처리 개수 제한. 숫자만 입력하세요. 예: 100"
         required: false
@@ -148,6 +153,10 @@ jobs:
           EXTRA_ARGS=""
           APP_ARGS="--spring.profiles.active=${SPRING_PROFILES_ACTIVE}"
 
+          if [ "${{ inputs.rebuild_profiles }}" = "true" ]; then
+            APP_ARGS="${APP_ARGS} --app.crawler.run-on-startup=false --app.crawler.rebuild-profiles=true"
+          fi
+
           if [ -n "${CRAWLER_LIMIT}" ]; then
             if ! printf '%s' "${CRAWLER_LIMIT}" | grep -Eq '^[1-9][0-9]*$'; then
               echo "CRAWLER_LIMIT must be a positive number like 100. Do not enter limit=100." >&2
@@ -213,7 +222,7 @@ jobs:
             echo
             if [ -f crawler.log ]; then
               echo '```'
-              grep 'CRAWLER_SUMMARY' crawler.log | tail -n 1 || tail -n 80 crawler.log
+              grep -E 'CRAWLER_SUMMARY|RECOMMENDATION_PROFILES_REBUILT' crawler.log | tail -n 1 || tail -n 80 crawler.log
               echo '```'
             else
               echo "Crawler log was not created."

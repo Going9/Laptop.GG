@@ -13,8 +13,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
+import org.springframework.data.domain.PageRequest
 
 class CrawledLaptopPersistenceJpaAdapterTest {
+    @Test
+    fun `profile rebuild uses ordered keyset pages`() {
+        val repository = Mockito.mock(CrawlerLaptopRepository::class.java)
+        Mockito.`when`(repository.findIdsAfter(100L, PageRequest.of(0, 100))).thenReturn(listOf(101L, 103L))
+        assertThat(adapter(repository).findIdsAfter(100L, 100)).containsExactly(101L, 103L)
+    }
+
     @Test
     fun `findListSnapshotById maps list projection without loading full laptop graph`() {
         val repository = Mockito.mock(CrawlerLaptopRepository::class.java)

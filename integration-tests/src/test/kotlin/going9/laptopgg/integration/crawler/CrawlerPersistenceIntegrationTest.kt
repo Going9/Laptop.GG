@@ -5,12 +5,14 @@ import going9.laptopgg.application.crawler.persistence.CrawledProductCardCommand
 import going9.laptopgg.application.crawler.persistence.LoadExistingCrawledLaptopLookupUseCase
 import going9.laptopgg.application.crawler.persistence.SaveCrawledLaptopUseCase
 import going9.laptopgg.application.crawler.persistence.SaveResult
+import going9.laptopgg.application.crawler.profile.RebuildRecommendationProfilesUseCase
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopProfileRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.CrawlerLaptopRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.LaptopPriceHistoryRepository
 import going9.laptopgg.infrastructure.jpa.repository.crawler.RecommendationScoreRepository
 import going9.laptopgg.persistence.model.laptop.Laptop
 import going9.laptopgg.persistence.model.laptop.LaptopUsage
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,6 +23,12 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest(properties = ["spring.profiles.active=test,crawler"])
 @Transactional
 class CrawlerPersistenceIntegrationTest {
+    @Autowired
+    lateinit var entityManager: EntityManager
+
+    @Autowired
+    lateinit var rebuildProfiles: RebuildRecommendationProfilesUseCase
+
     @Autowired
     lateinit var saveCrawledLaptopUseCase: SaveCrawledLaptopUseCase
 
@@ -45,6 +53,28 @@ class CrawlerPersistenceIntegrationTest {
         laptopPriceHistoryRepository.deleteAll()
         laptopProfileRepository.deleteAll()
         laptopRepository.deleteAll()
+    }
+
+    @Test
+    fun `profile rebuild repairs persisted projections without changing product or price history`() {
+        invokeSaveOrUpdate(laptop(name = "Rebuild", detailPage = "https://example.com/rebuild", productCode = "REBUILD", price = 1_000_000))
+        val profile = laptopProfileRepository.findAll().single()
+        profile.cpuPerformanceScore = 0
+        laptopProfileRepository.saveAndFlush(profile)
+        recommendationScoreRepository.findAll().forEach {
+            it.staticScore = 0.0
+            recommendationScoreRepository.saveAndFlush(it)
+        }
+        val historyCount = laptopPriceHistoryRepository.count()
+
+        assertThat(rebuildProfiles.rebuild()).isEqualTo(1)
+        entityManager.clear()
+        assertThat(laptopProfileRepository.findAll().single().cpuPerformanceScore).isPositive()
+        assertThat(recommendationScoreRepository.findAll()).hasSize(8).allSatisfy {
+            assertThat(it.staticScore).isPositive()
+        }
+        assertThat(laptopRepository.findAll().single().price).isEqualTo(1_000_000)
+        assertThat(laptopPriceHistoryRepository.count()).isEqualTo(historyCount)
     }
 
     @Test
