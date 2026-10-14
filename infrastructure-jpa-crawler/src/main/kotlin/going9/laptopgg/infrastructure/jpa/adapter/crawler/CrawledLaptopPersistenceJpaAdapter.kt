@@ -13,6 +13,7 @@ import going9.laptopgg.persistence.model.laptop.Laptop
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Component
 import org.springframework.data.domain.PageRequest
+import java.time.Instant
 
 @Component
 internal class CrawledLaptopPersistenceJpaAdapter(
@@ -20,6 +21,9 @@ internal class CrawledLaptopPersistenceJpaAdapter(
     private val laptopUsageRepository: CrawlerLaptopUsageRepository,
     private val entityManager: EntityManager,
 ) : CrawledLaptopPersistencePort {
+    override fun recordPriceCheck(laptopId: Long, checkedAt: Instant): Boolean =
+        laptopRepository.recordPriceCheck(laptopId, checkedAt) == 1
+
     override fun findIdsAfter(laptopId: Long, limit: Int): List<Long> =
         laptopRepository.findIdsAfter(laptopId, PageRequest.of(0, limit))
 

@@ -1,6 +1,7 @@
 package going9.laptopgg.application.laptop
 
 import going9.laptopgg.application.common.LaptopDisplayTextPolicy
+import going9.laptopgg.application.common.LaptopPriceFreshnessPolicy
 import going9.laptopgg.application.laptop.port.LaptopDetailRecord
 
 internal fun LaptopDetailRecord.toLaptopDetailResult(): LaptopDetailResult {
@@ -10,7 +11,7 @@ internal fun LaptopDetailRecord.toLaptopDetailResult(): LaptopDetailResult {
         imageUrl = imageUrl,
         manufacturer = LaptopDisplayTextPolicy.manufacturerName(name),
         detailPage = detailPage,
-        price = price,
+        price = price.takeIf { !priceCheckedAt.isBefore(LaptopPriceFreshnessPolicy.minimumCheckedAt()) },
         cpuManufacturer = cpuManufacturer,
         cpu = cpu,
         os = LaptopDisplayTextPolicy.humanizeOs(os),

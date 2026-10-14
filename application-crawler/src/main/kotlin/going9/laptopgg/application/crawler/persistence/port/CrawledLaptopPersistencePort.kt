@@ -5,9 +5,11 @@ import going9.laptopgg.application.crawler.persistence.PersistedCrawledListSnaps
 import going9.laptopgg.application.crawler.persistence.PersistedCrawledLaptopSnapshot
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledListSnapshotCommand
 import going9.laptopgg.application.crawler.persistence.UpdateCrawledLaptopCommand
+import java.time.Instant
 
 interface CrawledLaptopPersistencePort {
     fun findIdsAfter(laptopId: Long, limit: Int): List<Long>
+    fun recordPriceCheck(laptopId: Long, checkedAt: Instant): Boolean
     fun findListSnapshotById(laptopId: Long): PersistedCrawledListSnapshot?
     fun findWithUsageById(laptopId: Long): PersistedCrawledLaptopSnapshot?
     fun findByProductCode(productCode: String): PersistedCrawledLaptopSnapshot?

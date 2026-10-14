@@ -16,6 +16,7 @@ internal class RecommendationCandidateJpaAdapter(
 ) : RecommendationCandidatePort {
     override fun findRecommendationCandidatePage(query: RecommendationCandidatePageQuery): PagedResult<RecommendationCandidateRecord> {
         val page = laptopProfileRepository.findRecommendationCandidatePage(
+            minimumPriceCheckedAt = query.filter.minimumPriceCheckedAt,
             minPriceExclusive = query.filter.minPriceExclusive,
             maxPrice = query.filter.maxPrice,
             maxWeight = query.filter.maxWeight,

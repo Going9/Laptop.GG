@@ -24,6 +24,7 @@ class RecommendationCandidateJpaAdapterStateTest {
         val query = recommendationQuery()
         Mockito.`when`(
             repository.findRecommendationCandidatePage(
+                minimumPriceCheckedAt = query.filter.minimumPriceCheckedAt,
                 minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,
@@ -55,6 +56,7 @@ class RecommendationCandidateJpaAdapterStateTest {
         val query = recommendationQuery()
         Mockito.`when`(
             repository.findRecommendationCandidatePage(
+                minimumPriceCheckedAt = query.filter.minimumPriceCheckedAt,
                 minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,
@@ -82,6 +84,7 @@ class RecommendationCandidateJpaAdapterStateTest {
         val query = recommendationQuery()
         Mockito.`when`(
             repository.findRecommendationCandidatePage(
+                minimumPriceCheckedAt = query.filter.minimumPriceCheckedAt,
                 minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,
@@ -104,6 +107,7 @@ class RecommendationCandidateJpaAdapterStateTest {
     private fun recommendationQuery(): RecommendationCandidatePageQuery {
         return RecommendationCandidatePageQuery(
             filter = RecommendationCandidateFilter(
+                minimumPriceCheckedAt = java.time.Instant.parse("2026-10-13T00:00:00Z"),
                 minPriceExclusive = 200_000,
                 maxPrice = 2_000_000,
                 maxWeight = 2.0,

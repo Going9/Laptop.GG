@@ -3,6 +3,7 @@ package going9.laptopgg.application.crawler.persistence
 import going9.laptopgg.application.crawler.common.CrawlerResourceNotFoundException
 import going9.laptopgg.application.crawler.common.port.CrawlerTransactionPort
 import going9.laptopgg.application.crawler.persistence.port.CrawledLaptopPersistencePort
+import java.time.Instant
 
 internal class SaveCrawledLaptopService(
     private val laptopPort: CrawledLaptopPersistencePort,
@@ -34,6 +35,7 @@ internal class SaveCrawledLaptopService(
     private fun saveListSnapshotInTransaction(existingLaptopId: Long, productCard: CrawledProductCardCommand): SaveResult {
         val existingLaptop = laptopPort.findListSnapshotById(existingLaptopId)
             ?: throw CrawlerResourceNotFoundException("Laptop", existingLaptopId)
+        recordPriceCheck(existingLaptop.id, productCard.price)
         val updateCommand = updatePlanner.listSnapshotUpdate(existingLaptop, productCard)
 
         if (!updatePlanner.hasChanges(updateCommand)) {
@@ -68,6 +70,7 @@ internal class SaveCrawledLaptopService(
             return SaveResult.CREATED
         }
 
+        recordPriceCheck(existingLaptop.id, command.price)
         val updateCommand = updatePlanner.detailUpdate(existingLaptop, command)
         if (!updatePlanner.hasChanges(updateCommand)) {
             postSaveSynchronizer.afterDetailSnapshot(existingLaptop, previousPrice = existingLaptop.price)
@@ -90,5 +93,11 @@ internal class SaveCrawledLaptopService(
         laptopPort.findByDetailPage(command.detailPage)?.let { return it }
 
         return null
+    }
+
+    private fun recordPriceCheck(laptopId: Long, price: Int?) {
+        if (price != null && !laptopPort.recordPriceCheck(laptopId, Instant.now())) {
+            throw CrawlerResourceNotFoundException("Laptop", laptopId)
+        }
     }
 }
