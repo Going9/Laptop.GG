@@ -34,9 +34,9 @@ jobs:
         if: inputs.full
         run: npm run test:ui:full
       - name: Preserve UI evidence
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v6
         with:
           name: ui-checks-${{ github.run_id }}
           path: output/ui/
-          retention-days: 14
+          retention-days: 1
