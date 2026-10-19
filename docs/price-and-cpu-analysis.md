@@ -60,9 +60,10 @@ DB 스키마와 공개 API는 바꾸지 않는다.
 100개씩 ID를 조회하고 상품별 트랜잭션으로 프로필과 8개 용도 점수를 함께 저장한다.
 가격·상품 스펙·댓글·가격 이력은 변경하지 않는다. 중간 실패 후 전체 재실행할 수 있다.
 
-별도 실행이 필요한 경우 검증된 crawler JAR에 다음 인수를 사용한다.
-main CI는 `crawler-release-<sha>` artifact도 보관한다. DB 왕복 비용이 큰 전체
-재계산은 이 JAR를 운영 네트워크 안에서 실행할 수 있다.
+별도 실행이 필요하면 CI 검증을 통과한 커밋에서
+`./gradlew --no-daemon :crawler-job:bootJar`로 생성한 JAR에 다음 인수를 사용한다.
+DB 왕복 비용이 큰 전체 재계산은 이 JAR를 운영 네트워크 안에서 실행할 수 있다.
+크롤러 JAR는 Actions artifact에 보관하지 않는다.
 
 ```text
 --spring.profiles.active=postgres,crawler

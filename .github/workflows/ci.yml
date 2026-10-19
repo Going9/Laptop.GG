@@ -81,16 +81,7 @@ jobs:
         with:
           name: web-release-${{ github.sha }}
           path: app-${{ github.sha }}.jar
-          retention-days: 7
-          if-no-files-found: error
-
-      - name: Preserve tested crawler release
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v6
-        with:
-          name: crawler-release-${{ github.sha }}
-          path: crawler-job/build/libs/crawler-job-*.jar
-          retention-days: 7
+          retention-days: 1
           if-no-files-found: error
 
   deploy:
@@ -100,3 +91,22 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
+
+  cleanup:
+    if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [test, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Delete temporary deployment artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+            --jq '.artifacts[] | select(.name | startswith("web-release-")) | .id' |
+          while IFS= read -r artifact_id; do
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}"
+          done
